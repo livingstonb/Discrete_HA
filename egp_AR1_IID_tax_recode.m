@@ -260,7 +260,7 @@ else
 end    
 
 totgrossyhigh = max(ymat(:)-labtaxthresh,0)'*ymatdist(:);
-lumptransfer = labtaxlow*totgrossyhigh + labtaxhigh*totgrossyhigh;
+lumptransfer = labtaxlow*totgrossy + labtaxhigh*totgrossyhigh;
 netymat = lumptransfer + (1-labtaxlow)*ymat - labtaxhigh*max(ymat-labtaxthresh,0);
 meannety = netymat(:)'*ymatdist(:);
 
@@ -335,6 +335,7 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
             for col = 1:nyP*nyF*nb
                 interpol = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
                 c_xpT_wide(:,col) = interpol(x_s_wide(:,col));
+                % c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col));
             end
             c_xp(:,iyT)  = c_xpT_wide(:);
         end
