@@ -263,10 +263,10 @@ lumptransfer = labtaxlow*totgrossyhigh + labtaxhigh*totgrossyhigh;
 netymat = lumptransfer + (1-labtaxlow)*ymat - labtaxhigh*max(ymat-labtaxthresh,0);
 meannety = netymat(:)'*ymatdist(:);
 
-% xgrid, indexed by x,beta,yF,yP
-miny_x = repmat(min(netymat,[],2)',ns,1);
-xgrid = repmat(sgrid,nyP*nyF,1) + miny_x(:);
-xgrid = reshape(repmat(xgrid',nb,1),ns*nyF*nyP*nb,1);
+% xgrid, indexed by beta,yF,yP,x
+xgrid = repmat(sgrid,nb*nyP*nyF,1);
+miny_x = reshape(repmat(min(netymat,[],2)',ns*nb,1),ns*nb*nyP*nyF,1);
+xgrid = xgrid + miny_x;
 nx = ns;
 
 %% UTILITY FUNCTION, BEQUEST FUNCTION
@@ -293,7 +293,7 @@ EGP_it   = 0;
 sgrid_long = repmat(sgrid,nyP*nyF*nb,1);
 
 % initial guess for consumption function
-con = r * sgrid_long;
+con = r * xgrid;
 
 gridtrans = kron(betatrans,ytrans);
 % Expectations operator (conditional on yT)
@@ -317,16 +317,21 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
 
         % interpolate to get c(x') using c(x)
         % need new interpolant for each val of yP,yF,beta
-        x_s = (1+r) * repmat(sgrid,nyF*nyP*nb,1) + repmat(netymat,ns*nb,1);
+        netymat_long = zeros(N,nyT);
+        for iyT = 1:nyT
+            netymat_long(:,iyT) = reshape(repmat(netymat(:,iyT)',ns,1),ns*nyF*nyP,1);
+        end
+        x_s = (1+r)*repmat(sgrid,nyF*nyP*nb,nyT) + repmat(netymat_long,nb,1);
         conlast_wide = reshape(conlast,ns,nyP*nyF*nb);
         % initialize cons as function of x',yT
         c_xp = zeros(N,nyT);
-        xgrid_short = xgrid(1:nx);
+        
+        xgrid_wide = reshape(xgrid,ns,nyP*nyF*nb);
         for iyT = 1:nyT
         x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
             c_xpT_wide = zeros(ns,nyP*nyF*nb);
             for col = 1:nyP*nyF*nb
-            interpol = griddedInterpolant(xgrid_short,conlast_wide(:,col),'linear','linear');
+            interpol = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
             c_xpT_wide(:,col) = interpol(x_s_wide(:,col));
             end
             c_xp(:,iyT) = c_xpT_wide(:);
@@ -335,7 +340,7 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
         mucnext  = u1(c_xp);
         % muc this period as a function of s
         muc_s = (1-dieprob)*(1+r)*betamatrix*Emat*(mucnext*yTdist);
-        [con,sav] = EGP_fun(muc_s,sgrid,sgrid_long,xgrid_short,savtax,savtaxthresh,...
+        [con,sav] = EGP_fun(muc_s,sgrid,sgrid_long,xgrid_wide,savtax,savtaxthresh,...
                                 u1inv,r,borrow_lim,N);
 
         cdiff = max(abs(con-conlast))
