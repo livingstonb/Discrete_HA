@@ -198,16 +198,6 @@ betacumtrans = cumsum(betatrans,2);
 
 %% ASSET AND INCOME GRIDS
 
-% % cash on hand grids: different min points for each value of (iyP)
-% xgrid = zeros(nx,nyP,nyF);
-% for iyF = 1:nyF
-% for iyP = 1:nyP
-%     xgrid(:,iyP,iyF) = linspace(0,1,nx)';
-%     xgrid(:,iyP,iyF) = xgrid(:,iyP,iyF).^(1./xgrid_par);
-%     xgrid(:,iyP,iyF) = borrow_lim + min(netlabincgrid(iyP,:,iyF)) + (xmax-borrow_lim).*xgrid(:,iyP,iyF);
-% end
-% end
-
 sgrid_0 = linspace(0,1,nx)';
 sgrid_0 = sgrid_0.^(1./xgrid_par);
 sgrid_0 = borrow_lim + (xmax-borrow_lim).*sgrid_0;
@@ -236,6 +226,7 @@ states_y = gridmake(states_grid_y);
 % New xgrid may be necessary to avoid points of non-diff in spline
 % function??
 sgrid = unique(states_y(:,1)','stable')';
+sgrid_wide = repmat(sgrid,1,nyP*nyF*nb);
 
 ns = size(sgrid,1);
 
@@ -264,10 +255,11 @@ lumptransfer = labtaxlow*totgrossy + labtaxhigh*totgrossyhigh;
 netymat = lumptransfer + (1-labtaxlow)*ymat - labtaxhigh*max(ymat-labtaxthresh,0);
 meannety = netymat(:)'*ymatdist(:);
 
+
 % xgrid, indexed by beta,yF,yP,x
-xgrid = repmat(sgrid,nb*nyP*nyF,1);
+% cash on hand grid: different min points for each value of (iyP)
 miny_x = repmat(reshape(repmat(min(netymat,[],2)',ns,1),ns*nyP*nyF,1),nb,1);
-xgrid = xgrid + miny_x;
+xgrid = sgrid_wide(:) + miny_x;
 nx = ns;
 
 %% UTILITY FUNCTION, BEQUEST FUNCTION
@@ -291,7 +283,6 @@ beq1 = @(a) bequest_weight.*(a+bequest_luxury).^(-risk_aver);
 N = nyP*nyF*nx*nb;
 dist_EGP = 1;
 EGP_it   = 0;
-sgrid_long = repmat(sgrid,nyP*nyF*nb,1);
 
 % initial guess for consumption function
 con = r * xgrid;
@@ -318,11 +309,11 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
 
         % interpolate to get c(x') using c(x)
         % need new interpolant for each val of yP,yF,beta
-        netymat_long = zeros(N,nyT);
+        netymat_full = zeros(N,nyT);
         for iyT = 1:nyT
-            netymat_long(:,iyT) = repmat(reshape(repmat(netymat(:,iyT)',ns,1),ns*nyF*nyP,1),nb,1);
+            netymat_full(:,iyT) = repmat(reshape(repmat(netymat(:,iyT)',ns,1),ns*nyF*nyP,1),nb,1);
         end
-        x_s = (1+r)*repmat(sgrid,nyF*nyP*nb,nyT) + netymat_long;
+        x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat_full;
 
         conlast_wide = reshape(conlast,ns,nyP*nyF*nb);
         % initialize cons as function of x',yT
@@ -333,9 +324,9 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
             x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
             c_xpT_wide = zeros(ns,nyP*nyF*nb);
             for col = 1:nyP*nyF*nb
-                interpol = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
-                c_xpT_wide(:,col) = interpol(x_s_wide(:,col));
-                % c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col));
+                %interpol = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
+                %c_xpT_wide(:,col) = interpol(x_s_wide(:,col));
+                c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col));
             end
             c_xp(:,iyT)  = c_xpT_wide(:);
         end
@@ -343,16 +334,16 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
         mucnext  = u1(c_xp);
         % muc this period as a function of s
         muc_s = (1-dieprob)*(1+r)*betamatrix*Emat*(mucnext*yTdist);
-        [con,sav] = EGP_fun(muc_s,sgrid,sgrid_long,xgrid_wide,savtax,savtaxthresh,...
+        [con,sav] = EGP_fun(muc_s,sgrid_wide,xgrid_wide,savtax,savtaxthresh,...
                                 u1inv,r,borrow_lim,N);
 
         cdiff = max(abs(con-conlast))
     end
 end
 
-con_wide = reshape(con,nx,nyP,nyF,nb);
-sav_wide = reshape(sav,nx,nyP,nyF,nb);
-xgrid_wide = reshape(xgrid,nx,nyP,nyF,nb);
+con_multidim = reshape(con,nx,nyP,nyF,nb);
+sav_multidim = reshape(sav,nx,nyP,nyF,nb);
+xgrid_multidim = reshape(xgrid,nx,nyP,nyF,nb);
 
 %% MAKE PLOTS
 % need to recode this with my new function indexing
@@ -370,7 +361,7 @@ if MakePlots ==1
     if nb==1
         % consumption policy function
         subplot(2,4,1);
-        plot(xgrid_wide(:,1,iyF),con_wide(:,1,iyF),'b-',xgrid_wide(:,nyP,iyF),con_wide(:,nyP,iyF),'r-','LineWidth',1);
+        plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-',xgrid_multidim(:,nyP,iyF),con_multidim(:,nyP,iyF),'r-','LineWidth',1);
         grid;
         xlim([borrow_lim xmax]);
         title('Consumption Policy Function');
@@ -378,7 +369,7 @@ if MakePlots ==1
 
         % savings policy function
         subplot(2,4,2);
-        plot(xgrid_wide(:,1,iyF),sav_wide(:,1,iyF)./xgrid_wide(:,1,iyF),'b-',xgrid_wide(:,nyP,iyF),sav_wide(:,nyP,iyF)./xgrid_wide(:,nyP,iyF),'r-','LineWidth',1);
+        plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-',xgrid_multidim(:,nyP,iyF),sav_multidim(:,nyP,iyF)./xgrid_multidim(:,nyP,iyF),'r-','LineWidth',1);
         hold on;
         plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
         hold off;
@@ -388,14 +379,14 @@ if MakePlots ==1
 
         % consumption policy function: zoomed in
         subplot(2,4,3);
-        plot(xgrid_wide(:,1,iyF),con_wide(:,1,iyF),'b-o',xgrid_wide(:,nyP,iyF),con_wide(:,nyP,iyF),'r-o','LineWidth',2);
+        plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-o',xgrid_multidim(:,nyP,iyF),con_multidim(:,nyP,iyF),'r-o','LineWidth',2);
         grid;
         xlim([0 4]);
         title('Consumption: Zoomed');
 
          % savings policy function: zoomed in
         subplot(2,4,4);
-        plot(xgrid_wide(:,1,iyF),sav_wide(:,1,iyF)./xgrid_wide(:,1,iyF),'b-o',xgrid_wide(:,nyP,iyF),sav_wide(:,nyP,iyF)./xgrid_wide(:,nyP,iyF),'r-o','LineWidth',2);
+        plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-o',xgrid_multidim(:,nyP,iyF),sav_multidim(:,nyP,iyF)./xgrid_multidim(:,nyP,iyF),'r-o','LineWidth',2);
         hold on;
         plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
         hold off;
