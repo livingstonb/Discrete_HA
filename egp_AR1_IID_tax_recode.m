@@ -236,10 +236,11 @@ states_y = gridmake(states_grid_y);
 % New xgrid may be necessary to avoid points of non-diff in spline
 % function??
 sgrid = unique(states_y(:,1)','stable')';
+
 ns = size(sgrid,1);
 
 % construct matrix of y combinations
-ymat = repmat(yPgrid',nyF,1).*reshape(repmat(yFgrid,nyP,1),nyF*nyP,1)...
+ymat = repmat(yPgrid',nyF,1).*reshape(repmat(yFgrid',nyP,1),nyF*nyP,1)...
         *yTgrid';
 ymatdist = repmat(yPdist,nyF,1).*reshape(repmat(yFdist,nyP,1),nyF*nyP,1)...
         *yTdist';
@@ -265,7 +266,7 @@ meannety = netymat(:)'*ymatdist(:);
 
 % xgrid, indexed by beta,yF,yP,x
 xgrid = repmat(sgrid,nb*nyP*nyF,1);
-miny_x = reshape(repmat(min(netymat,[],2)',ns*nb,1),ns*nb*nyP*nyF,1);
+miny_x = repmat(reshape(repmat(min(netymat,[],2)',ns,1),ns*nyP*nyF,1),nb,1);
 xgrid = xgrid + miny_x;
 nx = ns;
 
@@ -295,9 +296,9 @@ sgrid_long = repmat(sgrid,nyP*nyF*nb,1);
 % initial guess for consumption function
 con = r * xgrid;
 
-gridtrans = kron(betatrans,ytrans);
 % Expectations operator (conditional on yT)
-Emat = kron(speye(nx),gridtrans);
+Emat = kron(betatrans,kron(ytrans,speye(nx)));
+
 % discount factor matrix
 betastacked = reshape(repmat(betagrid',nyP*nyF*nx,1),N,1);
 betamatrix = spdiags(betastacked,0,N,N);
@@ -319,22 +320,23 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
         % need new interpolant for each val of yP,yF,beta
         netymat_long = zeros(N,nyT);
         for iyT = 1:nyT
-            netymat_long(:,iyT) = reshape(repmat(netymat(:,iyT)',ns,1),ns*nyF*nyP,1);
+            netymat_long(:,iyT) = repmat(reshape(repmat(netymat(:,iyT)',ns,1),ns*nyF*nyP,1),nb,1);
         end
-        x_s = (1+r)*repmat(sgrid,nyF*nyP*nb,nyT) + repmat(netymat_long,nb,1);
+        x_s = (1+r)*repmat(sgrid,nyF*nyP*nb,nyT) + netymat_long;
+
         conlast_wide = reshape(conlast,ns,nyP*nyF*nb);
         % initialize cons as function of x',yT
         c_xp = zeros(N,nyT);
         
         xgrid_wide = reshape(xgrid,ns,nyP*nyF*nb);
         for iyT = 1:nyT
-        x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
+            x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
             c_xpT_wide = zeros(ns,nyP*nyF*nb);
             for col = 1:nyP*nyF*nb
-            interpol = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
-            c_xpT_wide(:,col) = interpol(x_s_wide(:,col));
+                interpol = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
+                c_xpT_wide(:,col) = interpol(x_s_wide(:,col));
             end
-            c_xp(:,iyT) = c_xpT_wide(:);
+            c_xp(:,iyT)  = c_xpT_wide(:);
         end
 
         mucnext  = u1(c_xp);
