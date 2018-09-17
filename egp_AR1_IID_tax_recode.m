@@ -6,7 +6,7 @@
 clear;
 close all;
 
-path = '/Users/Brian/Dropbox/UnsharedWork/MPC_recode';
+path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -164,6 +164,9 @@ end
 yFgrid = exp(logyFgrid);
 yFcumdist = cumsum(yFdist,1);
 
+% check if yFgrid is row vector like yPgrid, if not, need to rewrite code
+assert(size(yFgrid,1)==1);
+
 % transition probabilities for yP-yF combined grid
 ytrans = kron(eye(nyF),yPtrans);
 
@@ -232,15 +235,15 @@ states_grid_y = funnode(fspace_y);
 states_y = gridmake(states_grid_y);
 % New xgrid may be necessary to avoid points of non-diff in spline
 % function??
-sgrid = unique(states_y(:,1)','stable');
-ns = size(sgrid,2);
+sgrid = unique(states_y(:,1)','stable')';
+ns = size(sgrid,1);
 xgrid = sgrid;
 nx = ns;
 
 % construct matrix of y combinations
-ymat = repmat(yPgrid',nyF,1).*repmat(yFgrid',nyP,1)...
+ymat = repmat(yPgrid',nyF,1).*reshape(repmat(yFgrid,nyP,1),nyF*nyP,1)...
         *yTgrid';
-ymatdist = repmat(yPdist,nyF,1).*repmat(yFdist,nyP,1)...
+ymatdist = repmat(yPdist,nyF,1).*reshape(repmat(yFdist,nyP,1),nyF*nyP,1)...
         *yTdist';
 
 % find mean y
@@ -283,9 +286,10 @@ beq1 = @(a) bequest_weight.*(a+bequest_luxury).^(-risk_aver);
 N = nyP*nyF*nx*nb;
 dist_EGP = 1;
 EGP_it   = 0;
+sgrid_long = repmat(sgrid,nyP*nyF*nb,1);
 
 % initial guess for consumption function
-con = r * sgrid;
+con = r * sgrid_long;
 
 gridtrans = kron(betatrans,ytrans);
 % Expectations operator (conditional on yT)
@@ -301,15 +305,17 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
     
     iter = 1;
     cdiff = 1;
+    
+    % EGP iteration
     while iter<max_iter && cdiff>tol_iter
         iter = iter + 1;
         conlast = con;
 
         % interpolate to get c(x') using c(x)
         % need new interpolant for each val of yP,yF,beta
-        x_s = (1+r) * repmat(sgrid,nyF*nyP,1) + netymat;
+        x_s = (1+r) * repmat(sgrid,nyF*nyP,1) + repmat(netymat,ns,1);
         x_s = repmat(x_s,nb,1);
-        conlast_wide = reshape(conlast(:,1),ns,nyP*nyF*nb);
+        conlast_wide = reshape(conlast,ns,nyP*nyF*nb);
         % initialize cons as function of x',yT
         c_xp = zeros(N,nyT);
         for iyT = 1:nyT
@@ -325,18 +331,19 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
         mucnext  = u1(c_xp);
         % muc this period as a function of s
         muc_s = (1-dieprob)*(1+r)*betamatrix*Emat*(mucnext*yTdist);
-        % emuc = (1-dieprob)*beta*Emat*muc*yTdist';
-        [con,sav] = EGP_fun();
+        [con,sav] = EGP_fun(muc_s,sgrid,sgrid_long,xgrid,savtax,savtaxthresh,...
+                                u1inv,r,borrow_lim,N);
 
-        cdiff = max(abs(con-conlast));
+        cdiff = max(abs(con-conlast))
     end
 end
 
-con = reshape(con,nx,nyP,nyF,nb));
+con_wide = reshape(con,nx,nyP,nyF,nb);
+save_wide = reshape(sav,nx,nyP,nyF,nb);
 
 %% MAKE PLOTS
 % need to recode this with my new function indexing
-if 0 % MakePlots ==1 
+if MakePlots ==1 
     
  figure(1);
  
@@ -347,38 +354,40 @@ if 0 % MakePlots ==1
         iyF = iyF/2;
     end
     
-    % consumption policy function
-    subplot(2,4,1);
-    plot(xgrid(:,1,iyF),con(:,1,iyF),'b-',xgrid(:,nyP,iyF),con(:,nyP,iyF),'r-','LineWidth',1);
-    grid;
-    xlim([borrow_lim xmax]);
-    title('Consumption Policy Function');
-    legend('Lowest income state','Highest income state');
+    if nb==1
+        % consumption policy function
+        subplot(2,4,1);
+        plot(xgrid,con_wide(:,1,iyF),'b-',xgrid,con_wide(:,nyP,iyF),'r-','LineWidth',1);
+        grid;
+        xlim([borrow_lim xmax]);
+        title('Consumption Policy Function');
+        legend('Lowest income state','Highest income state');
 
-    % savings policy function
-    subplot(2,4,2);
-    plot(xgrid(:,1,iyF),sav(:,1,iyF)./xgrid(:,1,iyF),'b-',xgrid(:,nyP,iyF),sav(:,nyP,iyF)./xgrid(:,nyP,iyF),'r-','LineWidth',1);
-    hold on;
-    plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
-    hold off;
-    grid;
-    xlim([borrow_lim xmax]);
-    title('Savings Policy Function s/x');
-    
-    % consumption policy function: zoomed in
-    subplot(2,4,3);
-    plot(xgrid(:,1,iyF),con(:,1,iyF),'b-o',xgrid(:,nyP,iyF),con(:,nyP,iyF),'r-o','LineWidth',2);
-    grid;
-    xlim([0 4]);
-    title('Consumption: Zoomed');
-    
-     % savings policy function: zoomed in
-    subplot(2,4,4);
-    plot(xgrid(:,1,iyF),sav(:,1,iyF)./xgrid(:,1,iyF),'b-o',xgrid(:,nyP,iyF),sav(:,nyP,iyF)./xgrid(:,nyP,iyF),'r-o','LineWidth',2);
-    hold on;
-    plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
-    hold off;
-    grid;
-    xlim([0 4]);
-    title('Savings (s/x): Zoomed');
+        % savings policy function
+        subplot(2,4,2);
+        plot(xgrid,sav_wide(:,1,iyF)./xgrid(:,1,iyF),'b-',xgrid(:,nyP,iyF),sav_wide(:,nyP,iyF)./xgrid(:,nyP,iyF),'r-','LineWidth',1);
+        hold on;
+        plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
+        hold off;
+        grid;
+        xlim([borrow_lim xmax]);
+        title('Savings Policy Function s/x');
+
+        % consumption policy function: zoomed in
+        subplot(2,4,3);
+        plot(xgrid,con_wide(:,1,iyF),'b-o',xgrid(:,nyP,iyF),con_wide(:,nyP,iyF),'r-o','LineWidth',2);
+        grid;
+        xlim([0 4]);
+        title('Consumption: Zoomed');
+
+         % savings policy function: zoomed in
+        subplot(2,4,4);
+        plot(xgrid,sav_wide(:,1,iyF)./xgrid,'b-o',xgrid,sav_wide(:,nyP,iyF)./xgrid,'r-o','LineWidth',2);
+        hold on;
+        plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
+        hold off;
+        grid;
+        xlim([0 4]);
+        title('Savings (s/x): Zoomed');
+    end
 end
