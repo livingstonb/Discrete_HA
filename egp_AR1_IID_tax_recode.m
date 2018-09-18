@@ -229,18 +229,30 @@ sgrid = unique(states_y(:,1)','stable')';
 sgrid_wide = repmat(sgrid,1,nyP*nyF*nb);
 
 ns = size(sgrid,1);
+N = nyP*nyF*ns*nb;
 
 % construct matrix of y combinations
-ymat = repmat(yPgrid',nyF,1).*reshape(repmat(yFgrid',nyP,1),nyF*nyP,1)...
-        *yTgrid';
-ymatdist = repmat(yPdist,nyF,1).*reshape(repmat(yFdist,nyP,1),nyF*nyP,1)...
-        *yTdist';
+ymat = reshape(repmat(yPgrid,ns,1),ns*nyP,1);
+ymat = repmat(ymat,nyF,1) .* reshape(repmat(yFgrid,nyP*ns,1),nyP*ns*nyF,1);
+ymat = repmat(ymat,nb,1)*yTgrid';
+
+ymatdist = reshape(repmat(yPdist',ns,1),ns*nyP,1);
+ymatdist = repmat(ymatdist,nyF,1) .* reshape(repmat(yFdist',nyP*ns,1),nyP*ns*nyF,1);
+ymatdist = repmat(ymatdist,nb,1)*yTdist';
+
+
+% ymat = repmat(yPgrid',nyF,1).*reshape(repmat(yFgrid',nyP,1),nyF*nyP,1)...
+%         *yTgrid';
+% ymatdist = repmat(yPdist,nyF,1).*reshape(repmat(yFdist,nyP,1),nyF*nyP,1)...
+%         *yTdist';
 
 % find mean y
-temp = sortrows([ymat(:) ymatdist(:)],1);
+ymat_yvals = ymat(1:ns:ns*nyF*nyP,:);
+ymatdist_pvals = ymatdist(1:ns:ns*nyF*nyP,:);
+temp = sortrows([ymat_yvals(:) ymatdist_pvals(:)],1);
 ysortvals = temp(:,1);
 ycumdist = cumsum(temp(:,2));
-meany = ymat(:)'*ymatdist(:);
+meany = ymat_yvals(:)'*ymatdist_pvals(:);
 totgrossy = meany;
 
 % find tax threshold on labor income
@@ -250,22 +262,15 @@ else
     labtaxthresh = 0;
 end    
 
-totgrossyhigh = max(ymat(:)-labtaxthresh,0)'*ymatdist(:);
+totgrossyhigh = max(ymat_yvals(:)-labtaxthresh,0)'*ymatdist_pvals(:);
 lumptransfer = labtaxlow*totgrossy + labtaxhigh*totgrossyhigh;
 netymat = lumptransfer + (1-labtaxlow)*ymat - labtaxhigh*max(ymat-labtaxthresh,0);
-meannety = netymat(:)'*ymatdist(:);
-
-% N by nyT income matrix
-netymat_full = zeros(N,nyT);
-for iyT = 1:nyT
-    netymat_full(:,iyT) = repmat(reshape(repmat(netymat(:,iyT)',ns,1),ns*nyF*nyP,1),nb,1);
-end
-
+netymat_yvals = netymat(1:ns:ns*nyF*nyP,:);
+meannety = netymat_yvals(:)'*ymatdist_pvals(:);
 
 % xgrid, indexed by beta,yF,yP,x
 % cash on hand grid: different min points for each value of (iyP)
-miny_x = reshape(repmat(min(netymat,[],2)',ns,1),ns*nyP*nyF,1);
-xgrid = sgrid_wide(:) + repmat(miny_x,nb,1);
+xgrid = sgrid_wide(:) + min(netymat,[],2);
 nx = ns;
 
 %% UTILITY FUNCTION, BEQUEST FUNCTION
@@ -285,14 +290,13 @@ beq1 = @(a) bequest_weight.*(a+bequest_luxury).^(-risk_aver);
 
 
 %% EGP Iteration
-N = nyP*nyF*nx*nb;
 
 % initial guess for consumption function
 con = r * xgrid;
 
 % Expectations operator (conditional on yT)
 Emat = kron(betatrans,kron(ytrans,speye(nx)));
-assert(isequal(sum(Emat,2),ones(N,1)));
+% assert(isequal(sum(Emat,2),ones(N,1)));
 
 % discount factor matrix
 betastacked = reshape(repmat(betagrid',nyP*nyF*nx,1),N,1);
@@ -313,7 +317,7 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
 
         % interpolate to get c(x') using c(x)
         % need new interpolant for each val of yP,yF,beta
-        x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat_full;
+        x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat;
 
         conlast_wide = reshape(conlast,ns,nyP*nyF*nb);
         % initialize cons as function of x',yT
@@ -324,9 +328,7 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
             x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
             c_xpT_wide = zeros(ns,nyP*nyF*nb);
             for col = 1:nyP*nyF*nb
-                %interpol = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
-                %c_xpT_wide(:,col) = interpol(x_s_wide(:,col));
-                c_xpT_wide(:,col) = lininterp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col));
+                c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col),'linear','extrap');
             end
             c_xp(:,iyT)  = c_xpT_wide(:);
         end
