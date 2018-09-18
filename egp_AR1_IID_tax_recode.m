@@ -62,7 +62,7 @@ savtaxthresh    = 0; %multiple of mean gross labor income
 
 
 %discount factor shocks;
-nb = 1;  %1 or 2
+nb = 2;  %1 or 2
 betawidth = 0.065; % beta +/- beta width
 betaswitch = 1/50; %0;
 
@@ -334,7 +334,7 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
 
         mucnext  = u1(c_xp);
         % muc this period as a function of s
-        muc_s = (1-dieprob)*(1+r)*betamatrix*Emat*(mucnext*yTdist);
+        muc_s = (1-dieprob)*(1+r)*betastacked.*Emat*(mucnext*yTdist);
         [con,sav] = EGP_fun(muc_s,sgrid_wide,xgrid_wide,savtax,savtaxthresh,...
                                 u1inv,borrow_lim,N);
 
@@ -358,40 +358,38 @@ if MakePlots ==1
         iyF = iyF/2;
     end
     
-    if nb==1
-        % consumption policy function
-        subplot(2,4,1);
-        plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-',xgrid_multidim(:,nyP,iyF),con_multidim(:,nyP,iyF),'r-','LineWidth',1);
-        grid;
-        xlim([borrow_lim xmax]);
-        title('Consumption Policy Function');
-        legend('Lowest income state','Highest income state');
+    % consumption policy function
+    subplot(2,4,1);
+    plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-',xgrid_multidim(:,nyP,iyF),con_multidim(:,nyP,iyF),'r-','LineWidth',1);
+    grid;
+    xlim([borrow_lim xmax]);
+    title('Consumption Policy Function');
+    legend('Lowest income state','Highest income state');
 
-        % savings policy function
-        subplot(2,4,2);
-        plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-',xgrid_multidim(:,nyP,iyF),sav_multidim(:,nyP,iyF)./xgrid_multidim(:,nyP,iyF),'r-','LineWidth',1);
-        hold on;
-        plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
-        hold off;
-        grid;
-        xlim([borrow_lim xmax]);
-        title('Savings Policy Function s/x');
+    % savings policy function
+    subplot(2,4,2);
+    plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-',xgrid_multidim(:,nyP,iyF),sav_multidim(:,nyP,iyF)./xgrid_multidim(:,nyP,iyF),'r-','LineWidth',1);
+    hold on;
+    plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
+    hold off;
+    grid;
+    xlim([borrow_lim xmax]);
+    title('Savings Policy Function s/x');
 
-        % consumption policy function: zoomed in
-        subplot(2,4,3);
-        plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-o',xgrid_multidim(:,nyP,iyF),con_multidim(:,nyP,iyF),'r-o','LineWidth',2);
-        grid;
-        xlim([0 4]);
-        title('Consumption: Zoomed');
+    % consumption policy function: zoomed in
+    subplot(2,4,3);
+    plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-o',xgrid_multidim(:,nyP,iyF),con_multidim(:,nyP,iyF),'r-o','LineWidth',2);
+    grid;
+    xlim([0 4]);
+    title('Consumption: Zoomed');
 
-         % savings policy function: zoomed in
-        subplot(2,4,4);
-        plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-o',xgrid_multidim(:,nyP,iyF),sav_multidim(:,nyP,iyF)./xgrid_multidim(:,nyP,iyF),'r-o','LineWidth',2);
-        hold on;
-        plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
-        hold off;
-        grid;
-        xlim([0 4]);
-        title('Savings (s/x): Zoomed');
-    end
+     % savings policy function: zoomed in
+    subplot(2,4,4);
+    plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-o',xgrid_multidim(:,nyP,iyF),sav_multidim(:,nyP,iyF)./xgrid_multidim(:,nyP,iyF),'r-o','LineWidth',2);
+    hold on;
+    plot(sgrid,ones(nx,1),'k','LineWidth',0.5);
+    hold off;
+    grid;
+    xlim([0 4]);
+    title('Savings (s/x): Zoomed');
 end
