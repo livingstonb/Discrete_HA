@@ -296,11 +296,13 @@ con = r * xgrid;
 
 % Expectations operator (conditional on yT)
 Emat = kron(betatrans,kron(ytrans,speye(nx)));
-% assert(isequal(sum(Emat,2),ones(N,1)));
 
 % discount factor matrix
 betastacked = reshape(repmat(betagrid',nyP*nyF*nx,1),N,1);
 betamatrix = spdiags(betastacked,0,N,N);
+
+% next period's, cash-on-hand as function of saving
+x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat;
 
 iterAY = 1;
 AYdiff = 1;
@@ -316,9 +318,6 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
         conlast = con;
 
         % interpolate to get c(x') using c(x)
-        % need new interpolant for each val of yP,yF,beta
-        x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat;
-
         conlast_wide = reshape(conlast,ns,nyP*nyF*nb);
         % initialize cons as function of x',yT
         c_xp = zeros(N,nyT);

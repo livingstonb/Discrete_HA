@@ -13,9 +13,7 @@ x_s = sgrid_wide(:) + savtax * max(sgrid_wide(:)-savtaxthresh,0) + con_s;
 x_s_wide = reshape(x_s,nx,N/nx);
 sav_wide = zeros(nx,N/nx);
 for col=1:N/nx
-    %V = interpOneD_vec(sgrid_wide(:,col),x_s_wide(:,col));
-    %sav_wide(:,col) = V * sgrid_wide(:,col);
-    sav_wide(:,col) = lininterp1(x_s_wide(:,col),sgrid_wide(:,col),xgrid_wide(:,col)); 
+    sav_wide(:,col) = interp1(x_s_wide(:,col),sgrid_wide(:,col),xgrid_wide(:,col),'linear','extrap'); 
 end
 
 
