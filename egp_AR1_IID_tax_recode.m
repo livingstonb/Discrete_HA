@@ -81,7 +81,7 @@ mpcfrac{1}  = 1.0e-10; %approximate thoeretical mpc
 mpcfrac{2}  = 0.01; % 1 percent of average gross labor income: approx $500
 mpcfrac{3}  = 0.10; % 5 percent of average gross labor income: approx $5000
 
-% spline order
+% spline order for xgrid/sgrid
 xspline = 3;
 
 %% OPTIONS
@@ -255,11 +255,17 @@ lumptransfer = labtaxlow*totgrossy + labtaxhigh*totgrossyhigh;
 netymat = lumptransfer + (1-labtaxlow)*ymat - labtaxhigh*max(ymat-labtaxthresh,0);
 meannety = netymat(:)'*ymatdist(:);
 
+% N by nyT income matrix
+netymat_full = zeros(N,nyT);
+for iyT = 1:nyT
+    netymat_full(:,iyT) = repmat(reshape(repmat(netymat(:,iyT)',ns,1),ns*nyF*nyP,1),nb,1);
+end
+
 
 % xgrid, indexed by beta,yF,yP,x
 % cash on hand grid: different min points for each value of (iyP)
-miny_x = repmat(reshape(repmat(min(netymat,[],2)',ns,1),ns*nyP*nyF,1),nb,1);
-xgrid = sgrid_wide(:) + miny_x;
+miny_x = reshape(repmat(min(netymat,[],2)',ns,1),ns*nyP*nyF,1);
+xgrid = sgrid_wide(:) + repmat(miny_x,nb,1);
 nx = ns;
 
 %% UTILITY FUNCTION, BEQUEST FUNCTION
@@ -279,16 +285,14 @@ beq1 = @(a) bequest_weight.*(a+bequest_luxury).^(-risk_aver);
 
 
 %% EGP Iteration
-% preparations
 N = nyP*nyF*nx*nb;
-dist_EGP = 1;
-EGP_it   = 0;
 
 % initial guess for consumption function
 con = r * xgrid;
 
 % Expectations operator (conditional on yT)
 Emat = kron(betatrans,kron(ytrans,speye(nx)));
+assert(isequal(sum(Emat,2),ones(N,1)));
 
 % discount factor matrix
 betastacked = reshape(repmat(betagrid',nyP*nyF*nx,1),N,1);
@@ -309,10 +313,6 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
 
         % interpolate to get c(x') using c(x)
         % need new interpolant for each val of yP,yF,beta
-        netymat_full = zeros(N,nyT);
-        for iyT = 1:nyT
-            netymat_full(:,iyT) = repmat(reshape(repmat(netymat(:,iyT)',ns,1),ns*nyF*nyP,1),nb,1);
-        end
         x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat_full;
 
         conlast_wide = reshape(conlast,ns,nyP*nyF*nb);
@@ -326,7 +326,7 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
             for col = 1:nyP*nyF*nb
                 %interpol = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
                 %c_xpT_wide(:,col) = interpol(x_s_wide(:,col));
-                c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col));
+                c_xpT_wide(:,col) = lininterp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col));
             end
             c_xp(:,iyT)  = c_xpT_wide(:);
         end
@@ -335,7 +335,7 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
         % muc this period as a function of s
         muc_s = (1-dieprob)*(1+r)*betamatrix*Emat*(mucnext*yTdist);
         [con,sav] = EGP_fun(muc_s,sgrid_wide,xgrid_wide,savtax,savtaxthresh,...
-                                u1inv,r,borrow_lim,N);
+                                u1inv,borrow_lim,N);
 
         cdiff = max(abs(con-conlast))
     end
@@ -346,7 +346,6 @@ sav_multidim = reshape(sav,nx,nyP,nyF,nb);
 xgrid_multidim = reshape(xgrid,nx,nyP,nyF,nb);
 
 %% MAKE PLOTS
-% need to recode this with my new function indexing
 if MakePlots ==1 
     
  figure(1);

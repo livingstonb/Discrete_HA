@@ -1,5 +1,5 @@
 function [con,sav] = EGP_fun(muc,sgrid_wide,xgrid_wide,savtax,savtaxthresh,...
-                                u1inv,r,borrow_lim,N)
+                                u1inv,borrow_lim,N)
 % _wide variables have dimension nx by nyP*nyF*nb, or nx by N/nx
 nx = size(xgrid_wide,1);
 
@@ -24,5 +24,5 @@ constr = xgrid_wide < x_s_wide(1,:);
 sav_wide(constr) = borrow_lim;
 sav = sav_wide(:);
 
-con = xgrid_wide(:) - sav - savtax * max(sgrid_wide(:)-savtaxthresh,0);
+con = xgrid_wide(:) - sav - savtax * max(sav-savtaxthresh,0);
 end
