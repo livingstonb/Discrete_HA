@@ -67,8 +67,8 @@ betawidth = 0.065; % beta +/- beta width
 betaswitch = 1/50; %0;
 
 % computation
-max_iter    = 1000;
-tol_iter    = 1.0e-6;
+max_iter    = 1e4;
+tol_iter    = 1.0e-4;
 Nsim        = 100000;
 Tsim        = 200;
 
@@ -81,8 +81,7 @@ mpcfrac{1}  = 1.0e-10; %approximate thoeretical mpc
 mpcfrac{2}  = 0.01; % 1 percent of average gross labor income: approx $500
 mpcfrac{3}  = 0.10; % 5 percent of average gross labor income: approx $5000
 
-% spline order for xgrid/sgrid
-xspline = 3;
+N = nyP*nyF*nx*nb;
 
 %% OPTIONS
 IterateBeta = 0;
@@ -198,38 +197,12 @@ betacumtrans = cumsum(betatrans,2);
 
 %% ASSET AND INCOME GRIDS
 
-sgrid_0 = linspace(0,1,nx)';
-sgrid_0 = sgrid_0.^(1./xgrid_par);
-sgrid_0 = borrow_lim + (xmax-borrow_lim).*sgrid_0;
+sgrid = linspace(0,1,nx)';
+sgrid = sgrid.^(1./xgrid_par);
+sgrid = borrow_lim + (xmax-borrow_lim).*sgrid;
 
-% splines, combine asset and income grids
-if nyF==1 && nb==1
-    fspace_y = fundef({'spli',sgrid_0,0,xspline},...
-                {'spli',yPgrid,0,1});
-elseif nyF>1 && nb==1
-    fspace_y = fundef({'spli',sgrid_0,0,xspline},...
-                {'spli',yPgrid,0,1},...
-                {'spli',yFgrid,0,1});
-elseif nyF==1 && nb>1
-    fspace_y = fundef({'spli',sgrid_0,0,xspline},...
-                {'spli',yPgrid,0,1},...
-                {'spli',betagrid,0,1});
-elseif nyF>1 && nb>1
-    fspace_y = fundef({'spli',sgrid_0,0,xspline},...
-                {'spli',yPgrid,0,1},...
-                {'spli',yFgrid,0,1},...
-                {'spli',betagrid,0,1});
-end
-
-states_grid_y = funnode(fspace_y);
-states_y = gridmake(states_grid_y);
-% New xgrid may be necessary to avoid points of non-diff in spline
-% function??
-sgrid = unique(states_y(:,1)','stable')';
 sgrid_wide = repmat(sgrid,1,nyP*nyF*nb);
-
-ns = size(sgrid,1);
-N = nyP*nyF*ns*nb;
+ns = nx;
 
 % construct matrix of y combinations
 ymat = reshape(repmat(yPgrid,ns,1),ns*nyP,1);
@@ -271,7 +244,6 @@ meannety = netymat_yvals(:)'*ymatdist_pvals(:);
 % xgrid, indexed by beta,yF,yP,x
 % cash on hand grid: different min points for each value of (iyP)
 xgrid = sgrid_wide(:) + min(netymat,[],2);
-nx = ns;
 
 %% UTILITY FUNCTION, BEQUEST FUNCTION
 
@@ -342,9 +314,12 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
     end
 end
 
-con_multidim = reshape(con,nx,nyP,nyF,nb);
-sav_multidim = reshape(sav,nx,nyP,nyF,nb);
-xgrid_multidim = reshape(xgrid,nx,nyP,nyF,nb);
+newdim = [nx nyP nyF nb];
+con_multidim = reshape(con,newdim);
+sav_multidim = reshape(sav,newdim);
+xgrid_multidim = reshape(xgrid,newdim);
+
+
 
 %% MAKE PLOTS
 if MakePlots ==1 
@@ -358,9 +333,16 @@ if MakePlots ==1
         iyF = iyF/2;
     end
     
+    % plot for first beta
+    iyb = 1;
+    % if nb = 1, force plot of first beta
+    if nb == 1
+        iyb = 1;
+    end
+    
     % consumption policy function
     subplot(2,4,1);
-    plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-',xgrid_multidim(:,nyP,iyF),con_multidim(:,nyP,iyF),'r-','LineWidth',1);
+    plot(xgrid_multidim(:,1,iyF,iyb),con_multidim(:,1,iyF,iyb),'b-',xgrid_multidim(:,nyP,iyF,iyb),con_multidim(:,nyP,iyF,iyb),'r-','LineWidth',1);
     grid;
     xlim([borrow_lim xmax]);
     title('Consumption Policy Function');
