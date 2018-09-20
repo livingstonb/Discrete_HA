@@ -337,6 +337,9 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
     lambda_SS      = permute(reshape(lambda_SS,[nx,nyP*nyF*nb]),[2 1]);
     lambdafull_SS  = kron(yTdist,lambda_SS);
     
+    meanwealth = xgrid(1:nx)' * sum(lambdafull_SS,1)';
+    AY = meanwealth/meany;
+    
     
 end
 
