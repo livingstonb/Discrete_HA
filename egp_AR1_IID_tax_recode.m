@@ -62,7 +62,7 @@ savtaxthresh    = 0; %multiple of mean gross labor income
 
 
 %discount factor shocks;
-nb = 2;  %1 or 2
+nb = 1;  %1 or 2
 betawidth = 0.065; % beta +/- beta width
 betaswitch = 1/50; %0;
 
@@ -275,6 +275,7 @@ betamatrix = spdiags(betastacked,0,N,N);
 
 % next period's, cash-on-hand as function of saving
 x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat;
+xgrid_wide = reshape(xgrid,ns,nyP*nyF*nb);
 
 iterAY = 1;
 AYdiff = 1;
@@ -284,7 +285,7 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
     iter = 1;
     cdiff = 1;
     
-    % EGP iteration
+    % EGP ITERATION
     while iter<max_iter && cdiff>tol_iter
         iter = iter + 1;
         conlast = con;
@@ -293,8 +294,7 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
         conlast_wide = reshape(conlast,ns,nyP*nyF*nb);
         % initialize cons as function of x',yT
         c_xp = zeros(N,nyT);
-        
-        xgrid_wide = reshape(xgrid,ns,nyP*nyF*nb);
+                
         for iyT = 1:nyT
             x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
             c_xpT_wide = zeros(ns,nyP*nyF*nb);
@@ -312,6 +312,32 @@ while iterAY<=maxiterAY && abs(AYdiff)>tolAY
 
         cdiff = max(abs(con-conlast))
     end
+    
+    
+    % DISTRIBUTION
+    fspace = fundef({'spli',xgrid(1:nx),0,1});
+    
+    % adjust income transition probabilities by probability of death
+    ytrans_deathadjust = (1-dieprob)*ytrans + dieprob*repmat(yPdist',[nyP*nyF 1]);
+    % transition probabilities associated with (beta, yP, yF)
+    Pi_beta_yP_yF = kron(betatrans,ytrans_deathadjust);
+    % transition probabilities assigned to states
+    states_trans = kron(Pi_beta_yP_yF,ones(nx,1)); 
+    % xprime
+    xp = (1+r)*repmat(sav,[1 nyT]) + netymat;
+    % interpolation to grid
+    grid_probabilities = 0;
+    for iyT = 1:nyT
+        grid_probabilities = grid_probabilities  + yTdist(iyT) * funbas(fspace,xp(:,iyT));                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+    end
+    Q  = dprod(states_trans,grid_probabilities);
+    
+    lambda_SS      = full(ergodicdist(sparse(Q)));
+    lambda_orig_SS = lambda_SS;
+    lambda_SS      = permute(reshape(lambda_SS,[nx,nyP*nyF*nb]),[2 1]);
+    lambdafull_SS  = kron(yTdist,lambda_SS);
+    
+    
 end
 
 newdim = [nx nyP nyF nb];
