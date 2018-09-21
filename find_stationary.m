@@ -10,21 +10,22 @@ ytrans_deathadjust = (1-dieprob)*ytrans + dieprob*repmat(yPdist',[nyP*nyF 1]);
 Pi_beta_yP_yF = kron(betatrans,ytrans_deathadjust);
 % transition probabilities assigned to exogenous states
 exog_trans = kron(Pi_beta_yP_yF,ones(nx,1)); 
-% xprime
-xp = (1+r)*repmat(sav_wide(:),[1 nyT]) + netymat;
 
-% Perform interpolation separately for each (yP,yF,nb,yT) combination
-grid_probabilities = zeros(N,N);
+% nx by N/nx matrix for net income, conditional on yT
+netymat_wideT = cell(nyT,1);
+for iyT = 1:nyT
+    netymat_wideT{iyT} = reshape(netymat(:,iyT),[nx N/nx]);
+end
 
-% Initial (yP,yF,beta)
-for col = 1:N/nx
-fspace = fundef({'spli',xgrid_wide(:,col),0,1});
-    % Next (yP,yF,beta)
-    for col2 = 1:N/nx
+for col2 = 1:N/nx
+    fspace = fundef({'spli',xgrid_wide(:,col2),0,1});
+    for col1 = 1:N/nx
+        col1_col2_probs = 0;
         for iyT = 1:nyT
-            xp_wide = reshape(xp(:,iyT),nx,N/nx);
-            grid_probabilities(nx*(col-1)+1:nx*col,nx*(col2-1)+1:nx*col2) = grid_probabilities(nx*(col-1)+1:nx*col,nx*(col2-1)+1:nx*col2) + yTdist(iyT) * funbas(fspace,xp_wide(:,col)) .* exog_trans(nx*(col-1)+1:nx*col,col2) ;
+             xp = (1+r)*repmat(sav_wide(:,col1),[1 nyT]) + netymat_wideT{iyT}(:,col2);
+             col1_col2_probs = col1_col2_probs + yTdist(iyT) * funbas(fspace,xp) .* Pi_beta_yP_yF(col1,col2) ;
         end
+        grid_probabilities(nx*(col1-1)+1:nx*col1,nx*(col2-1)+1:nx*col2) = col1_col2_probs;
     end
 end
 
