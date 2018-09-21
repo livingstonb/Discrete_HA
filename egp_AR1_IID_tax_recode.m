@@ -274,22 +274,26 @@ betastacked = reshape(repmat(betagrid',nyP*nyF*nx,1),N,1);
 betamatrix = spdiags(betastacked,0,N,N);
 
 % next period's, cash-on-hand as function of saving
-x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat;
+
 xgrid_wide = reshape(xgrid,ns,nyP*nyF*nb);
 
 % RUN ITERATIONS TO FIND POLICY FUNCTION
-[con,sav] = find_policy(con,ns,nyP,nyF,nb,x_s,...
+[con_opt,sav,cdiff] = find_policy(con,ns,nyP,nyF,nyT,nb,netymat,...
                             xgrid_wide,dieprob,betastacked,Emat,yTdist,...
                             sgrid_wide,savtax,savtaxthresh,...
-                            u1inv,borrow_lim,N)
-
+                            u1inv,u1,borrow_lim,N,max_iter,tol_iter,r);
+con = con_opt;
 
 %% Stationary Distribution
-state_dist = find_stationary(dieprob,ytrans,yPdist,nyP,nyF,nx,...
-                                            betatrans,N,xgrid_wide,sav_wide);
+sav_wide = reshape(sav,nx,N/nx);
+state_dist = find_stationary(dieprob,ytrans,yPdist,nyP,nyF,nx,betatrans,...
+                                N,xgrid_wide,sav_wide,sgrid,borrow_lim,...
+                                xmax,r,nyT,netymat,yTdist);
 
-meanwealth = sav' * state_dist(:);                                        
-wealth_income = meanwealth/meany;
+mean_s = sav' * state_dist(:)
+mean_x = xgrid' * state_dist(:)
+
+%wealth_income = meanwealth/meany;
 
 
 
