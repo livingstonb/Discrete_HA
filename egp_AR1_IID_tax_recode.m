@@ -358,3 +358,15 @@ if MakePlots ==1
     xlim([0 4]);
     title('Savings (s/x): Zoomed');
 end
+
+%% COMPUTE MPCs
+if ComputeMPC ==1
+    %theoretical mpc lower bound
+    mpclim = R*((beta*R)^-(1./risk_aver))-1;
+    Nmpcamount = numel(mpcfrac);
+    %mpc amounts
+    for im = 1:Nmpcamount
+        mpcamount{im} = mpcfrac{im} * meany;
+        xgrid_mpc{im} = xgrid + mpcamount{im};
+    end
+end
