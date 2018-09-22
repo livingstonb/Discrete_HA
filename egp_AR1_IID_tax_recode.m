@@ -21,7 +21,7 @@ dieprob     = 1/50;
 
 % preferences
 risk_aver   = 1;
-beta        = 0.97365; %if not iterating on discount rate
+beta0        = 0.97365; %if not iterating on discount rate
 temptation = 0.0;
 
 betaL = 0.90; %guesses if iterating on discount rate;
@@ -33,7 +33,7 @@ bequest_luxury = 2; %0.01;
 
 % income risk: AR(1) + IID in logs
 LoadIncomeProcess = 0;
-nyT         = 5; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+nyT         = 9; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 %only relevant if LoadIncomeProcess==0
 sd_logyT   = sqrt(0.2431);  %0.20; %relevant if nyT>1
@@ -63,7 +63,7 @@ savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks;
 nb = 1;  %1 or 2
-betawidth = 0.065; % beta +/- beta width
+betawidth = 0.01; % beta +/- beta width
 betaswitch = 1/50; %0;
 
 % computation
@@ -84,7 +84,7 @@ mpcfrac{3}  = 0.10; % 5 percent of average gross labor income: approx $5000
 N = nyP*nyF*nx*nb;
 
 %% OPTIONS
-IterateBeta = 0;
+IterateBeta = 1;
 Display     = 1;
 MakePlots   = 0;
 ComputeMPC  = 0;
@@ -171,20 +171,19 @@ ytrans = kron(eye(nyF),yPtrans);
 %% DISCOUNT FACTOR
 
 if IterateBeta == 0
-    maxiterAY = 1;    
+    maxiterAY = 1;
+    beta = beta0;
 end
 
 if IterateBeta == 1
-    beta = (betaH + betaL)/2;
+    beta0 = (betaH + betaL)/2;
 end
 
 %initial discount factor grid
 if  nb == 1
-    betagrid = beta;
     betadist = 1;
     betatrans = 1;
 elseif nb ==2 
-    betagrid = [beta-betawidth;beta+betawidth];
     betadist = [0.5;0.5];
     betatrans = [1-betaswitch betaswitch; betaswitch 1-betaswitch]; %transitions on average once every 40 years;
 else
@@ -260,34 +259,26 @@ u1inv = @(u) u.^(-1./risk_aver);
 beq1 = @(a) bequest_weight.*(a+bequest_luxury).^(-risk_aver);
 
 
-%% EGP Iteration
+%% Model Solution
 
-% initial guess for consumption function
-con = r * xgrid;
-
-% Expectations operator (conditional on yT)
-Emat = kron(betatrans,kron(ytrans,speye(nx)));
-
-% discount factor matrix
-betastacked = reshape(repmat(betagrid',nyP*nyF*nx,1),N,1);
-betamatrix = spdiags(betastacked,0,N,N);
 
 % next period's, cash-on-hand as function of saving
 
 xgrid_wide = reshape(xgrid,ns,nyP*nyF*nb);
 
-% RUN ITERATIONS TO FIND POLICY FUNCTION
-[con_opt,sav,cdiff] = find_policy(con,ns,nyP,nyF,nyT,nb,netymat,...
-                            xgrid_wide,dieprob,betastacked,Emat,yTdist,...
-                            sgrid_wide,savtax,savtaxthresh,...
-                            u1inv,u1,borrow_lim,N,max_iter,tol_iter,r);
-con = con_opt;
+if IterateBeta == 1
+    iterate_EGP = @(x) solve_EGP(x,xgrid_wide,sgrid_wide,...
+    netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,...
+    betatrans,ytrans,yFgrid,yPgrid,yTgrid,max_iter,tol_iter,r,meany,nb,targetAY);
+    
+    beta = fmincon(iterate_EGP,beta0,[],[],[],[],1e-5,1-betaswitch-1e-5)
+end
 
-%% Stationary Distribution
-sav_wide = reshape(sav,nx,N/nx);
-state_dist = find_stationary(dieprob,ytrans,yPdist,nyP,nyF,nx,betatrans,...
-                                N,xgrid_wide,sav_wide,sgrid,borrow_lim,...
-                                xmax,r,nyT,netymat,yTdist,yPtrans);
+    
+
+[AY,con,sav,state_dist] = solve_EGP(beta,xgrid_wide,sgrid_wide,...
+    netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,...
+    betatrans,ytrans,yFgrid,yPgrid,yTgrid,max_iter,tol_iter,r,meany,nb,targetAY);
 
 mean_s = sav' * state_dist(:)
 mean_x = xgrid' * state_dist(:)
