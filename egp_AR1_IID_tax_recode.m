@@ -28,19 +28,19 @@ betaL = 0.90; %guesses if iterating on discount rate;
 betaH = 1/(R*(1-dieprob));
 
 %warm glow bequests: bequest_weight = 0 is accidental
-bequest_weight = 0; %0.07;
+bequest_weight = 0.07; %0.07;
 bequest_luxury = 2; %0.01;
 
 % income risk: AR(1) + IID in logs
 LoadIncomeProcess = 0;
-nyT         = 9; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+nyT         = 31; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 %only relevant if LoadIncomeProcess==0
 sd_logyT   = sqrt(0.2431);  %0.20; %relevant if nyT>1
 lambdaT = 1; % arrival rate of shocks;
 
 nyP         = 9; %11 persistent component
-sd_logyP    = sqrt(0.0047); %0.1950;
+sd_logyP    = sqrt(0.1950); %0.1950;
 rho_logyP   = 0.9947;
 
 nyF     = 1;
@@ -63,12 +63,12 @@ savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks;
 nb = 1;  %1 or 2
-betawidth = 0.01; % beta +/- beta width
+betawidth = 0.065; % beta +/- beta width
 betaswitch = 1/50; %0;
 
 % computation
-max_iter    = 1e4;
-tol_iter    = 1.0e-4;
+max_iter    = 1e5;
+tol_iter    = 1.0e-6;
 Nsim        = 100000;
 Tsim        = 200;
 
@@ -80,13 +80,12 @@ tolAY = 1.0e-4;
 mpcfrac{1}  = 1.0e-10; %approximate thoeretical mpc
 mpcfrac{2}  = 0.01; % 1 percent of average gross labor income: approx $500
 mpcfrac{3}  = 0.10; % 5 percent of average gross labor income: approx $5000
-
 N = nyP*nyF*nx*nb;
 
 %% OPTIONS
-IterateBeta = 1;
+IterateBeta = 0;
 Display     = 1;
-MakePlots   = 0;
+MakePlots   = 1;
 ComputeMPC  = 0;
 SolveDeterministic = 1;
 
@@ -268,21 +267,23 @@ xgrid_wide = reshape(xgrid,ns,nyP*nyF*nb);
 
 if IterateBeta == 1
     iterate_EGP = @(x) solve_EGP(x,xgrid_wide,sgrid_wide,...
-    netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,...
+    netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,beq1,...
     betatrans,ytrans,yFgrid,yPgrid,yTgrid,max_iter,tol_iter,r,meany,nb,targetAY);
     
-    beta = fmincon(iterate_EGP,beta0,[],[],[],[],1e-5,1-betaswitch-1e-5)
+    beta = fmincon(iterate_EGP,beta0,[],[],[],[],1e-5,betaH-betawidth-1e-5)
 end
 
     
 
 [AY,con,sav,state_dist] = solve_EGP(beta,xgrid_wide,sgrid_wide,...
-    netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,...
+    netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,beq1,...
     betatrans,ytrans,yFgrid,yPgrid,yTgrid,max_iter,tol_iter,r,meany,nb,targetAY);
 
 mean_s = sav' * state_dist(:)
 mean_x = xgrid' * state_dist(:)
-mean_y = (ymat*yTdist)' * state_dist(:)
+mean_y = (ymat*yTdist)' * state_dist(:);
+mean_nety = (netymat*yTdist)' * state_dist(:);
+mean_x_alt = R*mean_s + mean_nety
 %wealth_income = meanwealth/meany;
 
 

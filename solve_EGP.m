@@ -1,5 +1,5 @@
 function [AYdiffsq,con_opt,sav_opt,state_dist] = solve_EGP(beta,xgrid_wide,sgrid_wide,...
-    netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,...
+    netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,beq1,...
     betatrans,ytrans,yFgrid,yPgrid,yTgrid,max_iter,tol_iter,r,meany,nb,targetAY)
 
 if  nb == 1
@@ -53,7 +53,8 @@ while iter<max_iter && cdiff>tol_iter
 
     mucnext  = u1(c_xp);
     % muc this period as a function of s
-    muc_s = (1-dieprob)*(1+r)*betastacked.*(Emat*(mucnext*yTdist));
+    muc_s = (1-dieprob)*(1+r)*betastacked.*(Emat*(mucnext*yTdist))...
+        + dieprob*beq1(sgrid_wide(:));
     % _wide variables have dimension nx by nyP*nyF*nb, or nx by N/nx
 
     % consumption as a function of next period's cash (xprime)
@@ -92,7 +93,7 @@ Pi_beta_yP_yF = kron(betatrans,ytrans);
 % nx by N/nx matrix for net income, conditional on yT
 netymat_wideT = cell(nyT,1);
 for iyT = 1:nyT
-    netymat_wideT{iyT} = reshape(netymat(:,iyT),[nx N/nx]);
+    netymat_wideT{iyT} = reshape(netymat(:,iyT),nx,N/nx);
 end
 
 for col2 = 1:N/nx
