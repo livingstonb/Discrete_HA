@@ -10,8 +10,6 @@ path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
-%% PARAMETERS
-
 %returns
 r  = 0.005;
 R = 1+ r;
@@ -32,8 +30,8 @@ bequest_weight = 0.07; %0.07;
 bequest_luxury = 2; %0.01;
 
 % income risk: AR(1) + IID in logs
-LoadIncomeProcess = 0;
-nyT         = 31; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+LoadIncomeProcess = 1;
+nyT         = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 %only relevant if LoadIncomeProcess==0
 sd_logyT   = sqrt(0.2431);  %0.20; %relevant if nyT>1
@@ -71,7 +69,7 @@ max_iter    = 1e5;
 tol_iter    = 1.0e-6;
 Nsim        = 100000;
 Tsim        = 200;
-
+ 
 targetAY = 12.0;
 maxiterAY = 20;
 tolAY = 1.0e-4;
@@ -97,7 +95,7 @@ if LoadIncomeProcess == 1
     yPdist = load('QuarterlyIncomeDynamics/TransitoryContinuous/yPdist.txt');
     yPtrans = load('QuarterlyIncomeDynamics/TransitoryContinuous/yPtrans.txt');
     nyP = length(logyPgrid);
-    
+    logyPgrid = logyPgrid';
 elseif nyP>1
     [logyPgrid, yPtrans, yPdist] = rouwenhorst(nyP, -0.5*sd_logyP^2, sd_logyP, rho_logyP);
 else
@@ -105,7 +103,7 @@ else
     yPdist = 1;
     yPtrans = 1;
 end    
-logyPgrid = logyPgrid';
+
 yPgrid = exp(logyPgrid);
 yPcumdist = cumsum(yPdist,1);
 yPcumtrans = cumsum(yPtrans,2);
@@ -149,6 +147,7 @@ elseif nyT==1
     yTdist = 1;
 end
 yTgrid = exp(logyTgrid);
+
 
 % fixed effect
 if nyF>1
@@ -202,8 +201,8 @@ sgrid_wide = repmat(sgrid,1,nyP*nyF*nb);
 ns = nx;
 
 % construct matrix of y combinations
-ymat = reshape(repmat(yPgrid,ns,1),ns*nyP,1);
-ymat = repmat(ymat,nyF,1) .* reshape(repmat(yFgrid,nyP*ns,1),nyP*ns*nyF,1);
+ymat = reshape(repmat(yPgrid',ns,1),ns*nyP,1);
+ymat = repmat(ymat,nyF,1) .* reshape(repmat(yFgrid',nyP*ns,1),nyP*ns*nyF,1);
 ymat = repmat(ymat,nb,1)*yTgrid';
 
 ymatdist = reshape(repmat(yPdist',ns,1),ns*nyP,1);
@@ -270,12 +269,18 @@ if IterateBeta == 1
     netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,beq1,...
     betatrans,ytrans,yFgrid,yPgrid,yTgrid,max_iter,tol_iter,r,meany,nb,targetAY);
     
-    beta = fmincon(iterate_EGP,beta0,[],[],[],[],1e-5,betaH-betawidth-1e-5)
+    beta_lb = 1e-5;
+    if nb == 1
+        beta_ub = betaH - 1e-2;
+    else
+        beta_ub = betaH - 1e-2 - betawidth;
+    end
+    beta = fmincon(iterate_EGP,beta0,[],[],[],[],beta_lb,beta_ub)
 end
 
     
 
-[AY,con,sav,state_dist] = solve_EGP(beta,xgrid_wide,sgrid_wide,...
+[AYdiffsq,con,sav,state_dist] = solve_EGP(beta,xgrid_wide,sgrid_wide,...
     netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,beq1,...
     betatrans,ytrans,yFgrid,yPgrid,yTgrid,max_iter,tol_iter,r,meany,nb,targetAY);
 
@@ -284,6 +289,7 @@ mean_x = xgrid' * state_dist(:)
 mean_y = (ymat*yTdist)' * state_dist(:);
 mean_nety = (netymat*yTdist)' * state_dist(:);
 mean_x_alt = R*mean_s + mean_nety
+mean_AY = mean_s/mean_y
 %wealth_income = meanwealth/meany;
 
 

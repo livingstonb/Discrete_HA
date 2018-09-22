@@ -8,6 +8,8 @@ elseif nb ==2
     betagrid = [beta-betawidth;beta+betawidth];
 end
 
+disp(['Trying betagrid = ' num2str(betagrid)])
+
 nx = size(xgrid_wide,1);
 ns = nx;
 nyF = numel(yFgrid);
@@ -46,7 +48,9 @@ while iter<max_iter && cdiff>tol_iter
         x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
         c_xpT_wide = zeros(ns,nyP*nyF*nb);
         for col = 1:nyP*nyF*nb
-            c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col),'linear','extrap');
+            interpolant = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','nearest');
+            c_xpT_wide(:,col) = interpolant(x_s_wide(:,col));
+            %c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col),'linear','extrap');
         end
         c_xp(:,iyT)  = c_xpT_wide(:);
     end
