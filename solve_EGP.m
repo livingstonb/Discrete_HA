@@ -1,6 +1,23 @@
-function [AYdiffsq,con_opt,sav_opt,state_dist] = solve_EGP(beta,xgrid_wide,sgrid_wide,...
-    netymat,u1,u1inv,savtax,savtaxthresh,dieprob,yTdist,borrow_lim,beq1,...
-    betatrans,ytrans,yFgrid,yPgrid,yTgrid,max_iter,tol_iter,r,meany,nb,targetAY)
+function [AYdiffsq,con_opt,sav_opt,state_dist,cdiff] = solve_EGP(beta,p,...
+    xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
+    yTdist,beq1)
+
+nx = p.nx;
+ns = p.ns;
+nyF = p.nyF;
+nyP = p.nyP;
+nyT = p.nyT;
+nb = p.nb;
+N = p.N;
+r = p.r;
+targetAY = p.targetAY;
+max_iter = p.max_iter;
+tol_iter = p.tol_iter;
+dieprob = p.dieprob;
+savtax = p.savtax;
+savtaxthresh = p.savtaxthresh;
+borrow_lim = p.borrow_lim;
+
 
 if  nb == 1
     betagrid = beta;
@@ -9,13 +26,6 @@ elseif nb ==2
 end
 
 disp(['Trying betagrid = ' num2str(betagrid)])
-
-nx = size(xgrid_wide,1);
-ns = nx;
-nyF = numel(yFgrid);
-nyP = numel(yPgrid);
-nyT = numel(yTgrid);
-N = nx*nyF*nyP*nb;
 
 % initial guess for consumption function
 con = r * xgrid_wide(:);
