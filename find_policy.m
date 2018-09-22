@@ -32,7 +32,7 @@ while iter<max_iter && cdiff>tol_iter
 
     mucnext  = u1(c_xp);
     % muc this period as a function of s
-    muc_s = (1-dieprob)*(1+r)*betastacked.*Emat*(mucnext*yTdist);
+    muc_s = (1-dieprob)*(1+r)*betastacked.*(Emat*(mucnext*yTdist));
     % _wide variables have dimension nx by nyP*nyF*nb, or nx by N/nx
 
     % consumption as a function of next period's cash (xprime)
@@ -50,7 +50,7 @@ while iter<max_iter && cdiff>tol_iter
 
 
     % deal with borrowing limit
-    constr = xgrid_wide < x_s_wide(1,:);
+    constr = bsxfun(@lt,xgrid_wide,x_s_wide(1,:));
     sav_wide(constr) = borrow_lim;
     sav = sav_wide(:);
 

@@ -6,7 +6,7 @@
 clear;
 close all;
 
-path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -86,8 +86,8 @@ N = nyP*nyF*nx*nb;
 %% OPTIONS
 IterateBeta = 0;
 Display     = 1;
-MakePlots   = 1;
-ComputeMPC  = 1;
+MakePlots   = 0;
+ComputeMPC  = 0;
 SolveDeterministic = 1;
 
 %% INCOME GRIDS
@@ -110,7 +110,6 @@ logyPgrid = logyPgrid';
 yPgrid = exp(logyPgrid);
 yPcumdist = cumsum(yPdist,1);
 yPcumtrans = cumsum(yPtrans,2);
-    
 
 % transitory income: disretize normal distribution
 % if nyT>1
@@ -288,11 +287,11 @@ con = con_opt;
 sav_wide = reshape(sav,nx,N/nx);
 state_dist = find_stationary(dieprob,ytrans,yPdist,nyP,nyF,nx,betatrans,...
                                 N,xgrid_wide,sav_wide,sgrid,borrow_lim,...
-                                xmax,r,nyT,netymat,yTdist);
+                                xmax,r,nyT,netymat,yTdist,yPtrans);
 
 mean_s = sav' * state_dist(:)
 mean_x = xgrid' * state_dist(:)
-
+mean_y = (ymat*yTdist)' * state_dist(:)
 %wealth_income = meanwealth/meany;
 
 
