@@ -229,7 +229,7 @@ function results = egp_AR1_IID_tax_recode(p)
     results.mean_nety = (netymat*yTdist)' * state_dist;
     results.mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
     results.yPdist_check = sum(state_dist_multidim(:,:,1,1),1);
-    idx = sav_multidim(:,:,1,1) <= p.borrow_lim;
+    
 
     % Record problems
     results.issues = {};
