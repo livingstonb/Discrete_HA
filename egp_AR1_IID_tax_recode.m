@@ -1,25 +1,8 @@
-% Endogenous Grid Points with AR1 + IID Income
-% Cash on Hand as State variable
-% Includes NIT and discount factor heterogeneity
-% Greg Kaplan 2017
-
-clear;
-close all;
-
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
-addpath([path '/Auxiliary Functions']);
-cd(path);
-
-% Load structure of parameters
-prms = load_parameters();
-Nprms = size(prms,2);
-
-% Initialize results structure
-results = struct();
-
-for ip = 1:Nprms;
-    p = prms(ip)
-    
+function results = egp_AR1_IID_tax_recode(p)
+    % Endogenous Grid Points with AR1 + IID Income
+    % Cash on Hand as State variable
+    % Includes NIT and discount factor heterogeneity
+    % Greg Kaplan 2017
 
     %% INCOME GRIDS
 
@@ -90,7 +73,7 @@ for ip = 1:Nprms;
     ytrans = kron(eye(p.nyF),yPtrans);
 
     p.N = p.nx*p.nyF*p.nyP*p.nb;
-    
+
     %% DISCOUNT FACTOR
 
     if p.IterateBeta == 0
@@ -194,7 +177,7 @@ for ip = 1:Nprms;
         else
             beta_ub = betaH - 1e-2 - betawidth;
         end
-        results(ip).beta = fmincon(iterate_EGP,beta0,[],[],[],[],beta_lb,beta_ub);
+        results.beta = fmincon(iterate_EGP,beta0,[],[],[],[],beta_lb,beta_ub);
     end
 
 
@@ -203,31 +186,31 @@ for ip = 1:Nprms;
     xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
     yTdist,beq1);
 
-    results(ip).mean_s = sav' * state_dist(:);
-    results(ip).mean_x = xgrid' * state_dist(:);
-    results(ip).mean_grossy = (ymat*yTdist)' * state_dist(:);
-    results(ip).mean_nety = (netymat*yTdist)' * state_dist(:);
-    results(ip).mean_x_check = (1+p.r)*results(ip).mean_s + results(ip).mean_nety;
-    results(ip).mean_AY = results(ip).mean_s/results(ip).mean_grossy;
-    
+    results.mean_s = sav' * state_dist(:);
+    results.mean_x = xgrid' * state_dist(:);
+    results.mean_grossy = (ymat*yTdist)' * state_dist(:);
+    results.mean_nety = (netymat*yTdist)' * state_dist(:);
+    results.mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
+    results.mean_AY = results.mean_s/results.mean_grossy;
+
     % Record problems
-    results(ip).issues = {};
+    results.issues = {};
     if cdiff > p.tol_iter
-        results(ip).issues = [results(ip).issues,'NoEGPConv'];
+        results.issues = [results.issues,'NoEGPConv'];
     end
-    if (results(ip).mean_AY<11) || (results(ip).mean_AY>13)
-        results(ip).issues = [results(ip).issues,['BadAY: ' num2str(results(ip).mean_AY)]];
+    if (results.mean_AY<11) || (results.mean_AY>13)
+        results.issues = [results.issues,['BadAY: ' num2str(results.mean_AY)]];
     end
-    if abs((results(ip).mean_x-results(ip).mean_x_check)/results(ip).mean_x)> 1e-3
-        results(ip).issues = [results(ip).issues,'DistNotStationary'];
+    if abs((results.mean_x-results.mean_x_check)/results.mean_x)> 1e-3
+        results.issues = [results.issues,'DistNotStationary'];
     end
-    if abs((meannety-results(ip).mean_nety)/meannety)> 1e-3
-        results(ip).issues = [results(ip).issues,'BadMeanNetIncome'];
+    if abs((meannety-results.mean_nety)/meannety)> 1e-3
+        results.issues = [results.issues,'BadMeanNetIncome'];
     end
-    
+
     %% WEALTH DISTRIBUTION
-    results(ip).frac_constrained = (sav<=p.borrow_lim)' * state_dist;
-    
+    results.frac_constrained = (sav<=p.borrow_lim)' * state_dist;
+
     %% MAKE PLOTS
     newdim = [p.nx p.nyP p.nyF p.nb];
     con_wide = reshape(con,p.nx,p.N/p.nx);
@@ -243,7 +226,7 @@ for ip = 1:Nprms;
         if mod(p.nyF,2)==1
             iyF = (p.nyF+1)/2;
         else
-            iyF = iyF/2;
+            iyF = p.nyF/2;
         end
 
         % plot for first beta
@@ -297,25 +280,26 @@ for ip = 1:Nprms;
         %mpc amounts
         for im = 1:Nmpcamount
             mpcamount{im} = p.mpcfrac{im} * meany;
-            xgrid_mpc{im} = xgrid + mpcamount{im};
-        end
-    
-        % mpc functions, iterate over (yP,yF,beta)
-        for col = 1:p.N/p.nx
-            coninterp{col} = griddedInterpolant(xgrid_wide(:,col),con_wide(:,col),'linear');
-            mpc{im} = zeros(p.nx,p.N/p.nx);
-            for im = 1:Nmpcamount
-                mpc{im}(:,col) = (coninterp{col}(xgrid_wide(:,col)...
-                    +mpcamount{im}) - con_wide(:,col))/mpcamount{im};
-            end
+            xgrid_mpc_wide{im} = xgrid_wide + mpcamount{im};
         end
 
-        % average mpc
-        results(ip).mpcamount = mpcamount;
+        results.mpcamount = mpcamount;
+        
+        % Create interpolants for computing mpc's
+        for col = 1:p.N/p.nx
+                coninterp{col} = griddedInterpolant(xgrid_wide(:,col),con_wide(:,col),'linear');
+        end
+        
+        % mpc functions
         for im = 1:Nmpcamount
-            results(ip).avg_mpc{im} = mpc{im}(:)' * state_dist(:);
+            mpc{im} = zeros(p.nx,p.N/p.nx);
+            % iterate over (yP,yF,beta)
+            for col = 1:p.N/p.nx 
+                mpc{im}(:,col) = (coninterp{col}(xgrid_mpc_wide{im}(:,col))...
+                    - con_wide(:,col))/mpcamount{im};     
+            end
+            % average mpc
+            results.avg_mpc{im} = mpc{im}(:)' * state_dist(:);
         end
     end
-    
-    results(ip)
 end

@@ -1,6 +1,14 @@
-function prms = load_parameters()
 
+%% Housekeeping
 
+clear;
+close all;
+
+path = '/Users/Brian/Documents/GitHub/MPCrecode';
+addpath([path '/Auxiliary Functions']);
+cd(path);
+
+%% Set parameters
 prms = struct();
 
 % returns
@@ -67,7 +75,7 @@ prms(1).tolAY       = 1.0e-4;
 %mpc options
 prms(1).mpcfrac{1}  = 1.0e-10; %approximate thoeretical mpc
 prms(1).mpcfrac{2}  = 0.01; % 1 percent of average gross labor income: approx $500
-prms(1).mpcfrac{3}  = 0.10; % 5 percent of average gross labor income: approx $5000
+prms(1).mpcfrac{3}  = 0.05; % 5 percent of average gross labor income: approx $5000
 
 % OPTIONS
 prms(1).IterateBeta         = 0;
@@ -76,5 +84,9 @@ prms(1).MakePlots           = 1;
 prms(1).ComputeMPC          = 1;
 prms(1).SolveDeterministic  = 1;
 
-
+%% Call model
+Nprms = size(prms,2);
+% Create structure array to store results
+for ip = 1:Nprms
+    results(ip) = egp_AR1_IID_tax_recode(prms(ip));
 end
