@@ -58,9 +58,7 @@ while iter<max_iter && cdiff>tol_iter
         x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
         c_xpT_wide = zeros(ns,nyP*nyF*nb);
         for col = 1:nyP*nyF*nb
-            interpolant = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','nearest');
-            c_xpT_wide(:,col) = interpolant(x_s_wide(:,col));
-            %c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col),'linear','extrap');
+            c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col),'linear','extrap');
         end
         c_xp(:,iyT)  = c_xpT_wide(:);
     end

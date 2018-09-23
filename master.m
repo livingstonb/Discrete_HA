@@ -25,8 +25,8 @@ prms(1).temptation  = 0;
 prms(1).betaL       = 0.90;
 prms(1).betaH       = 1/(prms(1).R*(1-prms.dieprob));
 
-%warm glow bequests: bequest_weight = 0 is accidental
-prms(1).bequest_weight = 0.07; %0.07;
+%warm glow bequests: bequessgrt_weight = 0 is accidental
+prms(1).bequest_weight = 0; %0.07;
 prms(1).bequest_luxury = 0.01; %0.01;
 
 % income risk: AR(1) + IID in logs
@@ -82,7 +82,7 @@ prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
 prms(1).ComputeMPC          = 1;
-prms(1).SolveDeterministic  = 1;
+prms(1).SolveDeterministic  = 0;
 
 %% Call model
 Nprms = size(prms,2);

@@ -14,7 +14,7 @@ function results = egp_AR1_IID_tax_recode(p)
         p.nyP = length(logyPgrid);
         logyPgrid = logyPgrid';
     elseif nyP>1
-        [logyPgrid, yPtrans, yPdist] = rouwenhorst(p.nyP, -0.5*sd_logyP^2, sd_logyP, rho_logyP);
+        [logyPgrid, yPtrans, yPdist] = rouwenhorst(p.nyP, -0.5*p.sd_logyP^2, p.sd_logyP, p.rho_logyP);
     else
         logyPgrid = 0;
         yPdist = 1;
@@ -35,8 +35,8 @@ function results = egp_AR1_IID_tax_recode(p)
 
     % transitory income: disretize normal distribution
     if p.LoadIncomeProcess == 1
-        sig2T = load('QuarterlyIncomeDynamics/TransitoryContinuous/sig2T.txt');
-        lambdaT = load('QuarterlyIncomeDynamics/TransitoryContinuous/lambdaT.txt');
+        p.sig2T = load('QuarterlyIncomeDynamics/TransitoryContinuous/sig2T.txt');
+        p.lambdaT = load('QuarterlyIncomeDynamics/TransitoryContinuous/lambdaT.txt');
     end
 
     if p.nyT>1
@@ -66,7 +66,6 @@ function results = egp_AR1_IID_tax_recode(p)
     if size(yTdist,2)>1
         error('yTdist is a row vector, must be column vector')
     end
-    
     
 
 
@@ -130,7 +129,7 @@ function results = egp_AR1_IID_tax_recode(p)
     sgrid_wide = repmat(sgrid,1,p.nyP*p.nyF*p.nb);
     p.ns = p.nx;
 
-    % construct matrix of y combinations
+    % construct matrix of y combinationsx
     ymat = reshape(repmat(yPgrid',p.ns,1),p.ns*p.nyP,1);
     ymat = repmat(ymat,p.nyF,1) .* reshape(repmat(yFgrid',p.nyP*p.ns,1),p.nyP*p.ns*p.nyF,1);
     ymat = repmat(ymat,p.nb,1)*yTgrid';
@@ -147,7 +146,7 @@ function results = egp_AR1_IID_tax_recode(p)
     temp = sortrows([ymat_yvals(:) ymatdist_pvals(:)],1);
     ysortvals = temp(:,1);
     ysortpvals = temp(:,2);
-    ycumdist = cumsum(temp(:,2));
+    ycumdist = cumsum(ysortpvals);
     meany = ymat_yvals(:)'*ymatdist_pvals(:);
     
     % normalize gross income to have mean 1
@@ -159,7 +158,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
     % find tax threshold on labor income
     if numel(ysortvals)>1
-        labtaxthresh = interp1(ycumdist,ysortvals,p.labtaxthreshpc);
+        labtaxthresh = lininterp1(ycumdist,ysortvals,p.labtaxthreshpc);
     else
         labtaxthresh = 0;
     end    
@@ -210,16 +209,14 @@ function results = egp_AR1_IID_tax_recode(p)
         results.beta = beta;
     end
 
-
-
     [~,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
         xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
         yTdist,beq1);
 
-    results.mean_s = sav' * state_dist(:);
-    results.mean_x = xgrid' * state_dist(:);
-    results.mean_grossy = (ymat*yTdist)' * state_dist(:);
-    results.mean_nety = (netymat*yTdist)' * state_dist(:);
+    results.mean_s = sav' * state_dist;
+    results.mean_x = xgrid' * state_dist;
+    results.mean_grossy = (ymat*yTdist)' * state_dist;
+    results.mean_nety = (netymat*yTdist)' * state_dist;
     results.mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
     results.mean_AY = results.mean_s/results.mean_grossy;
 
@@ -228,7 +225,7 @@ function results = egp_AR1_IID_tax_recode(p)
     if cdiff > p.tol_iter
         results.issues = [results.issues,'NoEGPConv'];
     end
-    if (results.mean_AY<11) || (results.mean_AY>13)
+    if (results.mean_AY<p.TargetAY-1) || (results.mean_AY>p.TargetAY+1)
         results.issues = [results.issues,['BadAY: ' num2str(results.mean_AY)]];
     end
     if abs((results.mean_x-results.mean_x_check)/results.mean_x)> 1e-3
@@ -240,6 +237,21 @@ function results = egp_AR1_IID_tax_recode(p)
 
     %% WEALTH DISTRIBUTION
     results.frac_constrained = (sav<=p.borrow_lim)' * state_dist;
+    temp = sortrows([sav state_dist]);
+    savsort = temp(:,1);
+    state_dist_sort = temp(:,2);
+    bins = 0:1:2*p.xmax;
+    values = zeros(p.xmax+1,1);
+    for ibin = bins
+        bin = ibin/2;
+        if bin < p.xmax
+            idx = (savsort>=bin) & (savsort<bin+1);
+        else
+            idx = (savsort>=bin) & (savsort<=bin+1);
+        end
+        values(ibin+1) = sum(state_dist_sort(idx));
+    end
+ 
 
     %% MAKE PLOTS
     newdim = [p.nx p.nyP p.nyF p.nb];
@@ -309,6 +321,15 @@ function results = egp_AR1_IID_tax_recode(p)
         grid;
         xlim([0 10]);
         title('Gross Income PMF');
+        
+         % asset distribution
+        subplot(2,4,6);
+        b = bar(bins,values);
+        b.FaceColor = 'blue';
+        b.EdgeColor = 'blue';
+        grid;
+        xlim([-0.4 10]);
+        title('Asset PMF, Binned');
     end
 
     %% COMPUTE MPCs
