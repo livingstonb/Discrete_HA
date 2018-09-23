@@ -1,6 +1,6 @@
 function [AYdiffsq,con_opt,sav_opt,state_dist,cdiff] = solve_EGP(beta,p,...
     xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-    yTdist,beq1)
+    yTdist,beq1,yPtrans)
 
 nx = p.nx;
 ns = p.ns;
@@ -102,26 +102,57 @@ con_opt = conupdate;
 Pi_beta_yP_yF = kron(betatrans,ytrans); 
 
 % nx by N/nx matrix for net income, conditional on yT
-netymat_wideT = cell(nyT,1);
-for iyT = 1:nyT
-    netymat_wideT{iyT} = reshape(netymat(:,iyT),nx,N/nx);
+% netymat_wideT = cell(nyT,1);
+% for iyT = 1:nyT
+%     netymat_wideT{iyT} = reshape(netymat(:,iyT),nx,N/nx);
+% end
+% 
+% grid_probabilities = zeros(N,N);
+% for col2 = 1:N/nx
+%     fspace = fundef({'spli',xgrid_wide(:,col2),0,1});
+%     xmax_col2 = max(xgrid_wide(:,col2));
+%     xmin_col2 = min(xgrid_wide(:,col2));
+%     for col1 = 1:N/nx
+%         col1_col2_probs = 0;
+%         for iyT = 1:nyT
+%              xp = (1+r)*sav_wide(:,col1) + netymat_wideT{iyT}(:,col2);
+%              xp = min(max(xp,xmin_col2),xmax_col2);
+%              col1_col2_probs = col1_col2_probs + yTdist(iyT) * funbas(fspace,xp) .* Pi_beta_yP_yF(col1,col2);
+%         end
+%         grid_probabilities(nx*(col1-1)+1:nx*col1,nx*(col2-1)+1:nx*col2) = col1_col2_probs;
+%     end
+% end
+
+yFtrans = eye(nyF);
+grid_probabilities = zeros(N,N);
+xgridm = reshape(xgrid_wide(:),[nx nyP nyF nb]);
+savm = reshape(sav_opt,[nx nyP nyF nb]);
+netymatm = reshape(netymat,[nx nyP nyF nb nyT]);
+grid_probabilities = [];
+for ib2 = 1:nb
+for iyF2 = 1:nyF
+for iyP2 = 1:nyP
+    fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
+    state1prob = 0;
+    
+    newblock = [];
+    for ib1 = 1:nb
+    for iyF1 = 1:nyF
+    for iyP1 = 1:nyP    
+        state1prob = 0;
+        for iyT = 1:nyT
+            xp = (1+r)*savm(:,iyP1,iyF1,ib1) + netymatm(:,iyP2,iyF2,ib2,iyT);
+            state1prob = state1prob + yTdist(iyT) * yPtrans(iyP1,iyP2) * yFtrans(iyF1,iyF2) * betatrans(ib1,ib2) * funbas(fspace,xp);
+        end
+        newblock = [newblock;state1prob];
+    end
+    end
+    end
+    grid_probabilities = [grid_probabilities,newblock];
+end
+end
 end
 
-grid_probabilities = zeros(N,N);
-for col2 = 1:N/nx
-    fspace = fundef({'spli',xgrid_wide(:,col2),0,1});
-    xmax_col2 = max(xgrid_wide(:,col2));
-    xmin_col2 = min(xgrid_wide(:,col2));
-    for col1 = 1:N/nx
-        col1_col2_probs = 0;
-        for iyT = 1:nyT
-             xp = (1+r)*sav_wide(:,col1) + netymat_wideT{iyT}(:,col2);
-             xp = min(max(xp,xmin_col2),xmax_col2);
-             col1_col2_probs = col1_col2_probs + yTdist(iyT) * funbas(fspace,xp) .* Pi_beta_yP_yF(col1,col2);
-        end
-        grid_probabilities(nx*(col1-1)+1:nx*col1,nx*(col2-1)+1:nx*col2) = col1_col2_probs;
-    end
-end
 
 % SS probability of residing in each state
 state_dist      = full(ergodicdist(sparse(grid_probabilities)));
