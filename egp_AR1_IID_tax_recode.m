@@ -12,12 +12,12 @@ cd(path);
 
 % Load structure of parameters
 prms = load_parameters();
-num_prms = size(prms,2);
+Nprms = size(prms,2);
 
 % Initialize results structure
 results = struct();
 
-for ip = 1:num_prms;
+for ip = 1:Nprms;
     p = prms(ip)
     
 
@@ -90,6 +90,7 @@ for ip = 1:num_prms;
     ytrans = kron(eye(p.nyF),yPtrans);
 
     p.N = p.nx*p.nyF*p.nyP*p.nb;
+    
     %% DISCOUNT FACTOR
 
     if p.IterateBeta == 0
@@ -198,16 +199,16 @@ for ip = 1:num_prms;
 
 
 
-    [AYdiffsq,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
+    [~,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
     xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
     yTdist,beq1);
 
     results(ip).mean_s = sav' * state_dist(:);
     results(ip).mean_x = xgrid' * state_dist(:);
-    results(ip).mean_y = (ymat*yTdist)' * state_dist(:);
+    results(ip).mean_grossy = (ymat*yTdist)' * state_dist(:);
     results(ip).mean_nety = (netymat*yTdist)' * state_dist(:);
     results(ip).mean_x_check = (1+p.r)*results(ip).mean_s + results(ip).mean_nety;
-    results(ip).mean_AY = results(ip).mean_s/results(ip).mean_y;
+    results(ip).mean_AY = results(ip).mean_s/results(ip).mean_grossy;
     
     % Record problems
     results(ip).issues = {};
@@ -220,13 +221,13 @@ for ip = 1:num_prms;
     if abs((results(ip).mean_x-results(ip).mean_x_check)/results(ip).mean_x)> 1e-3
         results(ip).issues = [results(ip).issues,'DistNotStationary'];
     end
-
-    
-    results(ip)
+    if abs((meannety-results(ip).mean_nety)/meannety)> 1e-3
+        results(ip).issues = [results(ip).issues,'BadMeanNetIncome'];
+    end
     
     %% WEALTH DISTRIBUTION
     results(ip).frac_constrained = (sav<=p.borrow_lim)' * state_dist;
-
+    
     %% MAKE PLOTS
     newdim = [p.nx p.nyP p.nyF p.nb];
     con_wide = reshape(con,p.nx,p.N/p.nx);
@@ -304,7 +305,8 @@ for ip = 1:num_prms;
             coninterp{col} = griddedInterpolant(xgrid_wide(:,col),con_wide(:,col),'linear');
             mpc{im} = zeros(p.nx,p.N/p.nx);
             for im = 1:Nmpcamount
-                mpc{im}(:,col) = (coninterp{col}(xgrid_wide(:,col)+mpcamount{im}) - con_wide(:,col))/mpcamount{im};
+                mpc{im}(:,col) = (coninterp{col}(xgrid_wide(:,col)...
+                    +mpcamount{im}) - con_wide(:,col))/mpcamount{im};
             end
         end
 

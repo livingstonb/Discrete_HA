@@ -71,7 +71,7 @@ while iter<max_iter && cdiff>tol_iter
         + dieprob*beq1(sgrid_wide(:));
     % _wide variables have dimension nx by nyP*nyF*nb, or nx by N/nx
 
-    % consumption as a function of next period's cash (xprime)
+    % consumption as a function of s
     con_s = u1inv(muc_s);
     % cash-in-hand (x) as a function of s
     x_s = sgrid_wide(:) + savtax * max(sgrid_wide(:)-savtaxthresh,0) + con_s;
