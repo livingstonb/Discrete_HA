@@ -88,6 +88,7 @@ function [xsim ssim grossysim ynetsim] = simulations(p,yTcumdist,yFcumdist,...
     plot(mean(ssim));
     mean(ssim(:,p.Tsim))
     mean(xsim(:,p.Tsim))
+    mean(ssim(:,p.Tsim)<=p.borrow_lim)
 
 
 

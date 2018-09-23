@@ -12,7 +12,7 @@ cd(path);
 prms = struct();
 
 % returns
-prms(1).r           = 0.02;
+prms(1).r           = 0.005;
 prms(1).R           = 1 + prms(1).r;
 
 % demographics
@@ -20,7 +20,7 @@ prms(1).dieprob     = 1/50;
 
 % preferences
 prms(1).risk_aver   = 1;
-prms(1).beta0       = 0.97365;
+prms(1).beta0       = 0.95;
 prms(1).temptation  = 0;
 prms(1).betaL       = 0.90;
 prms(1).betaH       = 1/(prms(1).R*(1-prms.dieprob));
@@ -30,14 +30,14 @@ prms(1).bequest_weight = 0; %0.07;
 prms(1).bequest_luxury = 0.01; %0.01;
 
 % income risk: AR(1) + IID in logs
-prms(1).LoadIncomeProcess   = 1;
+prms(1).LoadIncomeProcess   = 0;
 prms(1).nyT                 = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 %only relevant if LoadIncomeProcess==0
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
 prms(1).lambdaT     = 1; % arrival rate of shocks;
 prms(1).nyP         = 11; %11 persistent component
-prms(1).sd_logyP    = sqrt(0.1950); %0.1950;
+prms(1).sd_logyP    = sqrt(0.02); %0.1950;
 prms(1).rho_logyP   = 0.9947;
 prms(1).nyF         = 1;
 prms(1).sd_logyF    = 0;

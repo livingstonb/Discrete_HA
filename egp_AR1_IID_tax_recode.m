@@ -13,7 +13,7 @@ function results = egp_AR1_IID_tax_recode(p)
         yPtrans = load('QuarterlyIncomeDynamics/TransitoryContinuous/yPtrans.txt');
         p.nyP = length(logyPgrid);
         logyPgrid = logyPgrid';
-    elseif nyP>1
+    elseif p.nyP>1
         [logyPgrid, yPtrans, yPdist] = rouwenhorst(p.nyP, -0.5*p.sd_logyP^2, p.sd_logyP, p.rho_logyP);
     else
         logyPgrid = 0;
@@ -150,6 +150,7 @@ function results = egp_AR1_IID_tax_recode(p)
     meany = ymat_yvals(:)'*ymatdist_pvals(:);
     
     % normalize gross income to have mean 1
+    meany
     ymat = ymat/meany;
     ymat_yvals = ymat_yvals/meany;
     ysortvals = ysortvals/meany;
@@ -201,9 +202,9 @@ function results = egp_AR1_IID_tax_recode(p)
 
         beta_lb = 1e-5;
         if nb == 1
-            beta_ub = betaH - 1e-2;
+            beta_ub = p.betaH - 1e-2;
         else
-            beta_ub = betaH - 1e-2 - betawidth;
+            beta_ub = p.betaH - 1e-2 - betawidth;
         end
         beta = fmincon(iterate_EGP,beta0,[],[],[],[],beta_lb,beta_ub);
         results.beta = beta;

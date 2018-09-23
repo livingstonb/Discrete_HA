@@ -107,6 +107,7 @@ for iyT = 1:nyT
     netymat_wideT{iyT} = reshape(netymat(:,iyT),nx,N/nx);
 end
 
+grid_probabilities = zeros(N,N);
 for col2 = 1:N/nx
     fspace = fundef({'spli',xgrid_wide(:,col2),0,1});
     xmax_col2 = max(xgrid_wide(:,col2));
