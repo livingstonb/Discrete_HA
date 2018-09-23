@@ -126,6 +126,6 @@ end
 state_dist      = full(ergodicdist(sparse(grid_probabilities)));
 
 % SS wealth/gross income ratio
-AYdiffsq = (sav_opt' * state_dist(:) - targetAY)^2;
+AYdiffsq = (sav_opt' * state_dist - targetAY)^2;
 
 end

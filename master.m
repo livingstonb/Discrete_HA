@@ -31,7 +31,7 @@ prms(1).bequest_luxury = 0.01; %0.01;
 
 % income risk: AR(1) + IID in logs
 prms(1).LoadIncomeProcess   = 1;
-prms(1).nyT                 = 31; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+prms(1).nyT                 = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 %only relevant if LoadIncomeProcess==0
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
@@ -77,12 +77,17 @@ prms(1).mpcfrac{1}  = 1.0e-10; %approximate thoeretical mpc
 prms(1).mpcfrac{2}  = 0.01; % 1 percent of average gross labor income: approx $500
 prms(1).mpcfrac{3}  = 0.05; % 5 percent of average gross labor income: approx $5000
 
+% simulation options
+prms(1).Nsim = 100000;
+prms(1).Tsim = 200;
+
 % OPTIONS
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
-prms(1).MakePlots           = 1;
+prms(1).MakePlots           = 0;
 prms(1).ComputeMPC          = 1;
 prms(1).SolveDeterministic  = 0;
+prms(1).Simulate            = 1;
 
 %% Call model
 Nprms = size(prms,2);

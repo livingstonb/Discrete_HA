@@ -212,7 +212,16 @@ function results = egp_AR1_IID_tax_recode(p)
     [~,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
         xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
         yTdist,beq1);
-
+    
+    % Reshape policy functions for use later
+    con_wide = reshape(con,p.nx,p.N/p.nx);
+    sav_wide = reshape(sav,p.nx,p.N/p.nx);
+    newdim = [p.nx p.nyP p.nyF p.nb];
+    con_multidim = reshape(con,newdim);
+    sav_multidim = reshape(sav,newdim);
+    xgrid_multidim = reshape(xgrid,newdim);
+    
+    % Store moments
     results.mean_s = sav' * state_dist;
     results.mean_x = xgrid' * state_dist;
     results.mean_grossy = (ymat*yTdist)' * state_dist;
@@ -253,13 +262,15 @@ function results = egp_AR1_IID_tax_recode(p)
         values(ibin) = sum(state_dist_sort(idx));
         ibin = ibin + 1;
     end
+    
+    %% Simulate
+    if p.Simulate == 1
+        [xsim ssim grossysim netysim] = simulations(p,yTcumdist,yFcumdist,...
+    yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,con_multidim,sav_multidim,xgrid_multidim,...
+    lumptransfer,betacumdist,betacumtrans);
+    end
 
     %% MAKE PLOTS
-    newdim = [p.nx p.nyP p.nyF p.nb];
-    con_wide = reshape(con,p.nx,p.N/p.nx);
-    con_multidim = reshape(con,newdim);
-    sav_multidim = reshape(sav,newdim);
-    xgrid_multidim = reshape(xgrid,newdim);
 
     if p.MakePlots ==1 
 
