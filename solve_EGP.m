@@ -1,5 +1,5 @@
 function [AYdiffsq,con_opt,sav_opt,state_dist,cdiff] = solve_EGP(beta,p,...
-    xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
+    xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
     yTdist,beq1)
 
 nx = p.nx;
@@ -84,8 +84,7 @@ while iter<max_iter && cdiff>tol_iter
 
 
     % deal with borrowing limit
-    constr = bsxfun(@lt,xgrid_wide,x_s_wide(1,:));
-    sav_wide(constr) = borrow_lim;
+    sav_wide(sav_wide<borrow_lim) = borrow_lim;
     sav_opt = sav_wide(:);
 
     conupdate = xgrid_wide(:) - sav_opt - savtax * max(sav_opt-savtaxthresh,0);
@@ -127,6 +126,6 @@ end
 state_dist      = full(ergodicdist(sparse(grid_probabilities)));
 
 % SS wealth/gross income ratio
-AYdiffsq = (sav_opt' * state_dist(:)/meany - targetAY)^2;
+AYdiffsq = (sav_opt' * state_dist(:) - targetAY)^2;
 
 end

@@ -196,7 +196,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
     if p.IterateBeta == 1
         iterate_EGP = @(x) solve_EGP(x,p,...
-            xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
+            xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
             yTdist,beq1);
 
         beta_lb = 1e-5;
@@ -210,7 +210,7 @@ function results = egp_AR1_IID_tax_recode(p)
     end
 
     [~,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
-        xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
+        xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
         yTdist,beq1);
 
     results.mean_s = sav' * state_dist;
@@ -218,15 +218,14 @@ function results = egp_AR1_IID_tax_recode(p)
     results.mean_grossy = (ymat*yTdist)' * state_dist;
     results.mean_nety = (netymat*yTdist)' * state_dist;
     results.mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
-    results.mean_AY = results.mean_s/results.mean_grossy;
 
     % Record problems
     results.issues = {};
     if cdiff > p.tol_iter
         results.issues = [results.issues,'NoEGPConv'];
     end
-    if (results.mean_AY<p.TargetAY-1) || (results.mean_AY>p.TargetAY+1)
-        results.issues = [results.issues,['BadAY: ' num2str(results.mean_AY)]];
+    if (results.mean_s<p.targetAY-1) || (results.mean_s>p.targetAY+1)
+        results.issues = [results.issues,['BadAY: ' num2str(results.mean_s)]];
     end
     if abs((results.mean_x-results.mean_x_check)/results.mean_x)> 1e-3
         results.issues = [results.issues,'DistNotStationary'];
@@ -237,21 +236,23 @@ function results = egp_AR1_IID_tax_recode(p)
 
     %% WEALTH DISTRIBUTION
     results.frac_constrained = (sav<=p.borrow_lim)' * state_dist;
+    
     temp = sortrows([sav state_dist]);
     savsort = temp(:,1);
     state_dist_sort = temp(:,2);
-    bins = 0:1:2*p.xmax;
+    binwidth = 0.25;
+    bins = 0:binwidth:p.xmax;
     values = zeros(p.xmax+1,1);
-    for ibin = bins
-        bin = ibin/2;
+    ibin = 1;
+    for bin = bins
         if bin < p.xmax
-            idx = (savsort>=bin) & (savsort<bin+1);
+            idx = (savsort>=bin) & (savsort<bin+binwidth);
         else
-            idx = (savsort>=bin) & (savsort<=bin+1);
+            idx = (savsort>=bin) & (savsort<=bin+binwidth);
         end
-        values(ibin+1) = sum(state_dist_sort(idx));
+        values(ibin) = sum(state_dist_sort(idx));
+        ibin = ibin + 1;
     end
- 
 
     %% MAKE PLOTS
     newdim = [p.nx p.nyP p.nyF p.nb];
