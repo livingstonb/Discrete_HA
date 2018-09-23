@@ -19,11 +19,19 @@ function results = egp_AR1_IID_tax_recode(p)
         logyPgrid = 0;
         yPdist = 1;
         yPtrans = 1;
-    end    
+    end  
 
     yPgrid = exp(logyPgrid);
     yPcumdist = cumsum(yPdist,1);
     yPcumtrans = cumsum(yPtrans,2);
+    
+    if size(yPgrid,2)>1
+        error('yPgrid is a row vector, must be column vector')
+    end
+    if size(yPdist,2)>1
+        error('yPdist is a row vector, must be column vector')
+    end
+    
 
     % transitory income: disretize normal distribution
     if p.LoadIncomeProcess == 1
@@ -45,14 +53,21 @@ function results = egp_AR1_IID_tax_recode(p)
         yTdist = lp;
         yTcumdist = cumsum(yTdist,1);
 
-    %     width = fzero(@(x)discrete_normal(nyT,-0.5*sd_logyT^2 ,sd_logyT ,x),2);    
-    %     [~,logyTgrid,yTdist] = discrete_normal(nyT,-0.5*sd_logyT^2 ,sd_logyT ,width);
-
     elseif nyT==1
         logyTgrid = 0;
         yTdist = 1;
     end
+    
     yTgrid = exp(logyTgrid);
+    
+    if size(yTgrid,2)>1
+        error('yTgrid is a row vector, must be column vector')
+    end
+    if size(yTdist,2)>1
+        error('yTdist is a row vector, must be column vector')
+    end
+    
+    
 
 
     % fixed effect
@@ -66,22 +81,29 @@ function results = egp_AR1_IID_tax_recode(p)
     yFgrid = exp(logyFgrid);
     yFcumdist = cumsum(yFdist,1);
 
-    % check if yFgrid is row vector like yPgrid, if not, need to rewrite code
-    assert(size(yFgrid,1)==1);
+    if size(yFgrid,2)>1
+        error('yFgrid is a row vector, must be column vector')
+    end
+    if size(yFdist,2)>1
+        error('yFdist is a row vector, must be column vector')
+    end
 
     % transition probabilities for yP-yF combined grid
     ytrans = kron(eye(p.nyF),yPtrans);
 
+    % length of full xgrid
     p.N = p.nx*p.nyF*p.nyP*p.nb;
 
     %% DISCOUNT FACTOR
 
     if p.IterateBeta == 0
         p.maxiterAY = 1;
+        % final beta
         beta = p.beta0;
     end
 
     if p.IterateBeta == 1
+        % initial condition for beta iteration
         p.beta0 = (p.betaH + p.betaL)/2;
     end
 
@@ -113,17 +135,26 @@ function results = egp_AR1_IID_tax_recode(p)
     ymat = repmat(ymat,p.nyF,1) .* reshape(repmat(yFgrid',p.nyP*p.ns,1),p.nyP*p.ns*p.nyF,1);
     ymat = repmat(ymat,p.nb,1)*yTgrid';
 
+    % distribution of ymat (values are repeated nb*nx times)
     ymatdist = reshape(repmat(yPdist',p.ns,1),p.ns*p.nyP,1);
     ymatdist = repmat(ymatdist,p.nyF,1) .* reshape(repmat(yFdist',p.nyP*p.ns,1),p.nyP*p.ns*p.nyF,1);
     ymatdist = repmat(ymatdist,p.nb,1)*yTdist';
 
     % find mean y
+    % isolate unique (yT,yF,yP) combinations
     ymat_yvals = ymat(1:p.ns:p.ns*p.nyF*p.nyP,:);
     ymatdist_pvals = ymatdist(1:p.ns:p.ns*p.nyF*p.nyP,:);
     temp = sortrows([ymat_yvals(:) ymatdist_pvals(:)],1);
     ysortvals = temp(:,1);
+    ysortpvals = temp(:,2);
     ycumdist = cumsum(temp(:,2));
     meany = ymat_yvals(:)'*ymatdist_pvals(:);
+    
+    % normalize gross income to have mean 1
+    ymat = ymat/meany;
+    ymat_yvals = ymat_yvals/meany;
+    ysortvals = ysortvals/meany;
+    meany = 1;
     totgrossy = meany;
 
     % find tax threshold on labor income
@@ -133,14 +164,16 @@ function results = egp_AR1_IID_tax_recode(p)
         labtaxthresh = 0;
     end    
 
+    % find net income
     totgrossyhigh = max(ymat_yvals(:)-labtaxthresh,0)'*ymatdist_pvals(:);
     lumptransfer = p.labtaxlow*totgrossy + p.labtaxhigh*totgrossyhigh;
+    % netymat is N by nyT matrix
     netymat = lumptransfer + (1-p.labtaxlow)*ymat - p.labtaxhigh*max(ymat-labtaxthresh,0);
     netymat_yvals = netymat(1:p.ns:p.ns*p.nyF*p.nyP,:);
     meannety = netymat_yvals(:)'*ymatdist_pvals(:);
 
-    % xgrid, indexed by beta,yF,yP,x
-    % cash on hand grid: different min points for each value of (iyP)
+    % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
+    % cash on hand grid: different min points for each value of (iyP,iyF)
     xgrid = sgrid_wide(:) + min(netymat,[],2);
 
     %% UTILITY FUNCTION, BEQUEST FUNCTION
@@ -160,16 +193,12 @@ function results = egp_AR1_IID_tax_recode(p)
 
 
     %% Model Solution
-
-
-    % next period's, cash-on-hand as function of saving
-
     xgrid_wide = reshape(xgrid,p.ns,p.nyP*p.nyF*p.nb);
 
     if p.IterateBeta == 1
         iterate_EGP = @(x) solve_EGP(x,p,...
-    xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
-    yTdist,beq1);
+            xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
+            yTdist,beq1);
 
         beta_lb = 1e-5;
         if nb == 1
@@ -177,14 +206,15 @@ function results = egp_AR1_IID_tax_recode(p)
         else
             beta_ub = betaH - 1e-2 - betawidth;
         end
-        results.beta = fmincon(iterate_EGP,beta0,[],[],[],[],beta_lb,beta_ub);
+        beta = fmincon(iterate_EGP,beta0,[],[],[],[],beta_lb,beta_ub);
+        results.beta = beta;
     end
 
 
 
     [~,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
-    xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
-    yTdist,beq1);
+        xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,meany,...
+        yTdist,beq1);
 
     results.mean_s = sav' * state_dist(:);
     results.mean_x = xgrid' * state_dist(:);
@@ -205,7 +235,7 @@ function results = egp_AR1_IID_tax_recode(p)
         results.issues = [results.issues,'DistNotStationary'];
     end
     if abs((meannety-results.mean_nety)/meannety)> 1e-3
-        results.issues = [results.issues,'BadMeanNetIncome'];
+        results.issues = [results.issues,'BadNetIncomeDist'];
     end
 
     %% WEALTH DISTRIBUTION
@@ -270,6 +300,15 @@ function results = egp_AR1_IID_tax_recode(p)
         grid;
         xlim([0 4]);
         title('Savings (s/x): Zoomed');
+        
+         % gross income distribution
+        subplot(2,4,5);
+        b = bar(ysortvals,ysortpvals);
+        b.FaceColor = 'blue';
+        b.EdgeColor = 'blue';
+        grid;
+        xlim([0 10]);
+        title('Gross Income PMF');
     end
 
     %% COMPUTE MPCs

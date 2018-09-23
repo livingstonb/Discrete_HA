@@ -36,7 +36,7 @@ prms(1).nyT                 = 11; %transitory component (not a state variable) (
 %only relevant if LoadIncomeProcess==0
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
 prms(1).lambdaT     = 1; % arrival rate of shocks;
-prms(1).nyP         = 9; %11 persistent component
+prms(1).nyP         = 11; %11 persistent component
 prms(1).sd_logyP    = sqrt(0.1950); %0.1950;
 prms(1).rho_logyP   = 0.9947;
 prms(1).nyF         = 1;
