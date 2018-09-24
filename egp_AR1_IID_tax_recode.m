@@ -66,8 +66,6 @@ function results = egp_AR1_IID_tax_recode(p)
     if size(yTdist,2)>1
         error('yTdist is a row vector, must be column vector')
     end
-    
-
 
     % fixed effect
     if p.nyF>1
@@ -198,9 +196,10 @@ function results = egp_AR1_IID_tax_recode(p)
     xgrid_wide = reshape(xgrid,p.ns,p.nyP*p.nyF*p.nb);
 
     if p.IterateBeta == 1
+        ergodic_tol = 1e-3;
         iterate_EGP = @(x) solve_EGP(x,p,...
             xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-            yTdist,beq1,yPtrans,meany);
+            yTdist,beq1,yPtrans,meany,ergodic_tol);
 
         beta_lb = 1e-5;
         if p.nb == 1
@@ -208,13 +207,23 @@ function results = egp_AR1_IID_tax_recode(p)
         else
             beta_ub = p.betaH - 1e-5 - betawidth;
         end
-        beta = fmincon(iterate_EGP,p.beta0,[],[],[],[],beta_lb,beta_ub);
+        % Max fzero iterations set to p.max_evals
+        check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.max_evals);
+        options = optimset('TolX',1e-5,'OutputFcn',check_evals);
+        [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
+        
+        if exitflag ~= 1
+            results = struct();
+            results.issues = {'fzero did not converge to beta'};
+            return
+        end
         results.beta = beta;
     end
 
+    ergodic_tol = 1e-5;
     [~,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
         xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-        yTdist,beq1,yPtrans,meany);
+        yTdist,beq1,yPtrans,meany,ergodic_tol);
     
     % Reshape policy functions for use later
     con_wide = reshape(con,p.nx,p.N/p.nx);
@@ -237,7 +246,8 @@ function results = egp_AR1_IID_tax_recode(p)
     
     % Error checks
     mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
-    yPdist_check = sum(state_dist_multidim(:,:,1,1),1);
+    temp = permute(state_dist_multidim,[2 1 3 4]);
+    yPdist_check = sum(sum(sum(temp,4),3),2);
     
 
     %% Store problems
@@ -254,7 +264,7 @@ function results = egp_AR1_IID_tax_recode(p)
     if abs((meannety-results.mean_nety)/meannety) > 1e-3
         results.issues = [results.issues,'BadNetIncomeMean'];
     end
-    if norm(yPdist_check'-yPdist) > 1e-3
+    if norm(yPdist_check-yPdist) > 1e-3
         results.issues = [results.issues,'BadGrossIncDist'];
     end
 

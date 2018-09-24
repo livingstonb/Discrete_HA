@@ -1,6 +1,6 @@
-function [AYdiffsq,con_opt,sav_opt,state_dist,cdiff] = solve_EGP(beta,p,...
+function [AYdiff,con_opt,sav_opt,state_dist,cdiff] = solve_EGP(beta,p,...
     xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-    yTdist,beq1,yPtrans,meany)
+    yTdist,beq1,yPtrans,meany,ergodic_tol)
 
 nx = p.nx;
 ns = p.ns;
@@ -18,7 +18,7 @@ savtax = p.savtax;
 savtaxthresh = p.savtaxthresh;
 borrow_lim = p.borrow_lim;
 temptation = p.temptation;
-ergodic_tol = p.ergodic_tol;
+betawidth = p.betawidth;
 
 
 if  nb == 1
@@ -105,13 +105,10 @@ con_opt = conupdate;
 
 %% DISTRIBUTION
 fprintf(' Computing state-to-state transition probabilities... \n');
-% transition probabilities associated with (beta, yP, yF)
-Pi_beta_yP_yF = kron(betatrans,ytrans); 
 
 % Use original xgrids
 yFtrans = eye(nyF);
-grid_probabilities = zeros(N,N);
-xgridm = reshape(xgrid_wide(:),[nx nyP nyF nb]);
+xgridm = reshape(xgrid_wide,[nx nyP nyF nb]);
 savm = reshape(sav_opt,[nx nyP nyF nb]);
 netymatm = reshape(netymat,[nx nyP nyF nb nyT]);
 
@@ -121,13 +118,12 @@ for ib2 = 1:nb
 for iyF2 = 1:nyF
 for iyP2 = 1:nyP
     fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
-    state1prob = 0;
     
     newcolumn = zeros(N,nx);
     innerblock = 1;
     for ib1 = 1:nb
     for iyF1 = 1:nyF
-    for iyP1 = 1:nyP    
+    for iyP1 = 1:nyP
         state1prob = 0;
         for iyT = 1:nyT
             xp = (1+r)*savm(:,iyP1,iyF1,ib1) + netymatm(:,iyP2,iyF2,ib2,iyT);
@@ -151,6 +147,7 @@ state_dist      = full(ergodicdist(sparse(grid_probabilities),1,ergodic_tol));
 % SS wealth/gross income ratio
 mean_s = sav_opt' * state_dist;
 fprintf(' A/Y = %2.3f\n',mean_s/meany);
-AYdiffsq = (mean_s/meany - targetAY)^2;
+%AYdiffsq = (mean_s/meany - targetAY)^2;
+AYdiff = mean_s/meany -  targetAY;
 
 end
