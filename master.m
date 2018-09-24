@@ -82,12 +82,13 @@ prms(1).Nsim = 100000;
 prms(1).Tsim = 200;
 
 % OPTIONS
-prms(1).IterateBeta         = 1;
+prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
 prms(1).ComputeMPC          = 1;
 prms(1).SolveDeterministic  = 0;
 prms(1).Simulate            = 1;
+prms(1).PrintStats          = 1;
 
 %% Call model
 Nprms = size(prms,2);

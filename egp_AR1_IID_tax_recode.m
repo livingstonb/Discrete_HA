@@ -247,20 +247,39 @@ function results = egp_AR1_IID_tax_recode(p)
     end
 
     %% WEALTH DISTRIBUTION
-    results.frac_constrained = (sav<=p.borrow_lim)' * state_dist;
-    
     temp = sortrows([sav state_dist]);
-    savsort = temp(:,1);
+    sav_sort = temp(:,1);
     state_dist_sort = temp(:,2);
+    state_dist_cum = cumsum(state_dist_sort);
+    
+    results.frac_constrained = (sav<=p.borrow_lim)' * state_dist;
+    results.frac_less5perc_labincome = (sav<0.05)' * state_dist;
+    % wealth percentiles;
+    percentiles = [0.1 0.25 0.5 0.9 0.99];
+    wealthps = zeros(numel(percentiles),1);
+    count = 1;
+    for percentile = percentiles
+        [~,pind] = max(percentile<state_dist_cum,[],1);
+        wealthps(count) = sav_sort(pind);
+        count = count + 1;
+    end
+    results.p10wealth = wealthps(1);
+    results.p25wealth = wealthps(2);
+    results.p50wealth = wealthps(3);
+    results.p90wealth = wealthps(4);
+    results.p99wealth = wealthps(5);
+    
+    
+    
     binwidth = 0.25;
     bins = 0:binwidth:p.xmax;
     values = zeros(p.xmax+1,1);
     ibin = 1;
     for bin = bins
         if bin < p.xmax
-            idx = (savsort>=bin) & (savsort<bin+binwidth);
+            idx = (sav_sort>=bin) & (sav_sort<bin+binwidth);
         else
-            idx = (savsort>=bin) & (savsort<=bin+binwidth);
+            idx = (sav_sort>=bin) & (sav_sort<=bin+binwidth);
         end
         values(ibin) = sum(state_dist_sort(idx));
         ibin = ibin + 1;
@@ -271,6 +290,8 @@ function results = egp_AR1_IID_tax_recode(p)
         [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
     yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,con_multidim,sav_multidim,xgrid_multidim,...
     lumptransfer,betacumdist,betacumtrans);
+    else
+        simulations =[];
     end
 
     %% MAKE PLOTS
@@ -388,10 +409,8 @@ function results = egp_AR1_IID_tax_recode(p)
         end
     end
     
-    fprintf(' Mean wealth: Direct Computation (%2.3f), Simulation (%2.3f) \n',...
-        results.mean_s,simulations.mean_s);
-    fprintf(' Mean cash-on-hand: Direct Computation (%2.3f), Simulation (%2.3f) \n',...
-        results.mean_x,simulations.mean_x);
-    fprintf(' Fraction constrained: Direct Computation (%2.3f), Simulation (%2.3f) \n',...
-        results.frac_constrained,simulations.frac_constrained);
+%% Print Results
+    if p.PrintStats == 1
+        print_statistics(results,simulations,p);
+    end
 end
