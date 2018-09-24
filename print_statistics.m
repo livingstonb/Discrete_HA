@@ -41,11 +41,7 @@ function print_statistics(results,simulations,p)
         sim90 = sprintf(' %2.3f (Simulation)',simulations.p90wealth);
         sim99 = sprintf(' %2.3f (Simulation)',simulations.p99wealth);
     else
-        sim10 =[];
-        sim25 =[];
-        sim50 =[];
-        sim90 =[];
-        sim99 =[];
+        sim10 =[]; sim25 =[]; sim50 =[]; sim90 =[]; sim99 =[];
     end
     disp(['    10th percentile:' direct10 sim10]);
     disp(['    25th percentile:' direct25 sim25]);

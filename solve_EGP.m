@@ -57,15 +57,17 @@ while iter<max_iter && cdiff>tol_iter
     c_xp = zeros(N,nyT);
     
     x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat;
-    % get consumption as function of x' rather than s
-    for iyT = 1:nyT
-        x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
-        c_xpT_wide = zeros(ns,nyP*nyF*nb);
-        for col = 1:nyP*nyF*nb
-            c_xpT_wide(:,col) = interp1(xgrid_wide(:,col),conlast_wide(:,col),x_s_wide(:,col),'linear','extrap');
+    
+    % c(x')
+    c_xp = zeros(ns,nyP*nyF*nb,nyT);
+    for col = 1:nyP*nyF*nb
+        coninterp = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
+        for iyT = 1:nyT
+            x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
+            c_xp(:,col,iyT) = coninterp(x_s_wide(:,col));
         end
-        c_xp(:,iyT)  = c_xpT_wide(:);
     end
+    c_xp = reshape(c_xp,[],nyT);
     
     mucnext  = u1(c_xp) - temptation/(1+temptation)*u1(x_s);
     % muc this period as a function of s

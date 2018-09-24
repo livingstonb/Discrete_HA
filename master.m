@@ -43,7 +43,7 @@ prms(1).nyF         = 1;
 prms(1).sd_logyF    = 0;
 
 % cash on hand / savings grid
-prms(1).nx          = 2000;
+prms(1).nx          = 50;
 prms(1).xmax        = 40;  %multiple of mean gross labor income
 prms(1).xgrid_par   = 0.3; %1 for linear, 0 for L-shaped
 prms(1).borrow_lim  = 0;
