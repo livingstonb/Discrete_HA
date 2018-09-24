@@ -17,6 +17,7 @@ dieprob = p.dieprob;
 savtax = p.savtax;
 savtaxthresh = p.savtaxthresh;
 borrow_lim = p.borrow_lim;
+temptation = p.temptation;
 
 
 if  nb == 1
@@ -65,7 +66,7 @@ while iter<max_iter && cdiff>tol_iter
         c_xp(:,iyT)  = c_xpT_wide(:);
     end
 
-    mucnext  = u1(c_xp);
+    mucnext  = u1(c_xp) - temptation/(1+temptation)*u1(x_s);
     % muc this period as a function of s
     muc_s = (1-dieprob)*(1+r)*betastacked.*(Emat*(mucnext*yTdist))...
         + dieprob*beq1(sgrid_wide(:));
@@ -167,6 +168,8 @@ fprintf(' Finding ergodic distribution...\n');
 state_dist      = full(ergodicdist(sparse(grid_probabilities)));
 
 % SS wealth/gross income ratio
-AYdiffsq = (sav_opt' * state_dist - targetAY)^2;
+mean_s = sav_opt' * state_dist;
+fprintf(' A/Y = %2.3f\n',mean_s);
+AYdiffsq = (mean_s - targetAY)^2;
 
 end

@@ -21,7 +21,7 @@ prms(1).dieprob     = 1/50;
 % preferences
 prms(1).risk_aver   = 1;
 prms(1).beta0       = 0.95;
-prms(1).temptation  = 0; % still need to add this
+prms(1).temptation  = 0;
 prms(1).betaL       = 0.90;
 prms(1).betaH       = 1/(prms(1).R*(1-prms.dieprob));
 
@@ -82,7 +82,7 @@ prms(1).Nsim = 100000;
 prms(1).Tsim = 200;
 
 % OPTIONS
-prms(1).IterateBeta         = 0;
+prms(1).IterateBeta         = 1;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
 prms(1).ComputeMPC          = 1;

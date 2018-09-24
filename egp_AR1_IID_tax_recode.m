@@ -200,12 +200,12 @@ function results = egp_AR1_IID_tax_recode(p)
             yTdist,beq1,yPtrans);
 
         beta_lb = 1e-5;
-        if nb == 1
-            beta_ub = p.betaH - 1e-2;
+        if p.nb == 1
+            beta_ub = p.betaH - 1e-5;
         else
-            beta_ub = p.betaH - 1e-2 - betawidth;
+            beta_ub = p.betaH - 1e-5 - betawidth;
         end
-        beta = fmincon(iterate_EGP,beta0,[],[],[],[],beta_lb,beta_ub);
+        beta = fmincon(iterate_EGP,p.beta0,[],[],[],[],beta_lb,beta_ub);
         results.beta = beta;
     end
 
