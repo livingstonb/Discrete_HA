@@ -25,7 +25,9 @@ elseif nb ==2
     betagrid = [beta-betawidth;beta+betawidth];
 end
 
-disp(['Trying betagrid = ' num2str(betagrid)])
+if p.IterateBeta == 1
+    disp(['Trying betagrid = ' num2str(betagrid)])
+end
 
 % initial guess for consumption function
 con = r * xgrid_wide(:);
@@ -98,6 +100,7 @@ end
 con_opt = conupdate;
 
 %% DISTRIBUTION
+fprintf(' Computing state-to-state transition probabilities... \n');
 % transition probabilities associated with (beta, yP, yF)
 Pi_beta_yP_yF = kron(betatrans,ytrans); 
 
@@ -128,14 +131,17 @@ grid_probabilities = zeros(N,N);
 xgridm = reshape(xgrid_wide(:),[nx nyP nyF nb]);
 savm = reshape(sav_opt,[nx nyP nyF nb]);
 netymatm = reshape(netymat,[nx nyP nyF nb nyT]);
-grid_probabilities = [];
+
+grid_probabilities = zeros(N,N);
+outerblock = 1;
 for ib2 = 1:nb
 for iyF2 = 1:nyF
 for iyP2 = 1:nyP
     fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
     state1prob = 0;
     
-    newblock = [];
+    newcolumn = zeros(N,nx);
+    innerblock = 1;
     for ib1 = 1:nb
     for iyF1 = 1:nyF
     for iyP1 = 1:nyP    
@@ -144,17 +150,20 @@ for iyP2 = 1:nyP
             xp = (1+r)*savm(:,iyP1,iyF1,ib1) + netymatm(:,iyP2,iyF2,ib2,iyT);
             state1prob = state1prob + yTdist(iyT) * yPtrans(iyP1,iyP2) * yFtrans(iyF1,iyF2) * betatrans(ib1,ib2) * funbas(fspace,xp);
         end
-        newblock = [newblock;state1prob];
+        newcolumn(nx*(innerblock-1)+1:nx*innerblock,:) = state1prob;
+        innerblock = innerblock + 1;
     end
     end
     end
-    grid_probabilities = [grid_probabilities,newblock];
+    grid_probabilities(:,nx*(outerblock-1)+1:nx*outerblock) = newcolumn;
+    outerblock = outerblock + 1;
 end
 end
 end
 
 
 % SS probability of residing in each state
+fprintf(' Finding ergodic distribution...\n');
 state_dist      = full(ergodicdist(sparse(grid_probabilities)));
 
 % SS wealth/gross income ratio

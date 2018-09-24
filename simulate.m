@@ -1,4 +1,4 @@
-function [xsim ssim grossysim ynetsim] = simulations(p,yTcumdist,yFcumdist,...
+function [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
     yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,conm,savm,xgridm,...
     lumptransfer,betacumdist,betacumtrans)
     
@@ -68,6 +68,9 @@ function [xsim ssim grossysim ynetsim] = simulations(p,yTcumdist,yFcumdist,...
     end
     
     for it = 1:p.Tsim
+        if mod(it,50) == 0
+            fprintf(' Simulating, time period %3.0u \n',it);
+        end
         % update cash-on-hand
         if it > 1
             xsim(:,it) = p.R * ssim(:,it-1) + ynetsim(:,it);
@@ -85,10 +88,9 @@ function [xsim ssim grossysim ynetsim] = simulations(p,yTcumdist,yFcumdist,...
         ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
     end
     
-    plot(mean(ssim));
-    mean(ssim(:,p.Tsim))
-    mean(xsim(:,p.Tsim))
-    mean(ssim(:,p.Tsim)<=p.borrow_lim)
+    simulations.mean_s = mean(ssim(:,p.Tsim));
+    simulations.mean_x = mean(xsim(:,p.Tsim));
+    simulations.frac_constrained = mean(ssim(:,p.Tsim)<=p.borrow_lim);
 
 
 

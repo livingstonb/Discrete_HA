@@ -268,7 +268,7 @@ function results = egp_AR1_IID_tax_recode(p)
     
     %% Simulate
     if p.Simulate == 1
-        [xsim ssim grossysim netysim] = simulations(p,yTcumdist,yFcumdist,...
+        [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
     yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,con_multidim,sav_multidim,xgrid_multidim,...
     lumptransfer,betacumdist,betacumtrans);
     end
@@ -313,14 +313,14 @@ function results = egp_AR1_IID_tax_recode(p)
 
         % consumption policy function: zoomed in
         subplot(2,4,3);
-        plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-o',xgrid_multidim(:,p.nyP,iyF),con_multidim(:,p.nyP,iyF),'r-o','LineWidth',2);
+        plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-',xgrid_multidim(:,p.nyP,iyF),con_multidim(:,p.nyP,iyF),'r-','LineWidth',2);
         grid;
         xlim([0 4]);
         title('Consumption: Zoomed');
 
          % savings policy function: zoomed in
         subplot(2,4,4);
-        plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-o',xgrid_multidim(:,p.nyP,iyF),sav_multidim(:,p.nyP,iyF)./xgrid_multidim(:,p.nyP,iyF),'r-o','LineWidth',2);
+        plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-',xgrid_multidim(:,p.nyP,iyF),sav_multidim(:,p.nyP,iyF)./xgrid_multidim(:,p.nyP,iyF),'r-','LineWidth',2);
         hold on;
         plot(sgrid,ones(p.nx,1),'k','LineWidth',0.5);
         hold off;
@@ -344,7 +344,17 @@ function results = egp_AR1_IID_tax_recode(p)
         b.EdgeColor = 'blue';
         grid;
         xlim([-0.4 10]);
+        ylim([0 1]);
         title('Asset PMF, Binned');
+
+         % simulation convergence
+        if p.Simulate == 1
+            subplot(2,4,7);
+            plot(1:p.Tsim,mean(ssim),'b','LineWidth',2);
+            grid;
+            xlim([0 p.Tsim]);
+            title('Mean savings (sim)');
+        end
     end
 
     %% COMPUTE MPCs
@@ -377,4 +387,11 @@ function results = egp_AR1_IID_tax_recode(p)
             results.avg_mpc{im} = mpc{im}(:)' * state_dist(:);
         end
     end
+    
+    fprintf(' Mean wealth: Direct Computation (%2.3f), Simulation (%2.3f) \n',...
+        results.mean_s,simulations.mean_s);
+    fprintf(' Mean cash-on-hand: Direct Computation (%2.3f), Simulation (%2.3f) \n',...
+        results.mean_x,simulations.mean_x);
+    fprintf(' Fraction constrained: Direct Computation (%2.3f), Simulation (%2.3f) \n',...
+        results.frac_constrained,simulations.frac_constrained);
 end
