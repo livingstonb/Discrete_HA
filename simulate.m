@@ -1,4 +1,4 @@
-function [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
+function [simulations ssim ssimT] = simulate(p,yTcumdist,yFcumdist,...
     yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,conm,savm,xgridm,...
     lumptransfer,betacumdist,betacumtrans)
     
@@ -88,10 +88,22 @@ function [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
         ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
     end
     
+    %% Moments
     simulations.mean_s = mean(ssim(:,p.Tsim));
     simulations.mean_x = mean(xsim(:,p.Tsim));
     simulations.frac_constrained = mean(ssim(:,p.Tsim)<=p.borrow_lim);
-
-
+    simulations.mean_grossy = mean(ygrosssim(:,p.Tsim));
+    simulations.mean_nety = mean(ynetsim(:,p.Tsim));
+    simulations.mean_loggrossy = mean(log(ygrosssim(:,p.Tsim)));
+    simulations.mean_lognety = mean(log(ynetsim(:,p.Tsim)));
+    simulations.var_loggrossy = var(log(ygrosssim(:,p.Tsim)));
+    simulations.var_lognety = var(log(ynetsim(:,p.Tsim)));
+    simulations.frac_less5perc_labincome = mean(ssim(:,p.Tsim)<0.05);
+    
+    simulations.p10wealth = quantile(ssim(:,p.Tsim),0.1);
+    simulations.p25wealth = quantile(ssim(:,p.Tsim),0.25);
+    simulations.p50wealth = quantile(ssim(:,p.Tsim),0.5);
+    simulations.p90wealth = quantile(ssim(:,p.Tsim),0.9);
+    simulations.p99wealth = quantile(ssim(:,p.Tsim),0.99);
 
 end

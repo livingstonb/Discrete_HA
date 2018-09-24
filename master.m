@@ -20,7 +20,7 @@ prms(1).dieprob     = 1/50;
 
 % preferences
 prms(1).risk_aver   = 1;
-prms(1).beta0       = 0.95;
+prms(1).beta0       = 0.97365;
 prms(1).temptation  = 0;
 prms(1).betaL       = 0.90;
 prms(1).betaH       = 1/(prms(1).R*(1-prms.dieprob));
@@ -30,7 +30,7 @@ prms(1).bequest_weight = 0; %0.07;
 prms(1).bequest_luxury = 0.01; %0.01, must be >0 to avoid NaN error;
 
 % income risk: AR(1) + IID in logs
-prms(1).LoadIncomeProcess   = 1;
+prms(1).LoadIncomeProcess   = 0;
 prms(1).nyT                 = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 %only relevant if LoadIncomeProcess==0

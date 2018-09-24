@@ -222,16 +222,22 @@ function results = egp_AR1_IID_tax_recode(p)
     xgrid_multidim = reshape(xgrid,newdim);
     state_dist_multidim = reshape(state_dist,newdim);
     
-    % Store moments
+    %% Store important moments
     results.mean_s = sav' * state_dist;
     results.mean_x = xgrid' * state_dist;
     results.mean_grossy = (ymat*yTdist)' * state_dist;
+    results.mean_loggrossy = (log(ymat)*yTdist)' * state_dist;
     results.mean_nety = (netymat*yTdist)' * state_dist;
-    results.mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
-    results.yPdist_check = sum(state_dist_multidim(:,:,1,1),1);
+    results.mean_lognety = (log(netymat)*yTdist)' * state_dist;
+    results.var_loggrossy = state_dist' * (log(ymat) - results.mean_grossy).^2 * yTdist;
+    results.var_lognety = state_dist' * (log(netymat)- results.mean_nety).^2 * yTdist;
+    
+    % Error checks
+    mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
+    yPdist_check = sum(state_dist_multidim(:,:,1,1),1);
     
 
-    % Record problems
+    %% Store problems
     results.issues = {};
     if cdiff > p.tol_iter
         results.issues = [results.issues,'NoEGPConv'];
@@ -239,11 +245,14 @@ function results = egp_AR1_IID_tax_recode(p)
     if (results.mean_s<p.targetAY-1) || (results.mean_s>p.targetAY+1)
         results.issues = [results.issues,['BadAY: ' num2str(results.mean_s)]];
     end
-    if abs((results.mean_x-results.mean_x_check)/results.mean_x)> 1e-3
+    if abs((results.mean_x-mean_x_check)/results.mean_x)> 1e-3
         results.issues = [results.issues,'DistNotStationary'];
     end
-    if abs((meannety-results.mean_nety)/meannety)> 1e-3
-        results.issues = [results.issues,'BadNetIncomeDist'];
+    if abs((meannety-results.mean_nety)/meannety) > 1e-3
+        results.issues = [results.issues,'BadNetIncomeMean'];
+    end
+    if norm(yPdist_check'-yPdist) > 1e-3
+        results.issues = [results.issues,'BadGrossIncDist'];
     end
 
     %% WEALTH DISTRIBUTION
@@ -269,8 +278,6 @@ function results = egp_AR1_IID_tax_recode(p)
     results.p90wealth = wealthps(4);
     results.p99wealth = wealthps(5);
     
-    
-    
     binwidth = 0.25;
     bins = 0:binwidth:p.xmax;
     values = zeros(p.xmax+1,1);
@@ -284,6 +291,7 @@ function results = egp_AR1_IID_tax_recode(p)
         values(ibin) = sum(state_dist_sort(idx));
         ibin = ibin + 1;
     end
+    
     
     %% Simulate
     if p.Simulate == 1

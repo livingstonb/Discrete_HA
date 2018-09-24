@@ -143,7 +143,7 @@ end
 
 % SS probability of residing in each state
 fprintf(' Finding ergodic distribution...\n');
-state_dist      = full(ergodicdist(sparse(grid_probabilities),1,1e-8));
+state_dist      = full(ergodicdist(sparse(grid_probabilities),1,1e-5));
 
 % SS wealth/gross income ratio
 mean_s = sav_opt' * state_dist;
