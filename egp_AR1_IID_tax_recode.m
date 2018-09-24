@@ -148,12 +148,15 @@ function results = egp_AR1_IID_tax_recode(p)
     ysortpvals = temp(:,2);
     ycumdist = cumsum(ysortpvals);
     meany = ymat_yvals(:)'*ymatdist_pvals(:);
+    original_meany = meany;
     
     % normalize gross income to have mean 1
-    ymat = ymat/meany;
-    ymat_yvals = ymat_yvals/meany;
-    ysortvals = ysortvals/meany;
-    meany = 1;
+    if p.NormalizeY == 1
+        ymat = ymat/meany;
+        ymat_yvals = ymat_yvals/meany;
+        ysortvals = ysortvals/meany;
+        meany = 1;
+    end
     totgrossy = meany;
 
     % find tax threshold on labor income
@@ -197,7 +200,7 @@ function results = egp_AR1_IID_tax_recode(p)
     if p.IterateBeta == 1
         iterate_EGP = @(x) solve_EGP(x,p,...
             xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-            yTdist,beq1,yPtrans);
+            yTdist,beq1,yPtrans,meany);
 
         beta_lb = 1e-5;
         if p.nb == 1
@@ -211,7 +214,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
     [~,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
         xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-        yTdist,beq1,yPtrans);
+        yTdist,beq1,yPtrans,meany);
     
     % Reshape policy functions for use later
     con_wide = reshape(con,p.nx,p.N/p.nx);
@@ -229,8 +232,8 @@ function results = egp_AR1_IID_tax_recode(p)
     results.mean_loggrossy = (log(ymat)*yTdist)' * state_dist;
     results.mean_nety = (netymat*yTdist)' * state_dist;
     results.mean_lognety = (log(netymat)*yTdist)' * state_dist;
-    results.var_loggrossy = state_dist' * (log(ymat) - results.mean_grossy).^2 * yTdist;
-    results.var_lognety = state_dist' * (log(netymat)- results.mean_nety).^2 * yTdist;
+    results.var_loggrossy = state_dist' * (log(ymat) - results.mean_loggrossy).^2 * yTdist;
+    results.var_lognety = state_dist' * (log(netymat)- results.mean_lognety).^2 * yTdist;
     
     % Error checks
     mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
@@ -297,7 +300,7 @@ function results = egp_AR1_IID_tax_recode(p)
     if p.Simulate == 1
         [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
     yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,con_multidim,sav_multidim,xgrid_multidim,...
-    lumptransfer,betacumdist,betacumtrans);
+    lumptransfer,betacumdist,betacumtrans,original_meany);
     else
         simulations =[];
     end

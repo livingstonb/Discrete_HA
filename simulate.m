@@ -1,12 +1,13 @@
-function [simulations ssim ssimT] = simulate(p,yTcumdist,yFcumdist,...
+function [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
     yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,conm,savm,xgridm,...
-    lumptransfer,betacumdist,betacumtrans)
+    lumptransfer,betacumdist,betacumtrans,original_meany)
     
     
     grossysim = zeros(p.Nsim,p.Tsim);
     ynetsim = zeros(p.Nsim,p.Tsim);
     
     %% Simulate income process
+    disp(['Simulating income process...']);
     yTrand = rand(p.Nsim,p.Tsim);
     yPrand = rand(p.Nsim,p.Tsim);
     yFrand = rand(p.Nsim,1);
@@ -36,8 +37,8 @@ function [simulations ssim ssimT] = simulate(p,yTcumdist,yFcumdist,...
     
     % gross income
     ygrosssim = yPgrid(yPindsim).*yFgrid(yFindsim).*yTgrid(yTindsim);
-    for it = 1:p.Tsim
-        ygrosssim(:,it) = ygrosssim(:,it)/mean(ygrosssim(:,it));
+    if p.NormalizeY == 1
+        ygrosssim = ygrosssim/original_meany;
     end
     
     % net income
@@ -49,9 +50,10 @@ function [simulations ssim ssimT] = simulate(p,yTcumdist,yFcumdist,...
     [~,betaindsim(:,1)] = max(bsxfun(@le,betarand(:,1),betacumdist'),[],2);
     
     for it = 2:p.Tsim
-        ilive = diesim(:,it)==0;
-        [~,betaindsim(ilive,it)] = max(bsxfun(@le,betarand(ilive,it),betacumtrans(betaindsim(ilive,it-1),:)),[],2);
-        [~,betaindsim(~ilive,it)] = max(bsxfun(@le,betarand(~ilive,it),betacumdist'),[],2);
+        [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),betacumtrans(betaindsim(:,it-1),:)),[],2);
+        % ilive = diesim(:,it)==0;
+        % [~,betaindsim(ilive,it)] = max(bsxfun(@le,betarand(ilive,it),betacumtrans(betaindsim(ilive,it-1),:)),[],2);
+        % [~,betaindsim(~ilive,it)] = max(bsxfun(@le,betarand(~ilive,it),betacumdist'),[],2);
     end
     
     %% Simulate savings decisions
@@ -61,8 +63,7 @@ function [simulations ssim ssimT] = simulate(p,yTcumdist,yFcumdist,...
     for iyF = 1:p.nyF
     for ib = 1:p.nb
     for iyP = 1:p.nyP
-        coninterp{iyP,ib,iyF} = griddedInterpolant(xgridm(:,iyP,iyF),conm(:,iyP,ib,iyF),'linear');
-        savinterp{iyP,ib,iyF} = griddedInterpolant(xgridm(:,iyP,iyF),savm(:,iyP,ib,iyF),'linear');
+        savinterp{iyP,ib,iyF} = griddedInterpolant(xgridm(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear');
     end
     end
     end

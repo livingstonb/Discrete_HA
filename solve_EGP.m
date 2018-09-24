@@ -1,6 +1,6 @@
 function [AYdiffsq,con_opt,sav_opt,state_dist,cdiff] = solve_EGP(beta,p,...
     xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-    yTdist,beq1,yPtrans)
+    yTdist,beq1,yPtrans,meany)
 
 nx = p.nx;
 ns = p.ns;
@@ -18,6 +18,7 @@ savtax = p.savtax;
 savtaxthresh = p.savtaxthresh;
 borrow_lim = p.borrow_lim;
 temptation = p.temptation;
+ergodic_tol = p.ergodic_tol;
 
 
 if  nb == 1
@@ -65,10 +66,10 @@ while iter<max_iter && cdiff>tol_iter
         end
         c_xp(:,iyT)  = c_xpT_wide(:);
     end
-
+    
     mucnext  = u1(c_xp) - temptation/(1+temptation)*u1(x_s);
     % muc this period as a function of s
-    muc_s = (1-dieprob)*(1+r)*betastacked.*(Emat*(mucnext*yTdist))...
+    muc_s = (1-dieprob)*(1+r)*betastacked.*(Emat*(mucnext*yTdist))./(1+savtax.*(sgrid_wide(:)>=savtaxthresh))...
         + dieprob*beq1(sgrid_wide(:));
     % _wide variables have dimension nx by nyP*nyF*nb, or nx by N/nx
 
@@ -143,11 +144,11 @@ end
 
 % SS probability of residing in each state
 fprintf(' Finding ergodic distribution...\n');
-state_dist      = full(ergodicdist(sparse(grid_probabilities),1,1e-5));
+state_dist      = full(ergodicdist(sparse(grid_probabilities),1,ergodic_tol));
 
 % SS wealth/gross income ratio
 mean_s = sav_opt' * state_dist;
-fprintf(' A/Y = %2.3f\n',mean_s);
-AYdiffsq = (mean_s - targetAY)^2;
+fprintf(' A/Y = %2.3f\n',mean_s/meany);
+AYdiffsq = (mean_s/meany - targetAY)^2;
 
 end

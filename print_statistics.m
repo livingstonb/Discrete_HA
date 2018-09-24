@@ -58,7 +58,7 @@ function print_statistics(results,simulations,p)
     % Variance of log gross labor income
     direct = sprintf(' %2.3f (Direct Comp)',results.var_loggrossy);
     if p.Simulate == 1
-        sim = sprintf(' %2.3f (Direct Comp)',simulations.var_loggrossy);
+        sim = sprintf(' %2.3f (Simulation)',simulations.var_loggrossy);
     end
     disp(['    Var Log Gross Earnings:' direct sim]);
     
@@ -68,4 +68,16 @@ function print_statistics(results,simulations,p)
         sim = sprintf(' %2.3f (Simulation)',simulations.var_lognety);
     end
     disp(['    Var Log Net Earnings:' direct sim]);
+    
+    %% MPC
+    fprintf('\nMPCs: \n')
+    % Average MPC
+    if p.Simulate == 1
+        sim = [];
+    end
+    for i = 1:size(results.avg_mpc,2)
+        direct = sprintf(' %2.3f (Direct Comp)',results.avg_mpc{i});
+        label = sprintf('    Average MPC (mpcamount %4.2g):',results.mpcamount{i});
+        disp([label direct sim]);
+    end
 end
