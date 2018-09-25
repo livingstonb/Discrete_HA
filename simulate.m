@@ -1,5 +1,5 @@
-function [simulations ssim] = simulate(p,income,labtaxthresh,savm,...
-    xgridm,lumptransfer,betacumdist,betacumtrans)
+function [simulations ssim] = simulate(p,income,labtaxthresh,sav,...
+    xgrid,lumptransfer,betacumdist,betacumtrans)
     
     
     grossysim = zeros(p.Nsim,p.Tsim);
@@ -71,7 +71,7 @@ function [simulations ssim] = simulate(p,income,labtaxthresh,savm,...
     for iyF = 1:p.nyF
     for ib = 1:p.nb
     for iyP = 1:p.nyP
-        savinterp{iyP,ib,iyF} = griddedInterpolant(xgridm(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear');
+        savinterp{iyP,ib,iyF} = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),sav.orig_wide(:,iyP,iyF,ib),'linear');
     end
     end
     end

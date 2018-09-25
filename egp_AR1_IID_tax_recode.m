@@ -194,7 +194,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
     %% ORGANIZE VARIABLES
     % Reshape policy functions for use later
-    xgrid.wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF p.nb]);
+    xgrid.orig_wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF p.nb]);
 
     %% MODEL SOLUTION
 
@@ -233,7 +233,7 @@ function results = egp_AR1_IID_tax_recode(p)
     else
         ExpandGrid = 0;
     end
-    [~,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgrid.dist] = solve_EGP(beta,p,...
+    [~,con.orig,sav.orig,con.final,sav.final,state_dist.final,cdiff,xgrid.final] = solve_EGP(beta,p,...
         xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
     
     %% Store important moments
@@ -247,22 +247,24 @@ function results = egp_AR1_IID_tax_recode(p)
     ymat_onxgrid = kron(ymat,ones(nn,1));
     netymat_onxgrid = kron(netymat,ones(nn,1));
     
-    results.mean_s = savm' * state_dist;
-    results.mean_x = xgrid.dist(:)' * state_dist;
-    results.mean_grossy = (ymat_onxgrid*yTdist)' * state_dist;
-    results.mean_loggrossy = (log(ymat_onxgrid)*yTdist)' * state_dist;
-    results.mean_nety = (netymat_onxgrid*yTdist)' * state_dist;
-    results.mean_lognety = (log(netymat_onxgrid)*yTdist)' * state_dist;
-    results.var_loggrossy = state_dist' * (log(ymat_onxgrid) - results.mean_loggrossy).^2 * yTdist;
-    results.var_lognety = state_dist' * (log(netymat_onxgrid)- results.mean_lognety).^2 * yTdist;
+    results.mean_s = sav.final' * state_dist.final;
+    results.mean_x = xgrid.final(:)' * state_dist.final;
+    results.mean_grossy = (ymat_onxgrid*yTdist)' * state_dist.final;
+    results.mean_loggrossy = (log(ymat_onxgrid)*yTdist)' * state_dist.final;
+    results.mean_nety = (netymat_onxgrid*yTdist)' * state_dist.final;
+    results.mean_lognety = (log(netymat_onxgrid)*yTdist)' * state_dist.final;
+    results.var_loggrossy = state_dist.final' * (log(ymat_onxgrid) - results.mean_loggrossy).^2 * yTdist;
+    results.var_lognety = state_dist.final' * (log(netymat_onxgrid)- results.mean_lognety).^2 * yTdist;
     
     % Error checks
-    state_dist_multidim = reshape(state_dist,[nn p.nyP p.nyF p.nb]);
-    con_multidim = reshape(conm,[nn p.nyP p.nyF p.nb]);
-    sav_multidim = reshape(savm,[nn p.nyP p.nyF p.nb]);
-    sav_wide = reshape(sav_opt,[p.nx p.nyP p.nyF p.nb]);
+    state_dist.wide = reshape(state_dist.final,[nn p.nyP p.nyF p.nb]);
+    con.final_wide = reshape(con.final,[nn p.nyP p.nyF p.nb]);
+    sav.final_wide = reshape(sav.final,[nn p.nyP p.nyF p.nb]);
+    xgrid.final_wide = reshape(xgrid.final,[nn p.nyP p.nyF p.nb]);
+    sav.orig_wide = reshape(sav.orig,[p.nx p.nyP p.nyF p.nb]);
+    con.orig_wide = reshape(con.orig,[p.nx p.nyP p.nyF p.nb]);
     mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
-    temp = permute(state_dist_multidim,[2 1 3 4]);
+    temp = permute(state_dist.wide,[2 1 3 4]);
     yPdist_check = sum(sum(sum(temp,4),3),2);
     
 
@@ -283,25 +285,25 @@ function results = egp_AR1_IID_tax_recode(p)
     if norm(yPdist_check-yPdist) > 1e-3
         results.issues = [results.issues,'BadGrossIncDist'];
     end
-    if min(state_dist) < - 0.01
+    if min(state_dist.final) < - 0.01
         results.issues = [results.issues,'NegativeStateProbability'];
     end
 
     %% WEALTH DISTRIBUTION
-    temp = sortrows([savm state_dist]);
-    sav_sort = temp(:,1);
-    state_dist_sort = temp(:,2);
-    state_dist_cum = cumsum(state_dist_sort);
+    temp = sortrows([sav.final state_dist.final]);
+    sav.final_sort = temp(:,1);
+    state_dist.sort = temp(:,2);
+    state_dist.cum = cumsum(state_dist.sort);
     
-    results.frac_constrained = (savm<=p.borrow_lim)' * state_dist;
-    results.frac_less5perc_labincome = (savm<0.05)' * state_dist;
+    results.frac_constrained = (sav.final<=p.borrow_lim)' * state_dist.final;
+    results.frac_less5perc_labincome = (sav.final<0.05)' * state_dist.final;
     % wealth percentiles;
     percentiles = [0.1 0.25 0.5 0.9 0.99];
     wealthps = zeros(numel(percentiles),1);
     count = 1;
     for percentile = percentiles
-        [~,pind] = max(percentile<state_dist_cum,[],1);
-        wealthps(count) = sav_sort(pind);
+        [~,pind] = max(percentile<state_dist.cum,[],1);
+        wealthps(count) = sav.final_sort(pind);
         count = count + 1;
     end
     results.p10wealth = wealthps(1);
@@ -316,19 +318,19 @@ function results = egp_AR1_IID_tax_recode(p)
     ibin = 1;
     for bin = bins
         if bin < p.xmax
-            idx = (sav_sort>=bin) & (sav_sort<bin+binwidth);
+            idx = (sav.final_sort>=bin) & (sav.final_sort<bin+binwidth);
         else
-            idx = (sav_sort>=bin) & (sav_sort<=bin+binwidth);
+            idx = (sav.final_sort>=bin) & (sav.final_sort<=bin+binwidth);
         end
-        values(ibin) = sum(state_dist_sort(idx));
+        values(ibin) = sum(state_dist.sort(idx));
         ibin = ibin + 1;
     end
     
     
     %% Simulate
     if p.Simulate == 1
-        [simulations ssim] = simulate(p,income,labtaxthresh,sav_wide,...
-    xgrid.wide,lumptransfer,betacumdist,betacumtrans);
+        [simulations,ssim] = simulate(p,income,labtaxthresh,sav,...
+            xgrid,lumptransfer,betacumdist,betacumtrans);
     else
         simulations =[];
     end
@@ -356,7 +358,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
         % consumption policy function
         subplot(2,4,1);
-        plot(xgrid.dist(:,1,iyF,iyb),con_multidim(:,1,iyF,iyb),'b-',xgrid.dist(:,p.nyP,iyF,iyb),con_multidim(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
+        plot(xgrid.orig_wide(:,1,iyF,iyb),con.orig_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),con.orig_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
         grid;
         xlim([p.borrow_lim p.xmax]);
         title('Consumption Policy Function');
@@ -364,7 +366,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
         % savings policy function
         subplot(2,4,2);
-        plot(xgrid.dist(:,1,iyF),sav_multidim(:,1,iyF)./xgrid.dist(:,1,iyF),'b-',xgrid.dist(:,p.nyP,iyF),sav_multidim(:,p.nyP,iyF)./xgrid.dist(:,p.nyP,iyF),'r-','LineWidth',1);
+        plot(xgrid.orig_wide(:,1,iyF,iyb),sav.orig_wide(:,1,iyF,iyb)./xgrid.orig_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),sav.orig_wide(:,p.nyP,iyF,iyb)./xgrid.orig_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
         hold on;
         plot(sgrid.short,ones(p.nx,1),'k','LineWidth',0.5);
         hold off;
@@ -374,14 +376,14 @@ function results = egp_AR1_IID_tax_recode(p)
 
         % consumption policy function: zoomed in
         subplot(2,4,3);
-        plot(xgrid.dist(:,1,iyF),con_multidim(:,1,iyF),'b-',xgrid.dist(:,p.nyP,iyF),con_multidim(:,p.nyP,iyF),'r-','LineWidth',2);
+        plot(xgrid.orig_wide(:,1,iyF),con.orig_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),con.orig_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',2);
         grid;
         xlim([0 4]);
         title('Consumption: Zoomed');
 
          % savings policy function: zoomed in
         subplot(2,4,4);
-        plot(xgrid.dist(:,1,iyF),sav_multidim(:,1,iyF)./xgrid.dist(:,1,iyF),'b-',xgrid.dist(:,p.nyP,iyF),sav_multidim(:,p.nyP,iyF)./xgrid.dist(:,p.nyP,iyF),'r-','LineWidth',2);
+        plot(xgrid.orig_wide(:,1,iyF,iyb),sav.orig_wide(:,1,iyF,iyb)./xgrid.orig_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),sav.orig_wide(:,p.nyP,iyF,iyb)./xgrid.orig_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',2);
         hold on;
         plot(sgrid.short,ones(p.nx,1),'k','LineWidth',0.5);
         hold off;
@@ -426,7 +428,7 @@ function results = egp_AR1_IID_tax_recode(p)
         %mpc amounts
         for im = 1:Nmpcamount
             mpcamount{im} = p.mpcfrac{im} * meany;
-            xgrid.mpc{im} = xgrid.dist + mpcamount{im};
+            xgrid.mpc{im} = xgrid.final_wide + mpcamount{im};
         end
 
         results.mpcamount = mpcamount;
@@ -435,7 +437,7 @@ function results = egp_AR1_IID_tax_recode(p)
         for ib = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-                coninterp{iyP,iyF,ib} = griddedInterpolant(xgrid.dist(:,iyP,iyF,ib),con_multidim(:,iyP,iyF,ib),'linear');
+                coninterp{iyP,iyF,ib} = griddedInterpolant(xgrid.final_wide(:,iyP,iyF,ib),con.final_wide(:,iyP,iyF,ib),'linear','linear');
         end
         end
         end
@@ -448,12 +450,12 @@ function results = egp_AR1_IID_tax_recode(p)
             for iyF = 1:p.nyF
             for iyP = 1:p.nyP 
                 mpc{im}(:,iyP,iyF,ib) = (coninterp{iyP,iyF,ib}(xgrid.mpc{im}(:,iyP,iyF,ib))...
-                    - con_multidim(:,iyP,iyF,ib))/mpcamount{im};     
+                    - con.final_wide(:,iyP,iyF,ib))/mpcamount{im};     
             end
             end
             end
             % average mpc
-            results.avg_mpc{im} = mpc{im}(:)' * state_dist;
+            results.avg_mpc{im} = mpc{im}(:)' * state_dist.final;
         end
     end
     

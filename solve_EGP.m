@@ -18,7 +18,7 @@ if p.IterateBeta == 1
 end
 
 % initial guess for consumption function
-con = p.r * xgrid.wide(:);
+con = p.r * xgrid.orig_wide(:);
 
 % discount factor matrix
 betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
@@ -48,7 +48,7 @@ while iter<p.max_iter && cdiff>p.tol_iter
     for ib = 1:p.nb
     for iyF  = 1:p.nyF
     for iyP = 1:p.nyP
-        coninterp = griddedInterpolant(xgrid.wide(:,iyP,iyF,ib),conlast_wide(:,iyP,iyF,ib),'linear','linear');
+        coninterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),conlast_wide(:,iyP,iyF,ib),'linear','linear');
         for iyT = 1:p.nyT
             c_xp(:,iyP,iyF,ib,iyT) = coninterp(x_s_wide(:,iyP,iyF,ib,iyT));
         end
@@ -78,7 +78,7 @@ while iter<p.max_iter && cdiff>p.tol_iter
     for iyF  = 1:p.nyF
     for iyP = 1:p.nyP
         savinterp = griddedInterpolant(x_s_wide(:,iyP,iyF,ib),sgrid_reshaped(:,iyP,iyF,ib),'linear','linear');
-        sav_wide(:,iyP,iyF,ib) = savinterp(xgrid.wide(:,iyP,iyF,ib)); 
+        sav_wide(:,iyP,iyF,ib) = savinterp(xgrid.orig_wide(:,iyP,iyF,ib)); 
     end
     end
     end
@@ -87,7 +87,7 @@ while iter<p.max_iter && cdiff>p.tol_iter
     sav_wide(sav_wide<p.borrow_lim) = p.borrow_lim;
     sav_opt = sav_wide(:);
 
-    conupdate = xgrid.wide(:) - sav_opt - p.savtax * max(sav_opt-p.savtaxthresh,0);
+    conupdate = xgrid.orig_wide(:) - sav_opt - p.savtax * max(sav_opt-p.savtaxthresh,0);
 
     cdiff = max(abs(conupdate-conlast));
     if mod(iter,50) ==0
@@ -115,7 +115,7 @@ if ExpandGrid == 1
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        savinterp = griddedInterpolant(xgrid.wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
+        savinterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
         savlong(:,iyP,iyF,ib) = savinterp(xgridm(:,iyP,iyF));
     end
     end
@@ -126,7 +126,7 @@ if ExpandGrid == 1
 else % Use original xgrids
     netymatm = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
     netymatm = repmat(netymatm,[p.nx 1 1 1]);
-    xgridm = xgrid.wide;
+    xgridm = xgrid.orig_wide;
     NN = p.N;
     nn = p.nx;
 end
