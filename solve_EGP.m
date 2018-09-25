@@ -1,6 +1,11 @@
-function [AYdiff,conm,savm,state_dist,cdiff,xgridm] = solve_EGP(beta,p,...
-    xgrid_wide,ytrans,sgrid_wide,netymat,yTdist,betatrans,u1,beq1,...
-    u1inv,yPtrans,ergodic_tol,meany)
+function [AYdiff,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgridm] = solve_EGP(beta,p,...
+    xgrid_wide,sgrid_wide,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid)
+
+ytrans = income.ytrans;
+netymat = income.netymat;
+yTdist = income.yTdist;
+yPtrans = income.yPtrans;
+meany = income.meany;
 
 if  p.nb == 1
     betagrid = beta;
@@ -99,7 +104,7 @@ savm = reshape(sav_opt,[p.nx p.nyP p.nyF p.nb]);
 yFtrans = eye(p.nyF);
 
 % Create long grid
-if p.ExpandGrid == 1
+if ExpandGrid == 1
     xgridm = linspace(0,1,p.nxlong)';
     xgridm = repmat(xgridm,[1 p.nyP p.nyF]) .^(1/p.xgrid_par);
     netymatm = reshape(netymat,[1 p.nyP p.nyF p.nyT]);

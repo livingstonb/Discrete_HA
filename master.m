@@ -69,7 +69,8 @@ prms(1).max_iter    = 1e5; % for EGP
 prms(1).tol_iter    = 1.0e-6;
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
-prms(1).ExpandGrid  = 1; % Use larger grid for distributional computations
+prms(1).ExpandGridBetaIter  = 0; % Use larger grid for distributional computations (when iterating over betas)
+prms(1).ExpandGridF = 1; % Use larger grid for final distributional computation
 prms(1).nxlong      = 500; % larger grid size
  
 prms(1).targetAY    = 12.0;
@@ -87,7 +88,7 @@ prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
 prms(1).ComputeMPC          = 1;
 % prms(1).SolveDeterministic  = 0;
-prms(1).Simulate            = 0;
+prms(1).Simulate            = 1;
 prms(1).PrintStats          = 1;
 
 %% Call model

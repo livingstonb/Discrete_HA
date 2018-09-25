@@ -90,7 +90,6 @@ function results = egp_AR1_IID_tax_recode(p)
 
     % length of full xgrid
     p.N = p.nx*p.nyF*p.nyP*p.nb;
-    
 
     %% DISCOUNT FACTOR
 
@@ -168,6 +167,14 @@ function results = egp_AR1_IID_tax_recode(p)
     % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
     % cash on hand grid: different min points for each value of (iyP,iyF)
     xgrid = sgrid_wide(:) + min(kron(netymat,ones(p.nx,1)),[],2);
+    
+    % Store income variables in a structure
+    newfields = {'ymat','netymat','meany','original_meany','yPgrid',...
+        'yTgrid','yFgrid','yPdist','yTdist','yFdist','yPcumtrans',...
+        'yPtrans','yPcumdist','yFcumdist','yTcumdist','ytrans'};
+    for i = 1:numel(newfields)
+        income.(newfields{i}) = eval(newfields{i});
+    end
 
     %% UTILITY FUNCTION, BEQUEST FUNCTION
 
@@ -195,9 +202,13 @@ function results = egp_AR1_IID_tax_recode(p)
 
     if p.IterateBeta == 1
         ergodic_tol = 1e-6;
+        if p.ExpandGridBetaIter == 1
+            ExpandGrid = 1;
+        else
+            ExpandGrid = 0;
+        end
         iterate_EGP = @(x) solve_EGP(x,p,...
-            xgrid_wide,ytrans,sgrid_wide,netymat,yTdist,betatrans,u1,beq1,...
-            u1inv,yPtrans,ergodic_tol,meany);
+            xgrid_wide,sgrid_wide,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
 
         beta_lb = 1e-3;
         if p.nb == 1
@@ -219,13 +230,17 @@ function results = egp_AR1_IID_tax_recode(p)
     end
 
     ergodic_tol = 1e-7;
-    [~,con,sav,state_dist,cdiff,xgridm] = solve_EGP(beta,p,...
-        xgrid_wide,ytrans,sgrid_wide,netymat,yTdist,betatrans,u1,beq1,...
-        u1inv,yPtrans,ergodic_tol,meany);
+    if p.ExpandGridF == 1
+        ExpandGrid = 1;
+    else
+        ExpandGrid = 0;
+    end
+    [~,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgridm] = solve_EGP(beta,p,...
+        xgrid_wide,sgrid_wide,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
     
     %% Store important moments
     
-    if p.ExpandGrid == 1
+    if p.ExpandGridF == 1
         nn = p.nxlong;
     else
         nn = p.nx;
@@ -234,7 +249,7 @@ function results = egp_AR1_IID_tax_recode(p)
     ymat_onxgrid = kron(ymat,ones(nn,1));
     netymat_onxgrid = kron(netymat,ones(nn,1));
     
-    results.mean_s = sav' * state_dist;
+    results.mean_s = savm' * state_dist;
     results.mean_x = xgridm(:)' * state_dist;
     results.mean_grossy = (ymat_onxgrid*yTdist)' * state_dist;
     results.mean_loggrossy = (log(ymat_onxgrid)*yTdist)' * state_dist;
@@ -245,8 +260,9 @@ function results = egp_AR1_IID_tax_recode(p)
     
     % Error checks
     state_dist_multidim = reshape(state_dist,[nn p.nyP p.nyF p.nb]);
-    con_multidim = reshape(con,[nn p.nyP p.nyF p.nb]);
-    sav_multidim = reshape(sav,[nn p.nyP p.nyF p.nb]);
+    con_multidim = reshape(conm,[nn p.nyP p.nyF p.nb]);
+    sav_multidim = reshape(savm,[nn p.nyP p.nyF p.nb]);
+    sav_wide = reshape(sav_opt,[p.nx p.nyP p.nyF p.nb]);
     mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
     temp = permute(state_dist_multidim,[2 1 3 4]);
     yPdist_check = sum(sum(sum(temp,4),3),2);
@@ -274,13 +290,13 @@ function results = egp_AR1_IID_tax_recode(p)
     end
 
     %% WEALTH DISTRIBUTION
-    temp = sortrows([sav state_dist]);
+    temp = sortrows([savm state_dist]);
     sav_sort = temp(:,1);
     state_dist_sort = temp(:,2);
     state_dist_cum = cumsum(state_dist_sort);
     
-    results.frac_constrained = (sav<=p.borrow_lim)' * state_dist;
-    results.frac_less5perc_labincome = (sav<0.05)' * state_dist;
+    results.frac_constrained = (savm<=p.borrow_lim)' * state_dist;
+    results.frac_less5perc_labincome = (savm<0.05)' * state_dist;
     % wealth percentiles;
     percentiles = [0.1 0.25 0.5 0.9 0.99];
     wealthps = zeros(numel(percentiles),1);
@@ -313,9 +329,8 @@ function results = egp_AR1_IID_tax_recode(p)
     
     %% Simulate
     if p.Simulate == 1
-        [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
-    yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,con_multidim,sav_multidim,xgridm,...
-    lumptransfer,betacumdist,betacumtrans,original_meany);
+        [simulations ssim] = simulate(p,income,labtaxthresh,sav_wide,...
+    xgrid_wide,lumptransfer,betacumdist,betacumtrans);
     else
         simulations =[];
     end

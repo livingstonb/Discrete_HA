@@ -1,6 +1,5 @@
-function [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
-    yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,conm,savm,xgridm,...
-    lumptransfer,betacumdist,betacumtrans,original_meany)
+function [simulations ssim] = simulate(p,income,labtaxthresh,savm,...
+    xgridm,lumptransfer,betacumdist,betacumtrans)
     
     
     grossysim = zeros(p.Nsim,p.Tsim);
@@ -18,27 +17,36 @@ function [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
     yTindsim = zeros(p.Nsim,p.Tsim);
     yPindsim = zeros(p.Nsim,p.Tsim);
 
-    [~,yFindsim] = max(bsxfun(@le,yFrand,yFcumdist'),[],2);
+    [~,yFindsim] = max(bsxfun(@le,yFrand,income.yFcumdist'),[],2);
     yFindsim = repmat(yFindsim,1,p.Tsim);
     
-    for it = 1:p.Tsim
-        [~,yTindsim(:,it)] = max(bsxfun(@le,yTrand(:,it),yTcumdist'),[],2);
+    % simulate yP upon death outside of time loop for speed
+    idx = zeros(p.Nsim,p.Tsim);
+    for iyP = 1:p.nyP
+        if iyP == 1
+            idx = yPrand<income.yPcumdist(iyP);
+        else
+            idx = yPrand<income.yPcumdist(iyP) & yPrand>=income.yPcumdist(iyP-1);
+        end
+        yPindsim(diesim & idx) = iyP;
+    end
         
-        ilive = diesim(:,it)==0;
+    % iterate over time periods
+    for it = 1:p.Tsim
+        [~,yTindsim(:,it)] = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
         
         if it ==1
-            [~,yPindsim(ilive,it)] = max(bsxfun(@le,yPrand(ilive,it),yPcumdist'),[],2);
+            [~,yPindsim(diesim(:,it)==0,it)] = max(bsxfun(@le,yPrand(diesim(:,it)==0,it),income.yPcumdist'),[],2);
         else
-            [~,yPindsim(ilive,it)] = max(bsxfun(@le,yPrand(ilive,it),yPcumtrans(yPindsim(ilive,it-1),:)),[],2);
+            [~,yPindsim(diesim(:,it)==0,it)] = max(bsxfun(@le,yPrand(diesim(:,it)==0,it),income.yPcumtrans(yPindsim(diesim(:,it)==0,it-1),:)),[],2);
         end
-        
-        [~,yPindsim(~ilive,it)] = max(bsxfun(@le,yPrand(~ilive,it),yPcumdist'),[],2);
+      
     end
     
     % gross income
-    ygrosssim = yPgrid(yPindsim).*yFgrid(yFindsim).*yTgrid(yTindsim);
+    ygrosssim = bsxfun(@times,income.yPgrid(yPindsim).*income.yTgrid(yTindsim),income.yFgrid(yFindsim));
     if p.NormalizeY == 1
-        ygrosssim = ygrosssim/original_meany;
+        ygrosssim = ygrosssim/income.original_meany;
     end
     
     % net income
