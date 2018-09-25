@@ -188,6 +188,7 @@ function results = egp_AR1_IID_tax_recode(p)
     % Reshape policy functions for use later
     xgrid_wide = reshape(xgrid,[p.nx p.nyP p.nyF p.nb]);
     
+    
     %% STATIONARY DISTRIBUTION
 
     %% MODEL SOLUTION
@@ -223,16 +224,29 @@ function results = egp_AR1_IID_tax_recode(p)
         u1inv,yPtrans,ergodic_tol,meany);
     
     %% Store important moments
+    
+    if p.ExpandGrid == 1
+        nn = p.nxlong;
+    else
+        nn = p.nx;
+    end
+    
+    ymat_onxgrid = kron(ymat,ones(nn,1));
+    netymat_onxgrid = kron(netymat,ones(nn,1));
+    
     results.mean_s = sav' * state_dist;
     results.mean_x = xgridm(:)' * state_dist;
-    results.mean_grossy = (ymat*yTdist)' * state_dist;
-    results.mean_loggrossy = (log(ymat)*yTdist)' * state_dist;
-    results.mean_nety = (netymat*yTdist)' * state_dist;
-    results.mean_lognety = (log(netymat)*yTdist)' * state_dist;
-    results.var_loggrossy = state_dist' * (log(ymat) - results.mean_loggrossy).^2 * yTdist;
-    results.var_lognety = state_dist' * (log(netymat)- results.mean_lognety).^2 * yTdist;
+    results.mean_grossy = (ymat_onxgrid*yTdist)' * state_dist;
+    results.mean_loggrossy = (log(ymat_onxgrid)*yTdist)' * state_dist;
+    results.mean_nety = (netymat_onxgrid*yTdist)' * state_dist;
+    results.mean_lognety = (log(netymat_onxgrid)*yTdist)' * state_dist;
+    results.var_loggrossy = state_dist' * (log(ymat_onxgrid) - results.mean_loggrossy).^2 * yTdist;
+    results.var_lognety = state_dist' * (log(netymat_onxgrid)- results.mean_lognety).^2 * yTdist;
     
     % Error checks
+    state_dist_multidim = reshape(state_dist,[nn p.nyP p.nyF p.nb]);
+    con_multidim = reshape(con,[nn p.nyP p.nyF p.nb]);
+    sav_multidim = reshape(sav,[nn p.nyP p.nyF p.nb]);
     mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
     temp = permute(state_dist_multidim,[2 1 3 4]);
     yPdist_check = sum(sum(sum(temp,4),3),2);
@@ -399,23 +413,31 @@ function results = egp_AR1_IID_tax_recode(p)
         %mpc amounts
         for im = 1:Nmpcamount
             mpcamount{im} = p.mpcfrac{im} * meany;
-            xgrid_mpc_wide{im} = xgrid_wide + mpcamount{im};
+            xgrid_mpc_wide{im} = xgridm + mpcamount{im};
         end
 
         results.mpcamount = mpcamount;
         
         % Create interpolants for computing mpc's
-        for col = 1:p.N/p.nx
-                coninterp{col} = griddedInterpolant(xgrid_wide(:,col),con_wide(:,col),'linear');
+        for ib = 1:p.nb
+        for iyF = 1:p.nyF
+        for iyP = 1:p.nyP
+                coninterp{iyP,iyF,ib} = griddedInterpolant(xgridm(:,iyP,iyF,ib),con_multidim(:,iyP,iyF,ib),'linear');
+        end
+        end
         end
         
         % mpc functions
         for im = 1:Nmpcamount
-            mpc{im} = zeros(p.nx,p.N/p.nx);
+            mpc{im} = zeros(nn,p.nyP,p.nyF,p.nb);
             % iterate over (yP,yF,beta)
-            for col = 1:p.N/p.nx 
-                mpc{im}(:,col) = (coninterp{col}(xgrid_mpc_wide{im}(:,col))...
-                    - con_wide(:,col))/mpcamount{im};     
+            for ib = 1:p.nb
+            for iyF = 1:p.nyF
+            for iyP = 1:p.nyP 
+                mpc{im}(:,iyP,iyF,ib) = (coninterp{iyP,iyF,ib}(xgrid_mpc_wide{im}(:,iyP,iyF,ib))...
+                    - con_multidim(:,iyP,iyF,ib))/mpcamount{im};     
+            end
+            end
             end
             % average mpc
             results.avg_mpc{im} = mpc{im}(:)' * state_dist;
