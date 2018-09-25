@@ -199,7 +199,7 @@ function results = egp_AR1_IID_tax_recode(p)
     %% MODEL SOLUTION
 
     if p.IterateBeta == 1
-        ergodic_tol = 1e-6;
+        ergodic_tol = 1e-5;
         if p.ExpandGridBetaIter == 1
             ExpandGrid = 1;
         else
@@ -227,7 +227,7 @@ function results = egp_AR1_IID_tax_recode(p)
         results.beta = beta;
     end
 
-    ergodic_tol = 1e-7;
+    ergodic_tol = 1e-6;
     if p.ExpandGridF == 1
         ExpandGrid = 1;
     else

@@ -68,12 +68,11 @@ function print_statistics(results,simulations,p)
     %% MPC
     fprintf('\nMPCs: \n')
     % Average MPC
-    if p.Simulate == 1
-        sim = [];
-    end
     for i = 1:size(results.avg_mpc,2)
         direct = sprintf(' %2.3f (Direct Comp)',results.avg_mpc{i});
-        sim = sprintf(' %2.3f (Simulation)',simulations.avg_mpc{i});
+        if p.Simulate == 1
+            sim = sprintf(' %2.3f (Simulation)',simulations.avg_mpc{i});
+        end
         label = sprintf('    Average MPC (mpcamount %4.2g):',results.mpcamount{i});
         disp([label direct sim]);
     end

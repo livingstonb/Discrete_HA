@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -74,7 +74,7 @@ prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).ExpandGridBetaIter  = 0; % Use larger grid for distributional computations (when iterating over betas)
 prms(1).ExpandGridF = 1; % Use larger grid for final distributional computation
-prms(1).nxlong      = 1000; % larger grid size
+prms(1).nxlong      = 500; % larger grid size
  
 prms(1).targetAY    = 12.0;
 prms(1).maxiterAY   = 20;

@@ -101,7 +101,6 @@ con_opt = conupdate;
 %% DISTRIBUTION
 fprintf(' Computing state-to-state transition probabilities... \n');
 savm = reshape(sav_opt,[p.nx p.nyP p.nyF p.nb]);
-yFtrans = eye(p.nyF);
 
 % Create long grid
 if ExpandGrid == 1
@@ -132,24 +131,22 @@ else % Use original xgrids
 end
 
 
-grid_probabilities = zeros(NN,NN);
+grid_probabilities = sparse(NN,NN);
 outerblock = 1;
 for ib2 = 1:p.nb
 for iyF2 = 1:p.nyF
 for iyP2 = 1:p.nyP
     fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
     
-    newcolumn = zeros(NN,nn);
+    newcolumn = sparse(NN,nn);
     innerblock = 1;
     for ib1 = 1:p.nb
     for iyF1 = 1:p.nyF
     for iyP1 = 1:p.nyP
         xp = (1+p.r)*squeeze(repmat(savm(:,iyP1,iyF1,ib1),[1 1 1 1 p.nyT])) + squeeze(netymatm(:,iyP2,iyF2,:));
-        state1prob = 0;
-        for iyT = 1:p.nyT
-            state1prob = state1prob + yTdist(iyT) * yPtrans(iyP1,iyP2) * yFtrans(iyF1,iyF2) * betatrans(ib1,ib2) * funbas(fspace,xp(:,iyT));
-        end
-        newcolumn(nn*(innerblock-1)+1:nn*innerblock,:) = state1prob;
+        state1prob = yPtrans(iyP1,iyP2)*betatrans(ib1,ib2) * funbas(fspace,xp(:))' * kron(yTdist,speye(nn));
+
+        newcolumn(nn*(innerblock-1)+1:nn*innerblock,:) = state1prob';
         innerblock = innerblock + 1;
     end
     end
