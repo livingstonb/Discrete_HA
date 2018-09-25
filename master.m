@@ -23,7 +23,7 @@ prms(1).risk_aver   = 1;
 prms(1).beta0       = 0.97365;
 prms(1).temptation  = 0;
 prms(1).betaL       = 0.90;
-prms(1).betaH       = 1/(prms(1).R*(1-prms.dieprob));
+prms(1).betaH       = 1/(prms(1).R*(1-prms(1).dieprob));
 
 %warm glow bequests: bequessgrt_weight = 0 is accidental
 prms(1).bequest_weight = 0; %0.07;
@@ -32,6 +32,9 @@ prms(1).bequest_luxury = 0.01; %0.01, must be >0 to avoid NaN error;
 % income risk: AR(1) + IID in logs
 prms(1).LoadIncomeProcess   = 1;
 prms(1).nyT                 = 101; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+
+% continuous yT process for simulation (vs discrete)
+prms(1).yTContinuous = 0;
 
 %only relevant if LoadIncomeProcess==0
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1

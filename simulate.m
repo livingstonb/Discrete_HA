@@ -7,7 +7,11 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,...
     
     %% Simulate income process
     disp(['Simulating income process...']);
-    yTrand = rand(p.Nsim,p.Tsim);
+    if p.yTContinuous == 1
+        yTrand = randn(p.Nsim,p.Tsim);
+    else
+        yTrand = rand(p.Nsim,p.Tsim);
+    end
     yPrand = rand(p.Nsim,p.Tsim);
     yFrand = rand(p.Nsim,1);
     dierand = rand(p.Nsim,p.Tsim);
@@ -32,13 +36,17 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,...
     end
     
     % simulate yT outside of time loop
-    for iyT = 1:p.nyT
-        if iyT == 1
-            idx = yTrand<income.yTcumdist(iyT);
-        else
-            idx = yTrand<income.yTcumdist(iyT) & yTrand>=income.yTcumdist(iyT-1);
+    if p.yTContinuous == 1
+        logyTsim = - 0.5*p.sd_logyT.^2 + yTrand*p.sd_logyT;
+    else
+        for iyT = 1:p.nyT
+            if iyT == 1
+                idx = yTrand<income.yTcumdist(iyT);
+            else
+                idx = yTrand<income.yTcumdist(iyT) & yTrand>=income.yTcumdist(iyT-1);
+            end
+            yTindsim(idx) = iyT;
         end
-        yTindsim(idx) = iyT;
     end
         
     % iterate over time periods
@@ -51,7 +59,12 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,...
     end
     
     % gross income
-    ygrosssim = bsxfun(@times,income.yPgrid(yPindsim).*income.yTgrid(yTindsim),income.yFgrid(yFindsim));
+    if p.yTContinuous == 1
+        ygrosssim = bsxfun(@times,income.yPgrid(yPindsim).*exp(logyTsim),income.yFgrid(yFindsim));
+    else
+        ygrosssim = bsxfun(@times,income.yPgrid(yPindsim).*income.yTgrid(yTindsim),income.yFgrid(yFindsim));
+    end
+    
     if p.NormalizeY == 1
         ygrosssim = ygrosssim/income.original_meany;
     end
