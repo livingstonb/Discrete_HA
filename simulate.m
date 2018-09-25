@@ -1,4 +1,4 @@
-function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,...
+function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
     xgrid,lumptransfer,betacumdist,betacumtrans)
     
     
@@ -92,6 +92,7 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,...
     for ib = 1:p.nb
     for iyP = 1:p.nyP
         savinterp{iyP,ib,iyF} = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),sav.orig_wide(:,iyP,iyF,ib),'linear');
+        coninterp{iyP,ib,iyF} = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),con.orig_wide(:,iyP,iyF,ib),'linear');
     end
     end
     end
@@ -127,18 +128,20 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,...
         xsim_mpc{im} = xsim(:,p.Tsim) + mpcamount{im};
         
         ssim_mpc{im} = zeros(p.Nsim,1);
+        csim_mpc{im} = zeros(p.Nsim,1);
         % period Tsim - 1 saving
         for iyF = 1:p.nyF
         for ib = 1:p.nb
         for iyP = 1:p.nyP
             idx = yPindsim(:,p.Tsim)==iyP & betaindsim(:,p.Tsim)==ib & yFindsim(:,p.Tsim)==iyF;
-            ssim_mpc{im}(idx) = savinterp{iyP,ib,iyF}(xsim_mpc{im}(idx));
+            % ssim_mpc{im}(idx) = savinterp{iyP,ib,iyF}(xsim_mpc{im}(idx));
+            csim_mpc{im}(idx) = coninterp{iyP,ib,iyF}(xsim_mpc{im}(idx));
         end
         end
         end
         
-        ssim_mpc{im}(ssim_mpc{im}<p.borrow_lim) = p.borrow_lim;
-        csim_mpc{im} = xsim_mpc{im} - ssim_mpc{im} - p.savtax * max(ssim_mpc{im} - p.savtaxthresh,0);
+        %ssim_mpc{im}(ssim_mpc{im}<p.borrow_lim) = p.borrow_lim;
+        %csim_mpc{im} = xsim_mpc{im} - ssim_mpc{im} - p.savtax * max(ssim_mpc{im} - p.savtaxthresh,0);
         mpc{im} = (csim_mpc{im} - csim(:,p.Tsim))/mpcamount{im};
         simulations.avg_mpc{im} = mean(mpc{im});
     end

@@ -49,9 +49,8 @@ while iter<p.max_iter && cdiff>p.tol_iter
     for iyF  = 1:p.nyF
     for iyP = 1:p.nyP
         coninterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),conlast_wide(:,iyP,iyF,ib),'linear','linear');
-        for iyT = 1:p.nyT
-            c_xp(:,iyP,iyF,ib,iyT) = coninterp(x_s_wide(:,iyP,iyF,ib,iyT));
-        end
+        c_xp_temp = coninterp(reshape(x_s_wide(:,iyP,iyF,ib,:),[],1));
+        c_xp(:,iyP,iyF,ib,:) = reshape(c_xp_temp,[],1,1,1,p.nyT);
     end
     end
     end
@@ -132,7 +131,7 @@ end
 
 trans = kron(betatrans,kron(eye(p.nyF),yPtrans));
 grid_probabilities = zeros(NN,NN);
-outerblock = 1;
+column = 1;
 trans_col = 1;
 for ib2 = 1:p.nb
 for iyF2 = 1:p.nyF
@@ -147,7 +146,7 @@ for iyP2 = 1:p.nyP
     newcolumn = bsxfun(@times,kron(trans(:,trans_col),ones(nn,1)),newcolumn);
     
     grid_probabilities(:,nn*(outerblock-1)+1:nn*outerblock) = newcolumn;
-    outerblock = outerblock + 1;
+    column = column + 1;
 trans_col = trans_col + 1;
 end
 end

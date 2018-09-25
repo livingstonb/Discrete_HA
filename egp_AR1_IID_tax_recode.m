@@ -299,13 +299,8 @@ function results = egp_AR1_IID_tax_recode(p)
     results.frac_less5perc_labincome = (sav.final<0.05)' * state_dist.final;
     % wealth percentiles;
     percentiles = [0.1 0.25 0.5 0.9 0.99];
-    wealthps = zeros(numel(percentiles),1);
-    count = 1;
-    for percentile = percentiles
-        [~,pind] = max(percentile<state_dist.cum,[],1);
-        wealthps(count) = sav.final_sort(pind);
-        count = count + 1;
-    end
+    [state_dist.unique,iu] = unique(state_dist.cum);
+    wealthps = interp1(state_dist.unique,sav.final_sort(iu),percentiles,'linear');
     results.p10wealth = wealthps(1);
     results.p25wealth = wealthps(2);
     results.p50wealth = wealthps(3);
@@ -329,7 +324,7 @@ function results = egp_AR1_IID_tax_recode(p)
     
     %% Simulate
     if p.Simulate == 1
-        [simulations,ssim] = simulate(p,income,labtaxthresh,sav,...
+        [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
             xgrid,lumptransfer,betacumdist,betacumtrans);
     else
         simulations =[];
