@@ -130,29 +130,25 @@ else % Use original xgrids
     nn = p.nx;
 end
 
-
-grid_probabilities = sparse(NN,NN);
+trans = kron(betatrans,kron(eye(p.nyF),yPtrans));
+grid_probabilities = zeros(NN,NN);
 outerblock = 1;
+trans_col = 1;
 for ib2 = 1:p.nb
 for iyF2 = 1:p.nyF
 for iyP2 = 1:p.nyP
     fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
+    xp = (1+p.r)*repmat(savm(:),p.nyT,1) + ...
+        kron(squeeze(netymatm(1,iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
+    interp = reshape(full(funbas(fspace,xp)),[],p.nyT*nn);
+    % Multiply by yT distribution
+    newcolumn = interp * kron(speye(nn),yTdist);
+    % Multiply by (beta,yF,yP) distribution
+    newcolumn = bsxfun(@times,kron(trans(:,trans_col),ones(nn,1)),newcolumn);
     
-    newcolumn = sparse(NN,nn);
-    innerblock = 1;
-    for ib1 = 1:p.nb
-    for iyF1 = 1:p.nyF
-    for iyP1 = 1:p.nyP
-        xp = (1+p.r)*squeeze(repmat(savm(:,iyP1,iyF1,ib1),[1 1 1 1 p.nyT])) + squeeze(netymatm(:,iyP2,iyF2,:));
-        state1prob = yPtrans(iyP1,iyP2)*betatrans(ib1,ib2) * funbas(fspace,xp(:))' * kron(yTdist,speye(nn));
-
-        newcolumn(nn*(innerblock-1)+1:nn*innerblock,:) = state1prob';
-        innerblock = innerblock + 1;
-    end
-    end
-    end
     grid_probabilities(:,nn*(outerblock-1)+1:nn*outerblock) = newcolumn;
     outerblock = outerblock + 1;
+trans_col = trans_col + 1;
 end
 end
 end

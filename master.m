@@ -31,15 +31,16 @@ prms(1).bequest_luxury = 0.01; %0.01, must be >0 to avoid NaN error;
 
 % income risk: AR(1) + IID in logs
 prms(1).LoadIncomeProcess   = 1;
-prms(1).nyT                 = 101; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+prms(1).nyT                 = 51; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
-% continuous yT process for simulation (vs discrete)
-prms(1).yTContinuous = 0;
+% income normalization
+prms(1).NormalizeY  = 1;
 
 %only relevant if LoadIncomeProcess==0
+prms(1).yTContinuous = 0;
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
 prms(1).lambdaT     = 1; % arrival rate of shocks;
-prms(1).nyP         = 11; %11 persistent component
+prms(1).nyP         = 51; %11 persistent component
 prms(1).sd_logyP    = sqrt(0.1950); %0.1950;
 prms(1).rho_logyP   = 0.9947;
 prms(1).nyF         = 1;
@@ -59,7 +60,6 @@ prms(1).labtaxthreshpc  = 0.99; %percentile of earnings distribution where high 
 prms(1).savtax          = 0; %0.0001;  %tax rate on savings
 prms(1).savtaxthresh    = 0; %multiple of mean gross labor income
 
-
 %discount factor shocks;
 prms(1).nb          = 1;  %1 or 2
 prms(1).betawidth   = 0.02; % beta +/- beta width
@@ -67,7 +67,6 @@ prms(1).betaswitch  = 1/50; %0;
 
 % computation
 prms(1).max_evals   = 100; % for fzero to find beta
-prms(1).NormalizeY  = 1;
 prms(1).max_iter    = 1e5; % for EGP
 prms(1).tol_iter    = 1.0e-6;
 prms(1).Nsim        = 100000;
