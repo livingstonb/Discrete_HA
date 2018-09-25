@@ -73,6 +73,7 @@ function print_statistics(results,simulations,p)
     end
     for i = 1:size(results.avg_mpc,2)
         direct = sprintf(' %2.3f (Direct Comp)',results.avg_mpc{i});
+        sim = sprintf(' %2.3f (Simulation)',simulations.avg_mpc{i});
         label = sprintf('    Average MPC (mpcamount %4.2g):',results.mpcamount{i});
         disp([label direct sim]);
     end

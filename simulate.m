@@ -1,4 +1,4 @@
-function [simulations ssim] = simulate(p,income,labtaxthresh,sav,...
+function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,...
     xgrid,lumptransfer,betacumdist,betacumtrans)
     
     
@@ -30,17 +30,24 @@ function [simulations ssim] = simulate(p,income,labtaxthresh,sav,...
         end
         yPindsim(diesim & idx) = iyP;
     end
+    
+    % simulate yT outside of time loop
+    for iyT = 1:p.nyT
+        if iyT == 1
+            idx = yTrand<income.yTcumdist(iyT);
+        else
+            idx = yTrand<income.yTcumdist(iyT) & yTrand>=income.yTcumdist(iyT-1);
+        end
+        yTindsim(idx) = iyT;
+    end
         
     % iterate over time periods
     for it = 1:p.Tsim
-        [~,yTindsim(:,it)] = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
-        
         if it ==1
             [~,yPindsim(diesim(:,it)==0,it)] = max(bsxfun(@le,yPrand(diesim(:,it)==0,it),income.yPcumdist'),[],2);
         else
             [~,yPindsim(diesim(:,it)==0,it)] = max(bsxfun(@le,yPrand(diesim(:,it)==0,it),income.yPcumtrans(yPindsim(diesim(:,it)==0,it-1),:)),[],2);
         end
-      
     end
     
     % gross income
@@ -96,6 +103,33 @@ function [simulations ssim] = simulate(p,income,labtaxthresh,sav,...
         
         ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
     end
+    
+    csim = xsim - ssim - p.savtax * max(ssim - p.savtaxthresh,0);
+    
+    %% One-period MPCs
+    Nmpcamount = numel(p.mpcfrac);
+    for im = 1:Nmpcamount
+        mpcamount{im} = p.mpcfrac{im} * income.meany;
+        % period Tsim cash-on-hand
+        xsim_mpc{im} = xsim(:,p.Tsim) + mpcamount{im};
+        
+        ssim_mpc{im} = zeros(p.Nsim,1);
+        % period Tsim - 1 saving
+        for iyF = 1:p.nyF
+        for ib = 1:p.nb
+        for iyP = 1:p.nyP
+            idx = yPindsim(:,p.Tsim)==iyP & betaindsim(:,p.Tsim)==ib & yFindsim(:,p.Tsim)==iyF;
+            ssim_mpc{im}(idx) = savinterp{iyP,ib,iyF}(xsim_mpc{im}(idx));
+        end
+        end
+        end
+        
+        ssim_mpc{im}(ssim_mpc{im}<p.borrow_lim) = p.borrow_lim;
+        csim_mpc{im} = xsim_mpc{im} - ssim_mpc{im} - p.savtax * max(ssim_mpc{im} - p.savtaxthresh,0);
+        mpc{im} = (csim_mpc{im} - csim(:,p.Tsim))/mpcamount{im};
+        simulations.avg_mpc{im} = mean(mpc{im});
+    end
+    
     
     %% Moments
     simulations.mean_s = mean(ssim(:,p.Tsim));

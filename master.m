@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
+path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -31,7 +31,7 @@ prms(1).bequest_luxury = 0.01; %0.01, must be >0 to avoid NaN error;
 
 % income risk: AR(1) + IID in logs
 prms(1).LoadIncomeProcess   = 1;
-prms(1).nyT                 = 21; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+prms(1).nyT                 = 101; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 %only relevant if LoadIncomeProcess==0
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
@@ -71,7 +71,7 @@ prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).ExpandGridBetaIter  = 0; % Use larger grid for distributional computations (when iterating over betas)
 prms(1).ExpandGridF = 1; % Use larger grid for final distributional computation
-prms(1).nxlong      = 500; % larger grid size
+prms(1).nxlong      = 1000; % larger grid size
  
 prms(1).targetAY    = 12.0;
 prms(1).maxiterAY   = 20;
