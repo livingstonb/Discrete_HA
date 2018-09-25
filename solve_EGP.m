@@ -1,5 +1,5 @@
 function [AYdiff,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgridm] = solve_EGP(beta,p,...
-    xgrid_wide,sgrid_wide,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid)
+    xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid)
 
 ytrans = income.ytrans;
 netymat = income.netymat;
@@ -18,7 +18,7 @@ if p.IterateBeta == 1
 end
 
 % initial guess for consumption function
-con = p.r * xgrid_wide(:);
+con = p.r * xgrid.wide(:);
 
 % discount factor matrix
 betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
@@ -40,7 +40,7 @@ while iter<p.max_iter && cdiff>p.tol_iter
     % interpolate to get c(x') using c(x)
     conlast_wide = reshape(conlast,[p.ns p.nyP p.nyF p.nb]);
     
-    x_s_wide = (1+p.r)*repmat(sgrid_wide(:),1,p.nyT) + kron(netymat,ones(p.ns,1));
+    x_s_wide = (1+p.r)*repmat(sgrid.wide(:),1,p.nyT) + kron(netymat,ones(p.ns,1));
     x_s_wide = reshape(x_s_wide,[p.ns p.nyP p.nyF p.nb p.nyT]);
     
     % c(x')
@@ -48,7 +48,7 @@ while iter<p.max_iter && cdiff>p.tol_iter
     for ib = 1:p.nb
     for iyF  = 1:p.nyF
     for iyP = 1:p.nyP
-        coninterp = griddedInterpolant(xgrid_wide(:,iyP,iyF,ib),conlast_wide(:,iyP,iyF,ib),'linear','linear');
+        coninterp = griddedInterpolant(xgrid.wide(:,iyP,iyF,ib),conlast_wide(:,iyP,iyF,ib),'linear','linear');
         for iyT = 1:p.nyT
             c_xp(:,iyP,iyF,ib,iyT) = coninterp(x_s_wide(:,iyP,iyF,ib,iyT));
         end
@@ -60,25 +60,25 @@ while iter<p.max_iter && cdiff>p.tol_iter
     
     mucnext  = u1(c_xp) - p.temptation/(1+p.temptation)*u1(x_s_wide);
     % muc this period as a function of s
-    muc_s = (1-p.dieprob)*(1+p.r)*betastacked.*(Emat*(mucnext*yTdist))./(1+p.savtax.*(sgrid_wide(:)>=p.savtaxthresh))...
-        + p.dieprob*beq1(sgrid_wide(:));
+    muc_s = (1-p.dieprob)*(1+p.r)*betastacked.*(Emat*(mucnext*yTdist))./(1+p.savtax.*(sgrid.wide(:)>=p.savtaxthresh))...
+        + p.dieprob*beq1(sgrid.wide(:));
     % _wide variables have dimension nx by nyP*nyF*nb, or nx by N/nx
 
     % consumption as a function of s
     con_s = u1inv(muc_s);
     % cash-in-hand (x) as a function of s
-    x_s_wide = sgrid_wide(:) + p.savtax * max(sgrid_wide(:)-p.savtaxthresh,0) + con_s;
+    x_s_wide = sgrid.wide(:) + p.savtax * max(sgrid.wide(:)-p.savtaxthresh,0) + con_s;
 
     % interpolate from x(s) to get s(x), interpolate for each (beta,yP,yF)
     % separately
     x_s_wide = reshape(x_s_wide,[p.ns p.nyP p.nyF p.nb]);
     sav_wide = zeros(p.ns,p.nyP,p.nyF,p.nb);
-    sgrid_reshaped = reshape(sgrid_wide,[p.ns p.nyP p.nyF p.nb]);
+    sgrid_reshaped = reshape(sgrid.wide,[p.ns p.nyP p.nyF p.nb]);
     for ib = 1:p.nb
     for iyF  = 1:p.nyF
     for iyP = 1:p.nyP
         savinterp = griddedInterpolant(x_s_wide(:,iyP,iyF,ib),sgrid_reshaped(:,iyP,iyF,ib),'linear','linear');
-        sav_wide(:,iyP,iyF,ib) = savinterp(xgrid_wide(:,iyP,iyF,ib)); 
+        sav_wide(:,iyP,iyF,ib) = savinterp(xgrid.wide(:,iyP,iyF,ib)); 
     end
     end
     end
@@ -87,7 +87,7 @@ while iter<p.max_iter && cdiff>p.tol_iter
     sav_wide(sav_wide<p.borrow_lim) = p.borrow_lim;
     sav_opt = sav_wide(:);
 
-    conupdate = xgrid_wide(:) - sav_opt - p.savtax * max(sav_opt-p.savtaxthresh,0);
+    conupdate = xgrid.wide(:) - sav_opt - p.savtax * max(sav_opt-p.savtaxthresh,0);
 
     cdiff = max(abs(conupdate-conlast));
     if mod(iter,50) ==0
@@ -115,7 +115,7 @@ if ExpandGrid == 1
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        savinterp = griddedInterpolant(xgrid_wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
+        savinterp = griddedInterpolant(xgrid.wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
         savlong(:,iyP,iyF,ib) = savinterp(xgridm(:,iyP,iyF));
     end
     end
@@ -126,7 +126,7 @@ if ExpandGrid == 1
 else % Use original xgrids
     netymatm = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
     netymatm = repmat(netymatm,[p.nx 1 1 1]);
-    xgridm = xgrid_wide;
+    xgridm = xgrid.wide;
     NN = p.N;
     nn = p.nx;
 end
