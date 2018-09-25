@@ -196,12 +196,12 @@ function results = egp_AR1_IID_tax_recode(p)
     xgrid_wide = reshape(xgrid,p.ns,p.nyP*p.nyF*p.nb);
 
     if p.IterateBeta == 1
-        ergodic_tol = 1e-3;
+        ergodic_tol = 1e-6;
         iterate_EGP = @(x) solve_EGP(x,p,...
             xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
             yTdist,beq1,yPtrans,meany,ergodic_tol);
 
-        beta_lb = 1e-5;
+        beta_lb = 1e-3;
         if p.nb == 1
             beta_ub = p.betaH - 1e-5;
         else
@@ -209,18 +209,18 @@ function results = egp_AR1_IID_tax_recode(p)
         end
         % Max fzero iterations set to p.max_evals
         check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.max_evals);
-        options = optimset('TolX',1e-5,'OutputFcn',check_evals);
+        options = optimset('TolX',1e-6,'OutputFcn',check_evals);
         [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
         
         if exitflag ~= 1
             results = struct();
-            results.issues = {'fzero did not converge to beta'};
+            results.issues = {'NoBetaConv'};
             return
         end
         results.beta = beta;
     end
 
-    ergodic_tol = 1e-5;
+    ergodic_tol = 1e-7;
     [~,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
         xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
         yTdist,beq1,yPtrans,meany,ergodic_tol);
@@ -256,7 +256,7 @@ function results = egp_AR1_IID_tax_recode(p)
         results.issues = [results.issues,'NoEGPConv'];
     end
     if (results.mean_s<p.targetAY-1) || (results.mean_s>p.targetAY+1)
-        results.issues = [results.issues,['BadAY: ' num2str(results.mean_s)]];
+        results.issues = [results.issues,'BadAY'];
     end
     if abs((results.mean_x-mean_x_check)/results.mean_x)> 1e-3
         results.issues = [results.issues,'DistNotStationary'];
@@ -266,6 +266,9 @@ function results = egp_AR1_IID_tax_recode(p)
     end
     if norm(yPdist_check-yPdist) > 1e-3
         results.issues = [results.issues,'BadGrossIncDist'];
+    end
+    if min(state_dist) < - 0.01
+        results.issues = [results.issues,'NegativeStateProbability'];
     end
 
     %% WEALTH DISTRIBUTION
@@ -426,7 +429,7 @@ function results = egp_AR1_IID_tax_recode(p)
                     - con_wide(:,col))/mpcamount{im};     
             end
             % average mpc
-            results.avg_mpc{im} = mpc{im}(:)' * state_dist(:);
+            results.avg_mpc{im} = mpc{im}(:)' * state_dist;
         end
     end
     

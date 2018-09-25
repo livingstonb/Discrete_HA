@@ -76,4 +76,10 @@ function print_statistics(results,simulations,p)
         label = sprintf('    Average MPC (mpcamount %4.2g):',results.mpcamount{i});
         disp([label direct sim]);
     end
+    
+    %% ISSUES
+    fprintf('\nISSUES: \n')
+    for i = 1:numel(results.issues)
+        fprintf('    %s\n',results.issues{i})
+    end
 end

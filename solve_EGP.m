@@ -57,14 +57,14 @@ while iter<max_iter && cdiff>tol_iter
     c_xp = zeros(N,nyT);
     
     x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat;
+    x_s_wide = reshape(x_s,[ns nyP*nyF*nb nyT]);
     
     % c(x')
     c_xp = zeros(ns,nyP*nyF*nb,nyT);
     for col = 1:nyP*nyF*nb
         coninterp = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
         for iyT = 1:nyT
-            x_s_wide = reshape(x_s(:,iyT),ns,nyP*nyF*nb); 
-            c_xp(:,col,iyT) = coninterp(x_s_wide(:,col));
+            c_xp(:,col,iyT) = coninterp(x_s_wide(:,col,iyT));
         end
     end
     c_xp = reshape(c_xp,[],nyT);
@@ -88,7 +88,6 @@ while iter<max_iter && cdiff>tol_iter
         sav_wide(:,col) = interp1(x_s_wide(:,col),sgrid_wide(:,col),xgrid_wide(:,col),'linear','extrap'); 
     end
 
-
     % deal with borrowing limit
     sav_wide(sav_wide<borrow_lim) = borrow_lim;
     sav_opt = sav_wide(:);
@@ -99,6 +98,7 @@ while iter<max_iter && cdiff>tol_iter
     if mod(iter,50) ==0
     	disp([' EGP Iteration ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
     end
+    
 end
 
 con_opt = conupdate;
@@ -124,10 +124,10 @@ for iyP2 = 1:nyP
     for ib1 = 1:nb
     for iyF1 = 1:nyF
     for iyP1 = 1:nyP
+        xp = (1+r)*repmat(savm(:,iyP1,iyF1,ib1),[1 1 1 1 nyT]) + netymatm(:,iyP2,iyF2,ib2,:);
         state1prob = 0;
         for iyT = 1:nyT
-            xp = (1+r)*savm(:,iyP1,iyF1,ib1) + netymatm(:,iyP2,iyF2,ib2,iyT);
-            state1prob = state1prob + yTdist(iyT) * yPtrans(iyP1,iyP2) * yFtrans(iyF1,iyF2) * betatrans(ib1,ib2) * funbas(fspace,xp);
+            state1prob = state1prob + yTdist(iyT) * yPtrans(iyP1,iyP2) * yFtrans(iyF1,iyF2) * betatrans(ib1,ib2) * funbas(fspace,xp(:,iyT));
         end
         newcolumn(nx*(innerblock-1)+1:nx*innerblock,:) = state1prob;
         innerblock = innerblock + 1;

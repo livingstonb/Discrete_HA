@@ -58,17 +58,17 @@ prms(1).savtaxthresh    = 0; %multiple of mean gross labor income
 
 
 %discount factor shocks;
-prms(1).nb          = 2;  %1 or 2
+prms(1).nb          = 1;  %1 or 2
 prms(1).betawidth   = 0.02; % beta +/- beta width
 prms(1).betaswitch  = 1/50; %0;
 
 % computation
-prms(1).max_evals   = 100;
+prms(1).max_evals   = 100; % for fzero to find beta
 prms(1).NormalizeY  = 1;
-prms(1).max_iter    = 1e5;
+prms(1).max_iter    = 1e5; % for EGP
 prms(1).tol_iter    = 1.0e-6;
-prms(1).Nsim        = 20000;
-prms(1).Tsim        = 3000;
+prms(1).Nsim        = 100000;
+prms(1).Tsim        = 200;
  
 prms(1).targetAY    = 12.0;
 prms(1).maxiterAY   = 20;
