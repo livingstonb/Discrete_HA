@@ -35,7 +35,7 @@ end
 con = r * xgrid_wide(:);
 
 % discount factor matrix
-betastacked = reshape(repmat(betagrid',nyP*nyF*nx,1),N,1);
+betastacked = kron(betagrid,ones(nyP*nyF*nx,1));
 
 % Expectations operator (conditional on yT)
 Emat = kron(betatrans,kron(ytrans,speye(nx)));

@@ -128,13 +128,13 @@ function results = egp_AR1_IID_tax_recode(p)
     p.ns = p.nx;
 
     % construct matrix of y combinationsx
-    ymat = reshape(repmat(yPgrid',p.ns,1),p.ns*p.nyP,1);
-    ymat = repmat(ymat,p.nyF,1) .* reshape(repmat(yFgrid',p.nyP*p.ns,1),p.nyP*p.ns*p.nyF,1);
+    ymat = kron(yPgrid,ones(p.ns,1));
+    ymat = repmat(ymat,p.nyF,1) .* kron(yFgrid,ones(p.nyP*p.ns,1));
     ymat = repmat(ymat,p.nb,1)*yTgrid';
 
     % distribution of ymat (values are repeated nb*nx times)
-    ymatdist = reshape(repmat(yPdist',p.ns,1),p.ns*p.nyP,1);
-    ymatdist = repmat(ymatdist,p.nyF,1) .* reshape(repmat(yFdist',p.nyP*p.ns,1),p.nyP*p.ns*p.nyF,1);
+    ymatdist = kron(yPdist,ones(p.ns,1));
+    ymatdist = repmat(ymatdist,p.nyF,1) .* kron(yFdist,ones(p.nyP*p.ns,1));
     ymatdist = repmat(ymatdist,p.nb,1)*yTdist';
 
     % find mean y
