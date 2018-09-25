@@ -1,27 +1,8 @@
-function [AYdiff,con_opt,sav_opt,state_dist,cdiff] = solve_EGP(beta,p,...
-    xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-    yTdist,beq1,yPtrans,meany,ergodic_tol)
+function [AYdiff,conm,savm,state_dist,cdiff,xgridm] = solve_EGP(beta,p,...
+    xgrid_wide,ytrans,sgrid_wide,netymat,yTdist,betatrans,u1,beq1,...
+    u1inv,yPtrans,ergodic_tol,meany)
 
-nx = p.nx;
-ns = p.ns;
-nyF = p.nyF;
-nyP = p.nyP;
-nyT = p.nyT;
-nb = p.nb;
-N = p.N;
-r = p.r;
-targetAY = p.targetAY;
-max_iter = p.max_iter;
-tol_iter = p.tol_iter;
-dieprob = p.dieprob;
-savtax = p.savtax;
-savtaxthresh = p.savtaxthresh;
-borrow_lim = p.borrow_lim;
-temptation = p.temptation;
-betawidth = p.betawidth;
-
-
-if  nb == 1
+if  p.nb == 1
     betagrid = beta;
 elseif nb ==2 
     betagrid = [beta-betawidth;beta+betawidth];
@@ -32,18 +13,18 @@ if p.IterateBeta == 1
 end
 
 % initial guess for consumption function
-con = r * xgrid_wide(:);
+con = p.r * xgrid_wide(:);
 
 % discount factor matrix
-betastacked = kron(betagrid,ones(nyP*nyF*nx,1));
+betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
 
 % Expectations operator (conditional on yT)
-Emat = kron(betatrans,kron(ytrans,speye(nx)));
+Emat = kron(betatrans,kron(ytrans,speye(p.nx)));
 
 iter = 1;
 cdiff = 1;
 %% EGP ITERATION
-while iter<max_iter && cdiff>tol_iter
+while iter<p.max_iter && cdiff>p.tol_iter
     if iter==1
         conlast = con;
     else
@@ -52,47 +33,56 @@ while iter<max_iter && cdiff>tol_iter
     iter = iter + 1;
 
     % interpolate to get c(x') using c(x)
-    conlast_wide = reshape(conlast,ns,nyP*nyF*nb);
-    % initialize cons as function of x',yT
-    c_xp = zeros(N,nyT);
+    conlast_wide = reshape(conlast,[p.ns p.nyP p.nyF p.nb]);
     
-    x_s = (1+r)*repmat(sgrid_wide(:),1,nyT) + netymat;
-    x_s_wide = reshape(x_s,[ns nyP*nyF*nb nyT]);
+    x_s_wide = (1+p.r)*repmat(sgrid_wide(:),1,p.nyT) + kron(netymat,ones(p.ns,1));
+    x_s_wide = reshape(x_s_wide,[p.ns p.nyP p.nyF p.nb p.nyT]);
     
     % c(x')
-    c_xp = zeros(ns,nyP*nyF*nb,nyT);
-    for col = 1:nyP*nyF*nb
-        coninterp = griddedInterpolant(xgrid_wide(:,col),conlast_wide(:,col),'linear','linear');
-        for iyT = 1:nyT
-            c_xp(:,col,iyT) = coninterp(x_s_wide(:,col,iyT));
+    c_xp = zeros(p.ns,p.nyP,p.nyF,p.nb,p.nyT);
+    for ib = 1:p.nb
+    for iyF  = 1:p.nyF
+    for iyP = 1:p.nyP
+        coninterp = griddedInterpolant(xgrid_wide(:,iyP,iyF,ib),conlast_wide(:,iyP,iyF,ib),'linear','linear');
+        for iyT = 1:p.nyT
+            c_xp(:,iyP,iyF,ib,iyT) = coninterp(x_s_wide(:,iyP,iyF,ib,iyT));
         end
     end
-    c_xp = reshape(c_xp,[],nyT);
+    end
+    end
+    c_xp = reshape(c_xp,[],p.nyT);
+    x_s_wide = reshape(x_s_wide,[],p.nyT);
     
-    mucnext  = u1(c_xp) - temptation/(1+temptation)*u1(x_s);
+    mucnext  = u1(c_xp) - p.temptation/(1+p.temptation)*u1(x_s_wide);
     % muc this period as a function of s
-    muc_s = (1-dieprob)*(1+r)*betastacked.*(Emat*(mucnext*yTdist))./(1+savtax.*(sgrid_wide(:)>=savtaxthresh))...
-        + dieprob*beq1(sgrid_wide(:));
+    muc_s = (1-p.dieprob)*(1+p.r)*betastacked.*(Emat*(mucnext*yTdist))./(1+p.savtax.*(sgrid_wide(:)>=p.savtaxthresh))...
+        + p.dieprob*beq1(sgrid_wide(:));
     % _wide variables have dimension nx by nyP*nyF*nb, or nx by N/nx
 
     % consumption as a function of s
     con_s = u1inv(muc_s);
     % cash-in-hand (x) as a function of s
-    x_s = sgrid_wide(:) + savtax * max(sgrid_wide(:)-savtaxthresh,0) + con_s;
+    x_s_wide = sgrid_wide(:) + p.savtax * max(sgrid_wide(:)-p.savtaxthresh,0) + con_s;
 
     % interpolate from x(s) to get s(x), interpolate for each (beta,yP,yF)
     % separately
-    x_s_wide = reshape(x_s,ns,N/ns);
-    sav_wide = zeros(ns,N/ns);
-    for col=1:N/ns
-        sav_wide(:,col) = interp1(x_s_wide(:,col),sgrid_wide(:,col),xgrid_wide(:,col),'linear','extrap'); 
+    x_s_wide = reshape(x_s_wide,[p.ns p.nyP p.nyF p.nb]);
+    sav_wide = zeros(p.ns,p.nyP,p.nyF,p.nb);
+    sgrid_reshaped = reshape(sgrid_wide,[p.ns p.nyP p.nyF p.nb]);
+    for ib = 1:p.nb
+    for iyF  = 1:p.nyF
+    for iyP = 1:p.nyP
+        savinterp = griddedInterpolant(x_s_wide(:,iyP,iyF,ib),sgrid_reshaped(:,iyP,iyF,ib),'linear','linear');
+        sav_wide(:,iyP,iyF,ib) = savinterp(xgrid_wide(:,iyP,iyF,ib)); 
+    end
+    end
     end
 
     % deal with borrowing limit
-    sav_wide(sav_wide<borrow_lim) = borrow_lim;
+    sav_wide(sav_wide<p.borrow_lim) = p.borrow_lim;
     sav_opt = sav_wide(:);
 
-    conupdate = xgrid_wide(:) - sav_opt - savtax * max(sav_opt-savtaxthresh,0);
+    conupdate = xgrid_wide(:) - sav_opt - p.savtax * max(sav_opt-p.savtaxthresh,0);
 
     cdiff = max(abs(conupdate-conlast));
     if mod(iter,50) ==0
@@ -105,36 +95,61 @@ con_opt = conupdate;
 
 %% DISTRIBUTION
 fprintf(' Computing state-to-state transition probabilities... \n');
+savm = reshape(sav_opt,[p.nx p.nyP p.nyF p.nb]);
+yFtrans = eye(p.nyF);
 
-% Use original xgrids
-yFtrans = eye(nyF);
-xgridm = reshape(xgrid_wide,[nx nyP nyF nb]);
-savm = reshape(sav_opt,[nx nyP nyF nb]);
-netymatm = reshape(netymat,[nx nyP nyF nb nyT]);
+% Create long grid
+if p.ExpandGrid == 1
+    xgridm = linspace(0,1,p.nxlong)';
+    xgridm = repmat(xgridm,[1 p.nyP p.nyF]) .^(1/p.xgrid_par);
+    netymatm = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
+    netymatm = repmat(netymatm,[p.nxlong 1 1 1]);
+    xgridm = p.borrow_lim + min(netymatm,[],4) + (p.xmax-p.borrow_lim)*xgridm;
 
-grid_probabilities = zeros(N,N);
+    savlong = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
+    for ib = 1:p.nb
+    for iyF = 1:p.nyF
+    for iyP = 1:p.nyP
+        savinterp = griddedInterpolant(xgrid_wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
+        savlong(:,iyP,iyF,ib) = savinterp(xgridm(:,iyP,iyF));
+    end
+    end
+    end
+    savm = savlong;
+    NN = p.nxlong * p.nyP * p.nyF * p.nb;
+    nn = p.nxlong;
+else % Use original xgrids
+    netymatm = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
+    netymatm = repmat(netymatm,[p.nx 1 1 1]);
+    xgridm = xgrid_wide;
+    NN = p.N;
+    nn = p.nx;
+end
+
+
+grid_probabilities = zeros(NN,NN);
 outerblock = 1;
-for ib2 = 1:nb
-for iyF2 = 1:nyF
-for iyP2 = 1:nyP
+for ib2 = 1:p.nb
+for iyF2 = 1:p.nyF
+for iyP2 = 1:p.nyP
     fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
     
-    newcolumn = zeros(N,nx);
+    newcolumn = zeros(NN,nn);
     innerblock = 1;
-    for ib1 = 1:nb
-    for iyF1 = 1:nyF
-    for iyP1 = 1:nyP
-        xp = (1+r)*repmat(savm(:,iyP1,iyF1,ib1),[1 1 1 1 nyT]) + netymatm(:,iyP2,iyF2,ib2,:);
+    for ib1 = 1:p.nb
+    for iyF1 = 1:p.nyF
+    for iyP1 = 1:p.nyP
+        xp = (1+p.r)*squeeze(repmat(savm(:,iyP1,iyF1,ib1),[1 1 1 1 p.nyT])) + squeeze(netymatm(:,iyP2,iyF2,:));
         state1prob = 0;
-        for iyT = 1:nyT
+        for iyT = 1:p.nyT
             state1prob = state1prob + yTdist(iyT) * yPtrans(iyP1,iyP2) * yFtrans(iyF1,iyF2) * betatrans(ib1,ib2) * funbas(fspace,xp(:,iyT));
         end
-        newcolumn(nx*(innerblock-1)+1:nx*innerblock,:) = state1prob;
+        newcolumn(nn*(innerblock-1)+1:nn*innerblock,:) = state1prob;
         innerblock = innerblock + 1;
     end
     end
     end
-    grid_probabilities(:,nx*(outerblock-1)+1:nx*outerblock) = newcolumn;
+    grid_probabilities(:,nn*(outerblock-1)+1:nn*outerblock) = newcolumn;
     outerblock = outerblock + 1;
 end
 end
@@ -145,9 +160,14 @@ fprintf(' Finding ergodic distribution...\n');
 state_dist      = full(ergodicdist(sparse(grid_probabilities),1,ergodic_tol));
 
 % SS wealth/gross income ratio
-mean_s = sav_opt' * state_dist;
+mean_s = savm(:)' * state_dist;
+
+% policy functions
+savm = savm(:);
+conm = xgridm(:) - savm(:) - p.savtax*max(savm(:)-p.savtaxthresh,0);
+
 fprintf(' A/Y = %2.3f\n',mean_s/meany);
 %AYdiffsq = (mean_s/meany - targetAY)^2;
-AYdiff = mean_s/meany -  targetAY;
+AYdiff = mean_s/meany -  p.targetAY;
 
 end

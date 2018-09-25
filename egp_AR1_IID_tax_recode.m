@@ -90,6 +90,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
     % length of full xgrid
     p.N = p.nx*p.nyF*p.nyP*p.nb;
+    
 
     %% DISCOUNT FACTOR
 
@@ -128,53 +129,45 @@ function results = egp_AR1_IID_tax_recode(p)
     p.ns = p.nx;
 
     % construct matrix of y combinationsx
-    ymat = kron(yPgrid,ones(p.ns,1));
-    ymat = repmat(ymat,p.nyF,1) .* kron(yFgrid,ones(p.nyP*p.ns,1));
-    ymat = repmat(ymat,p.nb,1)*yTgrid';
+    ymat = repmat(yPgrid,p.nyF,1) .* kron(yFgrid,ones(p.nyP,1)) * yTgrid';
 
     % distribution of ymat (values are repeated nb*nx times)
-    ymatdist = kron(yPdist,ones(p.ns,1));
-    ymatdist = repmat(ymatdist,p.nyF,1) .* kron(yFdist,ones(p.nyP*p.ns,1));
-    ymatdist = repmat(ymatdist,p.nb,1)*yTdist';
+    ymatdist = repmat(yPdist,p.nyF,1) .* kron(yFdist,ones(p.nyP,1)) * yTdist';
 
     % find mean y
     % isolate unique (yT,yF,yP) combinations
-    ymat_yvals = ymat(1:p.ns:p.ns*p.nyF*p.nyP,:);
-    ymatdist_pvals = ymatdist(1:p.ns:p.ns*p.nyF*p.nyP,:);
-    temp = sortrows([ymat_yvals(:) ymatdist_pvals(:)],1);
-    ysortvals = temp(:,1);
-    ysortpvals = temp(:,2);
-    ycumdist = cumsum(ysortpvals);
-    meany = ymat_yvals(:)'*ymatdist_pvals(:);
+    temp = sortrows([ymat(:) ymatdist(:)],1);
+    ysort = temp(:,1);
+    ysortdist = temp(:,2);
+    ycumdist = cumsum(ysortdist);
+    meany = ymat(:)'*ymatdist(:);
     original_meany = meany;
     
     % normalize gross income to have mean 1
     if p.NormalizeY == 1
         ymat = ymat/meany;
-        ymat_yvals = ymat_yvals/meany;
-        ysortvals = ysortvals/meany;
+        ysort = ysort/meany;
         meany = 1;
     end
     totgrossy = meany;
 
     % find tax threshold on labor income
-    if numel(ysortvals)>1
-        labtaxthresh = lininterp1(ycumdist,ysortvals,p.labtaxthreshpc);
+    if numel(ysort)>1
+        labtaxthresh = lininterp1(ycumdist,ysort,p.labtaxthreshpc);
     else
         labtaxthresh = 0;
     end    
 
     % find net income
-    totgrossyhigh = max(ymat_yvals(:)-labtaxthresh,0)'*ymatdist_pvals(:);
+    totgrossyhigh = max(ymat(:)-labtaxthresh,0)'*ymatdist(:);
     lumptransfer = p.labtaxlow*totgrossy + p.labtaxhigh*totgrossyhigh;
     % netymat is N by nyT matrix
     netymat = lumptransfer + (1-p.labtaxlow)*ymat - p.labtaxhigh*max(ymat-labtaxthresh,0);
-    netymat_yvals = netymat(1:p.ns:p.ns*p.nyF*p.nyP,:);
-    meannety = netymat_yvals(:)'*ymatdist_pvals(:);
+    meannety = netymat(:)'*ymatdist(:);
 
     % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
     % cash on hand grid: different min points for each value of (iyP,iyF)
-    xgrid = sgrid_wide(:) + min(netymat,[],2);
+    xgrid = sgrid_wide(:) + min(kron(netymat,ones(p.nx,1)),[],2);
 
     %% UTILITY FUNCTION, BEQUEST FUNCTION
 
@@ -191,15 +184,19 @@ function results = egp_AR1_IID_tax_recode(p)
 
     beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.risk_aver);
 
+    %% ORGANIZE VARIABLES
+    % Reshape policy functions for use later
+    xgrid_wide = reshape(xgrid,[p.nx p.nyP p.nyF p.nb]);
+    
+    %% STATIONARY DISTRIBUTION
 
-    %% Model Solution
-    xgrid_wide = reshape(xgrid,p.ns,p.nyP*p.nyF*p.nb);
+    %% MODEL SOLUTION
 
     if p.IterateBeta == 1
         ergodic_tol = 1e-6;
         iterate_EGP = @(x) solve_EGP(x,p,...
-            xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-            yTdist,beq1,yPtrans,meany,ergodic_tol);
+            xgrid_wide,ytrans,sgrid_wide,netymat,yTdist,betatrans,u1,beq1,...
+            u1inv,yPtrans,ergodic_tol,meany);
 
         beta_lb = 1e-3;
         if p.nb == 1
@@ -221,22 +218,13 @@ function results = egp_AR1_IID_tax_recode(p)
     end
 
     ergodic_tol = 1e-7;
-    [~,con,sav,state_dist,cdiff] = solve_EGP(beta,p,...
-        xgrid_wide,ytrans,betatrans,sgrid_wide,u1,u1inv,netymat,...
-        yTdist,beq1,yPtrans,meany,ergodic_tol);
-    
-    % Reshape policy functions for use later
-    con_wide = reshape(con,p.nx,p.N/p.nx);
-    sav_wide = reshape(sav,p.nx,p.N/p.nx);
-    newdim = [p.nx p.nyP p.nyF p.nb];
-    con_multidim = reshape(con,newdim);
-    sav_multidim = reshape(sav,newdim);
-    xgrid_multidim = reshape(xgrid,newdim);
-    state_dist_multidim = reshape(state_dist,newdim);
+    [~,con,sav,state_dist,cdiff,xgridm] = solve_EGP(beta,p,...
+        xgrid_wide,ytrans,sgrid_wide,netymat,yTdist,betatrans,u1,beq1,...
+        u1inv,yPtrans,ergodic_tol,meany);
     
     %% Store important moments
     results.mean_s = sav' * state_dist;
-    results.mean_x = xgrid' * state_dist;
+    results.mean_x = xgridm(:)' * state_dist;
     results.mean_grossy = (ymat*yTdist)' * state_dist;
     results.mean_loggrossy = (log(ymat)*yTdist)' * state_dist;
     results.mean_nety = (netymat*yTdist)' * state_dist;
@@ -312,13 +300,14 @@ function results = egp_AR1_IID_tax_recode(p)
     %% Simulate
     if p.Simulate == 1
         [simulations ssim] = simulate(p,yTcumdist,yFcumdist,...
-    yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,con_multidim,sav_multidim,xgrid_multidim,...
+    yPcumdist,yPcumtrans,yPgrid,yFgrid,yTgrid,labtaxthresh,con_multidim,sav_multidim,xgridm,...
     lumptransfer,betacumdist,betacumtrans,original_meany);
     else
         simulations =[];
     end
 
     %% MAKE PLOTS
+   
 
     if p.MakePlots ==1 
 
@@ -340,7 +329,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
         % consumption policy function
         subplot(2,4,1);
-        plot(xgrid_multidim(:,1,iyF,iyb),con_multidim(:,1,iyF,iyb),'b-',xgrid_multidim(:,p.nyP,iyF,iyb),con_multidim(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
+        plot(xgridm(:,1,iyF,iyb),con_multidim(:,1,iyF,iyb),'b-',xgridm(:,p.nyP,iyF,iyb),con_multidim(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
         grid;
         xlim([p.borrow_lim p.xmax]);
         title('Consumption Policy Function');
@@ -348,7 +337,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
         % savings policy function
         subplot(2,4,2);
-        plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-',xgrid_multidim(:,p.nyP,iyF),sav_multidim(:,p.nyP,iyF)./xgrid_multidim(:,p.nyP,iyF),'r-','LineWidth',1);
+        plot(xgridm(:,1,iyF),sav_multidim(:,1,iyF)./xgridm(:,1,iyF),'b-',xgridm(:,p.nyP,iyF),sav_multidim(:,p.nyP,iyF)./xgridm(:,p.nyP,iyF),'r-','LineWidth',1);
         hold on;
         plot(sgrid,ones(p.nx,1),'k','LineWidth',0.5);
         hold off;
@@ -358,14 +347,14 @@ function results = egp_AR1_IID_tax_recode(p)
 
         % consumption policy function: zoomed in
         subplot(2,4,3);
-        plot(xgrid_multidim(:,1,iyF),con_multidim(:,1,iyF),'b-',xgrid_multidim(:,p.nyP,iyF),con_multidim(:,p.nyP,iyF),'r-','LineWidth',2);
+        plot(xgridm(:,1,iyF),con_multidim(:,1,iyF),'b-',xgridm(:,p.nyP,iyF),con_multidim(:,p.nyP,iyF),'r-','LineWidth',2);
         grid;
         xlim([0 4]);
         title('Consumption: Zoomed');
 
          % savings policy function: zoomed in
         subplot(2,4,4);
-        plot(xgrid_multidim(:,1,iyF),sav_multidim(:,1,iyF)./xgrid_multidim(:,1,iyF),'b-',xgrid_multidim(:,p.nyP,iyF),sav_multidim(:,p.nyP,iyF)./xgrid_multidim(:,p.nyP,iyF),'r-','LineWidth',2);
+        plot(xgridm(:,1,iyF),sav_multidim(:,1,iyF)./xgridm(:,1,iyF),'b-',xgridm(:,p.nyP,iyF),sav_multidim(:,p.nyP,iyF)./xgridm(:,p.nyP,iyF),'r-','LineWidth',2);
         hold on;
         plot(sgrid,ones(p.nx,1),'k','LineWidth',0.5);
         hold off;
@@ -375,7 +364,7 @@ function results = egp_AR1_IID_tax_recode(p)
         
          % gross income distribution
         subplot(2,4,5);
-        b = bar(ysortvals,ysortpvals);
+        b = bar(ysort,ysortdist);
         b.FaceColor = 'blue';
         b.EdgeColor = 'blue';
         grid;
