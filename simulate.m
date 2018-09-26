@@ -66,7 +66,7 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
     end
     
     if p.NormalizeY == 1
-        ygrosssim = ygrosssim/income.original_meany;
+        ygrosssim = ygrosssim / (income.original_meany * p.freq);
     end
     
     % net income

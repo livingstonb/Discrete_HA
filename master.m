@@ -11,9 +11,11 @@ cd(path);
 %% Set parameters
 prms = struct();
 
+% data frequency
+prms(1).freq        = 1; % 1 for yearly, 4 for quarterly
+
 % returns
 prms(1).r           = 0.02;
-prms(1).R           = 1 + prms(1).r;
 
 % demographics
 prms(1).dieprob     = 1/50;
@@ -23,7 +25,7 @@ prms(1).risk_aver   = 1;
 prms(1).beta0       = 0.97365;
 prms(1).temptation  = 0;
 prms(1).betaL       = 0.90;
-prms(1).betaH       = 1/(prms(1).R*(1-prms(1).dieprob));
+% betaH defined in main function file
 
 %warm glow bequests: bequessgrt_weight = 0 is accidental
 prms(1).bequest_weight = 0; %0.07;

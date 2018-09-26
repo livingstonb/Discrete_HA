@@ -3,6 +3,16 @@ function results = egp_AR1_IID_tax_recode(p)
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
     % Greg Kaplan 2017
+    
+    %% ADJUST PARAMETERS FOR DATA FREQUENCY
+
+    p.r = p.r/p.freq;
+    p.R = 1 + p.r;
+    p.beta0 = p.beta0^(1/p.freq);
+    p.dieprob = p.dieprob^(1/p.freq);
+    p.betaswitch = p.betaswitch^(1/p.freq);
+    p.betaL = p.betaL^(1/p.freq);
+    p.betaH = 1/(p.R)*(1-p.dieprob);
 
     %% INCOME GRIDS
 
@@ -143,11 +153,11 @@ function results = egp_AR1_IID_tax_recode(p)
     meany = ymat(:)'*ymatdist(:);
     original_meany = meany;
     
-    % normalize gross income to have mean 1
+    % normalize gross income to have annual mean 1
     if p.NormalizeY == 1
-        ymat = ymat/meany;
-        ysort = ysort/meany;
-        meany = 1;
+        ymat = ymat/(meany*p.freq);
+        ysort = ysort/(meany*p.freq);
+        meany = 1/p.freq;
     end
     totgrossy = meany;
 
