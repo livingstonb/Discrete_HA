@@ -256,14 +256,13 @@ function results = egp_AR1_IID_tax_recode(p)
     results.var_loggrossy = state_dist.final' * (log(ymat_onxgrid) - results.mean_loggrossy).^2 * yTdist;
     results.var_lognety = state_dist.final' * (log(netymat_onxgrid)- results.mean_lognety).^2 * yTdist;
     
-    % Error checks
     state_dist.wide = reshape(state_dist.final,[nn p.nyP p.nyF p.nb]);
     con.final_wide = reshape(con.final,[nn p.nyP p.nyF p.nb]);
     sav.final_wide = reshape(sav.final,[nn p.nyP p.nyF p.nb]);
     xgrid.final_wide = reshape(xgrid.final,[nn p.nyP p.nyF p.nb]);
     sav.orig_wide = reshape(sav.orig,[p.nx p.nyP p.nyF p.nb]);
     con.orig_wide = reshape(con.orig,[p.nx p.nyP p.nyF p.nb]);
-    mean_x_check = (1+p.r)*results.mean_s + results.mean_nety;
+    mean_x_check = p.R*(1-p.dieprob)*results.mean_s + results.mean_nety;
     temp = permute(state_dist.wide,[2 1 3 4]);
     yPdist_check = sum(sum(sum(temp,4),3),2);
     

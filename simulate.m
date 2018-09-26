@@ -116,9 +116,13 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
         end
         
         ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
+        csim(:,it) = xsim(:,it) - ssim(:,it) - p.savtax * max(ssim(:,it) - p.savtaxthresh,0);
+        if p.WealthInherited == 0
+            % set saving equal to 0 if hh dies at end of this period. In it+1,
+            % household will have x = net income
+            ssim(diesim(:,it)==1,it) = 0;
+        end
     end
-    
-    csim = xsim - ssim - p.savtax * max(ssim - p.savtaxthresh,0);
     
     %% One-period MPCs
     Nmpcamount = numel(p.mpcfrac);
@@ -134,14 +138,11 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
         for ib = 1:p.nb
         for iyP = 1:p.nyP
             idx = yPindsim(:,p.Tsim)==iyP & betaindsim(:,p.Tsim)==ib & yFindsim(:,p.Tsim)==iyF;
-            % ssim_mpc{im}(idx) = savinterp{iyP,ib,iyF}(xsim_mpc{im}(idx));
             csim_mpc{im}(idx) = coninterp{iyP,ib,iyF}(xsim_mpc{im}(idx));
         end
         end
         end
         
-        %ssim_mpc{im}(ssim_mpc{im}<p.borrow_lim) = p.borrow_lim;
-        %csim_mpc{im} = xsim_mpc{im} - ssim_mpc{im} - p.savtax * max(ssim_mpc{im} - p.savtaxthresh,0);
         mpc{im} = (csim_mpc{im} - csim(:,p.Tsim))/mpcamount{im};
         simulations.avg_mpc{im} = mean(mpc{im});
     end

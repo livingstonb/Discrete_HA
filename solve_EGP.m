@@ -131,26 +131,39 @@ end
 
 trans = kron(betatrans,kron(eye(p.nyF),yPtrans));
 grid_probabilities = zeros(NN,NN);
-column = 1;
-trans_col = 1;
+col = 1;
 for ib2 = 1:p.nb
 for iyF2 = 1:p.nyF
 for iyP2 = 1:p.nyP
     fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
+    % xprime if no death
     xp = (1+p.r)*repmat(savm(:),p.nyT,1) + ...
         kron(squeeze(netymatm(1,iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
-    interp = reshape(full(funbas(fspace,xp)),[],p.nyT*nn);
+    % xprime if death (i.e. saving in past period set to 0)
+    xp_death = kron(squeeze(netymatm(1,iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
+    
+    interp = (1-p.dieprob) * funbas(fspace,xp) + p.dieprob * funbas(fspace,xp_death);
+    interp = reshape(full(interp),[],p.nyT*nn);
     % Multiply by yT distribution
     newcolumn = interp * kron(speye(nn),yTdist);
     % Multiply by (beta,yF,yP) distribution
-    newcolumn = bsxfun(@times,kron(trans(:,trans_col),ones(nn,1)),newcolumn);
+    newcolumn = bsxfun(@times,kron(trans(:,col),ones(nn,1)),newcolumn);
     
-    grid_probabilities(:,nn*(outerblock-1)+1:nn*outerblock) = newcolumn;
-    column = column + 1;
-trans_col = trans_col + 1;
+    grid_probabilities(:,nn*(col-1)+1:nn*col) = newcolumn;
+    col = col + 1;
 end
 end
 end
+
+
+% rowsummation = kron(eye(p.nyP*p.nyF*p.nb),ones(nn,1));
+% % probability of going from (x,yP,yF,beta) state to any (yP,yF,beta)
+% xtrans = grid_probabilities * rowsummation;
+% 
+% I = eye(nn);
+% e1 = I(1,:);
+% prob_death_to_x0 = p.dieprob * kron(xtrans,e1);
+% grid_probabilities = prob_death_to_x0 + (1-p.dieprob) * grid_probabilities;
 
 % SS probability of residing in each state
 fprintf(' Finding ergodic distribution...\n');
