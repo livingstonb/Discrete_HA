@@ -155,16 +155,6 @@ end
 end
 end
 
-
-% rowsummation = kron(eye(p.nyP*p.nyF*p.nb),ones(nn,1));
-% % probability of going from (x,yP,yF,beta) state to any (yP,yF,beta)
-% xtrans = grid_probabilities * rowsummation;
-% 
-% I = eye(nn);
-% e1 = I(1,:);
-% prob_death_to_x0 = p.dieprob * kron(xtrans,e1);
-% grid_probabilities = prob_death_to_x0 + (1-p.dieprob) * grid_probabilities;
-
 % SS probability of residing in each state
 fprintf(' Finding ergodic distribution...\n');
 state_dist      = full(ergodicdist(sparse(grid_probabilities),1,ergodic_tol));
