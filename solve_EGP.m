@@ -1,4 +1,4 @@
-function [AYdiff,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgridm] = solve_EGP(beta,p,...
+function [AYdiff,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgridm,Ematm] = solve_EGP(beta,p,...
     xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid)
 
 ytrans = income.ytrans;
@@ -165,6 +165,9 @@ mean_s = savm(:)' * state_dist;
 % policy functions
 savm = savm(:);
 conm = xgridm(:) - savm(:) - p.savtax*max(savm(:)-p.savtaxthresh,0);
+
+% expectations function
+Ematm = kron(betatrans,kron(ytrans,speye(nn)));
 
 fprintf(' A/Y = %2.3f\n',mean_s/meany);
 %AYdiffsq = (mean_s/meany - targetAY)^2;

@@ -124,27 +124,47 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
         end
     end
     
-    %% One-period MPCs
+    %% MPCs
     Nmpcamount = numel(p.mpcfrac);
     for im = 1:Nmpcamount
         mpcamount{im} = p.mpcfrac{im} * income.meany;
         % period Tsim cash-on-hand
         xsim_mpc{im} = xsim(:,p.Tsim) + mpcamount{im};
         
-        ssim_mpc{im} = zeros(p.Nsim,1);
         csim_mpc{im} = zeros(p.Nsim,1);
-        % period Tsim - 1 saving
-        for iyF = 1:p.nyF
-        for ib = 1:p.nb
-        for iyP = 1:p.nyP
-            idx = yPindsim(:,p.Tsim)==iyP & betaindsim(:,p.Tsim)==ib & yFindsim(:,p.Tsim)==iyF;
-            csim_mpc{im}(idx) = coninterp{iyP,ib,iyF}(xsim_mpc{im}(idx));
-        end
-        end
+        
+        xsim_mpc{im} = zeros(p.Nsim,4);
+        ssim_mpc{im} = zeros(p.Nsim,4);
+        xsim_mpc{im}(:,1) = xsim(:,p.Tsim-3) + mpcamount{im};
+        csim_mpc{im} = zeros(p.Nsim,4);
+        for it = 1:4
+            if it > 1
+                xsim_mpc{im}(:,it) = p.R * ssim_mpc{im}(:,it-1) + ynetsim(:,p.Tsim-4+it);
+            end
+            
+            for iyF = 1:p.nyF
+            for ib = 1:p.nb
+            for iyP = 1:p.nyP
+                idx = yPindsim(:,p.Tsim-4+it)==iyP & betaindsim(:,p.Tsim-4+it)==ib & yFindsim(:,p.Tsim-4+it)==iyF;
+                ssim_mpc{im}(idx,it) = savinterp{iyP,ib,iyF}(xsim_mpc{im}(idx,it));
+            end
+            end
+            end
+            ssim_mpc{im}(ssim_mpc{im}(:,it)<p.borrow_lim,it) = p.borrow_lim;
+            csim_mpc{im}(:,it) = xsim_mpc{im}(:,it) - ssim_mpc{im}(:,it) - p.savtax*max(ssim_mpc{im}(:,it)-p.savtaxthresh,0);
+            if p.WealthInherited == 0
+                % set saving equal to 0 if hh dies at end of this period. In it+1,
+                % household will have x = net income
+                ssim_mpc{im}(diesim(:,p.Tsim-4+it)==1,it) = 0;
+            end
         end
         
-        mpc{im} = (csim_mpc{im} - csim(:,p.Tsim))/mpcamount{im};
-        simulations.avg_mpc{im} = mean(mpc{im});
+        mpc1{im} = (csim_mpc{im}(:,1) - csim(:,p.Tsim-3))/mpcamount{im};
+        mpc2{im} = (csim_mpc{im}(:,2) - csim(:,p.Tsim-2))/mpcamount{im};
+        mpc3{im} = (csim_mpc{im}(:,3) - csim(:,p.Tsim-1))/mpcamount{im};
+        mpc4{im} = (csim_mpc{im}(:,4) - csim(:,p.Tsim))/mpcamount{im};
+        simulations.avg_mpc1{im} = mean(mpc1{im});
+        simulations.avg_mpc4{im} = mean(mpc1{im}+mpc2{im}+mpc3{im}+mpc4{im});
     end
     
     

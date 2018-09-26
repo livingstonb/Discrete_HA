@@ -233,7 +233,7 @@ function results = egp_AR1_IID_tax_recode(p)
     else
         ExpandGrid = 0;
     end
-    [~,con.orig,sav.orig,con.final,sav.final,state_dist.final,cdiff,xgrid.final] = solve_EGP(beta,p,...
+    [~,con.orig,sav.orig,con.final,sav.final,state_dist.final,cdiff,xgrid.final,Emat] = solve_EGP(beta,p,...
         xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
     
     %% Store important moments
@@ -328,6 +328,7 @@ function results = egp_AR1_IID_tax_recode(p)
     else
         simulations =[];
     end
+    results.simulations = simulations;
 
     %% MAKE PLOTS
    
@@ -448,9 +449,12 @@ function results = egp_AR1_IID_tax_recode(p)
             end
             end
             end
-            % average mpc
-            results.avg_mpc{im} = mpc{im}(:)' * state_dist.final;
+            % average mpc, one-period ahead
+            results.avg_mpc1{im} = state_dist.final' * mpc{im}(:);
         end
+        
+        
+        
     end
     
 %% Print Results

@@ -28,7 +28,7 @@ prms(1).betaH       = 1/(prms(1).R*(1-prms(1).dieprob));
 %warm glow bequests: bequessgrt_weight = 0 is accidental
 prms(1).bequest_weight = 0; %0.07;
 prms(1).bequest_luxury = 0.01; %0.01, must be >0 to avoid NaN error;
-prms(1).WealthInherited = 0; % 1 for wealth left as bequest, 0 for disappears
+prms(1).WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
 
 % income risk: AR(1) + IID in logs
 prms(1).LoadIncomeProcess   = 1;
@@ -74,14 +74,14 @@ prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).ExpandGridBetaIter  = 0; % Use larger grid for distributional computations (when iterating over betas)
 prms(1).ExpandGridF = 1; % Use larger grid for final distributional computation
-prms(1).nxlong      = 1000; % larger grid size
+prms(1).nxlong      = 500; % larger grid size
  
 prms(1).targetAY    = 12.0;
 prms(1).maxiterAY   = 20;
 prms(1).tolAY       = 1.0e-4;
 
 %mpc options
-prms(1).mpcfrac{1}  = 1.0e-10; %approximate thoeretical mpc
+prms(1).mpcfrac{1}  = 1.0e-5; %approximate thoeretical mpc
 prms(1).mpcfrac{2}  = 0.01; % 1 percent of average gross labor income: approx $500
 prms(1).mpcfrac{3}  = 0.05; % 5 percent of average gross labor income: approx $5000
 

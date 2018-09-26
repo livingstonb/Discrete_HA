@@ -67,13 +67,23 @@ function print_statistics(results,simulations,p)
     
     %% MPC
     fprintf('\nMPCs: \n')
-    % Average MPC
-    for i = 1:size(results.avg_mpc,2)
-        direct = sprintf(' %2.3f (Direct Comp)',results.avg_mpc{i});
+    % Average MPC, 1 period
+    for i = 1:size(results.mpcamount,2)
+        direct = sprintf(' %2.3f (Direct Comp)',results.avg_mpc1{i});
         if p.Simulate == 1
-            sim = sprintf(' %2.3f (Simulation)',simulations.avg_mpc{i});
+            sim = sprintf(' %2.3f (Simulation)',simulations.avg_mpc1{i});
         end
-        label = sprintf('    Average MPC (mpcamount %4.2g):',results.mpcamount{i});
+        label = sprintf('    Average 1-Period MPC, Out of %4.2g:',results.mpcamount{i});
+        disp([label direct sim]);
+    end
+    
+    % Average MPC, 4 periods
+    for i = 1:size(results.mpcamount,2)
+        direct = sprintf(' --- (Direct Comp)');
+        if p.Simulate == 1
+            sim = sprintf(' %2.3f (Simulation)',simulations.avg_mpc4{i});
+        end
+        label = sprintf('    Average 4-Period MPC, Out of %4.2g:',results.mpcamount{i});
         disp([label direct sim]);
     end
     
