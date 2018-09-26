@@ -76,7 +76,8 @@ prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).ExpandGridBetaIter  = 0; % Use larger grid for distributional computations (when iterating over betas)
 prms(1).ExpandGridF = 1; % Use larger grid for final distributional computation
-prms(1).nxlong      = 500; % larger grid size
+prms(1).nxlong      = 100;  % larger grid size for ergodic distribution
+prms(1).nxmpc       = 800; % larger grid size for MPC
  
 prms(1).targetAY    = 12.0;
 prms(1).maxiterAY   = 20;
@@ -89,9 +90,10 @@ prms(1).mpcfrac{3}  = 0.05; % 5 percent of average gross labor income: approx $5
 
 % OPTIONS
 prms(1).IterateBeta         = 0;
-prms(1).Display             = 1;
+prms(1).Display             = 0;
 prms(1).MakePlots           = 1;
-prms(1).ComputeMPC          = 1;
+prms(1).ComputeDistMPC      = 1;
+prms(1).ComputeSimMPC       = 1;
 % prms(1).SolveDeterministic  = 0;
 prms(1).Simulate            = 1;
 prms(1).PrintStats          = 1;

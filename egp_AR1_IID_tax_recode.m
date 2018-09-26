@@ -425,8 +425,8 @@ function results = egp_AR1_IID_tax_recode(p)
         end
     end
 
-    %% COMPUTE MPCs
-    if p.ComputeMPC ==1
+    %% COMPUTE SIMULATION MPCs
+    if p.ComputeSimMPC ==1
         %theoretical mpc lower bound
         mpclim = p.R*((beta*p.R)^-(1./p.risk_aver))-1;
         Nmpcamount = numel(p.mpcfrac);
@@ -467,7 +467,14 @@ function results = egp_AR1_IID_tax_recode(p)
         
     end
     
-%% Print Results
+    %% COMPUTE MPC FROM STATIONARY DISTRIBUTION
+    if p.ComputeDistMPC == 1
+        [xgridm,savm,results.avg_mpc] = mpc_forward(xgrid,p,income,sav,...
+            betatrans);
+
+    end
+    
+    %% Print Results
     if p.PrintStats == 1
         print_statistics(results,simulations,p);
     end
