@@ -469,7 +469,7 @@ function results = egp_AR1_IID_tax_recode(p)
     
     %% COMPUTE MPC FROM STATIONARY DISTRIBUTION
     if p.ComputeDistMPC == 1
-        [xgridm,savm,results.avg_mpc] = mpc_forward(xgrid,p,income,sav,...
+        [xgridm,savm,results.avg_mpc,results.DISTmpc_amount] = mpc_forward(xgrid,p,income,sav,...
             betatrans);
 
     end
