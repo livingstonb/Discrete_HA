@@ -8,6 +8,11 @@ path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
+% For MPC computations, half of grid points are in bottom 10% of asset
+% space, so pick size of asset space according to formula:
+
+% na = 0.9*xmax/(0.5*mpcamount)
+
 %% Set parameters
 prms = struct();
 
@@ -72,12 +77,12 @@ prms(1).betaswitch  = 1/50; %0;
 prms(1).max_evals   = 100; % for fzero to find beta
 prms(1).max_iter    = 1e5; % for EGP
 prms(1).tol_iter    = 1.0e-6;
-prms(1).Nsim        = 100000;
+prms(1).Nsim        = 100 %100000;
 prms(1).Tsim        = 200;
 prms(1).ExpandGridBetaIter  = 0; % Use larger grid for distributional computations (when iterating over betas)
 prms(1).ExpandGridF = 1; % Use larger grid for final distributional computation
 prms(1).nxlong      = 100;  % larger grid size for ergodic distribution
-prms(1).nxmpc       = 800; % larger grid size for MPC
+prms(1).nxmpc       = 2000; % larger grid size for MPC, must be divisible by 2
  
 prms(1).targetAY    = 12.0;
 prms(1).maxiterAY   = 20;
