@@ -1,5 +1,5 @@
 function [AYdiff,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgridm,Ematm] = solve_EGP(beta,p,...
-    xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid)
+    xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,gridsize)
 
 ytrans = income.ytrans;
 netymat = income.netymat;
@@ -101,33 +101,25 @@ con_opt = conupdate;
 fprintf(' Computing state-to-state transition probabilities... \n');
 savm = reshape(sav_opt,[p.nx p.nyP p.nyF p.nb]);
 
-% Create long grid
-if ExpandGrid == 1
-    xgridm = linspace(0,1,p.nxlong)';
-    xgridm = repmat(xgridm,[1 p.nyP p.nyF]) .^(1/p.xgrid_par);
-    netymatm = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
-    netymatm = repmat(netymatm,[p.nxlong 1 1 1]);
-    xgridm = p.borrow_lim + min(netymatm,[],4) + (p.xmax-p.borrow_lim)*xgridm;
+% Create grid
+xgridm = linspace(0,1,gridsize)';
+xgridm = repmat(xgridm,[1 p.nyP p.nyF]) .^(1/p.xgrid_par);
+netymatm = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
+netymatm = repmat(netymatm,[gridsize 1 1 1]);
+xgridm = p.borrow_lim + min(netymatm,[],4) + (p.xmax-p.borrow_lim)*xgridm;
 
-    savlong = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
-    for ib = 1:p.nb
-    for iyF = 1:p.nyF
-    for iyP = 1:p.nyP
-        savinterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
-        savlong(:,iyP,iyF,ib) = savinterp(xgridm(:,iyP,iyF));
-    end
-    end
-    end
-    savm = savlong;
-    NN = p.nxlong * p.nyP * p.nyF * p.nb;
-    nn = p.nxlong;
-else % Use original xgrids
-    netymatm = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
-    netymatm = repmat(netymatm,[p.nx 1 1 1]);
-    xgridm = xgrid.orig_wide;
-    NN = p.N;
-    nn = p.nx;
+savlong = zeros(gridsize,p.nyP,p.nyF,p.nb);
+for ib = 1:p.nb
+for iyF = 1:p.nyF
+for iyP = 1:p.nyP
+    savinterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
+    savlong(:,iyP,iyF,ib) = savinterp(xgridm(:,iyP,iyF));
 end
+end
+end
+savm = savlong;
+NN = gridsize * p.nyP * p.nyF * p.nb;
+nn = gridsize;
 
 trans = kron(betatrans,kron(eye(p.nyF),yPtrans));
 grid_probabilities = zeros(NN,NN);
@@ -143,7 +135,7 @@ for iyP2 = 1:p.nyP
     xp_death = kron(squeeze(netymatm(1,iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
     
     interp = (1-p.dieprob) * funbas(fspace,xp) + p.dieprob * funbas(fspace,xp_death);
-    interp = reshape(full(interp),[],p.nyT*nn);
+    interp = reshape(interp,[],p.nyT*nn);
     % Multiply by yT distribution
     newcolumn = interp * kron(speye(nn),yTdist);
     % Multiply by (beta,yF,yP) distribution
@@ -165,9 +157,6 @@ mean_s = savm(:)' * state_dist;
 % policy functions
 savm = savm(:);
 conm = xgridm(:) - savm(:) - p.savtax*max(savm(:)-p.savtaxthresh,0);
-
-% expectations function
-Ematm = kron(betatrans,kron(ytrans,speye(nn)));
 
 fprintf(' A/Y = %2.3f\n',mean_s/meany);
 %AYdiffsq = (mean_s/meany - targetAY)^2;

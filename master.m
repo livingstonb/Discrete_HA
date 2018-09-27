@@ -29,7 +29,7 @@ prms(1).dieprob     = 1/50;
 prms(1).risk_aver   = 1;
 prms(1).beta0       = 0.97365;
 prms(1).temptation  = 0;
-prms(1).betaL       = 0.90;
+prms(1).betaL       = 0.80;
 % betaH defined in main function file
 
 %warm glow bequests: bequessgrt_weight = 0 is accidental
@@ -74,30 +74,32 @@ prms(1).betawidth   = 0.02; % beta +/- beta width
 prms(1).betaswitch  = 1/50; %0;
 
 % computation
-prms(1).max_evals   = 100; % for fzero to find beta
 prms(1).max_iter    = 1e5; % for EGP
 prms(1).tol_iter    = 1.0e-6;
-prms(1).Nsim        = 100 %100000;
+prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
-prms(1).ExpandGridBetaIter  = 0; % Use larger grid for distributional computations (when iterating over betas)
-prms(1).ExpandGridF = 1; % Use larger grid for final distributional computation
-prms(1).nxlong      = 1000;  % larger grid size for ergodic distribution
+prms(1).nxlong_int  = 200 % Grid size for computing intermediate ergodic distributions
+prms(1).nxlong      = 1000; % Grid size for computing final ergodic distribution
 prms(1).nxmpc       = 800; % larger grid size for MPC, must be divisible by 2
  
-prms(1).targetAY    = 12.0;
+prms(1).targetAY    = 3.5;
 prms(1).maxiterAY   = 20;
 prms(1).tolAY       = 1.0e-4;
+prms(1).FastIter    = 1; % Use routine with low tolerance, small grid, until closer to target (1,0)
 
 %mpc options
-prms(1).mpcfrac{1}  = 1.0e-5; %approximate thoeretical mpc
+prms(1).mpcfrac{1}  = 1e-5; %approximate thoeretical mpc
 prms(1).mpcfrac{2}  = 0.01; % 1 percent of average gross labor income: approx $500
 prms(1).mpcfrac{3}  = 0.05; % 5 percent of average gross labor income: approx $5000
+prms(1).mpcfrac{4}  = -1e-5; % approximate thoeretical mpc
+prms(1).mpcfrac{5}  = -0.01; % 1 percent of average gross labor income: approx $500
+prms(1).mpcfrac{6}  = -0.05; % 5 percent of average gross labor income: approx $5000
 
 % OPTIONS
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 0;
 prms(1).MakePlots           = 1;
-prms(1).ComputeDistMPC      = 1;
+prms(1).ComputeDistMPC      = 0;
 prms(1).ComputeSimMPC       = 1;
 % prms(1).SolveDeterministic  = 0;
 prms(1).Simulate            = 1;

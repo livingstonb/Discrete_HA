@@ -4,15 +4,16 @@ function results = egp_AR1_IID_tax_recode(p)
     % Includes NIT and discount factor heterogeneity
     % Greg Kaplan 2017
     
-    %% ADJUST PARAMETERS FOR DATA FREQUENCY
+    %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER CHOICES
 
     p.r = p.r/p.freq;
     p.R = 1 + p.r;
     p.beta0 = p.beta0^(1/p.freq);
     p.dieprob = p.dieprob^(1/p.freq);
     p.betaswitch = p.betaswitch^(1/p.freq);
-    p.betaL = p.betaL^(1/p.freq);
-    p.betaH = 1/(p.R)*(1-p.dieprob);
+    p.beta = p.betaL^(1/p.freq);
+    p.betaH = 1/((p.R)*(1-p.dieprob));
+    
 
     %% INCOME GRIDS
 
@@ -109,11 +110,6 @@ function results = egp_AR1_IID_tax_recode(p)
         beta = p.beta0;
     end
 
-    if p.IterateBeta == 1
-        % initial condition for beta iteration
-        p.beta0 = (p.betaH + p.betaL)/2;
-    end
-
     %initial discount factor grid
     if  p.nb == 1
         betadist = 1;
@@ -153,7 +149,7 @@ function results = egp_AR1_IID_tax_recode(p)
     meany = ymat(:)'*ymatdist(:);
     original_meany = meany;
     
-    % normalize gross income to have annual mean 1
+    % normalize gross income to have ap.nxlongual mean 1
     if p.NormalizeY == 1
         ymat = ymat/(meany*p.freq);
         ysort = ysort/(meany*p.freq);
@@ -173,7 +169,7 @@ function results = egp_AR1_IID_tax_recode(p)
     lumptransfer = p.labtaxlow*totgrossy + p.labtaxhigh*totgrossyhigh;
     % netymat is N by nyT matrix
     netymat = lumptransfer + (1-p.labtaxlow)*ymat - p.labtaxhigh*max(ymat-labtaxthresh,0);
-    meannety = netymat(:)'*ymatdist(:);
+    meap.nxlongety = netymat(:)'*ymatdist(:);
 
     % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
     % cash on hand grid: different min points for each value of (iyP,iyF)
@@ -209,53 +205,43 @@ function results = egp_AR1_IID_tax_recode(p)
     %% MODEL SOLUTION
 
     if p.IterateBeta == 1
-        ergodic_tol = 1e-5;
-        if p.ExpandGridBetaIter == 1
-            ExpandGrid = 1;
+        if p.FastIter == 1
+            [beta,exitflag] = iterate_beta(p,...
+            xgrid,sgrid,betatrans,u1,beq1,u1inv,income);
         else
-            ExpandGrid = 0;
-        end
-        iterate_EGP = @(x) solve_EGP(x,p,...
-            xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
+            ergodic_tol = 1e-5;
+            gridsize = 100;
+            iterate_EGP = @(x) solve_EGP(x,p,...
+                xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
 
-        beta_lb = 1e-3;
-        if p.nb == 1
-            beta_ub = p.betaH - 1e-5;
-        else
-            beta_ub = p.betaH - 1e-5 - betawidth;
+            beta_lb = p.betaL;
+            if p.nb == 1
+                beta_ub = p.betaH - 1e-5;
+            else
+                beta_ub = p.betaH - 1e-5 - betawidth;
+            end
+
+            check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
+            options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
+            [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
         end
-        % Max fzero iterations set to p.max_evals
-        check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.max_evals);
-        options = optimset('TolX',1e-6,'OutputFcn',check_evals);
-        [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
-        
-        if exitflag ~= 1
-            results = struct();
-            results.issues = {'NoBetaConv'};
-            return
-        end
-        results.beta = beta;
+
+    if exitflag ~= 1
+        results = struct();
+        results.issues = {'NoBetaConv'};
+        return
+    end
+    results.beta = beta;
     end
 
     ergodic_tol = 1e-6;
-    if p.ExpandGridF == 1
-        ExpandGrid = 1;
-    else
-        ExpandGrid = 0;
-    end
-    [~,con.orig,sav.orig,con.final,sav.final,state_dist.final,cdiff,xgrid.final,Emat] = solve_EGP(beta,p,...
-        xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
+    [~,con.orig,sav.orig,con.final,sav.final,state_dist.final,cdiff,xgrid.final] = solve_EGP(beta,p,...
+        xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,p.nxlong);
     
     %% Store important moments
     
-    if p.ExpandGridF == 1
-        nn = p.nxlong;
-    else
-        nn = p.nx;
-    end
-    
-    ymat_onxgrid = kron(ymat,ones(nn,1));
-    netymat_onxgrid = kron(netymat,ones(nn,1));
+    ymat_onxgrid = kron(ymat,ones(p.nxlong,1));
+    netymat_onxgrid = kron(netymat,ones(p.nxlong,1));
     
     results.mean_s = sav.final' * state_dist.final;
     results.mean_x = xgrid.final(:)' * state_dist.final;
@@ -266,10 +252,10 @@ function results = egp_AR1_IID_tax_recode(p)
     results.var_loggrossy = state_dist.final' * (log(ymat_onxgrid) - results.mean_loggrossy).^2 * yTdist;
     results.var_lognety = state_dist.final' * (log(netymat_onxgrid)- results.mean_lognety).^2 * yTdist;
     
-    state_dist.wide = reshape(state_dist.final,[nn p.nyP p.nyF p.nb]);
-    con.final_wide = reshape(con.final,[nn p.nyP p.nyF p.nb]);
-    sav.final_wide = reshape(sav.final,[nn p.nyP p.nyF p.nb]);
-    xgrid.final_wide = reshape(xgrid.final,[nn p.nyP p.nyF p.nb]);
+    state_dist.wide = reshape(state_dist.final,[p.nxlong p.nyP p.nyF p.nb]);
+    con.final_wide = reshape(con.final,[p.nxlong p.nyP p.nyF p.nb]);
+    sav.final_wide = reshape(sav.final,[p.nxlong p.nyP p.nyF p.nb]);
+    xgrid.final_wide = reshape(xgrid.final,[p.nxlong p.nyP p.nyF p.nb]);
     sav.orig_wide = reshape(sav.orig,[p.nx p.nyP p.nyF p.nb]);
     con.orig_wide = reshape(con.orig,[p.nx p.nyP p.nyF p.nb]);
     mean_x_check = p.R*(1-p.dieprob)*results.mean_s + results.mean_nety;
@@ -288,7 +274,7 @@ function results = egp_AR1_IID_tax_recode(p)
     if abs((results.mean_x-mean_x_check)/results.mean_x)> 1e-3
         results.issues = [results.issues,'DistNotStationary'];
     end
-    if abs((meannety-results.mean_nety)/meannety) > 1e-3
+    if abs((meap.nxlongety-results.mean_nety)/meap.nxlongety) > 1e-3
         results.issues = [results.issues,'BadNetIncomeMean'];
     end
     if norm(yPdist_check-yPdist) > 1e-3
@@ -413,7 +399,7 @@ function results = egp_AR1_IID_tax_recode(p)
         grid;
         xlim([-0.4 10]);
         ylim([0 1]);
-        title('Asset PMF, Binned');
+        title('Asset PMF, Bip.nxlonged');
 
          % simulation convergence
         if p.Simulate == 1
@@ -449,7 +435,7 @@ function results = egp_AR1_IID_tax_recode(p)
         
         % mpc functions
         for im = 1:Nmpcamount
-            mpc{im} = zeros(nn,p.nyP,p.nyF,p.nb);
+            mpc{im} = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
             % iterate over (yP,yF,beta)
             for ib = 1:p.nb
             for iyF = 1:p.nyF
