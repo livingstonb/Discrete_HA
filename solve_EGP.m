@@ -9,8 +9,8 @@ meany = income.meany;
 
 if  p.nb == 1
     betagrid = beta;
-elseif nb ==2 
-    betagrid = [beta-betawidth;beta+betawidth];
+elseif p.nb ==2 
+    betagrid = [beta-p.betawidth;beta+p.betawidth];
 end
 
 if p.IterateBeta == 1

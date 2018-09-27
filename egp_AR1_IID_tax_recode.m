@@ -108,6 +108,8 @@ function results = egp_AR1_IID_tax_recode(p)
         p.maxiterAY = 1;
         % final beta
         beta = p.beta0;
+        results.beta = beta;
+        p.beta = beta;
     end
 
     %initial discount factor grid
@@ -130,7 +132,7 @@ function results = egp_AR1_IID_tax_recode(p)
     sgrid.orig = sgrid.orig.^(1./p.xgrid_par);
     sgrid.orig = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid.orig;
     sgrid.short = sgrid.orig;
-
+    sgrid.norisk_wide = repmat(sgrid.short,[1 p.nb]);
     sgrid.wide = repmat(sgrid.short,[1 p.nyP p.nyF p.nb]);
     p.ns = p.nx;
 
@@ -169,16 +171,19 @@ function results = egp_AR1_IID_tax_recode(p)
     lumptransfer = p.labtaxlow*totgrossy + p.labtaxhigh*totgrossyhigh;
     % netymat is N by nyT matrix
     netymat = lumptransfer + (1-p.labtaxlow)*ymat - p.labtaxhigh*max(ymat-labtaxthresh,0);
-    meap.nxlongety = netymat(:)'*ymatdist(:);
+    meannety = netymat(:)'*ymatdist(:);
 
     % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
     % cash on hand grid: different min points for each value of (iyP,iyF)
     xgrid.orig = sgrid.wide(:) + min(kron(netymat,ones(p.nx,1)),[],2);
+    xgrid.orig_wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF p.nb]);
+    xgrid.norisk_short = sgrid.short + meannety;
+    xgrid.norisk_wide = repmat(xgrid.norisk_short,1,p.nb);
     
     % Store income variables in a structure
     newfields = {'ymat','netymat','meany','original_meany','yPgrid',...
         'yTgrid','yFgrid','yPdist','yTdist','yFdist','yPcumtrans',...
-        'yPtrans','yPcumdist','yFcumdist','yTcumdist','ytrans'};
+        'yPtrans','yPcumdist','yFcumdist','yTcumdist','ytrans','meannety'};
     for i = 1:numel(newfields)
         income.(newfields{i}) = eval(newfields{i});
     end
@@ -198,9 +203,6 @@ function results = egp_AR1_IID_tax_recode(p)
 
     beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.risk_aver);
 
-    %% ORGANIZE VARIABLES
-    % Reshape policy functions for use later
-    xgrid.orig_wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF p.nb]);
 
     %% MODEL SOLUTION
 
@@ -232,6 +234,7 @@ function results = egp_AR1_IID_tax_recode(p)
         return
     end
     results.beta = beta;
+    p.beta = beta;
     end
 
     ergodic_tol = 1e-6;
@@ -274,7 +277,7 @@ function results = egp_AR1_IID_tax_recode(p)
     if abs((results.mean_x-mean_x_check)/results.mean_x)> 1e-3
         results.issues = [results.issues,'DistNotStationary'];
     end
-    if abs((meap.nxlongety-results.mean_nety)/meap.nxlongety) > 1e-3
+    if abs((income.meannety-results.mean_nety)/income.meannety) > 1e-3
         results.issues = [results.issues,'BadNetIncomeMean'];
     end
     if norm(yPdist_check-yPdist) > 1e-3
@@ -317,7 +320,8 @@ function results = egp_AR1_IID_tax_recode(p)
     end
     
     
-    %% Simulate
+    %% Simulations
+    % Full model
     if p.Simulate == 1
         [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
             xgrid,lumptransfer,betacumdist,betacumtrans);
@@ -325,6 +329,12 @@ function results = egp_AR1_IID_tax_recode(p)
         simulations =[];
     end
     results.simulations = simulations;
+    
+    % Deterministic model
+    if p.SolveDeterministic == 1
+        [norisk,cdiff] = solve_EGP_deterministic(p,...
+                xgrid,sgrid,u1,beq1,u1inv,income,betatrans);
+    end
 
     %% MAKE PLOTS
    
