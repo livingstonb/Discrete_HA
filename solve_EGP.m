@@ -129,12 +129,42 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     for iyP2 = 1:p.nyP
         fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
         % xprime if no death
-        xp = (1+p.r)*repmat(savm(:),p.nyT,1) + ...
+        xp_live = (1+p.r)*repmat(savm(:),p.nyT,1) + ...
             kron(squeeze(income.netymatm(1,iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
-        % xprime if death (i.e. saving in past period set to 0)
-        xp_death = kron(squeeze(income.netymatm(1,iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
+        xp_live = max(xp_live,min(xgridm(:,iyP2,iyF2,ib2)));
+        xp_live = min(xp_live,p.xmax);
 
-        interp = (1-p.dieprob) * funbas(fspace,xp) + p.dieprob * funbas(fspace,xp_death);
+        % xprime if death (i.e. saving in past period set to 0)
+        if p.WealthInherited == 0
+            xp_death = kron(squeeze(income.netymatm(1,iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
+        else
+            xp_death = xp_live;
+        end
+        xp_death = max(xp_death,min(xgridm(:,iyP2,iyF2,ib2)));
+        xp_death = min(xp_death,p.xmax);
+        
+% set probabilities equal to 1 at grid endpt where xp is off the grid
+%         idx_xpl_max = xp_live==p.xmax;
+%         idx_xpl_min = xp_live==p.borrow_lim;
+%         
+%         idx_xpd_max = xp_death==p.xmax;
+%         idx_xpd_min = xp_death==p.borrow_lim;
+%         
+%         interp = funbas(fspace,xp_live);
+%         interp(idx_xpl_max,:) = 0;
+%         interp(idx_xpl_max,end) = 1;
+%         interp(idx_xpl_min,:) = 0;
+%         interp(idx_xpl_min,1) = 1;
+%         
+%         interpd = funbas(fspace,xp_death);
+%         interpd(idx_xpd_max,:) = 0;
+%         interpd(idx_xpd_max,end) = 1;
+%         interpd(idx_xpd_min,:) = 0;
+%         interpd(idx_xpd_min,1) = 1;
+        
+%         interp = (1-p.dieprob) * interp + p.dieprob * interpd;
+        
+        interp = (1-p.dieprob) * funbas(fspace,xp_live) + p.dieprob * funbas(fspace,xp_death);
         interp = reshape(interp,[],p.nyT*nn);
         % Multiply by yT distribution
         newcolumn = interp * kron(speye(nn),income.yTdist);

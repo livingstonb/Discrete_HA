@@ -159,9 +159,8 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,model,...
 %         simulations.avg_mpc1{im} = mean(mpc1{im});
 %         simulations.avg_mpc4{im} = mean(mpc1{im}+mpc2{im}+mpc3{im}+mpc4{im});
 %     end
-    Risk = 1;
     [simulations.avg_mpc1,simulations.avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
-                    betaindsim,income,Risk,model,xgrid);
+                    betaindsim,income,model,xgrid);
     
     %% Moments
     simulations.mean_s = mean(ssim(:,p.Tsim));

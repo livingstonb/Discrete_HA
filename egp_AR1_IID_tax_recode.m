@@ -235,7 +235,7 @@ function results = egp_AR1_IID_tax_recode(p)
     p.beta = beta;
     end
 
-    ergodic_tol = 1e-6;
+    ergodic_tol = 1e-7;
     [~,basemodel,xgrid.final] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
                                             ergodic_tol,income,p.nxlong);
     xgrid.longgrid_wide = reshape(xgrid.final,[p.nxlong,p.nyP,p.nyF,p.nb])
@@ -254,7 +254,7 @@ function results = egp_AR1_IID_tax_recode(p)
     results.var_loggrossy = basemodel.SSdist' * (log(ymat_onxgrid) - results.mean_loggrossy).^2 * yTdist;
     results.var_lognety = basemodel.SSdist' * (log(netymat_onxgrid)- results.mean_lognety).^2 * yTdist;
     
-    mean_x_check = p.R*(1-p.dieprob)*results.mean_s + results.mean_nety;
+    results.mean_x_check = p.R*(1-p.dieprob)*results.mean_s + results.mean_nety;
     temp = permute(basemodel.SSdist_wide,[2 1 3 4]);
     yPdist_check = sum(sum(sum(temp,4),3),2);
     
@@ -267,7 +267,7 @@ function results = egp_AR1_IID_tax_recode(p)
     if (results.mean_s<p.targetAY-1) || (results.mean_s>p.targetAY+1)
         results.issues = [results.issues,'BadAY'];
     end
-    if abs((results.mean_x-mean_x_check)/results.mean_x)> 1e-3
+    if abs((results.mean_x-results.mean_x_check)/results.mean_x)> 1e-3
         results.issues = [results.issues,'DistNotStationary'];
     end
     if abs((income.meannety-results.mean_nety)/income.meannety) > 1e-3
@@ -323,11 +323,6 @@ function results = egp_AR1_IID_tax_recode(p)
         simulations =[];
     end
     results.simulations = simulations;
-    
-    % No risk model
-    if p.SolveDeterministic == 1
-        results.norisk = simulate_deterministic(norisk,p,income,prefs,xgrid);
-    end
 
     %% MAKE PLOTS
    
@@ -414,47 +409,47 @@ function results = egp_AR1_IID_tax_recode(p)
         end
     end
 
-    %% COMPUTE SIMULATION MPCs
-    if p.ComputeSimMPC ==1
-        %theoretical mpc lower bound
-        mpclim = p.R*((beta*p.R)^-(1./p.risk_aver))-1;
-        Nmpcamount = numel(p.mpcfrac);
-        %mpc amounts
-        for im = 1:Nmpcamount
-            mpcamount{im} = p.mpcfrac{im} * meany;
-            xgrid.mpc{im} = xgrid.longgrid_wide + mpcamount{im};
-        end
-
-        results.mpcamount = mpcamount;
-        
-        % Create interpolants for computing mpc's
-        for ib = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP
-                coninterp{iyP,iyF,ib} = griddedInterpolant(xgrid.longgrid_wide(:,iyP,iyF,ib),basemodel.con_longgrid_wide(:,iyP,iyF,ib),'linear','linear');
-        end
-        end
-        end
-        
-        
-        
-    end
-    
-    %% ONE-PERIOD MPC FUNCTIONS
-    for im = 1:Nmpcamount
-        mpc{im} = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
-        % iterate over (yP,yF,beta)
-        for ib = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP 
-            mpc{im}(:,iyP,iyF,ib) = (coninterp{iyP,iyF,ib}(xgrid.mpc{im}(:,iyP,iyF,ib))...
-                - basemodel.con_longgrid_wide(:,iyP,iyF,ib))/mpcamount{im};     
-        end
-        end
-        end
-        % average mpc, one-period ahead
-        results.avg_mpc1{im} = basemodel.SSdist' * mpc{im}(:);
-    end
+%     %% COMPUTE SIMULATION MPCs
+%     if p.ComputeSimMPC ==1
+%         %theoretical mpc lower bound
+%         mpclim = p.R*((beta*p.R)^-(1./p.risk_aver))-1;
+%         Nmpcamount = numel(p.mpcfrac);
+%         %mpc amounts
+%         for im = 1:Nmpcamount
+%             mpcamount{im} = p.mpcfrac{im} * meany;
+%             xgrid.mpc{im} = xgrid.longgrid_wide + mpcamount{im};
+%         end
+% 
+%         results.mpcamount = mpcamount;
+%         
+%         % Create interpolants for computing mpc's
+%         for ib = 1:p.nb
+%         for iyF = 1:p.nyF
+%         for iyP = 1:p.nyP
+%                 coninterp{iyP,iyF,ib} = griddedInterpolant(xgrid.longgrid_wide(:,iyP,iyF,ib),basemodel.con_longgrid_wide(:,iyP,iyF,ib),'linear','linear');
+%         end
+%         end
+%         end
+%         
+%         
+%         
+%     end
+%     
+%     %% ONE-PERIOD MPC FUNCTIONS
+%     for im = 1:numel(p.mpcfrac);
+%         mpc{im} = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
+%         % iterate over (yP,yF,beta)
+%         for ib = 1:p.nb
+%         for iyF = 1:p.nyF
+%         for iyP = 1:p.nyP 
+%             mpc{im}(:,iyP,iyF,ib) = (basemodel.coninterp{iyP,iyF,ib}(xgrid.mpc{im}(:,iyP,iyF,ib))...
+%                 - basemodel.con_longgrid_wide(:,iyP,iyF,ib))/mpcamount{im};     
+%         end
+%         end
+%         end
+%         % average mpc, one-period ahead
+%         results.avg_mpc1{im} = basemodel.SSdist' * mpc{im}(:);
+%     end
     
     %% COMPUTE MPC FROM STATIONARY DISTRIBUTION
     if p.ComputeDistMPC == 1
