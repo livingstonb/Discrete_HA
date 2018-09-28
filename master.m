@@ -8,10 +8,6 @@ path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
-% For MPC computations, half of grid points are in bottom 1% of asset
-% space, so pick size of asset space according to formula:
-
-% na = 0.9*xmax/(0.5*mpcamount)
 
 %% Set parameters
 prms = struct();
@@ -99,7 +95,7 @@ prms(1).mpcfrac{6}  = 0.05; % 5 percent of average gross labor income: approx $5
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 0;
-prms(1).ComputeDistMPC      = 0;
+prms(1).ComputeDistMPC      = 1;
 prms(1).ComputeSimMPC       = 1;
 prms(1).SolveDeterministic  = 0;
 prms(1).Simulate            = 1;

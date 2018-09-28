@@ -67,6 +67,7 @@ function print_statistics(results,simulations,p)
     
     %% MPC
     fprintf('\nMPCs: \n')
+    fprintf('  1-Period MPCs\n')
     % Average MPC, 1 period
     for i = 1:size(results.mpcamount,2)
         if p.ComputeDistMPC == 1
@@ -80,11 +81,12 @@ function print_statistics(results,simulations,p)
             sim = ' --- (Simulation) ';
         end
         
-        label = sprintf('    Average 1-Period MPC, Out of %4.2g:',results.mpcamount{i});
+        label = sprintf('    MPC out of %4.2g:',results.mpcamount{i});
         disp([label direct sim]);
     end
     
     % Average MPC, 4 periods (simulation)
+    fprintf('  4-Period MPCs\n')
     for i = 1:size(results.mpcamount,2)
         direct = ' --- (Direct Comp) ';
         if p.ComputeSimMPC == 1
@@ -93,26 +95,24 @@ function print_statistics(results,simulations,p)
             sim = ' --- (Simulation) ';
         end
         
-        label = sprintf('    Average 4-Period MPC, Out of %4.2g:',results.mpcamount{i});
+        label = sprintf('    MPC out of %4.2g:',results.mpcamount{i});
         disp([label direct sim]);
         
     end
     
     % Average MPC, 4 periods (direct)
     if p.ComputeDistMPC == 1
-        direct = sprintf(' %2.3f (Direct Comp),',results.avg_mpc4);
-    else
-        direct = ' --- (Direct Comp) ';
+        msg = sprintf('    MPC out of %4.2g:',results.distMPCamount');
+        direct = sprintf(' 4.3f (Direct Comp)',results.avg_mc4);
+        disp([msg direct]);
     end
-    label = printf('    Average 4-Period MPC, Out of %4.2g:',results.distMPCamount');
-    disp([label direct sim]);
     
     %% Other
     fprintf('\nOTHER: \n')
     if p.IterateBeta
-        disp(['Beta = ' num2str(results.beta) ' (found by iteration)']);
+        disp(['    Beta = ' num2str(results.beta) ' (found by iteration)']);
     else
-        disp(['Beta = ' num2str(results.beta) ' (set in parameters)']);
+        disp(['    Beta = ' num2str(results.beta) ' (set in parameters)']);
     end
     
     %% ISSUES
