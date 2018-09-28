@@ -4,6 +4,15 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     % Includes NIT and discount factor heterogeneity
     % Greg Kaplan 2017
     
+    % STRUCTURES:
+    % basemodel - stores objects from the model with income risk
+    % norisk - stores objects from the model without income risk
+    % simulations - stores simulation results
+    % sgrid - stores savings grid in various sizes
+    % xgrid - stores cash-on-hand grid in various sizes
+    % income - stores objects from the income process
+    % prefs - stores objects related to preferences
+    
     %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER CHOICES
 
     p.r = p.r/p.freq;
@@ -180,7 +189,8 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
 
     % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
     % cash on hand grid: different min points for each value of (iyP,iyF)
-    xgrid.orig = sgrid.wide(:) + min(kron(netymat,ones(p.nx,1)),[],2);
+    minyT = repmat(kron(min(netymat,[],2),ones(p.nx,1)),p.nb,1);
+    xgrid.orig = sgrid.wide(:) + minyT;
     xgrid.orig_wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF p.nb]);
     xgrid.norisk_short = sgrid.short + meannety;
     xgrid.norisk_wide = repmat(xgrid.norisk_short,1,p.nb);
@@ -211,33 +221,33 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% MODEL SOLUTION
 
     if p.IterateBeta == 1
-        if p.FastIter == 1
-            [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income);
-        else
-            ergodic_tol = 1e-5;
-            gridsize = 100;
-            iterate_EGP = @(x) solve_EGP(x,p,...
-                xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
-
-            beta_lb = p.betaL;
-            if p.nb == 1
-                beta_ub = p.betaH - 1e-5;
+            if p.FastIter == 1
+                [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income);
             else
-                beta_ub = p.betaH - 1e-5 - betawidth;
+                ergodic_tol = 1e-5;
+                gridsize = 100;
+                iterate_EGP = @(x) solve_EGP(x,p,...
+                    xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
+
+                beta_lb = p.betaL;
+                if p.nb == 1
+                    beta_ub = p.betaH - 1e-5;
+                else
+                    beta_ub = p.betaH - 1e-5 - betawidth;
+                end
+
+                check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
+                options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
+                [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
             end
 
-            check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
-            options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
-            [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
+        if exitflag ~= 1
+            results = struct();
+            results.issues = {'NoBetaConv'};
+            return
         end
-
-    if exitflag ~= 1
-        results = struct();
-        results.issues = {'NoBetaConv'};
-        return
-    end
-    results.beta = beta;
-    p.beta = beta;
+        results.beta = beta;
+        p.beta = beta;
     end
 
     ergodic_tol = 1e-7;
@@ -247,8 +257,8 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     
     %% Store important moments
     
-    ymat_onxgrid = kron(ymat,ones(p.nxlong,1));
-    netymat_onxgrid = kron(netymat,ones(p.nxlong,1));
+    ymat_onxgrid = repmat(kron(ymat,ones(p.nxlong,1)),p.nb,1);
+    netymat_onxgrid = repmat(kron(netymat,ones(p.nxlong,1)),p.nb,1);
     
     results.mean_s = basemodel.sav_longgrid' * basemodel.SSdist;
     results.mean_x = xgrid.final(:)' * basemodel.SSdist;
@@ -450,7 +460,6 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     if p.ComputeDistMPC == 1
         [xgridm,savm,results.avg_mpc1_alt,results.avg_mpc4,results.distMPCamount] ...
             = mpc_forward(xgrid,p,income,basemodel,prefs);
-
     end
     
     %% Print Results

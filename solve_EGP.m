@@ -35,7 +35,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
         % interpolate to get c(x') using c(x)
         conlast_wide = reshape(conlast,[p.ns p.nyP p.nyF p.nb]);
 
-        x_s_wide = (1+p.r)*repmat(sgrid.wide(:),1,p.nyT) + kron(income.netymat,ones(p.ns,1));
+        x_s_wide = (1+p.r)*repmat(sgrid.wide(:),1,p.nyT) + repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
         x_s_wide = reshape(x_s_wide,[p.ns p.nyP p.nyF p.nb p.nyT]);
 
         % c(x')
@@ -102,7 +102,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
 
     % Create grid
     xgridm = linspace(0,1,gridsize)';
-    xgridm = repmat(xgridm,[1 p.nyP p.nyF]) .^(1/p.xgrid_par);
+    xgridm = repmat(xgridm,[1 p.nyP p.nyF p.nb]) .^(1/p.xgrid_par);
     income.netymatm = reshape(income.netymat,[1 p.nyP p.nyF p.nyT]);
     income.netymatm = repmat(income.netymatm,[gridsize 1 1 1]);
     xgridm = p.borrow_lim + min(income.netymatm,[],4) + (p.xmax-p.borrow_lim)*xgridm;

@@ -103,7 +103,7 @@ function print_statistics(results,simulations,p)
     % Average MPC, 4 periods (direct)
     if p.ComputeDistMPC == 1
         msg = sprintf('    MPC out of %4.2g:',results.distMPCamount');
-        direct = sprintf(' 4.3f (Direct Comp)',results.avg_mc4);
+        direct = sprintf(' %4.3f (Direct Comp)',results.avg_mpc4);
         disp([msg direct]);
     end
     

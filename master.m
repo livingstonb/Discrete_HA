@@ -65,7 +65,7 @@ prms(1).savtax          = 0; %0.0001;  %tax rate on savings
 prms(1).savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks;
-prms(1).nb          = 1;  %1 or 2
+prms(1).nb          = 2;  %1 or 2
 prms(1).betawidth   = 0.02; % beta +/- beta width
 prms(1).betaswitch  = 1/50; %0;
 
@@ -75,7 +75,7 @@ prms(1).tol_iter    = 1.0e-6;
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).nxlong_int  = 200; % Grid size for computing intermediate ergodic distributions
-prms(1).nxlong      = 1000; % Grid size for computing final ergodic distribution
+prms(1).nxlong      = 500; % Grid size for computing final ergodic distribution
 prms(1).nxmpc       = 1000; % grid size for MPC. mpcamount = xmax/xmpc
  
 prms(1).targetAY    = 3.5;

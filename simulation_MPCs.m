@@ -42,7 +42,7 @@ function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPinds
             for ib = 1:p.nb
             for iyP = 1:p.nyP
                 idx = yPindsim(:,p.Tsim-4+it)==iyP & betaindsim(:,p.Tsim-4+it)==ib & yFindsim(:,p.Tsim-4+it)==iyF;
-                ssim_mpc{im}(idx,it) = simulationstruct.savinterp{iyP,ib,iyF}(xsim_mpc{im}(idx,it));
+                ssim_mpc{im}(idx,it) = simulationstruct.savinterp{iyP,iyF,ib}(xsim_mpc{im}(idx,it));
             end
             end
             end

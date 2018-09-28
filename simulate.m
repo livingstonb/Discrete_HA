@@ -101,7 +101,7 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,model,...
         for ib = 1:p.nb
         for iyP = 1:p.nyP
             idx = yPindsim(:,it)==iyP & betaindsim(:,it)==ib & yFindsim(:,it)==iyF;
-            ssim(idx,it) = model.savinterp{iyP,ib,iyF}(xsim(idx,it));
+            ssim(idx,it) = model.savinterp{iyP,iyF,ib}(xsim(idx,it));
         end
         end
         end
