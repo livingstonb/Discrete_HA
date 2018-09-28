@@ -1,4 +1,4 @@
-function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
+function [simulations,ssim] = simulate(p,income,labtaxthresh,model,...
                                         xgrid,lumptransfer,prefs,results)
     
     
@@ -88,15 +88,6 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
     xsim = zeros(p.Nsim,p.Tsim); 
     ssim = zeros(p.Nsim,p.Tsim);
     
-    for iyF = 1:p.nyF
-    for ib = 1:p.nb
-    for iyP = 1:p.nyP
-        savinterp{iyP,ib,iyF} = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),sav.orig_wide(:,iyP,iyF,ib),'linear');
-        coninterp{iyP,ib,iyF} = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),con.orig_wide(:,iyP,iyF,ib),'linear');
-    end
-    end
-    end
-    
     for it = 1:p.Tsim
         if mod(it,50) == 0
             fprintf(' Simulating, time period %3.0u \n',it);
@@ -110,7 +101,7 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
         for ib = 1:p.nb
         for iyP = 1:p.nyP
             idx = yPindsim(:,it)==iyP & betaindsim(:,it)==ib & yFindsim(:,it)==iyF;
-            ssim(idx,it) = savinterp{iyP,ib,iyF}(xsim(idx,it));
+            ssim(idx,it) = model.savinterp{iyP,ib,iyF}(xsim(idx,it));
         end
         end
         end
@@ -170,7 +161,7 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
 %     end
     Risk = 1;
     [simulations.avg_mpc1,simulations.avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
-    betaindsim,income,Risk,results.riskmodel,xgrid);
+                    betaindsim,income,Risk,model,xgrid);
     
     %% Moments
     simulations.mean_s = mean(ssim(:,p.Tsim));

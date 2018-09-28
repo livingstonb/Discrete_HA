@@ -1,4 +1,4 @@
-function [xgridm,savm,avg_mpc,gridspace] = mpc_forward(xgrid,p,income,sav,...
+function [xgridm,savm,avg_mpc,gridspace] = mpc_forward(xgrid,p,income,model,...
                                                             prefs)
     ergodic_tol = 1e-7;
     
@@ -16,8 +16,7 @@ function [xgridm,savm,avg_mpc,gridspace] = mpc_forward(xgrid,p,income,sav,...
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        savinterp{iyP,iyF,ib} = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),sav.orig_wide(:,iyP,iyF,ib),'linear','linear');
-        savm(:,iyP,iyF,ib) = savinterp{iyP,iyF,ib}(xgridm);
+        savm(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(xgridm);
     end
     end
     end
@@ -50,7 +49,7 @@ function [xgridm,savm,avg_mpc,gridspace] = mpc_forward(xgrid,p,income,sav,...
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        savm(:,iyP,iyF,ib) = savinterp{iyP,iyF,ib}(xgridm);
+        savm(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(xgridm);
     end
     end
     end
@@ -66,7 +65,7 @@ function [xgridm,savm,avg_mpc,gridspace] = mpc_forward(xgrid,p,income,sav,...
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        savm(:,iyP,iyF,ib) = savinterp{iyP,iyF,ib}(xgridm);
+        savm(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(xgridm);
     end
     end
     end

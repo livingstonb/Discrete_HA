@@ -27,13 +27,13 @@ function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPinds
             % if negative shock, deal with households at bottom of their cash
             % grid by setting MPC to one and cash to bottom of grid
             if mpcamount{im} < 0
-                set_mpc_one = logical(zeros(p.Nsim,4));
+                set_mpc_one = false(p.Nsim,4);
                 if Risk == 1
                     for ib = 1:p.nb
                     for iyF = 1:p.nyF
                     for iyP = 1:p.nyP
                         idx = yPindsim(:,it)==iyP & yFindsim(:,it)==iyF & betaindsim(:,it)==ib;
-                        idx = idx & xsim_mpc{im}(:,it)<xgrid.orig_wide(1,iyP,iyF,ib);
+                        idx = idx & xsim_mpc{im}(:,it)<=xgrid.orig_wide(1,iyP,iyF,ib);
                         xsim_mpc{im}(idx,it) = xgrid.orig_wide(1,iyP,iyF,ib);
                         
                         % create mask for housholds whose MPC must be set
@@ -45,7 +45,7 @@ function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPinds
                 else
                     for ib = 1:p.nb;
                         idx = betaindsim(:,it)==ib;
-                        idx = idx & xsim_mpc{im}(:,it)<xgrid.norisk_wide(1,ib);
+                        idx = idx & xsim_mpc{im}(:,it)<=xgrid.norisk_wide(1,ib);
                         xsim_mpc{im}(idx,it) = xgrid.norisk_wide(1,ib);
                         % create mask for housholds whose MPC must be set
                         % to one

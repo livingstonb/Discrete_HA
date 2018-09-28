@@ -79,13 +79,13 @@ prms(1).tol_iter    = 1.0e-6;
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).nxlong_int  = 200; % Grid size for computing intermediate ergodic distributions
-prms(1).nxlong      = 400; % Grid size for computing final ergodic distribution
-prms(1).nxmpc       = 400; % larger grid size for MPC, must be divisible by 2
+prms(1).nxlong      = 200; % Grid size for computing final ergodic distribution
+prms(1).nxmpc       = 800; % larger grid size for MPC
  
 prms(1).targetAY    = 3.5;
 prms(1).maxiterAY   = 20;
 prms(1).tolAY       = 1.0e-4;
-prms(1).FastIter    = 1; % Use routine with low tolerance, small grid, until closer to target (1,0)
+prms(1).FastIter    = 0; % Use routine with low tolerance, small grid, until closer to target (1,0)
 
 %mpc options
 prms(1).mpcfrac{1}  = -0.01; %approximate thoeretical mpc
