@@ -79,7 +79,7 @@ prms(1).tol_iter    = 1.0e-6;
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).nxlong_int  = 200; % Grid size for computing intermediate ergodic distributions
-prms(1).nxlong      = 1000; % Grid size for computing final ergodic distribution
+prms(1).nxlong      = 500; % Grid size for computing final ergodic distribution
 prms(1).nxmpc       = 800; % larger grid size for MPC, must be divisible by 2
  
 prms(1).targetAY    = 3.5;
@@ -89,8 +89,8 @@ prms(1).FastIter    = 1; % Use routine with low tolerance, small grid, until clo
 
 %mpc options
 prms(1).mpcfrac{1}  = 1e-5; %approximate thoeretical mpc
-prms(1).mpcfrac{2}  = 0.01; % 1 percent of average gross labor income: approx $500
-prms(1).mpcfrac{3}  = 0.05; % 5 percent of average gross labor income: approx $5000
+prms(1).mpcfrac{2}  = 1e-4; % 1 percent of average gross labor income: approx $500
+prms(1).mpcfrac{3}  = 1e-3; % 5 percent of average gross labor income: approx $5000
 prms(1).mpcfrac{4}  = -1e-5; % approximate thoeretical mpc
 prms(1).mpcfrac{5}  = -0.01; % 1 percent of average gross labor income: approx $500
 prms(1).mpcfrac{6}  = -0.05; % 5 percent of average gross labor income: approx $5000
@@ -99,11 +99,11 @@ prms(1).mpcfrac{6}  = -0.05; % 5 percent of average gross labor income: approx $
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
-prms(1).ComputeDistMPC      = 1;
+prms(1).ComputeDistMPC      = 0;
 prms(1).ComputeSimMPC       = 1;
 prms(1).SolveDeterministic  = 1;
 prms(1).Simulate            = 1;
-prms(1).PrintStats          = 1;
+prms(1).PrintStats          = 0;
 
 %% Call model
 Nprms = size(prms,2);

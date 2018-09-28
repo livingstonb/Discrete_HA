@@ -58,9 +58,14 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,...
         end
     end
     
-
-    
     norisk.con = con;
     norisk.sav = sav;
     
+    % Store consumption and savings function interpolants
+    for ib = 1:p.nb
+        norisk.coninterp{ib} = griddedInterpolant(xgrid.norisk_short,con(:,ib),'linear');
+        norisk.savinterp{ib} = griddedInterpolant(xgrid.norisk_short,sav(:,ib),'linear');
+    end
+    
+   
 end

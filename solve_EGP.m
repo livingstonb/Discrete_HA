@@ -1,4 +1,4 @@
-function [AYdiff,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgridm,Ematm] = solve_EGP(beta,p,...
+function [AYdiff,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgridm,savinterp] = solve_EGP(beta,p,...
     xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,gridsize)
 
 ytrans = income.ytrans;
@@ -109,11 +109,12 @@ netymatm = repmat(netymatm,[gridsize 1 1 1]);
 xgridm = p.borrow_lim + min(netymatm,[],4) + (p.xmax-p.borrow_lim)*xgridm;
 
 savlong = zeros(gridsize,p.nyP,p.nyF,p.nb);
+savinterp = cell(p.nyP,p.nyF,p.nb);
 for ib = 1:p.nb
 for iyF = 1:p.nyF
 for iyP = 1:p.nyP
-    savinterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
-    savlong(:,iyP,iyF,ib) = savinterp(xgridm(:,iyP,iyF));
+    savinterp{iyP,iyF,ib} = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
+    savlong(:,iyP,iyF,ib) = savinterp{iyP,iyF,ib}(xgridm(:,iyP,iyF));
 end
 end
 end
