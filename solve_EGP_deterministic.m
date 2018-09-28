@@ -1,5 +1,5 @@
 function [norisk,cdiff] = solve_EGP_deterministic(p,...
-    xgrid,sgrid,u1,beq1,u1inv,income,betatrans)
+    xgrid,sgrid,prefs,income)
 
     mucnext = zeros(p.nx,p.nb);
     coninterp = cell(1,p.nb);
@@ -23,18 +23,18 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,...
         iter = iter + 1;
         
         conlast = con;
-        muc  = u1(conlast);
+        muc  = prefs.u1(conlast);
         
         for ib = 1:p.nb
             coninterp{ib} = griddedInterpolant(xgrid.norisk_short,conlast(:,ib),'linear');
-            mucnext(:,ib) = u1(coninterp{ib}(p.R.*sgrid.short + income.meannety));
+            mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R.*sgrid.short + income.meannety));
         end
         
-        emuc = mucnext * betatrans';
+        emuc = mucnext * prefs.betatrans';
         muc1 = (1-p.dieprob) * p.R * repmat(betagrid',p.nx,1) .* emuc ./ (1+p.savtax*(sgrid.norisk_wide>=p.savtaxthresh))...
-            + p.dieprob * beq1(sgrid.norisk_wide);
+            + p.dieprob * prefs.beq1(sgrid.norisk_wide);
         
-        con1 = u1inv(muc1);
+        con1 = prefs.u1inv(muc1);
         cash1 = con1 + sgrid.norisk_wide + p.savtax * max(sgrid.norisk_wide - p.savtaxthresh,0);
         
         sav = interp1(cash1(:),sgrid.norisk_wide,xgrid.norisk_wide(:),'linear','extrap');

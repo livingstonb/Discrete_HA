@@ -1,5 +1,5 @@
 function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
-    xgrid,lumptransfer,betacumdist,betacumtrans,results)
+                                        xgrid,lumptransfer,prefs,results)
     
     
     grossysim = zeros(p.Nsim,p.Tsim);
@@ -75,13 +75,13 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
     %% Simulate beta
     betarand = rand(p.Nsim,p.Tsim);
     betaindsim = zeros(p.Nsim,p.Tsim);
-    [~,betaindsim(:,1)] = max(bsxfun(@le,betarand(:,1),betacumdist'),[],2);
+    [~,betaindsim(:,1)] = max(bsxfun(@le,betarand(:,1),prefs.betacumdist'),[],2);
     
     for it = 2:p.Tsim
-        [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),betacumtrans(betaindsim(:,it-1),:)),[],2);
+        [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
         % ilive = diesim(:,it)==0;
-        % [~,betaindsim(ilive,it)] = max(bsxfun(@le,betarand(ilive,it),betacumtrans(betaindsim(ilive,it-1),:)),[],2);
-        % [~,betaindsim(~ilive,it)] = max(bsxfun(@le,betarand(~ilive,it),betacumdist'),[],2);
+        % [~,betaindsim(ilive,it)] = max(bsxfun(@le,betarand(ilive,it),prefs.betacumtrans(betaindsim(ilive,it-1),:)),[],2);
+        % [~,betaindsim(~ilive,it)] = max(bsxfun(@le,betarand(~ilive,it),prefs.betacumdist'),[],2);
     end
     
     %% Simulate savings decisions
@@ -169,7 +169,7 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
 %         simulations.avg_mpc4{im} = mean(mpc1{im}+mpc2{im}+mpc3{im}+mpc4{im});
 %     end
     Risk = 1;
-    [simulations.avg_mpc1,simulations.avg_mpc4] = simulation_MPCs(p,xsim,csim,ynetsim,yPindsim,yFindsim,...
+    [simulations.avg_mpc1,simulations.avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
     betaindsim,income,Risk,results.riskmodel,xgrid);
     
     %% Moments

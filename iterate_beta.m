@@ -1,9 +1,8 @@
-function [beta,exitflag] = iterate_beta(p,...
-        xgrid,sgrid,betatrans,u1,beq1,u1inv,income)
+function [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income)
     %% LOW TOLERANCE, SMALL GRID
     ergodic_tol = 1e-4;
     iterate_EGP = @(x) solve_EGP(x,p,...
-        xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,50);
+    xgrid,sgrid,prefs,ergodic_tol,income,50);
 
     beta_lb = p.betaL;
     if p.nb == 1
@@ -26,7 +25,7 @@ function [beta,exitflag] = iterate_beta(p,...
     ergodic_tol = 1e-6;
     ExpandGrid = 1;
     iterate_EGP = @(x) solve_EGP(x,p,...
-        xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,p.nxlong_int);
+    xgrid,sgrid,prefs,ergodic_tol,income,p.nxlong_int);
 
     beta_lb = beta - 0.01;
     beta_ub = beta + 0.01;

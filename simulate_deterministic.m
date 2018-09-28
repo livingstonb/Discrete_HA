@@ -1,16 +1,16 @@
-function norisk_out = simulate_deterministic(norisk,p,income,betacumdist,betacumtrans,xgrid)
+function norisk_out = simulate_deterministic(norisk,p,income,prefs,xgrid)
     
 
     %% Simulate beta
     betarand = rand(p.Nsim,p.Tsim);
     betaindsim = zeros(p.Nsim,p.Tsim);
-    [~,betaindsim(:,1)] = max(bsxfun(@le,betarand(:,1),betacumdist'),[],2);
+    [~,betaindsim(:,1)] = max(bsxfun(@le,betarand(:,1),prefs.betacumdist'),[],2);
     
     for it = 2:p.Tsim
-        [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),betacumtrans(betaindsim(:,it-1),:)),[],2);
+        [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
         % ilive = diesim(:,it)==0;
-        % [~,betaindsim(ilive,it)] = max(bsxfun(@le,betarand(ilive,it),betacumtrans(betaindsim(ilive,it-1),:)),[],2);
-        % [~,betaindsim(~ilive,it)] = max(bsxfun(@le,betarand(~ilive,it),betacumdist'),[],2);
+        % [~,betaindsim(ilive,it)] = max(bsxfun(@le,betarand(ilive,it),prefs.betacumtrans(betaindsim(ilive,it-1),:)),[],2);
+        % [~,betaindsim(~ilive,it)] = max(bsxfun(@le,betarand(~ilive,it),prefs.betacumdist'),[],2);
     end
     
  %% Simulate savings decisions
@@ -46,6 +46,6 @@ function norisk_out = simulate_deterministic(norisk,p,income,betacumdist,betacum
     %% MPCs
     Risk = 0;
     norisk_out = norisk;
-    [norisk_out.avg_mpc1,norisk_out.avg_mpc4] = simulation_MPCs(p,xsim,csim,[],[],[],...
+    [norisk_out.avg_mpc1,norisk_out.avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,[],[],[],...
         betaindsim,income,Risk,norisk,xgrid);
     

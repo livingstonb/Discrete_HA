@@ -1,4 +1,4 @@
-function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,ynetsim,yPindsim,yFindsim,...
+function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
     betaindsim,income,Risk,simulationstruct,xgrid)
     % Run with Risk = 1 if model with income risk, Risk = 0 otherwise
     
@@ -30,7 +30,7 @@ function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,ynetsim,yPindsim,yFin
                 set_mpc_one = logical(zeros(p.Nsim,4));
                 if Risk == 1
                     for ib = 1:p.nb
-                    for iyT = 1:p.nyT
+                    for iyF = 1:p.nyF
                     for iyP = 1:p.nyP
                         idx = yPindsim(:,it)==iyP & yFindsim(:,it)==iyF & betaindsim(:,it)==ib;
                         idx = idx & xsim_mpc{im}(:,it)<xgrid.orig_wide(1,iyP,iyF,ib);

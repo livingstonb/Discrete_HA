@@ -114,17 +114,17 @@ function results = egp_AR1_IID_tax_recode(p)
 
     %initial discount factor grid
     if  p.nb == 1
-        betadist = 1;
-        betatrans = 1;
+        prefs.betadist = 1;
+        prefs.betatrans = 1;
     elseif p.nb ==2 
-        betadist = [0.5;0.5];
-        betatrans = [1-p.betaswitch p.betaswitch; p.betaswitch 1-p.betaswitch]; %transitions on average once every 40 years;
+        prefs.betadist = [0.5;0.5];
+        prefs.betatrans = [1-p.betaswitch p.betaswitch; p.betaswitch 1-p.betaswitch]; %transitions on average once every 40 years;
     else
         error('nb must be 1 or 2');
     end
-    betacumdist = cumsum(betadist);
-    betacumtrans = cumsum(betatrans,2);
-
+    prefs.betacumdist = cumsum(prefs.betadist);
+    prefs.betacumtrans = cumsum(prefs.betatrans,2);
+    
 
     %% ASSET AND INCOME GRIDS
 
@@ -191,25 +191,23 @@ function results = egp_AR1_IID_tax_recode(p)
     %% UTILITY FUNCTION, BEQUEST FUNCTION
 
     if p.risk_aver==1
-        u = @(c)log(c);
-        beq = @(a) p.bequest_weight.* log(a+ p.bequest_luxury);
+        prefs.u = @(c)log(c);
+        prefs.beq = @(a) p.bequest_weight.* log(a+ p.bequest_luxury);
     else    
-        u = @(c)(c.^(1-p.risk_aver)-1)./(1-p.risk_aver);
-        beq = @(a) p.bequest_weight.*((a+p.bequest_luxury).^(1-p.risk_aver)-1)./(1-p.risk_aver);
+        prefs.u = @(c)(c.^(1-p.risk_aver)-1)./(1-p.risk_aver);
+        prefs.beq = @(a) p.bequest_weight.*((a+p.bequest_luxury).^(1-p.risk_aver)-1)./(1-p.risk_aver);
     end    
 
-    u1 = @(c) c.^(-p.risk_aver);
-    u1inv = @(u) u.^(-1./p.risk_aver);
-
-    beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.risk_aver);
+    prefs.u1 = @(c) c.^(-p.risk_aver);
+    prefs.u1inv = @(u) u.^(-1./p.risk_aver);
+    prefs.beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.risk_aver);
 
 
     %% MODEL SOLUTION
 
     if p.IterateBeta == 1
         if p.FastIter == 1
-            [beta,exitflag] = iterate_beta(p,...
-            xgrid,sgrid,betatrans,u1,beq1,u1inv,income);
+            [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income);
         else
             ergodic_tol = 1e-5;
             gridsize = 100;
@@ -239,7 +237,7 @@ function results = egp_AR1_IID_tax_recode(p)
 
     ergodic_tol = 1e-6;
     [~,con.orig,sav.orig,con.final,sav.final,state_dist.final,cdiff,xgrid.final,results.riskmodel.savinterp] = solve_EGP(beta,p,...
-        xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,p.nxlong);
+    xgrid,sgrid,prefs,ergodic_tol,income,p.nxlong);
     
     %% Store important moments
     
@@ -322,15 +320,14 @@ function results = egp_AR1_IID_tax_recode(p)
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model
     if p.SolveDeterministic == 1
-        [norisk,cdiff] = solve_EGP_deterministic(p,...
-                xgrid,sgrid,u1,beq1,u1inv,income,betatrans);
+        [norisk,cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income);
     end
     
     %% SIMULATIONS
     % Full model
     if p.Simulate == 1
         [simulations,ssim] = simulate(p,income,labtaxthresh,sav,con,...
-            xgrid,lumptransfer,betacumdist,betacumtrans,results);
+                                        xgrid,lumptransfer,prefs,results);
     else
         simulations =[];
     end
@@ -338,7 +335,7 @@ function results = egp_AR1_IID_tax_recode(p)
     
     % No risk model
     if p.SolveDeterministic == 1
-        results.norisk = simulate_deterministic(norisk,p,income,betacumdist,betacumtrans,xgrid);
+        results.norisk = simulate_deterministic(norisk,p,income,prefs,xgrid);
     end
 
     %% MAKE PLOTS
@@ -471,7 +468,7 @@ function results = egp_AR1_IID_tax_recode(p)
     %% COMPUTE MPC FROM STATIONARY DISTRIBUTION
     if p.ComputeDistMPC == 1
         [xgridm,savm,results.avg_mpc,results.DISTmpc_amount] = mpc_forward(xgrid,p,income,sav,...
-            betatrans);
+            prefs);
 
     end
     

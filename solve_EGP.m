@@ -1,5 +1,5 @@
 function [AYdiff,con_opt,sav_opt,conm,savm,state_dist,cdiff,xgridm,savinterp] = solve_EGP(beta,p,...
-    xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,gridsize)
+            xgrid,sgrid,prefs,ergodic_tol,income,gridsize)
 
 ytrans = income.ytrans;
 netymat = income.netymat;
@@ -24,7 +24,7 @@ con = p.r * xgrid.orig_wide(:);
 betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
 
 % Expectations operator (conditional on yT)
-Emat = kron(betatrans,kron(ytrans,speye(p.nx)));
+Emat = kron(prefs.betatrans,kron(ytrans,speye(p.nx)));
 
 iter = 1;
 cdiff = 1;
@@ -57,14 +57,14 @@ while iter<p.max_iter && cdiff>p.tol_iter
     c_xp = reshape(c_xp,[],p.nyT);
     x_s_wide = reshape(x_s_wide,[],p.nyT);
     
-    mucnext  = u1(c_xp) - p.temptation/(1+p.temptation)*u1(x_s_wide);
+    mucnext  = prefs.u1(c_xp) - p.temptation/(1+p.temptation)*prefs.u1(x_s_wide);
     % muc this period as a function of s
     muc_s = (1-p.dieprob)*(1+p.r)*betastacked.*(Emat*(mucnext*yTdist))./(1+p.savtax.*(sgrid.wide(:)>=p.savtaxthresh))...
-        + p.dieprob*beq1(sgrid.wide(:));
+        + p.dieprob*prefs.beq1(sgrid.wide(:));
     % _wide variables have dimension nx by nyP*nyF*nb, or nx by N/nx
 
     % consumption as a function of s
-    con_s = u1inv(muc_s);
+    con_s = prefs.u1inv(muc_s);
     % cash-in-hand (x) as a function of s
     x_s_wide = sgrid.wide(:) + p.savtax * max(sgrid.wide(:)-p.savtaxthresh,0) + con_s;
 
@@ -122,7 +122,7 @@ savm = savlong;
 NN = gridsize * p.nyP * p.nyF * p.nb;
 nn = gridsize;
 
-trans = kron(betatrans,kron(eye(p.nyF),yPtrans));
+trans = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans));
 grid_probabilities = zeros(NN,NN);
 col = 1;
 for ib2 = 1:p.nb

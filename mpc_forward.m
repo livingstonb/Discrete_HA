@@ -1,5 +1,5 @@
 function [xgridm,savm,avg_mpc,gridspace] = mpc_forward(xgrid,p,income,sav,...
-    betatrans)
+                                                            prefs)
     ergodic_tol = 1e-7;
     
     %% CREATE NEW GRID
@@ -23,7 +23,7 @@ function [xgridm,savm,avg_mpc,gridspace] = mpc_forward(xgrid,p,income,sav,...
     end
 
     % create transition probability matrix
-    trans = kron(betatrans,kron(eye(p.nyF),income.yPtrans));
+    trans = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
     T = transition(income,NN,nn,p,savm,xgridm,trans);
 
     % find stationary distribution
