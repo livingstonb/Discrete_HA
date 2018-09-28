@@ -1,4 +1,4 @@
-function [xgridm,savm,avg_mpc,gridspace] = mpc_forward(xgrid,p,income,model,...
+function [xgridm,savm,avg_mpc1,avg_mpc4,gridspace] = mpc_forward(xgrid,p,income,model,...
                                                             prefs)
     ergodic_tol = 1e-7;
     
@@ -86,6 +86,9 @@ function [xgridm,savm,avg_mpc,gridspace] = mpc_forward(xgrid,p,income,model,...
     for period = 2:4
         avg_mpc{period} = avg_mpc{period-1} + (dist{period} - SS_dist') * conm(:)/mpcamount;
     end
+    
+    avg_mpc1 = avg_mpc{1};
+    avg_mpc4 = avg_mpc{4};
 
     %% FUNCTIONS
     
