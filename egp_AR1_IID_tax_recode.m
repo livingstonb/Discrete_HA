@@ -332,7 +332,7 @@ function results = egp_AR1_IID_tax_recode(p)
     
     % Deterministic model
     if p.SolveDeterministic == 1
-        [norisk,cdiff] = solve_EGP_deterministic(p,...
+        [results.norisk,cdiff] = solve_EGP_deterministic(p,...
                 xgrid,sgrid,u1,beq1,u1inv,income,betatrans);
     end
 
@@ -474,4 +474,6 @@ function results = egp_AR1_IID_tax_recode(p)
     if p.PrintStats == 1
         print_statistics(results,simulations,p);
     end
+    
+    results.xgrid = xgrid;
 end

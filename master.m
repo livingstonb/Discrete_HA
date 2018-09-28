@@ -98,12 +98,12 @@ prms(1).mpcfrac{6}  = -0.05; % 5 percent of average gross labor income: approx $
 % OPTIONS
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
-prms(1).MakePlots           = 0;
-prms(1).ComputeDistMPC      = 0;
-prms(1).ComputeSimMPC       = 0;
+prms(1).MakePlots           = 1;
+prms(1).ComputeDistMPC      = 1;
+prms(1).ComputeSimMPC       = 1;
 prms(1).SolveDeterministic  = 1;
-prms(1).Simulate            = 0;
-prms(1).PrintStats          = 0;
+prms(1).Simulate            = 1;
+prms(1).PrintStats          = 1;
 
 %% Call model
 Nprms = size(prms,2);

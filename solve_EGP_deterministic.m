@@ -37,16 +37,20 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,...
         con1 = u1inv(muc1);
         cash1 = con1 + sgrid.norisk_wide + p.savtax * max(sgrid.norisk_wide - p.savtaxthresh,0);
         
+        sav = interp1(cash1(:),sgrid.norisk_wide,xgrid.norisk_wide(:),'linear','extrap');
+        
         % apply borrowing limit
-        idx = bsxfun(@lt,xgrid.norisk_wide,cash1(1,:));
-        sav(idx) = p.borrow_lim;
+%         idx = bsxfun(@lt,xgrid.norisk_wide,cash1(1,:));
+%         sav(idx) = p.borrow_lim;
+%         for ib = 1:p.nb
+%             idx_ib = idx(:,ib);
+%             sav(~idx_ib,ib) = interp1(cash1(~idx_ib,ib),sgrid.short(~idx_ib),xgrid.norisk_wide(~idx_ib,ib),'linear','extrap');
+%         end
+
+        sav(sav<p.borrow_lim) = p.borrow_lim;
         
-        for ib = 1:p.nb
-            idx_ib = idx(:,ib);
-            sav(~idx_ib,ib) = interp1(cash1(~idx_ib,ib),sgrid.short(~idx_ib),xgrid.norisk_wide(~idx_ib,ib),'linear','extrap');
-        end
-        
-        con = xgrid.norisk_wide - sav;
+
+        con = xgrid.norisk_wide - sav - p.savtax * max(sav - p.savtaxthresh,0);
         
         cdiff = max(abs(con(:)-conlast(:)))
         if p.Display >=1 && mod(iter,50) ==0
