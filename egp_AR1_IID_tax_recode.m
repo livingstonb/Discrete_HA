@@ -7,7 +7,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     % STRUCTURES:
     % basemodel - stores objects from the model with income risk
     % norisk - stores objects from the model without income risk
-    % simulations - stores simulation results
+    % simulations - stores simulation results for basemodel
     % sgrid - stores savings grid in various sizes
     % xgrid - stores cash-on-hand grid in various sizes
     % income - stores objects from the income process
@@ -221,26 +221,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% MODEL SOLUTION
 
     if p.IterateBeta == 1
-            if p.FastIter == 1
-                [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income);
-            else
-                ergodic_tol = 1e-5;
-                gridsize = 100;
-                iterate_EGP = @(x) solve_EGP(x,p,...
-                    xgrid,sgrid,betatrans,u1,beq1,u1inv,ergodic_tol,income,ExpandGrid);
-
-                beta_lb = p.betaL;
-                if p.nb == 1
-                    beta_ub = p.betaH - 1e-5;
-                else
-                    beta_ub = p.betaH - 1e-5 - betawidth;
-                end
-
-                check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
-                options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
-                [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
-            end
-
+        [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income);
         if exitflag ~= 1
             results = struct();
             results.issues = {'NoBetaConv'};
@@ -250,10 +231,12 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         p.beta = beta;
     end
 
+    % Use final beta to get policy functions and distribution
     ergodic_tol = 1e-7;
-    [~,basemodel,xgrid.final] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
+    [~,basemodel,xgrid.longgrid] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
                                             ergodic_tol,income,p.nxlong);
-    xgrid.longgrid_wide = reshape(xgrid.final,[p.nxlong,p.nyP,p.nyF,p.nb]);
+                                        
+    xgrid.longgrid_wide = reshape(xgrid.longgrid,[p.nxlong,p.nyP,p.nyF,p.nb]);
     
     %% Store important moments
     
@@ -261,7 +244,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     netymat_onxgrid = repmat(kron(netymat,ones(p.nxlong,1)),p.nb,1);
     
     results.mean_s = basemodel.sav_longgrid' * basemodel.SSdist;
-    results.mean_x = xgrid.final(:)' * basemodel.SSdist;
+    results.mean_x = xgrid.longgrid(:)' * basemodel.SSdist;
     results.mean_grossy = (ymat_onxgrid*yTdist)' * basemodel.SSdist;
     results.mean_loggrossy = (log(ymat_onxgrid)*yTdist)' * basemodel.SSdist;
     results.mean_nety = (netymat_onxgrid*yTdist)' * basemodel.SSdist;
@@ -275,6 +258,8 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         results.mean_x_check = p.R*(1-p.dieprob)*results.mean_s + results.mean_nety;
     end
     temp = permute(basemodel.SSdist_wide,[2 1 3 4]);
+    % reconstruct yPdist from computed stationary distribution for error
+    % checking
     yPdist_check = sum(sum(sum(temp,4),3),2);
     
 
@@ -293,7 +278,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         results.issues = [results.issues,'BadNetIncomeMean'];
     end
     if norm(yPdist_check-yPdist) > 1e-3
-        results.issues = [results.issues,'BadGrossIncDist'];
+        results.issues = [results.issues,'Bad_yP_Dist'];
     end
     if min(basemodel.SSdist) < - 1e-3
         results.issues = [results.issues,'NegativeStateProbability'];
@@ -302,7 +287,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% WEALTH DISTRIBUTION
     
     results.frac_constrained = (basemodel.sav_longgrid<=p.borrow_lim)' * basemodel.SSdist;
-    results.frac_less5perc_labincome = (basemodel.sav_longgrid<0.05)' * basemodel.SSdist;
+    results.frac_less5perc_labincome = (basemodel.sav_longgrid<0.05*income.meany)' * basemodel.SSdist;
     % wealth percentiles;
     percentiles = [0.1 0.25 0.5 0.9 0.99];
     [basemodel.SSdist_unique,iu] = unique(basemodel.SScumdist);
@@ -313,6 +298,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     results.p90wealth = wealthps(4);
     results.p99wealth = wealthps(5);
     
+    % create histogram of asset holdings
     binwidth = 0.25;
     bins = 0:binwidth:p.xmax;
     values = zeros(p.xmax+1,1);
@@ -330,7 +316,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model
     if p.SolveDeterministic == 1
-        [norisk,cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income);
+        [norisk,norisk.EGP_cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income);
     end
     
     %% SIMULATIONS

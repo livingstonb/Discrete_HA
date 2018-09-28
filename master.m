@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
