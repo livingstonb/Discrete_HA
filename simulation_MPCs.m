@@ -24,13 +24,13 @@ function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPinds
             for iyF = 1:p.nyF
             for ib = 1:p.nb
             for iyP = 1:p.nyP
-                below_grid = xsim_mpc{im}(:,it)<xgrid.orig_wide(1,iyP,iyF,ib);
+                below_grid = xsim_mpc{im}(:,it)<xgrid.orig_wide(1,iyP,iyF);
                 idx = yPindsim(:,simT)==iyP & betaindsim(:,simT)==ib & yFindsim(:,simT)==iyF;
                 % if shock is negative, deal with households that wind up
                 % below the bottom of their asset grid
                 if mpcamount{im} < 0
                     idx_below = idx & below_grid;
-                    xsim_mpc{im}(idx_below,it) = xgrid.orig_wide(1,iyP,iyF,ib);
+                    xsim_mpc{im}(idx_below,it) = xgrid.orig_wide(1,iyP,iyF);
                     % will need to set their MPCs to one
                     set_mpc_one(:,it) = set_mpc_one(:,it) | idx_below;
                 end

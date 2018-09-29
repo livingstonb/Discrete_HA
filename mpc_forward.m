@@ -2,6 +2,8 @@ function [avg_mpc1,avg_mpc4,gridspace] = mpc_forward(xgrid,p,income,model,...
                                                             prefs)
     ergodic_tol = 1e-7;
     
+    disp('Using direct methods to find MPCs')
+    
     %% CREATE NEW GRID
     nn = p.nxmpc;
     NN = nn * p.nyP * p.nyF * p.nb;
@@ -58,7 +60,7 @@ function [avg_mpc1,avg_mpc4,gridspace] = mpc_forward(xgrid,p,income,model,...
     T = transition(income,NN,nn,p,savm,xgridm,trans);
 
     % find new stationary distribution
-    SS_dist = full(ergodicdist(sparse(T),1,ergodic_tol));
+    SS_dist = full(ergodicdist(T,1,ergodic_tol));
 
     % find future average consumption
     savm = zeros(nn,p.nyP,p.nyF,p.nb);
@@ -109,7 +111,7 @@ function [avg_mpc1,avg_mpc4,gridspace] = mpc_forward(xgrid,p,income,model,...
         % reshape and multiply by transition probabilities of (yP,yF,beta)
         interp = permute(reshape(full(interp),[NN p.nyP*p.nyF nn]),[1 3 2]);
         interp = reshape(interp,NN,nn*p.nyP*p.nyF);
-        T = kron(trans,ones(nn)) .* repmat(interp,1,p.nb);
+        T = sparse(kron(trans,ones(nn)) .* repmat(interp,1,p.nb));
     end
 
 end

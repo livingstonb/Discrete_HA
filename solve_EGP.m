@@ -13,10 +13,11 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     end
 
     % initial guess for consumption function
-    con = p.r * xgrid.orig_wide(:);
+    con = p.r * repmat(xgrid.orig_wide(:),p.nb,1);
 
     % discount factor matrix
     betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
+    betastacked = sparse(diag(betastacked));
 
     % Expectations operator (conditional on yT)
     Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
@@ -35,7 +36,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
         % interpolate to get c(x') using c(x)
         conlast_wide = reshape(conlast,[p.ns p.nyP p.nyF p.nb]);
 
-        x_s_wide = (1+p.r)*repmat(sgrid.wide(:),1,p.nyT) + repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
+        x_s_wide = (1+p.r)*repmat(sgrid.wide(:),p.nb,p.nyT) + repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
         x_s_wide = reshape(x_s_wide,[p.ns p.nyP p.nyF p.nb p.nyT]);
 
         % c(x')
@@ -43,9 +44,8 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
         for ib = 1:p.nb
         for iyF  = 1:p.nyF
         for iyP = 1:p.nyP
-            coninterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),conlast_wide(:,iyP,iyF,ib),'linear','linear');
-            c_xp_temp = coninterp(reshape(x_s_wide(:,iyP,iyF,ib,:),[],1));
-            c_xp(:,iyP,iyF,ib,:) = reshape(c_xp_temp,[],1,1,1,p.nyT);
+            coninterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF),conlast_wide(:,iyP,iyF,ib),'linear','linear');
+            c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(reshape(x_s_wide(:,iyP,iyF,ib,:),[],1)),[],1,1,1,p.nyT);
         end
         end
         end
@@ -54,25 +54,25 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
 
         mucnext  = prefs.u1(c_xp) - p.temptation/(1+p.temptation)*prefs.u1(x_s_wide);
         % muc this period as a function of s
-        muc_s = (1-p.dieprob)*(1+p.r)*betastacked.*(Emat*(mucnext*income.yTdist))./(1+p.savtax.*(sgrid.wide(:)>=p.savtaxthresh))...
-            + p.dieprob*prefs.beq1(sgrid.wide(:));
+        muc_s = (1-p.dieprob)*(1+p.r)*betastacked*(Emat*(mucnext*income.yTdist))...
+                ./(1+p.savtax.*(repmat(sgrid.wide(:),p.nb,1)>=p.savtaxthresh))...
+                + p.dieprob*prefs.beq1(repmat(sgrid.wide(:),p.nb,1));
         % _wide variables have dimension nx by nyP*nyF*nb, or nx by N/nx
 
         % consumption as a function of s
         con_s = prefs.u1inv(muc_s);
         % cash-in-hand (x) as a function of s
-        x_s_wide = sgrid.wide(:) + p.savtax * max(sgrid.wide(:)-p.savtaxthresh,0) + con_s;
+        x_s_wide = repmat(sgrid.wide(:),p.nb,1) + p.savtax * max(repmat(sgrid.wide(:),p.nb,1)-p.savtaxthresh,0) + con_s;
 
         % interpolate from x(s) to get s(x), interpolate for each (beta,yP,yF)
         % separately
         x_s_wide = reshape(x_s_wide,[p.ns p.nyP p.nyF p.nb]);
         sav_wide = zeros(p.ns,p.nyP,p.nyF,p.nb);
-        sgrid_reshaped = reshape(sgrid.wide,[p.ns p.nyP p.nyF p.nb]);
         for ib = 1:p.nb
         for iyF  = 1:p.nyF
         for iyP = 1:p.nyP
-            savinterp = griddedInterpolant(x_s_wide(:,iyP,iyF,ib),sgrid_reshaped(:,iyP,iyF,ib),'linear','linear');
-            sav_wide(:,iyP,iyF,ib) = savinterp(xgrid.orig_wide(:,iyP,iyF,ib)); 
+            savinterp = griddedInterpolant(x_s_wide(:,iyP,iyF,ib),sgrid.wide(:,iyP,iyF),'linear','linear');
+            sav_wide(:,iyP,iyF,ib) = savinterp(xgrid.orig_wide(:,iyP,iyF)); 
         end
         end
         end
@@ -80,7 +80,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
         % deal with borrowing limit
         sav_wide(sav_wide<p.borrow_lim) = p.borrow_lim;
 
-        conupdate = xgrid.orig_wide(:) - sav_wide(:) - p.savtax * max(sav_wide(:)-p.savtaxthresh,0);
+        conupdate = repmat(xgrid.orig_wide(:),p.nb,1) - sav_wide(:) - p.savtax * max(sav_wide(:)-p.savtaxthresh,0);
 
         cdiff = max(abs(conupdate-conlast));
         if mod(iter,50) ==0
@@ -100,19 +100,20 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     fprintf(' Computing state-to-state transition probabilities... \n');
     savm = model.sav_wide;
 
-    % Create grid
+    % Create (potentially) longer grid
     xgridm = linspace(0,1,gridsize)';
-    xgridm = repmat(xgridm,[1 p.nyP p.nyF p.nb]) .^(1/p.xgrid_par);
+    xgridm = repmat(xgridm,[1 p.nyP p.nyF]) .^(1/p.xgrid_par);
     min_netymat = reshape(min(income.netymat,[],2),[1 p.nyP p.nyF]);
-    min_netymat = repmat(min_netymat,[gridsize 1 1 p.nb]);
+    min_netymat = repmat(min_netymat,[gridsize 1 1]);
     xgridm = p.borrow_lim + min_netymat + (p.xmax-p.borrow_lim)*xgridm;
 
+    % Interpolate policy functions onto new grid
     savlong = zeros(gridsize,p.nyP,p.nyF,p.nb);
     savinterp = cell(p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        savinterp{iyP,iyF,ib} = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),savm(:,iyP,iyF,ib),'linear','linear');
+        savinterp{iyP,iyF,ib} = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF),model.sav_wide(:,iyP,iyF,ib),'linear','linear');
         savlong(:,iyP,iyF,ib) = savinterp{iyP,iyF,ib}(xgridm(:,iyP,iyF));
     end
     end
@@ -129,7 +130,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     for ib2 = 1:p.nb
     for iyF2 = 1:p.nyF
     for iyP2 = 1:p.nyP
-        fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
+        fspace = fundef({'spli',xgridm(:,iyP2,iyF2),0,1});
         % xprime if no death
         xp_live = (1+p.r)*repmat(savm(:),p.nyT,1) + ...
             kron(squeeze(netymatm(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
@@ -141,12 +142,12 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
             xp_death = xp_live;
         end
         
-        % set probabilities equal to 1 at grid endpt where xp is off the grid
-        idx_xpl_max = xp_live>=max(xgridm(:,iyP2,iyF2,ib2));
-        idx_xpl_min = xp_live<=min(xgridm(:,iyP2,iyF2,ib2));
+        % set probabilities equal to 1 at grid endpt when xp is off the grid
+        idx_xpl_max = xp_live>=max(xgridm(:,iyP2,iyF2));
+        idx_xpl_min = xp_live<=min(xgridm(:,iyP2,iyF2));
         
-        idx_xpd_max = xp_death>=max(xgridm(:,iyP2,iyF2,ib2));
-        idx_xpd_min = xp_death<=min(xgridm(:,iyP2,iyF2,ib2));
+        idx_xpd_max = xp_death>=max(xgridm(:,iyP2,iyF2));
+        idx_xpd_min = xp_death<=min(xgridm(:,iyP2,iyF2));
         
         interpl = funbas(fspace,xp_live);
         interpl(idx_xpl_max | idx_xpl_min,:) = 0;
@@ -185,7 +186,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     % policy functions
     model.sav_longgrid = savm(:);
     model.sav_longgrid_wide = reshape(model.sav_longgrid,[nn,p.nyP,p.nyF,p.nb]);
-    model.con_longgrid = xgridm(:) - savm(:) - p.savtax*max(savm(:)-p.savtaxthresh,0);
+    model.con_longgrid = repmat(xgridm(:),p.nb,1) - savm(:) - p.savtax*max(savm(:)-p.savtaxthresh,0);
     model.con_longgrid_wide = reshape(model.con_longgrid,[nn,p.nyP,p.nyF,p.nb]);
     
     % interpolants
@@ -193,9 +194,9 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
         model.savinterp{iyP,iyF,ib} = ...
-            griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),model.sav_wide(:,iyP,iyF,ib),'linear');
+            griddedInterpolant(xgrid.orig_wide(:,iyP,iyF),model.sav_wide(:,iyP,iyF,ib),'linear');
         model.coninterp{iyP,iyF,ib} = ...
-            griddedInterpolant(xgrid.orig_wide(:,iyP,iyF,ib),model.con_wide(:,iyP,iyF,ib),'linear');
+            griddedInterpolant(xgrid.orig_wide(:,iyP,iyF),model.con_wide(:,iyP,iyF,ib),'linear');
     end
     end
     end

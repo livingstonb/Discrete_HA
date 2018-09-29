@@ -84,10 +84,10 @@ function income = gen_income_variables(p)
     % transition probabilities for yP-yF combined grid
     ytrans = kron(eye(p.nyF),yPtrans);
 
-    % construct matrix of y combinationsx
+    % construct matrix of y combinations
     ymat = repmat(yPgrid,p.nyF,1) .* kron(yFgrid,ones(p.nyP,1)) * yTgrid';
 
-    % distribution of ymat (values are repeated nb*nx times)
+    % distribution of ymat
     ymatdist = repmat(yPdist,p.nyF,1) .* kron(yFdist,ones(p.nyP,1)) * yTdist';
 
     % find mean y

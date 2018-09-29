@@ -68,17 +68,17 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     sgrid.orig = sgrid.orig.^(1./p.xgrid_par);
     sgrid.orig = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid.orig;
     sgrid.short = sgrid.orig;
-    sgrid.norisk_wide = repmat(sgrid.short,[1 p.nb]);
-    sgrid.wide = repmat(sgrid.short,[1 p.nyP p.nyF p.nb]);
+    % sgrid.norisk_wide = repmat(sgrid.short,[1 p.nb]);
+    sgrid.wide = repmat(sgrid.short,[1 p.nyP p.nyF]);
     p.ns = p.nx;
 
     % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
     % cash on hand grid: different min points for each value of (iyP,iyF)
-    minyT = repmat(kron(min(income.netymat,[],2),ones(p.nx,1)),p.nb,1);
+    minyT = kron(min(income.netymat,[],2),ones(p.nx,1));
     xgrid.orig = sgrid.wide(:) + minyT;
-    xgrid.orig_wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF p.nb]);
+    xgrid.orig_wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
     xgrid.norisk_short = sgrid.short + income.meannety;
-    xgrid.norisk_wide = repmat(xgrid.norisk_short,1,p.nb);
+    xgrid.norisk_wide = xgrid.norisk_short;
     
 
     %% UTILITY FUNCTION, BEQUEST FUNCTION
@@ -114,7 +114,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     [~,basemodel,xgrid.longgrid] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
                                             ergodic_tol,income,p.nxlong);
                                         
-    xgrid.longgrid_wide = reshape(xgrid.longgrid,[p.nxlong,p.nyP,p.nyF,p.nb]);
+    xgrid.longgrid_wide = reshape(xgrid.longgrid,[p.nxlong,p.nyP,p.nyF]);
     
     %% Store important moments
     
@@ -122,7 +122,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     netymat_onlonggrid = repmat(kron(income.netymat,ones(p.nxlong,1)),p.nb,1);
     
     results.mean_s = basemodel.sav_longgrid' * basemodel.SSdist;
-    results.mean_x = xgrid.longgrid(:)' * basemodel.SSdist;
+    results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist;
     results.mean_grossy = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
     results.mean_loggrossy = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
     results.mean_nety = (netymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
@@ -202,7 +202,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %mpc amounts
     for im = 1:numel(p.mpcfrac)
         mpcamount{im} = p.mpcfrac{im} * income.meany;
-        xgrid.mpc{im} = xgrid.longgrid_wide + mpcamount{im};
+        xgrid_mpc{im} = xgrid.longgrid_wide + mpcamount{im};
     end
     
     for im = 1:numel(p.mpcfrac)
@@ -211,7 +211,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         for ib = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP 
-            mpc{im}(:,iyP,iyF,ib) = (basemodel.coninterp{iyP,iyF,ib}(xgrid.mpc{im}(:,iyP,iyF,ib))...
+            mpc{im}(:,iyP,iyF,ib) = (basemodel.coninterp{iyP,iyF,ib}(xgrid_mpc{im}(:,iyP,iyF))...
                         - basemodel.con_longgrid_wide(:,iyP,iyF,ib))/mpcamount{im};     
         end
         end

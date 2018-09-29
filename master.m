@@ -51,7 +51,7 @@ prms(1).nyF         = 1;
 prms(1).sd_logyF    = 0;
 
 % cash on hand / savings grid
-prms(1).nx          = 200;
+prms(1).nx          = 100;
 prms(1).xmax        = 1000;  % need high if using high-variance income shocks
 prms(1).xgrid_par   = 0.2; %1 for linear, 0 for L-shaped
 prms(1).borrow_lim  = 0;
@@ -74,7 +74,7 @@ prms(1).max_iter    = 1e5; % for EGP
 prms(1).tol_iter    = 1.0e-6;
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
-prms(1).nxlong_int  = 200; % Grid size for computing intermediate ergodic distributions
+prms(1).nxlong_int  = 100; % Grid size for computing intermediate ergodic distributions
 prms(1).nxlong      = 500; % Grid size for computing final ergodic distribution
 prms(1).nxmpc       = 1000; % grid size for MPC. mpcamount = xmax/xmpc
  

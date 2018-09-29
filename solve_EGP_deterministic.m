@@ -15,7 +15,7 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,...
         betagrid = [p.beta-p.betawidth;p.beta+p.betawidth];
     end
 
-    con = p.r * xgrid.norisk_wide;
+    con = p.r * repmat(sgrid.short,1,p.nb);
 
     iter = 0;
     cdiff = 1000;
@@ -31,17 +31,21 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,...
         end
         
         emuc = mucnext * prefs.betatrans';
-        muc1 = (1-p.dieprob) * p.R * repmat(betagrid',p.nx,1) .* emuc ./ (1+p.savtax*(sgrid.norisk_wide>=p.savtaxthresh))...
-            + p.dieprob * prefs.beq1(sgrid.norisk_wide);
+        muc1 = (1-p.dieprob) * p.R * repmat(betagrid',p.nx,1) .* emuc ...
+                ./ (1+p.savtax*(repmat(sgrid.short,1,p.nb)>=p.savtaxthresh))...
+                + p.dieprob * prefs.beq1(repmat(sgrid.short,1,p.nb));
         
         con1 = prefs.u1inv(muc1);
-        cash1 = con1 + sgrid.norisk_wide + p.savtax * max(sgrid.norisk_wide - p.savtaxthresh,0);
+        cash1 = con1 + repmat(sgrid.short,1,p.nb) + p.savtax * max(repmat(sgrid.short,1,p.nb) - p.savtaxthresh,0);
         
-        sav = interp1(cash1(:),sgrid.norisk_wide,xgrid.norisk_wide(:),'linear','extrap');
+        for ib = 1:p.nb
+            savinterp = griddedInterpolant(cash1(:,ib),sgrid.short,'linear');
+            sav(:,ib) = savinterp(sgrid.short);
+        end
         sav(sav<p.borrow_lim) = p.borrow_lim;
         
 
-        con = xgrid.norisk_wide - sav - p.savtax * max(sav - p.savtaxthresh,0);
+        con = repmat(sgrid.short,1,p.nb) - sav - p.savtax * max(sav - p.savtaxthresh,0);
         
         cdiff = max(abs(con(:)-conlast(:)));
         if p.Display >=1 && mod(iter,50) ==0
