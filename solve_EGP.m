@@ -103,9 +103,9 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     % Create grid
     xgridm = linspace(0,1,gridsize)';
     xgridm = repmat(xgridm,[1 p.nyP p.nyF p.nb]) .^(1/p.xgrid_par);
-    income.netymatm = reshape(income.netymat,[1 p.nyP p.nyF p.nyT]);
-    income.netymatm = repmat(income.netymatm,[gridsize 1 1 1]);
-    xgridm = p.borrow_lim + min(income.netymatm,[],4) + (p.xmax-p.borrow_lim)*xgridm;
+    min_netymat = reshape(min(income.netymat,[],2),[1 p.nyP p.nyF]);
+    min_netymat = repmat(min_netymat,[gridsize 1 1 p.nb]);
+    xgridm = p.borrow_lim + min_netymat + (p.xmax-p.borrow_lim)*xgridm;
 
     savlong = zeros(gridsize,p.nyP,p.nyF,p.nb);
     savinterp = cell(p.nyP,p.nyF,p.nb);
@@ -121,6 +121,8 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     NN = gridsize * p.nyP * p.nyF * p.nb;
     nn = gridsize;
 
+    netymatm = reshape(income.netymat,[p.nyP p.nyF p.nyT]);
+    
     trans = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
     grid_probabilities = zeros(NN,NN);
     col = 1;
@@ -130,11 +132,11 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
         fspace = fundef({'spli',xgridm(:,iyP2,iyF2,ib2),0,1});
         % xprime if no death
         xp_live = (1+p.r)*repmat(savm(:),p.nyT,1) + ...
-            kron(squeeze(income.netymatm(1,iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
+            kron(squeeze(netymatm(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
 
         % xprime if death (i.e. saving in past period set to 0)
         if p.WealthInherited == 0
-            xp_death = kron(squeeze(income.netymatm(1,iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
+            xp_death = kron(squeeze(netymatm(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
         else
             xp_death = xp_live;
         end

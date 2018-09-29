@@ -5,43 +5,35 @@ function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPinds
     Nmpcamount = numel(p.mpcfrac);
     for im = 1:Nmpcamount
         mpcamount{im} = p.mpcfrac{im} * income.meany;
-        % period Tsim cash-on-hand
-        xsim_mpc{im} = xsim(:,p.Tsim) + mpcamount{im};
         
-        csim_mpc{im} = zeros(p.Nsim,1);
+        if mpcamount{im} < 0
+            set_mpc_one = false(p.Nsim,4);
+        end
+            
         
         xsim_mpc{im} = zeros(p.Nsim,4);
         ssim_mpc{im} = zeros(p.Nsim,4);
         xsim_mpc{im}(:,1) = xsim(:,p.Tsim-3) + mpcamount{im};
         csim_mpc{im} = zeros(p.Nsim,4);
         for it = 1:4
+            simT = p.Tsim - 4 + it;
             if it > 1
-                xsim_mpc{im}(:,it) = p.R * ssim_mpc{im}(:,it-1) + ynetsim(:,p.Tsim-4+it);
+                xsim_mpc{im}(:,it) = p.R * ssim_mpc{im}(:,it-1) + ynetsim(:,simT);
             end
-            
-            % if negative shock, deal with households at bottom of their cash
-            % grid by setting MPC to one and cash to bottom of grid
-            if mpcamount{im} < 0
-                set_mpc_one = false(p.Nsim,4);
-                    for ib = 1:p.nb
-                    for iyF = 1:p.nyF
-                    for iyP = 1:p.nyP
-                        idx = yPindsim(:,it)==iyP & yFindsim(:,it)==iyF & betaindsim(:,it)==ib;
-                        idx = idx & xsim_mpc{im}(:,it)<=xgrid.orig_wide(1,iyP,iyF,ib);
-                        xsim_mpc{im}(idx,it) = xgrid.orig_wide(1,iyP,iyF,ib);
-                        
-                        % create mask for housholds whose MPC must be set
-                        % to one
-                        set_mpc_one(:,it) = set_mpc_one(:,it) | idx;
-                    end
-                    end
-                    end
-            end
-            
+
             for iyF = 1:p.nyF
             for ib = 1:p.nb
             for iyP = 1:p.nyP
-                idx = yPindsim(:,p.Tsim-4+it)==iyP & betaindsim(:,p.Tsim-4+it)==ib & yFindsim(:,p.Tsim-4+it)==iyF;
+                below_grid = xsim_mpc{im}(:,it)<xgrid.orig_wide(1,iyP,iyF,ib);
+                idx = yPindsim(:,simT)==iyP & betaindsim(:,simT)==ib & yFindsim(:,simT)==iyF;
+                % if shock is negative, deal with households that wind up
+                % below the bottom of their asset grid
+                if mpcamount{im} < 0
+                    idx_below = idx & below_grid;
+                    xsim_mpc{im}(idx_below,it) = xgrid.orig_wide(1,iyP,iyF,ib);
+                    % will need to set their MPCs to one
+                    set_mpc_one(:,it) = set_mpc_one(:,it) | idx_below;
+                end
                 ssim_mpc{im}(idx,it) = simulationstruct.savinterp{iyP,iyF,ib}(xsim_mpc{im}(idx,it));
             end
             end
@@ -51,7 +43,7 @@ function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPinds
             if p.WealthInherited == 0
                 % set saving equal to 0 if hh dies at end of this period. In it+1,
                 % household will have x = net income
-                ssim_mpc{im}(diesim(:,p.Tsim-4+it)==1,it) = 0;
+                ssim_mpc{im}(diesim(:,simT)==1,it) = 0;
             end
         end
         

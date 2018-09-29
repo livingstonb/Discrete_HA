@@ -51,8 +51,8 @@ prms(1).nyF         = 1;
 prms(1).sd_logyF    = 0;
 
 % cash on hand / savings grid
-prms(1).nx          = 500;
-prms(1).xmax        = 1000;  % need high if using high-variance income shocks
+prms(1).nx          = 1000;
+prms(1).xmax        = 500;  % need high if using high-variance income shocks
 prms(1).xgrid_par   = 0.2; %1 for linear, 0 for L-shaped
 prms(1).borrow_lim  = 0;
 
@@ -65,7 +65,7 @@ prms(1).savtax          = 0; %0.0001;  %tax rate on savings
 prms(1).savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks;
-prms(1).nb          = 2;  %1 or 2
+prms(1).nb          = 1;  %1 or 2
 prms(1).betawidth   = 0.02; % beta +/- beta width
 prms(1).betaswitch  = 1/50; %0;
 
@@ -95,7 +95,7 @@ prms(1).mpcfrac{6}  = 0.05; % 5 percent of average gross labor income: approx $5
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 0;
-prms(1).ComputeDistMPC      = 1;
+prms(1).ComputeDistMPC      = 0;
 prms(1).ComputeSimMPC       = 1;
 prms(1).SolveDeterministic  = 0;
 prms(1).Simulate            = 1;
