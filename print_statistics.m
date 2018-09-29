@@ -107,7 +107,7 @@ function print_statistics(results,simulations,p)
         disp([msg direct]);
     end
     
-    %% Other
+    %% OTHER
     fprintf('\nOTHER: \n')
     if p.IterateBeta
         disp(['    Beta = ' num2str(results.beta) ' (found by iteration)']);

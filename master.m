@@ -22,7 +22,7 @@ prms(1).r           = 0.02;
 prms(1).dieprob     = 1/50;
 
 % preferences
-prms(1).risk_aver   = 1;
+prms(1).risk_aver   = 0.7;
 prms(1).beta0       = 0.97;
 prms(1).temptation  = 0;
 prms(1).betaL       = 0.80;
@@ -51,8 +51,8 @@ prms(1).nyF         = 1;
 prms(1).sd_logyF    = 0;
 
 % cash on hand / savings grid
-prms(1).nx          = 1000;
-prms(1).xmax        = 500;  % need high if using high-variance income shocks
+prms(1).nx          = 200;
+prms(1).xmax        = 1000;  % need high if using high-variance income shocks
 prms(1).xgrid_par   = 0.2; %1 for linear, 0 for L-shaped
 prms(1).borrow_lim  = 0;
 
@@ -84,9 +84,9 @@ prms(1).tolAY       = 1.0e-4;
 prms(1).FastIter    = 1; % Use routine with low tolerance, small grid, until closer to target
 
 %mpc options
-prms(1).mpcfrac{1}  = -0.01; %approximate thoeretical mpc
-prms(1).mpcfrac{2}  = -0.001; % 1 percent of average gross labor income: approx $500
-prms(1).mpcfrac{3}  = -1e-5; % 5 percent of average gross labor income: approx $5000
+prms(1).mpcfrac{1}  = -1e-5; %approximate thoeretical mpc
+prms(1).mpcfrac{2}  = -1e-3;
+prms(1).mpcfrac{3}  = -1e-1;
 prms(1).mpcfrac{4}  = 1e-5; % approximate thoeretical mpc
 prms(1).mpcfrac{5}  = 0.01; % 1 percent of average gross labor income: approx $500
 prms(1).mpcfrac{6}  = 0.05; % 5 percent of average gross labor income: approx $5000

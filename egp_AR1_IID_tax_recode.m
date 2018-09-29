@@ -444,8 +444,8 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     end
         
     if p.ComputeDistMPC == 1
-        [xgridm,savm,results.avg_mpc1_alt,results.avg_mpc4,results.distMPCamount] ...
-            = mpc_forward(xgrid,p,income,basemodel,prefs);
+        [results.avg_mpc1_alt,results.avg_mpc4,results.distMPCamount] ...
+                = mpc_forward(xgrid,p,income,basemodel,prefs);
     end
     
     %% Print Results
