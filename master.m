@@ -22,7 +22,7 @@ prms(1).r           = 0.02;
 prms(1).dieprob     = 1/50;
 
 % preferences
-prms(1).risk_aver   = 0.7;
+prms(1).risk_aver   = 1;
 prms(1).beta0       = 0.97;
 prms(1).temptation  = 0;
 prms(1).betaL       = 0.80;
@@ -37,7 +37,7 @@ prms(1).WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
 prms(1).LoadIncomeProcess   = 0;
 prms(1).nyT                 = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
-% income normalization
+% income normalization, 1 or 0
 prms(1).NormalizeY  = 1;
 
 %only relevant if LoadIncomeProcess==0
@@ -94,10 +94,10 @@ prms(1).mpcfrac{6}  = 0.05; % 5 percent of average gross labor income: approx $5
 % OPTIONS
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
-prms(1).MakePlots           = 0;
-prms(1).ComputeDistMPC      = 0;
+prms(1).MakePlots           = 1;
+prms(1).ComputeDistMPC      = 1;
 prms(1).ComputeSimMPC       = 1;
-prms(1).SolveDeterministic  = 0;
+prms(1).SolveDeterministic  = 1;
 prms(1).Simulate            = 1;
 prms(1).PrintStats          = 1;
 

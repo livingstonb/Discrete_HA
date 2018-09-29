@@ -15,12 +15,15 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     
     %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER CHOICES
 
-    p.r = p.r/p.freq;
+    %p.r = p.r/p.freq;
     p.R = 1 + p.r;
+    p.R = p.R^(1/p.freq);
+    p.r = p.R - 1;
+    
     p.beta0 = p.beta0^(1/p.freq);
     p.dieprob = p.dieprob^(1/p.freq);
     p.betaswitch = p.betaswitch^(1/p.freq);
-    p.beta = p.betaL^(1/p.freq);
+    p.betaL = p.betaL^(1/p.freq);
     p.betaH = 1/((p.R)*(1-p.dieprob));
     
     if p.Simulate == 0 && p.ComputeSimMPC == 1
@@ -28,93 +31,11 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         disp('SimMPC turned off because Simulate == 0')
     end
     
-
-    %% INCOME GRIDS
-
-    %persistent income: rowenhurst
-    if p.LoadIncomeProcess == 1
-        logyPgrid = load('QuarterlyIncomeDynamics/TransitoryContinuous/logyPgrid.txt');
-        yPdist = load('QuarterlyIncomeDynamics/TransitoryContinuous/yPdist.txt');
-        yPtrans = load('QuarterlyIncomeDynamics/TransitoryContinuous/yPtrans.txt');
-        p.nyP = length(logyPgrid);
-        logyPgrid = logyPgrid';
-    elseif p.nyP>1
-        [logyPgrid, yPtrans, yPdist] = rouwenhorst(p.nyP, -0.5*p.sd_logyP^2, p.sd_logyP, p.rho_logyP);
-    else
-        logyPgrid = 0;
-        yPdist = 1;
-        yPtrans = 1;
-    end  
-
-    yPgrid = exp(logyPgrid);
-    yPcumdist = cumsum(yPdist,1);
-    yPcumtrans = cumsum(yPtrans,2);
-    
-    if size(yPgrid,2)>1
-        error('yPgrid is a row vector, must be column vector')
-    end
-    if size(yPdist,2)>1
-        error('yPdist is a row vector, must be column vector')
-    end
-    
-
-    % transitory income: disretize normal distribution
-    if p.LoadIncomeProcess == 1
-        p.sig2T = load('QuarterlyIncomeDynamics/TransitoryContinuous/sig2T.txt');
-        p.lambdaT = load('QuarterlyIncomeDynamics/TransitoryContinuous/lambdaT.txt');
-    end
-
-    if p.nyT>1
-
-        %moments of mixture distribution
-        lmu2 = p.lambdaT.*p.sd_logyT^2;
-        lmu4 = 3.*p.lambdaT.*(p.sd_logyT^4);
-
-        %fit thjose moments
-        optionsNLLS = optimoptions(@lsqnonlin,'Display','Off');
-        lpar = lsqnonlin(@(lp)discretize_normal_var_kurt(lp,p.nyT,lmu2,lmu4),[2 0.1],[],[],optionsNLLS);
-        [lf,lx,lp] = discretize_normal_var_kurt(lpar,p.nyT,lmu2,lmu4);
-        logyTgrid = lx;
-        yTdist = lp;
-        yTcumdist = cumsum(yTdist,1);
-
-    elseif nyT==1
-        logyTgrid = 0;
-        yTdist = 1;
-    end
-    
-    yTgrid = exp(logyTgrid);
-    
-    if size(yTgrid,2)>1
-        error('yTgrid is a row vector, must be column vector')
-    end
-    if size(yTdist,2)>1
-        error('yTdist is a row vector, must be column vector')
-    end
-
-    % fixed effect
-    if p.nyF>1
-        width = fzero(@(x)discrete_normal(p.nyF,-0.5*p.sd_logyF^2 ,p.sd_logyF ,x),2);
-        [~,logyFgrid,yFdist] = discrete_normal(p.nyF,-0.5*p.sd_logyF^2 ,p.sd_logyF ,width);
-    elseif p.nyF==1
-        logyFgrid = 0;
-        yFdist = 1;
-    end
-    yFgrid = exp(logyFgrid);
-    yFcumdist = cumsum(yFdist,1);
-
-    if size(yFgrid,2)>1
-        error('yFgrid is a row vector, must be column vector')
-    end
-    if size(yFdist,2)>1
-        error('yFdist is a row vector, must be column vector')
-    end
-
-    % transition probabilities for yP-yF combined grid
-    ytrans = kron(eye(p.nyF),yPtrans);
-
-    % length of full xgrid
     p.N = p.nx*p.nyF*p.nyP*p.nb;
+
+    %% LOAD INCOME
+
+    income = gen_income_variables(p);
 
     %% DISCOUNT FACTOR
 
@@ -140,8 +61,9 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     prefs.betacumtrans = cumsum(prefs.betatrans,2);
     
 
-    %% ASSET AND INCOME GRIDS
+    %% ASSET GRIDS
 
+    % savings grid
     sgrid.orig = linspace(0,1,p.nx)';
     sgrid.orig = sgrid.orig.^(1./p.xgrid_par);
     sgrid.orig = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid.orig;
@@ -150,58 +72,14 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     sgrid.wide = repmat(sgrid.short,[1 p.nyP p.nyF p.nb]);
     p.ns = p.nx;
 
-    % construct matrix of y combinationsx
-    ymat = repmat(yPgrid,p.nyF,1) .* kron(yFgrid,ones(p.nyP,1)) * yTgrid';
-
-    % distribution of ymat (values are repeated nb*nx times)
-    ymatdist = repmat(yPdist,p.nyF,1) .* kron(yFdist,ones(p.nyP,1)) * yTdist';
-
-    % find mean y
-    % isolate unique (yT,yF,yP) combinations
-    temp = sortrows([ymat(:) ymatdist(:)],1);
-    ysort = temp(:,1);
-    ysortdist = temp(:,2);
-    ycumdist = cumsum(ysortdist);
-    meany = ymat(:)'*ymatdist(:);
-    original_meany = meany;
-    
-    % normalize gross income to have ap.nxlongual mean 1
-    if p.NormalizeY == 1
-        ymat = ymat/(meany*p.freq);
-        ysort = ysort/(meany*p.freq);
-        meany = 1/p.freq;
-    end
-    totgrossy = meany;
-
-    % find tax threshold on labor income
-    if numel(ysort)>1
-        labtaxthresh = lininterp1(ycumdist,ysort,p.labtaxthreshpc);
-    else
-        labtaxthresh = 0;
-    end    
-
-    % find net income
-    totgrossyhigh = max(ymat(:)-labtaxthresh,0)'*ymatdist(:);
-    lumptransfer = p.labtaxlow*totgrossy + p.labtaxhigh*totgrossyhigh;
-    % netymat is N by nyT matrix
-    netymat = lumptransfer + (1-p.labtaxlow)*ymat - p.labtaxhigh*max(ymat-labtaxthresh,0);
-    meannety = netymat(:)'*ymatdist(:);
-
     % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
     % cash on hand grid: different min points for each value of (iyP,iyF)
-    minyT = repmat(kron(min(netymat,[],2),ones(p.nx,1)),p.nb,1);
+    minyT = repmat(kron(min(income.netymat,[],2),ones(p.nx,1)),p.nb,1);
     xgrid.orig = sgrid.wide(:) + minyT;
     xgrid.orig_wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF p.nb]);
-    xgrid.norisk_short = sgrid.short + meannety;
+    xgrid.norisk_short = sgrid.short + income.meannety;
     xgrid.norisk_wide = repmat(xgrid.norisk_short,1,p.nb);
     
-    % Store income variables in a structure
-    newfields = {'ymat','netymat','meany','original_meany','yPgrid',...
-        'yTgrid','yFgrid','yPdist','yTdist','yFdist','yPcumtrans',...
-        'yPtrans','yPcumdist','yFcumdist','yTcumdist','ytrans','meannety'};
-    for i = 1:numel(newfields)
-        income.(newfields{i}) = eval(newfields{i});
-    end
 
     %% UTILITY FUNCTION, BEQUEST FUNCTION
 
@@ -240,17 +118,17 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     
     %% Store important moments
     
-    ymat_onxgrid = repmat(kron(ymat,ones(p.nxlong,1)),p.nb,1);
-    netymat_onxgrid = repmat(kron(netymat,ones(p.nxlong,1)),p.nb,1);
+    ymat_onlonggrid = repmat(kron(income.ymat,ones(p.nxlong,1)),p.nb,1);
+    netymat_onlonggrid = repmat(kron(income.netymat,ones(p.nxlong,1)),p.nb,1);
     
     results.mean_s = basemodel.sav_longgrid' * basemodel.SSdist;
     results.mean_x = xgrid.longgrid(:)' * basemodel.SSdist;
-    results.mean_grossy = (ymat_onxgrid*yTdist)' * basemodel.SSdist;
-    results.mean_loggrossy = (log(ymat_onxgrid)*yTdist)' * basemodel.SSdist;
-    results.mean_nety = (netymat_onxgrid*yTdist)' * basemodel.SSdist;
-    results.mean_lognety = (log(netymat_onxgrid)*yTdist)' * basemodel.SSdist;
-    results.var_loggrossy = basemodel.SSdist' * (log(ymat_onxgrid) - results.mean_loggrossy).^2 * yTdist;
-    results.var_lognety = basemodel.SSdist' * (log(netymat_onxgrid)- results.mean_lognety).^2 * yTdist;
+    results.mean_grossy = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
+    results.mean_loggrossy = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
+    results.mean_nety = (netymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
+    results.mean_lognety = (log(netymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
+    results.var_loggrossy = basemodel.SSdist' * (log(ymat_onlonggrid) - results.mean_loggrossy).^2 * income.yTdist;
+    results.var_lognety = basemodel.SSdist' * (log(netymat_onlonggrid)- results.mean_lognety).^2 * income.yTdist;
     
     if p.WealthInherited == 1
         results.mean_x_check = p.R*results.mean_s + results.mean_nety;
@@ -277,7 +155,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     if abs((income.meannety-results.mean_nety)/income.meannety) > 1e-3
         results.issues = [results.issues,'BadNetIncomeMean'];
     end
-    if norm(yPdist_check-yPdist) > 1e-3
+    if norm(yPdist_check-income.yPdist) > 1e-3
         results.issues = [results.issues,'Bad_yP_Dist'];
     end
     if min(basemodel.SSdist) < - 1e-3
@@ -298,21 +176,6 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     results.p90wealth = wealthps(4);
     results.p99wealth = wealthps(5);
     
-    % create histogram of asset holdings
-    binwidth = 0.25;
-    bins = 0:binwidth:p.xmax;
-    values = zeros(p.xmax+1,1);
-    ibin = 1;
-    for bin = bins
-        if bin < p.xmax
-            idx = (basemodel.sav_longgrid_sort>=bin) & (basemodel.sav_longgrid_sort<bin+binwidth);
-        else
-            idx = (basemodel.sav_longgrid_sort>=bin) & (basemodel.sav_longgrid_sort<=bin+binwidth);
-        end
-        values(ibin) = sum(basemodel.SSdist_sort(idx));
-        ibin = ibin + 1;
-    end
-    
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model
     if p.SolveDeterministic == 1
@@ -322,98 +185,17 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% SIMULATIONS
     % Full model
     if p.Simulate == 1
-        [simulations,ssim] = simulate(p,income,labtaxthresh,basemodel,...
-                                        xgrid,lumptransfer,prefs,results);
+        simulations = simulate(p,income,basemodel,xgrid,prefs,results);
     else
         simulations =[];
     end
     results.simulations = simulations;
 
     %% MAKE PLOTS
-   
-
+  
     if p.MakePlots ==1 
-
-     figure(1);
-
-        %plot for median fixed effect
-        if mod(p.nyF,2)==1
-            iyF = (p.nyF+1)/2;
-        else
-            iyF = p.nyF/2;
-        end
-
-        % plot for first beta
-        iyb = 1;
-        % if nb = 1, force plot of first beta
-        if p.nb == 1
-            iyb = 1;
-        end
-
-        % consumption policy function
-        subplot(2,4,1);
-        plot(xgrid.orig_wide(:,1,iyF,iyb),basemodel.con_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),basemodel.con_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
-        grid;
-        xlim([p.borrow_lim p.xmax]);
-        title('Consumption Policy Function');
-        legend('Lowest income state','Highest income state');
-
-        % savings policy function
-        subplot(2,4,2);
-        plot(xgrid.orig_wide(:,1,iyF,iyb),basemodel.sav_wide(:,1,iyF,iyb)./xgrid.orig_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),basemodel.sav_wide(:,p.nyP,iyF,iyb)./xgrid.orig_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
-        hold on;
-        plot(sgrid.short,ones(p.nx,1),'k','LineWidth',0.5);
-        hold off;
-        grid;
-        xlim([p.borrow_lim p.xmax]);
-        title('Savings Policy Function s/x');
-
-        % consumption policy function: zoomed in
-        subplot(2,4,3);
-        plot(xgrid.orig_wide(:,1,iyF),basemodel.con_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),basemodel.con_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',2);
-        grid;
-        xlim([0 4]);
-        title('Consumption: Zoomed');
-
-         % savings policy function: zoomed in
-        subplot(2,4,4);
-        plot(xgrid.orig_wide(:,1,iyF,iyb),basemodel.sav_wide(:,1,iyF,iyb)./xgrid.orig_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),basemodel.sav_wide(:,p.nyP,iyF,iyb)./xgrid.orig_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',2);
-        hold on;
-        plot(sgrid.short,ones(p.nx,1),'k','LineWidth',0.5);
-        hold off;
-        grid;
-        xlim([0 4]);
-        title('Savings (s/x): Zoomed');
-        
-         % gross income distribution
-        subplot(2,4,5);
-        b = bar(ysort,ysortdist);
-        b.FaceColor = 'blue';
-        b.EdgeColor = 'blue';
-        grid;
-        xlim([0 10]);
-        title('Gross Income PMF');
-        
-         % asset distribution
-        subplot(2,4,6);
-        b = bar(bins,values);
-        b.FaceColor = 'blue';
-        b.EdgeColor = 'blue';
-        grid;
-        xlim([-0.4 10]);
-        ylim([0 1]);
-        title('Asset PMF, Bip.nxlonged');
-
-         % simulation convergence
-        if p.Simulate == 1
-            subplot(2,4,7);
-            plot(1:p.Tsim,mean(ssim),'b','LineWidth',2);
-            grid;
-            xlim([0 p.Tsim]);
-            title('Mean savings (sim)');
-        end
+        makeplots(p,xgrid,sgrid,basemodel,income,simulations);
     end 
- 
     
     %% MPCS
     

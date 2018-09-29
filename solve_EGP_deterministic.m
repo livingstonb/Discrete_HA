@@ -43,7 +43,7 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,...
 
         con = xgrid.norisk_wide - sav - p.savtax * max(sav - p.savtaxthresh,0);
         
-        cdiff = max(abs(con(:)-conlast(:)))
+        cdiff = max(abs(con(:)-conlast(:)));
         if p.Display >=1 && mod(iter,50) ==0
             disp([' EGP Iteration (no risk) ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end

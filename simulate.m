@@ -1,5 +1,5 @@
-function [simulations,ssim] = simulate(p,income,labtaxthresh,model,...
-                                        xgrid,lumptransfer,prefs,results)
+function simulations = simulate(p,income,model,...
+                                        xgrid,prefs,results)
     
     
     grossysim = zeros(p.Nsim,p.Tsim);
@@ -70,7 +70,7 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,model,...
     end
     
     % net income
-    ynetsim = lumptransfer + (1-p.labtaxlow)*ygrosssim - p.labtaxhigh*max(ygrosssim-labtaxthresh,0);
+    ynetsim = income.lumptransfer + (1-p.labtaxlow)*ygrosssim - p.labtaxhigh*max(ygrosssim-income.labtaxthresh,0);
     
     %% Simulate beta
     betarand = rand(p.Nsim,p.Tsim);
@@ -162,7 +162,7 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,model,...
     [simulations.avg_mpc1,simulations.avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
                     betaindsim,income,model,xgrid);
     
-    %% Moments
+    %% Moments/important quantities
     simulations.mean_s = mean(ssim(:,p.Tsim));
     simulations.mean_x = mean(xsim(:,p.Tsim));
     simulations.frac_constrained = mean(ssim(:,p.Tsim)<=p.borrow_lim);
@@ -179,5 +179,7 @@ function [simulations,ssim] = simulate(p,income,labtaxthresh,model,...
     simulations.p50wealth = quantile(ssim(:,p.Tsim),0.5);
     simulations.p90wealth = quantile(ssim(:,p.Tsim),0.9);
     simulations.p99wealth = quantile(ssim(:,p.Tsim),0.99);
+    
+    simulations.ssim = ssim;
 
 end
