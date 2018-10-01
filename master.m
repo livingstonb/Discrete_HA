@@ -96,7 +96,7 @@ prms(1).percentiles = [10 25 50 75 90 95 99]; % in percent
 % OPTIONS
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
-prms(1).MakePlots           = 0;
+prms(1).MakePlots           = 1;
 prms(1).ComputeDirectMPC    = 0;
 prms(1).SolveDeterministic  = 1;
 prms(1).Simulate            = 1;

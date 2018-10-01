@@ -85,7 +85,7 @@ function makeplots(p,xgrid,sgrid,basemodel,income,simulations)
     grid;
     xlim([-0.4 10]);
     ylim([0 1]);
-    title('Asset PMF, Bip.nxlonged');
+    title('Asset Histogram');
 
      % simulation convergence
     if p.Simulate == 1

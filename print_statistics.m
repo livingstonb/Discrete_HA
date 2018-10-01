@@ -44,8 +44,8 @@ function print_statistics(results,simulations,p)
         sim10 = sprintf(', %5.3f (Simulation)',simulations.top10share);
         sim1 = sprintf(', %5.3f (Simulation)',simulations.top1share);
     end
-    disp(['    Top 10%% share:' direct10 sim10])
-    disp(['    Top  1%% share:' direct1 sim1])
+    disp(['    Top 10% share:' direct10 sim10])
+    disp(['    Top  1% share:' direct1 sim1])
     
     
     %% Income Distribution
