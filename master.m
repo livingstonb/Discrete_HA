@@ -81,7 +81,7 @@ prms(1).maxiterAY   = 20;
 prms(1).tolAY       = 1.0e-4;
 prms(1).FastIter    = 1; % 1 to use routine with low tolerance, small grid, until closer to target
 
-%mpc options
+% mpc options
 prms(1).mpcfrac{1}  = -1e-5; %approximate thoeretical mpc
 prms(1).mpcfrac{2}  = -0.01;
 prms(1).mpcfrac{3}  = -0.05;
@@ -89,15 +89,15 @@ prms(1).mpcfrac{4}  = 1e-5; % approximate thoeretical mpc
 prms(1).mpcfrac{5}  = 0.01; % 1 percent of average gross labor income: approx $500
 prms(1).mpcfrac{6}  = 0.05; % 5 percent of average gross labor income: approx $5000
 
-% constrained options
-prms(1).epsilon = [0 0.005 0.01 0.02 0.05 0.1];
+% wealth statistics options
+prms(1).epsilon = [0 0.005 0.01 0.02 0.05 0.1]; % fraction of mean labor income
+prms(1).percentiles = [10 25 50 75 90 95 99]; % in percent
 
 % OPTIONS
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 0;
 prms(1).ComputeDirectMPC    = 0;
-prms(1).ComputeSimMPC       = 1;
 prms(1).SolveDeterministic  = 1;
 prms(1).Simulate            = 1;
 prms(1).PrintStats          = 1;

@@ -131,16 +131,22 @@ function simulations = simulate(p,income,model,...
     simulations.var_lognety = var(log(ynetsim(:,p.Tsim)));
     simulations.frac_less5perc_labincome = mean(ssim(:,p.Tsim)<0.05);
     
-    simulations.p10wealth = quantile(ssim(:,p.Tsim),0.1);
-    simulations.p25wealth = quantile(ssim(:,p.Tsim),0.25);
-    simulations.p50wealth = quantile(ssim(:,p.Tsim),0.5);
-    simulations.p90wealth = quantile(ssim(:,p.Tsim),0.9);
-    simulations.p99wealth = quantile(ssim(:,p.Tsim),0.99);
+    for i = 1:numel(p.percentiles)
+        simulations.wpercentiles(i) = quantile(ssim(:,p.Tsim),p.percentiles(i)/100);
+    end
     
     % fraction constrained
     for i = 1:numel(p.epsilon)
-        simulations.constrained(i) = mean(ssim(:,p.Tsim)<=p.borrow_lim+p.epsilon(i));
+        simulations.constrained(i) = mean(ssim(:,p.Tsim)<=p.borrow_lim+p.epsilon(i)*income.meany*p.freq);
     end
+    
+    % top shares
+    top10w = quantile(ssim(:,p.Tsim),0.9);
+    top1w  = quantile(ssim(:,p.Tsim),0.99);
+    idxtop10 = ssim(:,p.Tsim) > top10w;
+    idxtop1 = ssim(:,p.Tsim) > top1w;
+    simulations.top10share = sum(ssim(idxtop10,p.Tsim))/sum(ssim(:,p.Tsim));
+    simulations.top1share  = sum(ssim(idxtop1,p.Tsim))/sum(ssim(:,p.Tsim));
     
     simulations.assetconv = mean(ssim);
 

@@ -21,7 +21,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     results.issues = {};
     simulations = struct();
     
-    %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER CHOICES
+    %% ADJUST PARAMETERS FOR DATA FREQUENCY
 
     p.R = 1 + p.r;
     p.R = p.R^(1/p.freq);
@@ -35,11 +35,6 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     p.targetAY      = p.targetAY/p.freq;
     p.savtax        = p.savtax/p.freq;
     p.Tsim          = p.Tsim * p.freq;
-    
-    if p.Simulate == 0 && p.ComputeSimMPC == 1
-        p.ComputeSimMPC = 0;
-        disp('SimMPC turned off because Simulate == 0')
-    end
     
     p.N = p.nx*p.nyF*p.nyP*p.nb;
 
@@ -184,23 +179,27 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     for i = 1:numel(p.epsilon)        
         % create interpolant to find fraction of constrained households
         [sav_unique,ind] = unique(basemodel.sav_longgrid_sort,'last');
-        constrainedinterp = griddedInterpolant(sav_unique,basemodel.SScumdist(ind),'linear');
+        wpinterp = griddedInterpolant(sav_unique,basemodel.SScumdist(ind),'linear');
         if p.epsilon(i) == 0
             % get exact figure
             results.constrained(i) = basemodel.SSdist' * (basemodel.sav_longgrid == 0);
         else
-            results.constrained(i) = constrainedinterp(p.borrow_lim + p.epsilon(i)*income.meany*p.freq);
+            results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany*p.freq);
         end
     end
     
-    % wealth percentiles;
-    percentiles = [0.1 0.25 0.5 0.9 0.99];
-    wealthps = interp1(basemodel.SScumdist_unique,basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind),percentiles,'linear');
-    results.p10wealth = wealthps(1);
-    results.p25wealth = wealthps(2);
-    results.p50wealth = wealthps(3);
-    results.p90wealth = wealthps(4);
-    results.p99wealth = wealthps(5);
+    % wealth percentiles
+    results.wpercentiles = interp1(basemodel.SScumdist_unique,basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind),p.percentiles/100,'linear');
+    
+    % top shares
+    % fraction of total savings that reside in each pt on asset space
+    totsav = basemodel.SSdist_sort .* basemodel.sav_longgrid_sort;
+    cumsav = cumsum(totsav)/ results.mean_s;
+    cumsav = cumsav(basemodel.SScumdist_uniqueind);
+    % create interpolant from wealth percentile to cumulative wealth share
+    cumwealthshare = griddedInterpolant(basemodel.SScumdist_unique,cumsav,'linear');
+    results.top10share = 1 - cumwealthshare(0.9);
+    results.top1share = 1 - cumwealthshare(0.99);
     
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model

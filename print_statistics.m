@@ -28,26 +28,26 @@ function print_statistics(results,simulations,p)
     end
     
     % Percentiles
-    direct10 = sprintf(' %2.3f (Direct Comp)',results.p10wealth);
-    direct25 = sprintf(' %2.3f (Direct Comp)',results.p25wealth);
-    direct50 = sprintf(' %2.3f (Direct Comp)',results.p50wealth);
-    direct90 = sprintf(' %2.3f (Direct Comp)',results.p90wealth);
-    direct99 = sprintf(' %2.3f (Direct Comp)',results.p99wealth);
-    if p.Simulate == 1
-        sim10 = sprintf(', %2.3f (Simulation)',simulations.p10wealth);
-        sim25 = sprintf(', %2.3f (Simulation)',simulations.p25wealth);
-        sim50 = sprintf(', %2.3f (Simulation)',simulations.p50wealth);
-        sim90 = sprintf(', %2.3f (Simulation)',simulations.p90wealth);
-        sim99 = sprintf(', %2.3f (Simulation)',simulations.p99wealth);
-    else
-        sim10 =[]; sim25 =[]; sim50 =[]; sim90 =[]; sim99 =[];
+    for i = 1:numel(p.percentiles)
+        label = sprintf('    %ith percentile:',p.percentiles(i));
+        direct = sprintf(' %4.3f (Direct)',results.wpercentiles(i));
+        if p.Simulate == 1
+            sim = sprintf(', %4.3f (Simulation)',simulations.wpercentiles(i));
+        end
+        disp([label direct sim]);
     end
-    disp(['    10th percentile:' direct10 sim10]);
-    disp(['    25th percentile:' direct25 sim25]);
-    disp(['    50th percentile:' direct50 sim50]);    
-    disp(['    90th percentile:' direct90 sim90]);
-    disp(['    99th percentile:' direct99 sim99]);
-
+    
+    % Top shares
+    direct10 = sprintf(' %5.3f (Direct)',results.top10share);
+    direct1  = sprintf(' %5.3f (Direct)',results.top1share);
+    if p.Simulate == 1
+        sim10 = sprintf(', %5.3f (Simulation)',simulations.top10share);
+        sim1 = sprintf(', %5.3f (Simulation)',simulations.top1share);
+    end
+    disp(['    Top 10%% share:' direct10 sim10])
+    disp(['    Top  1%% share:' direct1 sim1])
+    
+    
     %% Income Distribution
     fprintf('\nINCOME DISTRIBUTION: \n')
     fprintf('  Cross-sectional variances\n')
@@ -75,7 +75,7 @@ function print_statistics(results,simulations,p)
         else
             direct = ' --- (Direct Comp) ';
         end
-        if p.ComputeSimMPC == 1
+        if p.Simulate == 1
             sim = sprintf(', %2.3f (Simulation)',simulations.avg_mpc1{i});
         else
             sim = ', --- (Simulation) ';
@@ -89,7 +89,7 @@ function print_statistics(results,simulations,p)
     fprintf('  4-Period MPCs\n')
     for i = 1:size(results.mpcamount,2)
         direct = ' --- (Direct Comp) ';
-        if p.ComputeSimMPC == 1
+        if p.Simulate == 1
             sim = sprintf(', %2.3f (Simulation)',simulations.avg_mpc4{i});
         else
             sim = ', --- (Simulation) ';
