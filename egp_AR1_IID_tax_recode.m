@@ -18,7 +18,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     % income - stores objects from the income process
     % prefs - stores objects related to preferences
     
-    results.isses = {};
+    results.issues = {};
     simulations = struct();
     
     %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER CHOICES
@@ -36,7 +36,6 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     p.savtax        = p.savtax/p.freq;
     p.Tsim          = p.Tsim * p.freq;
     
-    
     if p.Simulate == 0 && p.ComputeSimMPC == 1
         p.ComputeSimMPC = 0;
         disp('SimMPC turned off because Simulate == 0')
@@ -53,7 +52,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
 
     %% DISCOUNT FACTOR
 
-    %initial discount factor grid
+    % discount factor distribution
     if  p.nb == 1
         prefs.betadist = 1;
         prefs.betatrans = 1;
@@ -74,7 +73,6 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     sgrid.orig = sgrid.orig.^(1./p.xgrid_par);
     sgrid.orig = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid.orig;
     sgrid.short = sgrid.orig;
-    % sgrid.norisk_wide = repmat(sgrid.short,[1 p.nb]);
     sgrid.wide = repmat(sgrid.short,[1 p.nyP p.nyF]);
     p.ns = p.nx;
 
@@ -84,7 +82,6 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     xgrid.orig = sgrid.wide(:) + minyT;
     xgrid.orig_wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
     xgrid.norisk_short = sgrid.short + income.meannety;
-    xgrid.norisk_wide = xgrid.norisk_short;
     
 
     %% UTILITY FUNCTION, BEQUEST FUNCTION
@@ -105,6 +102,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% MODEL SOLUTION
 
     if p.IterateBeta == 1
+        % Pass to function that will speed up iteration
         [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income);
         if exitflag ~= 1
             results.issues{end+1} = 'NoBetaConv';
@@ -122,7 +120,8 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     results.betaannual = beta^p.freq;
     results.betaquarterly = results.betaannual^(1/4);
 
-    % Use final beta to get policy functions and distribution
+    % Use final beta to get policy functions and distribution, with a
+    % larger grid and higher tolerance for ergodic distribution
     ergodic_tol = 1e-7;
     [~,basemodel,xgrid.longgrid] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
                                             ergodic_tol,income,p.nxlong);
@@ -134,7 +133,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
                                         
     xgrid.longgrid_wide = reshape(xgrid.longgrid,[p.nxlong,p.nyP,p.nyF]);
     
-    %% Store important moments
+    %% IMPORTANT MOMENTS
     
     ymat_onlonggrid = repmat(kron(income.ymat,ones(p.nxlong,1)),p.nb,1);
     netymat_onlonggrid = repmat(kron(income.netymat,ones(p.nxlong,1)),p.nb,1);
@@ -153,10 +152,10 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     else
         results.mean_x_check = p.R*(1-p.dieprob)*results.mean_s + results.mean_nety;
     end
-    temp = permute(basemodel.SSdist_wide,[2 1 3 4]);
     % reconstruct yPdist from computed stationary distribution for error
     % checking
-    yPdist_check = sum(sum(sum(temp,4),3),2);
+    yPdist_check = reshape(basemodel.SSdist_wide,[p.nxlong p.nyP p.nyF*p.nb]);
+    yPdist_check = sum(sum(yPdist_check,3),1)';
     
 
     %% Store problems
@@ -179,12 +178,24 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
 
     %% WEALTH DISTRIBUTION
     
-    results.frac_constrained = (basemodel.sav_longgrid<=p.borrow_lim)' * basemodel.SSdist;
-    results.frac_less5perc_labincome = (basemodel.sav_longgrid<0.05*income.meany)' * basemodel.SSdist;
+    % create values for fraction constrained at every pt in asset space,
+    % defining constrained as a <= epsilon * mean annual gross labor income 
+    % + borrowing limit
+    for i = 1:numel(p.epsilon)        
+        % create interpolant to find fraction of constrained households
+        [sav_unique,ind] = unique(basemodel.sav_longgrid_sort,'last');
+        constrainedinterp = griddedInterpolant(sav_unique,basemodel.SScumdist(ind),'linear');
+        if p.epsilon(i) == 0
+            % get exact figure
+            results.constrained(i) = basemodel.SSdist' * (basemodel.sav_longgrid == 0);
+        else
+            results.constrained(i) = constrainedinterp(p.borrow_lim + p.epsilon(i)*income.meany*p.freq);
+        end
+    end
+    
     % wealth percentiles;
     percentiles = [0.1 0.25 0.5 0.9 0.99];
-    [basemodel.SSdist_unique,iu] = unique(basemodel.SScumdist);
-    wealthps = interp1(basemodel.SSdist_unique,basemodel.sav_longgrid_sort(iu),percentiles,'linear');
+    wealthps = interp1(basemodel.SScumdist_unique,basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind),percentiles,'linear');
     results.p10wealth = wealthps(1);
     results.p25wealth = wealthps(2);
     results.p50wealth = wealthps(3);
@@ -202,9 +213,8 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     if p.Simulate == 1
         simulations = simulate(p,income,basemodel,xgrid,prefs);
     else
-        simulations =[];
+        simulations = struct();
     end
-    results.simulations = simulations;
 
     %% MAKE PLOTS
   
@@ -242,7 +252,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         
     if p.ComputeDirectMPC == 1
         [results.avg_mpc1_alt,results.avg_mpc4,results.distMPCamount] ...
-                = mpc_direct(xgrid,p,income,basemodel,prefs);
+                = fourperiodmpc(xgrid,p,income,basemodel,prefs);
     end
     
     %% Print Results

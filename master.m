@@ -13,7 +13,7 @@ cd(path);
 prms = struct();
 
 % data frequency
-prms(1).freq        = 4; % 1 for yearly, 4 for quarterly
+prms(1).freq        = 1; % 1 for yearly, 4 for quarterly
 
 % returns
 prms(1).r           = 0.02;
@@ -89,12 +89,15 @@ prms(1).mpcfrac{4}  = 1e-5; % approximate thoeretical mpc
 prms(1).mpcfrac{5}  = 0.01; % 1 percent of average gross labor income: approx $500
 prms(1).mpcfrac{6}  = 0.05; % 5 percent of average gross labor income: approx $5000
 
+% constrained options
+prms(1).epsilon = [0 0.005 0.01 0.02 0.05 0.1];
+
 % OPTIONS
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
-prms(1).MakePlots           = 1;
-prms(1).ComputeDirectMPC      = 0;
-prms(1).ComputeSimMPC       = 0;
+prms(1).MakePlots           = 0;
+prms(1).ComputeDirectMPC    = 0;
+prms(1).ComputeSimMPC       = 1;
 prms(1).SolveDeterministic  = 1;
 prms(1).Simulate            = 1;
 prms(1).PrintStats          = 1;

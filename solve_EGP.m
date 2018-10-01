@@ -245,6 +245,9 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     model.SSdist_sort = temp(:,2);
     model.SScumdist = cumsum(model.SSdist_sort);
     
+    % unique values on cumdist and their indices (needed for interpolants)
+    [model.SScumdist_unique,model.SScumdist_uniqueind] = unique(model.SScumdist,'last');
+    
     mean_s = model.SSdist' * model.sav_longgrid;
 
     fprintf(' A/Y = %2.3f\n',mean_s/income.meany);

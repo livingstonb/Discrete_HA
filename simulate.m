@@ -115,8 +115,9 @@ function simulations = simulate(p,income,model,...
     
     %% MPCs
     
-    [simulations.avg_mpc1,simulations.avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
-                    betaindsim,income,model,xgrid);
+    [simulations.avg_mpc1,simulations.avg_mpc4,simulations.mpcs]...
+        = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
+                                            betaindsim,income,model,xgrid);
     
     %% Moments/important quantities
     simulations.mean_s = mean(ssim(:,p.Tsim));
@@ -135,6 +136,11 @@ function simulations = simulate(p,income,model,...
     simulations.p50wealth = quantile(ssim(:,p.Tsim),0.5);
     simulations.p90wealth = quantile(ssim(:,p.Tsim),0.9);
     simulations.p99wealth = quantile(ssim(:,p.Tsim),0.99);
+    
+    % fraction constrained
+    for i = 1:numel(p.epsilon)
+        simulations.constrained(i) = mean(ssim(:,p.Tsim)<=p.borrow_lim+p.epsilon(i));
+    end
     
     simulations.assetconv = mean(ssim);
 

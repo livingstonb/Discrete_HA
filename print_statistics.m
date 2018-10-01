@@ -17,32 +17,28 @@ function print_statistics(results,simulations,p)
     end
     disp(['    Mean wealth:' direct sim]);
     
-    % Borrowing constrained
-    direct  = sprintf(' %2.3f (Direct Comp),',results.frac_constrained);
-    if p.Simulate == 1
-        sim = sprintf(' %2.3f (Simulation)',simulations.frac_constrained);
+    % Borrowing constrained    
+    for i = 1:numel(p.epsilon)
+        label  = sprintf('    Fraction with a <= %3.1f%% mean ann gross inc:',p.epsilon(i)*100);
+        direct = sprintf(' %3.3f (Direct)',results.constrained(i));
+        if p.Simulate == 1
+            sim    = sprintf(', %3.3f (Simulation)',simulations.constrained(i));
+        end
+        disp([label direct sim])
     end
-    disp(['    Fraction constrained:' direct sim]);
-    
-    % Percent whose wealth is less than 5% labor income
-    direct = sprintf(' %2.3f (Direct Comp)',results.frac_less5perc_labincome);
-    if p.Simulate == 1
-        sim = sprintf(' %2.3f (Simulation)',simulations.frac_less5perc_labincome);
-    end
-    disp(['    Percent with wealth < 5 percent labinc:' direct sim]);
     
     % Percentiles
-    direct10 = sprintf(' %2.3f (Direct Comp),',results.p10wealth);
-    direct25 = sprintf(' %2.3f (Direct Comp),',results.p25wealth);
-    direct50 = sprintf(' %2.3f (Direct Comp),',results.p50wealth);
-    direct90 = sprintf(' %2.3f (Direct Comp),',results.p90wealth);
-    direct99 = sprintf(' %2.3f (Direct Comp),',results.p99wealth);
+    direct10 = sprintf(' %2.3f (Direct Comp)',results.p10wealth);
+    direct25 = sprintf(' %2.3f (Direct Comp)',results.p25wealth);
+    direct50 = sprintf(' %2.3f (Direct Comp)',results.p50wealth);
+    direct90 = sprintf(' %2.3f (Direct Comp)',results.p90wealth);
+    direct99 = sprintf(' %2.3f (Direct Comp)',results.p99wealth);
     if p.Simulate == 1
-        sim10 = sprintf(' %2.3f (Simulation)',simulations.p10wealth);
-        sim25 = sprintf(' %2.3f (Simulation)',simulations.p25wealth);
-        sim50 = sprintf(' %2.3f (Simulation)',simulations.p50wealth);
-        sim90 = sprintf(' %2.3f (Simulation)',simulations.p90wealth);
-        sim99 = sprintf(' %2.3f (Simulation)',simulations.p99wealth);
+        sim10 = sprintf(', %2.3f (Simulation)',simulations.p10wealth);
+        sim25 = sprintf(', %2.3f (Simulation)',simulations.p25wealth);
+        sim50 = sprintf(', %2.3f (Simulation)',simulations.p50wealth);
+        sim90 = sprintf(', %2.3f (Simulation)',simulations.p90wealth);
+        sim99 = sprintf(', %2.3f (Simulation)',simulations.p99wealth);
     else
         sim10 =[]; sim25 =[]; sim50 =[]; sim90 =[]; sim99 =[];
     end
@@ -56,16 +52,16 @@ function print_statistics(results,simulations,p)
     fprintf('\nINCOME DISTRIBUTION: \n')
     fprintf('  Cross-sectional variances\n')
     % Variance of log gross labor income
-    direct = sprintf(' %2.3f (Direct Comp),',results.var_loggrossy);
+    direct = sprintf(' %2.3f (Direct Comp)',results.var_loggrossy);
     if p.Simulate == 1
-        sim = sprintf(' %2.3f (Simulation)',simulations.var_loggrossy);
+        sim = sprintf(', %2.3f (Simulation)',simulations.var_loggrossy);
     end
     disp(['    Var Log Gross Earnings:' direct sim]);
     
     % Variance of log net labor income
-    direct = sprintf(' %2.3f (Direct Comp),',results.var_lognety);
+    direct = sprintf(' %2.3f (Direct Comp)',results.var_lognety);
     if p.Simulate == 1
-        sim = sprintf(' %2.3f (Simulation)',simulations.var_lognety);
+        sim = sprintf(', %2.3f (Simulation)',simulations.var_lognety);
     end
     disp(['    Var Log Net Earnings:' direct sim]);
     
@@ -74,15 +70,15 @@ function print_statistics(results,simulations,p)
     fprintf('  1-Period MPCs\n')
     % Average MPC, 1 period
     for i = 1:size(results.mpcamount,2)
-        if p.ComputeDistMPC == 1
-            direct = sprintf(' %2.3f (Direct Comp),',results.avg_mpc1{i});
+        if p.ComputeDirectMPC == 1
+            direct = sprintf(' %2.3f (Direct Comp)',results.avg_mpc1{i});
         else
             direct = ' --- (Direct Comp) ';
         end
         if p.ComputeSimMPC == 1
-            sim = sprintf(' %2.3f (Simulation)',simulations.avg_mpc1{i});
+            sim = sprintf(', %2.3f (Simulation)',simulations.avg_mpc1{i});
         else
-            sim = ' --- (Simulation) ';
+            sim = ', --- (Simulation) ';
         end
         
         label = sprintf('    MPC out of %4.2g of mean income:',results.mpcamount{i});
@@ -94,9 +90,9 @@ function print_statistics(results,simulations,p)
     for i = 1:size(results.mpcamount,2)
         direct = ' --- (Direct Comp) ';
         if p.ComputeSimMPC == 1
-            sim = sprintf(' %2.3f (Simulation)',simulations.avg_mpc4{i});
+            sim = sprintf(', %2.3f (Simulation)',simulations.avg_mpc4{i});
         else
-            sim = ' --- (Simulation) ';
+            sim = ', --- (Simulation) ';
         end
         
         label = sprintf('    MPC out of %4.2g of mean income:',results.mpcamount{i});
