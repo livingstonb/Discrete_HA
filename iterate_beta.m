@@ -1,4 +1,11 @@
 function [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income)
+    % This function is used to speed up convergence to the correct beta.
+    % fzero first optimizes using solve_EGP with a small grid size and high
+    % value for ergodic_tol. After convergence, this function shrinks the search 
+    % interval for beta and calls fzero while passing solve_EGP a larger 
+    % grid size and a smaller value for ergodic_tol.
+    
+    
     %% LOW TOLERANCE, SMALL GRID
     
     % Set interval for iteration

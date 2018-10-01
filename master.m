@@ -37,10 +37,8 @@ prms(1).WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
 prms(1).LoadIncomeProcess   = 0;
 prms(1).nyT                 = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
-% income normalization, 1 or 0
-prms(1).NormalizeY  = 1;
-
-%only relevant if LoadIncomeProcess==0
+% yT,yP (only relevant if LoadIncomeProcess==0)
+prms(1).NormalizeY  = 1; % 1 to normalize gross income, 0 otherwise
 prms(1).yTContinuous = 0;
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
 prms(1).lambdaT     = 1; % arrival rate of shocks;
@@ -60,7 +58,6 @@ prms(1).borrow_lim  = 0;
 prms(1).labtaxlow       = 0; %proportional tax
 prms(1).labtaxhigh      = 0; %additional tax on incomes above threshold
 prms(1).labtaxthreshpc  = 0.99; %percentile of earnings distribution where high tax rate kicks in
-
 prms(1).savtax          = 0; %0.0001;  %tax rate on savings
 prms(1).savtaxthresh    = 0; %multiple of mean gross labor income
 
@@ -70,18 +67,19 @@ prms(1).betawidth   = 0.02; % beta +/- beta width
 prms(1).betaswitch  = 1/50; %0;
 
 % computation
-prms(1).max_iter    = 1e5; % for EGP
-prms(1).tol_iter    = 1.0e-6;
+prms(1).max_iter    = 1e5; % EGP
+prms(1).tol_iter    = 1.0e-6; % EGP
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
-prms(1).nxlong_int  = 100; % Grid size for computing intermediate ergodic distributions
+prms(1).nxlong_int  = 100; % For intermediate iterations of EGP
 prms(1).nxlong      = 500; % Grid size for computing final ergodic distribution
-prms(1).nxmpc       = 1000; % grid size for MPC. mpcamount = xmax/xmpc
+prms(1).nxmpc       = 1000; % grid size for direct MPC. mpcamount = xmax/nxmpc
  
+% beta iteration
 prms(1).targetAY    = 3.5;
 prms(1).maxiterAY   = 20;
 prms(1).tolAY       = 1.0e-4;
-prms(1).FastIter    = 1; % Use routine with low tolerance, small grid, until closer to target
+prms(1).FastIter    = 1; % 1 to use routine with low tolerance, small grid, until closer to target
 
 %mpc options
 prms(1).mpcfrac{1}  = -1e-5; %approximate thoeretical mpc

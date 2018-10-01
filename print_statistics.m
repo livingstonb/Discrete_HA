@@ -1,4 +1,7 @@
 function print_statistics(results,simulations,p)
+    % This function prints the main results associated with the
+    % parameterization structure 'p'
+    
     if p.Simulate == 0
         sim = [];
     end

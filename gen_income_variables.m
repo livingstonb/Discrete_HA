@@ -1,4 +1,7 @@
 function income = gen_income_variables(p)
+    % Given a structure of parameters, p, this function generates a
+    % structure variable called 'income' with fields associated with the
+    % specified income distribution
 
     %% PERSISTENT INCOME
     % rowenhurst

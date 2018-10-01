@@ -1,5 +1,7 @@
 function [avg_mpc1,avg_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
     betaindsim,income,simulationstruct,xgrid)
+    % This function is called by simulate.m to compute MPCs. Outputs are
+    % cell arrays, each cell associated with one mpcamount.
     
     %% MPCs
     Nmpcamount = numel(p.mpcfrac);

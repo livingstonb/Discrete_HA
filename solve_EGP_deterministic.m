@@ -1,5 +1,9 @@
 function [norisk,cdiff] = solve_EGP_deterministic(p,...
     xgrid,sgrid,prefs,income)
+    % This function uses the method of endogenous grid points to find the
+    % policy functions of the deterministic model.
+    
+    % Output variable 'norisk' is a structure
 
     mucnext = zeros(p.nx,p.nb);
     coninterp = cell(1,p.nb);

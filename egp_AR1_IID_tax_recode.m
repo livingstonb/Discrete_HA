@@ -4,7 +4,12 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     % Includes NIT and discount factor heterogeneity
     % Greg Kaplan 2017
     
-    % STRUCTURES:
+    % This is the main function file for this code repository. Given a
+    % structure of parameters, p, this script calls functions primarily to 
+    % compute policy functions via the method of endogenous grip points, 
+    % and to find the implied stationary distribution over the state space.
+    
+    % IMPORTANT STRUCTURES:
     % basemodel - stores objects from the model with income risk
     % norisk - stores objects from the model without income risk
     % simulations - stores simulation results for basemodel
@@ -13,9 +18,11 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     % income - stores objects from the income process
     % prefs - stores objects related to preferences
     
+    results.isses = {};
+    simulations = struct();
+    
     %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER CHOICES
 
-    %p.r = p.r/p.freq;
     p.R = 1 + p.r;
     p.R = p.R^(1/p.freq);
     p.r = p.R - 1;
@@ -101,8 +108,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     if p.IterateBeta == 1
         [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income);
         if exitflag ~= 1
-            results = struct();
-            results.issues = {'NoBetaConv'};
+            results.issues{end+1} = 'NoBetaConv';
             return
         end
         results.beta = beta;
@@ -113,6 +119,11 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     ergodic_tol = 1e-7;
     [~,basemodel,xgrid.longgrid] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
                                             ergodic_tol,income,p.nxlong);
+    if basemodel.EGP_cdiff > p.tol_iter
+        % EGP did not converge for beta, escape this parameterization
+        results.issues{end+1} = 'NoEGPConv';
+        return
+    end
                                         
     xgrid.longgrid_wide = reshape(xgrid.longgrid,[p.nxlong,p.nyP,p.nyF]);
     
@@ -143,20 +154,17 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
 
     %% Store problems
     results.issues = {};
-    if basemodel.EGP_cdiff > p.tol_iter
-        results.issues = [results.issues,'NoEGPConv'];
-    end
     if  abs((p.targetAY - results.mean_s)/p.targetAY) > 1e-3
-        results.issues = [results.issues,'BadAY'];
+        results.issues{end+1} = 'BadAY';
     end
     if abs((results.mean_x-results.mean_x_check)/results.mean_x)> 1e-3
-        results.issues = [results.issues,'DistNotStationary'];
+        results.issues{end+1} = 'DistNotStationary';
     end
     if abs((income.meannety-results.mean_nety)/income.meannety) > 1e-3
-        results.issues = [results.issues,'BadNetIncomeMean'];
+        results.issues{end+1} = 'BadNetIncomeMean';
     end
     if norm(yPdist_check-income.yPdist) > 1e-3
-        results.issues = [results.issues,'Bad_yP_Dist'];
+        results.issues{end+1} = 'Bad_yP_Dist';
     end
     if min(basemodel.SSdist) < - 1e-3
         results.issues = [results.issues,'NegativeStateProbability'];
@@ -185,7 +193,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% SIMULATIONS
     % Full model
     if p.Simulate == 1
-        simulations = simulate(p,income,basemodel,xgrid,prefs,results);
+        simulations = simulate(p,income,basemodel,xgrid,prefs);
     else
         simulations =[];
     end
@@ -227,7 +235,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         
     if p.ComputeDistMPC == 1
         [results.avg_mpc1_alt,results.avg_mpc4,results.distMPCamount] ...
-                = mpc_forward(xgrid,p,income,basemodel,prefs);
+                = mpc_direct(xgrid,p,income,basemodel,prefs);
     end
     
     %% Print Results
