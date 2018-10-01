@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
+path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -13,7 +13,7 @@ cd(path);
 prms = struct();
 
 % data frequency
-prms(1).freq        = 1; % 1 for yearly, 4 for quarterly
+prms(1).freq        = 4; % 1 for yearly, 4 for quarterly
 
 % returns
 prms(1).r           = 0.02;
@@ -72,7 +72,7 @@ prms(1).tol_iter    = 1.0e-6; % EGP
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).nxlong_int  = 100; % For intermediate iterations of EGP
-prms(1).nxlong      = 500; % Grid size for computing final ergodic distribution
+prms(1).nxlong      = 1000; % Grid size for computing final ergodic distribution
 prms(1).nxmpc       = 1000; % grid size for direct MPC. mpcamount = xmax/nxmpc
  
 % beta iteration
@@ -83,8 +83,8 @@ prms(1).FastIter    = 1; % 1 to use routine with low tolerance, small grid, unti
 
 %mpc options
 prms(1).mpcfrac{1}  = -1e-5; %approximate thoeretical mpc
-prms(1).mpcfrac{2}  = -1e-3;
-prms(1).mpcfrac{3}  = -1e-1;
+prms(1).mpcfrac{2}  = -0.01;
+prms(1).mpcfrac{3}  = -0.05;
 prms(1).mpcfrac{4}  = 1e-5; % approximate thoeretical mpc
 prms(1).mpcfrac{5}  = 0.01; % 1 percent of average gross labor income: approx $500
 prms(1).mpcfrac{6}  = 0.05; % 5 percent of average gross labor income: approx $5000
@@ -93,8 +93,8 @@ prms(1).mpcfrac{6}  = 0.05; % 5 percent of average gross labor income: approx $5
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
-prms(1).ComputeDistMPC      = 1;
-prms(1).ComputeSimMPC       = 1;
+prms(1).ComputeDirectMPC      = 0;
+prms(1).ComputeSimMPC       = 0;
 prms(1).SolveDeterministic  = 1;
 prms(1).Simulate            = 1;
 prms(1).PrintStats          = 1;

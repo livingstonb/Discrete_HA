@@ -54,6 +54,7 @@ function print_statistics(results,simulations,p)
 
     %% Income Distribution
     fprintf('\nINCOME DISTRIBUTION: \n')
+    fprintf('  Cross-sectional variances\n')
     % Variance of log gross labor income
     direct = sprintf(' %2.3f (Direct Comp),',results.var_loggrossy);
     if p.Simulate == 1
@@ -84,7 +85,7 @@ function print_statistics(results,simulations,p)
             sim = ' --- (Simulation) ';
         end
         
-        label = sprintf('    MPC out of %4.2g:',results.mpcamount{i});
+        label = sprintf('    MPC out of %4.2g of mean income:',results.mpcamount{i});
         disp([label direct sim]);
     end
     
@@ -98,13 +99,13 @@ function print_statistics(results,simulations,p)
             sim = ' --- (Simulation) ';
         end
         
-        label = sprintf('    MPC out of %4.2g:',results.mpcamount{i});
+        label = sprintf('    MPC out of %4.2g of mean income:',results.mpcamount{i});
         disp([label direct sim]);
         
     end
     
     % Average MPC, 4 periods (direct)
-    if p.ComputeDistMPC == 1
+    if p.ComputeDirectMPC == 1
         msg = sprintf('    MPC out of %4.2g:',results.distMPCamount');
         direct = sprintf(' %4.3f (Direct Comp)',results.avg_mpc4);
         disp([msg direct]);
@@ -112,10 +113,13 @@ function print_statistics(results,simulations,p)
     
     %% OTHER
     fprintf('\nOTHER: \n')
+    quarterb = sprintf(' %2.3f (Quarterly),',results.betaquarterly);
+    annualb = sprintf(' %2.3f (Annual),',results.betaannual);
+    label = sprintf('    Beta =');
     if p.IterateBeta
-        disp(['    Beta = ' num2str(results.beta) ' (found by iteration)']);
+        disp([label quarterb annualb ' found by iteration']);
     else
-        disp(['    Beta = ' num2str(results.beta) ' (set in parameters)']);
+        disp([label quarterb annualb ' set in parameters']);
     end
     
     %% ISSUES

@@ -27,11 +27,15 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     p.R = p.R^(1/p.freq);
     p.r = p.R - 1;
     
-    p.beta0 = p.beta0^(1/p.freq);
-    p.dieprob = p.dieprob^(1/p.freq);
-    p.betaswitch = p.betaswitch^(1/p.freq);
-    p.betaL = p.betaL^(1/p.freq);
-    p.betaH = 1/((p.R)*(1-p.dieprob));
+    p.beta0         = p.beta0^(1/p.freq);
+    p.dieprob       = 1 - (1-p.dieprob)^(1/p.freq);
+    p.betaswitch    = 1 - (1-p.betaswitch)^(1/p.freq);
+    p.betaL         = p.betaL^(1/p.freq);
+    p.betaH         = 1/((p.R)*(1-p.dieprob));
+    p.targetAY      = p.targetAY/p.freq;
+    p.savtax        = p.savtax/p.freq;
+    p.Tsim          = p.Tsim * p.freq;
+    
     
     if p.Simulate == 0 && p.ComputeSimMPC == 1
         p.ComputeSimMPC = 0;
@@ -43,16 +47,11 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% LOAD INCOME
 
     income = gen_income_variables(p);
+    
+    % savtaxthresh should be a multiple of mean gross labor income
+    p.savtaxthresh  = p.savtaxthresh * income.meany;
 
     %% DISCOUNT FACTOR
-
-    if p.IterateBeta == 0
-        p.maxiterAY = 1;
-        % final beta
-        beta = p.beta0;
-        results.beta = beta;
-        p.beta = beta;
-    end
 
     %initial discount factor grid
     if  p.nb == 1
@@ -111,9 +110,17 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
             results.issues{end+1} = 'NoBetaConv';
             return
         end
-        results.beta = beta;
+        % beta associated with chosen frequency
         p.beta = beta;
+    else
+        p.maxiterAY = 1;
+        % beta associated with chosen frequency
+        p.beta = p.beta0;
+        beta = p.beta0;
     end
+    
+    results.betaannual = beta^p.freq;
+    results.betaquarterly = results.betaannual^(1/4);
 
     % Use final beta to get policy functions and distribution
     ergodic_tol = 1e-7;
@@ -154,7 +161,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
 
     %% Store problems
     results.issues = {};
-    if  abs((p.targetAY - results.mean_s)/p.targetAY) > 1e-3
+    if  abs((p.targetAY - results.mean_s/income.meany)/p.targetAY) > 1e-3
         results.issues{end+1} = 'BadAY';
     end
     if abs((results.mean_x-results.mean_x_check)/results.mean_x)> 1e-3
@@ -233,7 +240,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         results.mpcamount{im} = p.mpcfrac{im};
     end
         
-    if p.ComputeDistMPC == 1
+    if p.ComputeDirectMPC == 1
         [results.avg_mpc1_alt,results.avg_mpc4,results.distMPCamount] ...
                 = mpc_direct(xgrid,p,income,basemodel,prefs);
     end
