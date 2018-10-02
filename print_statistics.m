@@ -8,18 +8,18 @@ function print_statistics(results,simulations,p)
     
     %% WEALTH DISTRIBUTION
     
-    fprintf('\nWEALTH DISTRIBUTION: \n')
+    fprintf('\nWEALTH/SAVINGS: \n')
     
     % Mean wealth
-    direct  = sprintf(' %2.3f (Direct Comp),',results.mean_s);
+    direct  = sprintf(' %2.3f (Direct Comp),',results.mean_a);
     if p.Simulate == 1
-        sim = sprintf(' %2.3f (Simulation)',simulations.mean_s);
+        sim = sprintf(' %2.3f (Simulation)',simulations.mean_a);
     end
     disp(['    Mean wealth:' direct sim]);
     
     % Borrowing constrained    
     for i = 1:numel(p.epsilon)
-        label  = sprintf('    Fraction with a <= %3.1f%% mean ann gross inc:',p.epsilon(i)*100);
+        label  = sprintf('    Fraction with s <= 43.1f%% mean ann gross inc:',p.epsilon(i)*100);
         direct = sprintf(' %3.3f (Direct)',results.constrained(i));
         if p.Simulate == 1
             sim    = sprintf(', %3.3f (Simulation)',simulations.constrained(i));
@@ -29,23 +29,25 @@ function print_statistics(results,simulations,p)
     
     % Percentiles
     for i = 1:numel(p.percentiles)
-        label = sprintf('    %ith percentile:',p.percentiles(i));
-        direct = sprintf(' %4.3f (Direct)',results.wpercentiles(i));
+        label = sprintf('    Wealth, %ith percentile:',p.percentiles(i));
+        direct = sprintf(' %8.3f (Direct)',results.wpercentiles(i));
         if p.Simulate == 1
-            sim = sprintf(', %4.3f (Simulation)',simulations.wpercentiles(i));
+            sim = sprintf(', %8.3f (Simulation)',simulations.wpercentiles(i));
         end
         disp([label direct sim]);
     end
     
     % Top shares
-    direct10 = sprintf(' %5.3f (Direct)',results.top10share);
-    direct1  = sprintf(' %5.3f (Direct)',results.top1share);
+    direct10 = sprintf(' %6.3f (Direct)',results.top10share);
+    direct1  = sprintf(' %6.3f (Direct)',results.top1share);
     if p.Simulate == 1
-        sim10 = sprintf(', %5.3f (Simulation)',simulations.top10share);
-        sim1 = sprintf(', %5.3f (Simulation)',simulations.top1share);
+        sim10 = sprintf(', %6.3f (Simulation)',simulations.top10share);
+        sim1 = sprintf(', %6.3f (Simulation)',simulations.top1share);
+    else
+        sim10 = []; sim1 = [];
     end
-    disp(['    Top 10% share:' direct10 sim10])
-    disp(['    Top  1% share:' direct1 sim1])
+    disp(['    Wealth, top 10% share:' direct10 sim10])
+    disp(['    Wealth, top  1% share:' direct1 sim1])
     
     
     %% Income Distribution
@@ -59,7 +61,7 @@ function print_statistics(results,simulations,p)
     disp(['    Var Log Gross Earnings:' direct sim]);
     
     % Variance of log net labor income
-    direct = sprintf(' %2.3f (Direct Comp)',results.var_lognety);
+    direct = sprintf('   %2.3f (Direct Comp)',results.var_lognety);
     if p.Simulate == 1
         sim = sprintf(', %2.3f (Simulation)',simulations.var_lognety);
     end
@@ -81,7 +83,7 @@ function print_statistics(results,simulations,p)
             sim = ', --- (Simulation) ';
         end
         
-        label = sprintf('    MPC out of %4.2g of mean income:',results.mpcamount{i});
+        label = sprintf('    MPC out of %6.2g of mean income:',results.mpcamount{i});
         disp([label direct sim]);
     end
     
@@ -95,27 +97,30 @@ function print_statistics(results,simulations,p)
             sim = ', --- (Simulation) ';
         end
         
-        label = sprintf('    MPC out of %4.2g of mean income:',results.mpcamount{i});
+        label = sprintf('    MPC out of %6.2g of mean income:',results.mpcamount{i});
         disp([label direct sim]);
         
     end
     
     % Average MPC, 4 periods (direct)
     if p.ComputeDirectMPC == 1
-        msg = sprintf('    MPC out of %4.2g:',results.distMPCamount');
+        msg = sprintf('    MPC out of %6.2g:',results.distMPCamount');
         direct = sprintf(' %4.3f (Direct Comp)',results.avg_mpc4);
         disp([msg direct]);
     end
     
     %% OTHER
     fprintf('\nOTHER: \n')
-    quarterb = sprintf(' %2.3f (Quarterly),',results.betaquarterly);
-    annualb = sprintf(' %2.3f (Annual),',results.betaannual);
+    if p.freq == 4
+        betafreq = sprintf(' %2.3f (Quarterly),',results.betaquarterly);
+    elseif p.freq == 1
+        betamsg = sprintf(' %2.3f (Annual),',results.betaannual);
+    end
     label = sprintf('    Beta =');
-    if p.IterateBeta
-        disp([label quarterb annualb ' found by iteration']);
+    if p.IterateBeta == 1
+        disp([label betamsg ' found by iteration']);
     else
-        disp([label quarterb annualb ' set in parameters']);
+        disp([label betamsg ' set in parameters']);
     end
     
     %% ISSUES

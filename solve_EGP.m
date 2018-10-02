@@ -232,16 +232,23 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
 
     % SS wealth/gross income ratio
     model.mean_s = savm(:)' * model.SSdist;
+    model.mean_a = p.R * model.mean_s;
 
     % policy functions
-    model.sav_longgrid = savm(:);
+    model.sav_longgrid      = savm(:);
     model.sav_longgrid_wide = reshape(model.sav_longgrid,[nn,p.nyP,p.nyF,p.nb]);
-    model.con_longgrid = repmat(xgridm(:),p.nb,1) - savm(:) - p.savtax*max(savm(:)-p.savtaxthresh,0);
+    if p.WealthInherited == 0
+        model.a_longgrid        = (1 - p.dieprob) * p.R * model.sav_longgrid;
+    else
+        model.a_longgrid        = p.R * model.sav_longgrid;
+    end
+    model.con_longgrid      = repmat(xgridm(:),p.nb,1) - savm(:) - p.savtax*max(savm(:)-p.savtaxthresh,0);
     model.con_longgrid_wide = reshape(model.con_longgrid,[nn,p.nyP,p.nyF,p.nb]);
     
     % cumulative distribution
     temp = sortrows([model.sav_longgrid model.SSdist]);
     model.sav_longgrid_sort = temp(:,1);
+    model.a_longgrid_sort = (1 - p.dieprob) * p.R * model.sav_longgrid_sort;
     model.SSdist_sort = temp(:,2);
     model.SScumdist = cumsum(model.SSdist_sort);
     
@@ -250,8 +257,8 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     
     mean_s = model.SSdist' * model.sav_longgrid;
 
-    fprintf(' A/Y = %2.3f\n',mean_s/income.meany);
+    fprintf(' A/Y = %2.3f\n',model.mean_a/income.meany);
     %AYdiffsq = (mean_s/meany - targetAY)^2;
-    AYdiff = mean_s/income.meany -  p.targetAY;
+    AYdiff = model.mean_a/income.meany -  p.targetAY;
 
 end

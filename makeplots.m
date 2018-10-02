@@ -90,7 +90,7 @@ function makeplots(p,xgrid,sgrid,basemodel,income,simulations)
      % simulation convergence
     if p.Simulate == 1
         subplot(2,4,7);
-        plot(1:p.Tsim,simulations.assetconv,'b','LineWidth',2);
+        plot(1:p.Tsim,simulations.assetmeans,'b','LineWidth',2);
         grid;
         xlim([0 p.Tsim]);
         title('Mean savings (sim)');

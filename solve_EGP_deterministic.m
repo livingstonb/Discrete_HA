@@ -27,7 +27,6 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,...
         iter = iter + 1;
         
         conlast = con;
-        muc  = prefs.u1(conlast);
         
         for ib = 1:p.nb
             coninterp{ib} = griddedInterpolant(xgrid.norisk_short,conlast(:,ib),'linear');

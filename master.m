@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -99,7 +99,7 @@ prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
 prms(1).ComputeDirectMPC    = 0;
 prms(1).SolveDeterministic  = 1;
-prms(1).Simulate            = 1;
+prms(1).Simulate            = 0;
 prms(1).PrintStats          = 1;
 
 %% Call model

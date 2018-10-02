@@ -85,6 +85,7 @@ function simulations = simulate(p,income,model,...
     %% Simulate savings decisions
     xsim = zeros(p.Nsim,p.Tsim); 
     ssim = zeros(p.Nsim,p.Tsim);
+    asim = zeros(p.Nsim,p.Tsim); 
     
     for it = 1:p.Tsim
         if mod(it,50) == 0
@@ -92,7 +93,7 @@ function simulations = simulate(p,income,model,...
         end
         % update cash-on-hand
         if it > 1
-            xsim(:,it) = p.R * ssim(:,it-1) + ynetsim(:,it);
+            xsim(:,it) = asim(:,it-1) + ynetsim(:,it);
         end
         
         for iyF = 1:p.nyF
@@ -106,10 +107,12 @@ function simulations = simulate(p,income,model,...
         
         ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
         csim(:,it) = xsim(:,it) - ssim(:,it) - p.savtax * max(ssim(:,it) - p.savtaxthresh,0);
+        
+        asim(:,it) = p.R * ssim(:,it);
         if p.WealthInherited == 0
             % set saving equal to 0 if hh dies at end of this period. In it+1,
             % household will have x = net income
-            ssim(diesim(:,it)==1,it) = 0;
+            asim(diesim(:,it)==1,it) = 0;
         end
     end
     
@@ -121,6 +124,7 @@ function simulations = simulate(p,income,model,...
     
     %% Moments/important quantities
     simulations.mean_s = mean(ssim(:,p.Tsim));
+    simulations.mean_a = mean(asim(:,p.Tsim));
     simulations.mean_x = mean(xsim(:,p.Tsim));
     simulations.frac_constrained = mean(ssim(:,p.Tsim)<=p.borrow_lim);
     simulations.mean_grossy = mean(ygrosssim(:,p.Tsim));
@@ -129,7 +133,8 @@ function simulations = simulate(p,income,model,...
     simulations.mean_lognety = mean(log(ynetsim(:,p.Tsim)));
     simulations.var_loggrossy = var(log(ygrosssim(:,p.Tsim)));
     simulations.var_lognety = var(log(ynetsim(:,p.Tsim)));
-    simulations.frac_less5perc_labincome = mean(ssim(:,p.Tsim)<0.05);
+    simulations.frac_less5perc_labincome = mean(asim(:,p.Tsim)<0.05);
+    simulations.assetmeans = p.R * mean(ssim);
     
     for i = 1:numel(p.percentiles)
         simulations.wpercentiles(i) = quantile(ssim(:,p.Tsim),p.percentiles(i)/100);
@@ -147,7 +152,6 @@ function simulations = simulate(p,income,model,...
     idxtop1 = ssim(:,p.Tsim) > top1w;
     simulations.top10share = sum(ssim(idxtop10,p.Tsim))/sum(ssim(:,p.Tsim));
     simulations.top1share  = sum(ssim(idxtop1,p.Tsim))/sum(ssim(:,p.Tsim));
-    
-    simulations.assetconv = mean(ssim);
+
 
 end

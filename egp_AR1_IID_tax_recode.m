@@ -134,6 +134,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     netymat_onlonggrid = repmat(kron(income.netymat,ones(p.nxlong,1)),p.nb,1);
     
     results.mean_s = basemodel.sav_longgrid' * basemodel.SSdist;
+    results.mean_a = basemodel.a_longgrid' * basemodel.SSdist;
     results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist;
     results.mean_grossy = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
     results.mean_loggrossy = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
@@ -142,11 +143,8 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     results.var_loggrossy = basemodel.SSdist' * (log(ymat_onlonggrid) - results.mean_loggrossy).^2 * income.yTdist;
     results.var_lognety = basemodel.SSdist' * (log(netymat_onlonggrid)- results.mean_lognety).^2 * income.yTdist;
     
-    if p.WealthInherited == 1
-        results.mean_x_check = p.R*results.mean_s + results.mean_nety;
-    else
-        results.mean_x_check = p.R*(1-p.dieprob)*results.mean_s + results.mean_nety;
-    end
+    results.mean_x_check = results.mean_a + results.mean_nety;
+   
     % reconstruct yPdist from computed stationary distribution for error
     % checking
     yPdist_check = reshape(basemodel.SSdist_wide,[p.nxlong p.nyP p.nyF*p.nb]);
@@ -155,7 +153,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
 
     %% Store problems
     results.issues = {};
-    if  abs((p.targetAY - results.mean_s/income.meany)/p.targetAY) > 1e-3
+    if  abs((p.targetAY - results.mean_a/income.meany)/p.targetAY) > 1e-3
         results.issues{end+1} = 'BadAY';
     end
     if abs((results.mean_x-results.mean_x_check)/results.mean_x)> 1e-3
@@ -174,7 +172,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% WEALTH DISTRIBUTION
     
     % create values for fraction constrained at every pt in asset space,
-    % defining constrained as a <= epsilon * mean annual gross labor income 
+    % defining constrained as s <= epsilon * mean annual gross labor income 
     % + borrowing limit
     for i = 1:numel(p.epsilon)        
         % create interpolant to find fraction of constrained households
@@ -192,14 +190,15 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     results.wpercentiles = interp1(basemodel.SScumdist_unique,basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind),p.percentiles/100,'linear');
     
     % top shares
-    % fraction of total savings that reside in each pt on asset space
-    totsav = basemodel.SSdist_sort .* basemodel.sav_longgrid_sort;
-    cumsav = cumsum(totsav)/ results.mean_s;
-    cumsav = cumsav(basemodel.SScumdist_uniqueind);
+    % fraction of total assets that reside in each pt on asset space
+    totassets = basemodel.SSdist_sort .* basemodel.a_longgrid_sort;
+    cumassets = cumsum(totassets) / results.mean_a;
+    cumassets = cumassets(basemodel.SScumdist_uniqueind);
+    
     % create interpolant from wealth percentile to cumulative wealth share
-    cumwealthshare = griddedInterpolant(basemodel.SScumdist_unique,cumsav,'linear');
-    results.top10share = 1 - cumwealthshare(0.9);
-    results.top1share = 1 - cumwealthshare(0.99);
+    cumwealthshare = griddedInterpolant(basemodel.SScumdist_unique,cumassets,'linear');
+    results.top10share  = 1 - cumwealthshare(0.9);
+    results.top1share   = 1 - cumwealthshare(0.99);
     
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model

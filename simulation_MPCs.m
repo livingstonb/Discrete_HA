@@ -13,14 +13,15 @@ function [avg_mpc1,avg_mpc4,mpc1] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,y
         end
             
         
-        xsim_mpc{im} = zeros(p.Nsim,4);
-        ssim_mpc{im} = zeros(p.Nsim,4);
-        xsim_mpc{im}(:,1) = xsim(:,p.Tsim-3) + mpcamount{im};
-        csim_mpc{im} = zeros(p.Nsim,4);
+        xsim_mpc{im}        = zeros(p.Nsim,4);
+        ssim_mpc{im}        = zeros(p.Nsim,4);
+        asim_mpc{im}        = zeros(p.Nsim,4);
+        xsim_mpc{im}(:,1)   = xsim(:,p.Tsim-3) + mpcamount{im};
+        csim_mpc{im}        = zeros(p.Nsim,4);
         for it = 1:4
             simT = p.Tsim - 4 + it;
             if it > 1
-                xsim_mpc{im}(:,it) = p.R * ssim_mpc{im}(:,it-1) + ynetsim(:,simT);
+                xsim_mpc{im}(:,it) = asim_mpc{im}(:,it-1) + ynetsim(:,simT);
             end
 
             for iyF = 1:p.nyF
@@ -41,11 +42,11 @@ function [avg_mpc1,avg_mpc4,mpc1] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,y
             end
             end
             ssim_mpc{im}(ssim_mpc{im}(:,it)<p.borrow_lim,it) = p.borrow_lim;
+            asim_mpc{im}(:,it) = p.R * ssim_mpc{im}(:,it);
             csim_mpc{im}(:,it) = xsim_mpc{im}(:,it) - ssim_mpc{im}(:,it) - p.savtax*max(ssim_mpc{im}(:,it)-p.savtaxthresh,0);
             if p.WealthInherited == 0
-                % set saving equal to 0 if hh dies at end of this period. In it+1,
-                % household will have x = net income
-                ssim_mpc{im}(diesim(:,simT)==1,it) = 0;
+                % set assets equal to 0 if hh dies at end of this period
+                asim_mpc{im}(diesim(:,simT)==1,it) = 0;
             end
         end
         
