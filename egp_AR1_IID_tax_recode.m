@@ -220,6 +220,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         [sim_results,assetmeans] = simulate(p,income,basemodel,xgrid,prefs);
     else
         sim_results = struct();
+        assetmeans = [];
     end
 
     %% MAKE PLOTS

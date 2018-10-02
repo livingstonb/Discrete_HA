@@ -148,104 +148,26 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
 
 
     %% DISTRIBUTION
-    fprintf(' Computing state-to-state transition probabilities... \n');
-    savm = model.sav_wide;
-
-    % Create (potentially) longer grid
-    xgridm = linspace(0,1,gridsize)';
-    xgridm = repmat(xgridm,[1 p.nyP p.nyF]) .^(1/p.xgrid_par);
-    % for each (yP,yF), add nety income for smallest yT value to grid
-    min_netymat = reshape(income.netymat(:,1),[1 p.nyP p.nyF]);
-    min_netymat = repmat(min_netymat,[gridsize 1 1]);
-    xgridm = p.borrow_lim + min_netymat + (p.xmax-p.borrow_lim)*xgridm;
-
-    % Interpolate policy functions onto new grid
-    savlong = zeros(gridsize,p.nyP,p.nyF,p.nb);
-    for ib = 1:p.nb
-    for iyF = 1:p.nyF
-    for iyP = 1:p.nyP
-        savlong(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(xgridm(:,iyP,iyF));
-    end
-    end
-    end
-    savm = savlong;
-    NN = gridsize * p.nyP * p.nyF * p.nb;
-    nn = gridsize;
-
-    netymatm = reshape(income.netymat,[p.nyP p.nyF p.nyT]);
     
-    trans = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
-    grid_probabilities = zeros(NN,NN);
-    col = 1;
-    for ib2 = 1:p.nb
-    for iyF2 = 1:p.nyF
-    for iyP2 = 1:p.nyP
-        fspace = fundef({'spli',xgridm(:,iyP2,iyF2),0,1});
-        % xprime if no death
-        xp_live = (1+p.r)*repmat(savm(:),p.nyT,1) + ...
-            kron(squeeze(netymatm(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
-
-        % xprime if death (i.e. saving in past period set to 0)
-        if p.WealthInherited == 0
-            xp_death = kron(squeeze(netymatm(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
-        else
-            xp_death = xp_live;
-        end
-        
-        % set probabilities equal to 1 at grid endpt when xp is off the grid
-        idx_xpl_max = xp_live>=max(xgridm(:,iyP2,iyF2));
-        idx_xpl_min = xp_live<=min(xgridm(:,iyP2,iyF2));
-        
-        idx_xpd_max = xp_death>=max(xgridm(:,iyP2,iyF2));
-        idx_xpd_min = xp_death<=min(xgridm(:,iyP2,iyF2));
-        
-        interpl = funbas(fspace,xp_live);
-        interpl(idx_xpl_max | idx_xpl_min,:) = 0;
-        interpl(idx_xpl_max,end) = 1;
-        interpl(idx_xpl_min,1) = 1;
-        
-        interpd = funbas(fspace,xp_death);
-        interpd(idx_xpd_max | idx_xpd_min,:) = 0;
-        interpd(idx_xpd_max,end) = 1;
-        interpd(idx_xpd_min,1) = 1;
-        
-        interp = (1-p.dieprob) * interpl + p.dieprob * interpd;
-        
-        % if not setting probabilites to 1 at grid endpts
-        % interp = (1-p.dieprob) * funbas(fspace,xp_live) + p.dieprob * funbas(fspace,xp_death);
-        interp = reshape(interp,[],p.nyT*nn);
-        % Multiply by yT distribution
-        newcolumn = interp * kron(speye(nn),income.yTdist);
-        % Multiply by (beta,yF,yP) distribution
-        newcolumn = bsxfun(@times,kron(trans(:,col),ones(nn,1)),newcolumn);
-
-        grid_probabilities(:,nn*(col-1)+1:nn*col) = newcolumn;
-        col = col + 1;
-    end
-    end
-    end
-    
-    model.statetrans = grid_probabilities;
+    [model.SSdist,model.statetrans,model.sav_longgrid_wide]...
+            = find_stationary(p,model,income,prefs,xgridm,ergodic_tol);
 
     % SS probability of residing in each state
-    fprintf(' Finding ergodic distribution...\n');
-    model.SSdist = full(ergodicdist(sparse(grid_probabilities),1,ergodic_tol));
-    model.SSdist_wide = reshape(model.SSdist,[nn,p.nyP,p.nyF,p.nb]);
+    model.SSdist_wide = reshape(model.SSdist,[gridsize,p.nyP,p.nyF,p.nb]);
 
     % SS wealth/gross income ratio
-    model.mean_s = savm(:)' * model.SSdist;
+    model.mean_s = model.sav_longgrid_wide(:)' * model.SSdist;
     model.mean_a = p.R * model.mean_s;
 
     % policy functions
-    model.sav_longgrid      = savm(:);
-    model.sav_longgrid_wide = reshape(model.sav_longgrid,[nn,p.nyP,p.nyF,p.nb]);
+    model.sav_longgrid      = model.sav_longgrid_wide(:);
     if p.WealthInherited == 0
         model.a_longgrid        = (1 - p.dieprob) * p.R * model.sav_longgrid;
     else
         model.a_longgrid        = p.R * model.sav_longgrid;
     end
-    model.con_longgrid      = repmat(xgridm(:),p.nb,1) - savm(:) - p.savtax*max(savm(:)-p.savtaxthresh,0);
-    model.con_longgrid_wide = reshape(model.con_longgrid,[nn,p.nyP,p.nyF,p.nb]);
+    model.con_longgrid      = repmat(xgridm(:),p.nb,1) - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid-p.savtaxthresh,0);
+    model.con_longgrid_wide = reshape(model.con_longgrid,[gridsize,p.nyP,p.nyF,p.nb]);
     
     % cumulative distribution
     temp = sortrows([model.sav_longgrid model.SSdist]);

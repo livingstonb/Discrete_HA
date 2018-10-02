@@ -72,8 +72,8 @@ prms(1).tol_iter    = 1.0e-6; % EGP
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).nxlong_int  = 100; % For intermediate iterations of EGP
-prms(1).nxlong      = 2000; % Grid size for computing final ergodic distribution
-prms(1).nxmpc       = 2000; % grid size for direct MPC. mpcamount = xmax/nxmpc
+prms(1).nxlong      = 1000; % Grid size for computing final ergodic distribution
+prms(1).nxmpc       = 1000; % grid size for direct MPC. mpcamount = xmax/nxmpc
  
 % beta iteration
 prms(1).targetAY    = 3.5;
