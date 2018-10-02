@@ -1,4 +1,4 @@
-function [avg_mpc1,avg_mpc4,gridspace] = fourperiodmpc(xgrid,p,income,model,...
+function [avg_mpc1,avg_mpc4] = fourperiodmpcs(xgrid,p,income,model,...
                                                             prefs)
     ergodic_tol = 1e-7;
     
@@ -89,8 +89,10 @@ function [avg_mpc1,avg_mpc4,gridspace] = fourperiodmpc(xgrid,p,income,model,...
         avg_mpc{period} = avg_mpc{period-1} + (dist{period} - SS_dist') * conm(:)/mpcamount;
     end
     
-    avg_mpc1 = avg_mpc{1};
-    avg_mpc4 = avg_mpc{4};
+    avg_mpc1.value      = avg_mpc{1};
+    avg_mpc4.mpcfrac    = gridspace/income.meany;
+    avg_mpc4.value      = avg_mpc{4};
+    avg_mpc4.mpcfrac    = gridspace/income.meany;
 
     %% FUNCTIONS
     

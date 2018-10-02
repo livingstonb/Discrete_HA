@@ -1,4 +1,4 @@
-function makeplots(p,xgrid,sgrid,basemodel,income,simulations)
+function makeplots(p,xgrid,sgrid,basemodel,income,sim_results,assetmeans)
     % This function makes plots based on fields from 'basemodel' 'income'
     % and 'simulations'
 
@@ -90,7 +90,7 @@ function makeplots(p,xgrid,sgrid,basemodel,income,simulations)
      % simulation convergence
     if p.Simulate == 1
         subplot(2,4,7);
-        plot(1:p.Tsim,simulations.assetmeans,'b','LineWidth',2);
+        plot(1:p.Tsim,assetmeans,'b','LineWidth',2);
         grid;
         xlim([0 p.Tsim]);
         title('Mean savings (sim)');

@@ -1,5 +1,5 @@
 function [norisk,cdiff] = solve_EGP_deterministic(p,...
-    xgrid,sgrid,prefs,income)
+                                                xgrid,sgrid,prefs,income)
     % This function uses the method of endogenous grid points to find the
     % policy functions of the deterministic model.
     
@@ -51,7 +51,7 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,...
         con = repmat(sgrid.short,1,p.nb) - sav - p.savtax * max(sav - p.savtaxthresh,0);
         
         cdiff = max(abs(con(:)-conlast(:)));
-        if p.Display >=1 && mod(iter,50) ==0
+        if p.Display ==1 && mod(iter,100) ==0
             disp([' EGP Iteration (no risk) ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
     end

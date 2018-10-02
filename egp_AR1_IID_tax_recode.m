@@ -1,4 +1,4 @@
-function [simulations,results] = egp_AR1_IID_tax_recode(p)
+function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -18,8 +18,8 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     % income - stores objects from the income process
     % prefs - stores objects related to preferences
     
-    results.issues = {};
-    simulations = struct();
+    direct_results.issues = {};
+    sim_results = struct();
     
     %% ADJUST PARAMETERS FOR DATA FREQUENCY
 
@@ -37,6 +37,13 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     p.Tsim          = p.Tsim * p.freq;
     
     p.N = p.nx*p.nyF*p.nyP*p.nb;
+    if p.freq == 1
+        direct_results.frequency = 'Annual';
+    elseif p.freq == 4
+        direct_results.frequency = 'Quarterly';
+    else
+        error('Frequency must be 1 or 4')
+    end
 
     %% LOAD INCOME
 
@@ -100,7 +107,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         % Pass to function that will speed up iteration
         [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income);
         if exitflag ~= 1
-            results.issues{end+1} = 'NoBetaConv';
+            direct_results.issues{end+1} = 'NoBetaConv';
             return
         end
         % beta associated with chosen frequency
@@ -112,8 +119,9 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         beta = p.beta0;
     end
     
-    results.betaannual = beta^p.freq;
-    results.betaquarterly = results.betaannual^(1/4);
+    % Report beta and annualized beta
+    direct_results.beta_annualized = beta^p.freq;
+    direct_results.beta = beta;
 
     % Use final beta to get policy functions and distribution, with a
     % larger grid and higher tolerance for ergodic distribution
@@ -122,7 +130,7 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
                                             ergodic_tol,income,p.nxlong);
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
-        results.issues{end+1} = 'NoEGPConv';
+        direct_results.issues{end+1} = 'NoEGPConv';
         return
     end
                                         
@@ -133,17 +141,17 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     ymat_onlonggrid = repmat(kron(income.ymat,ones(p.nxlong,1)),p.nb,1);
     netymat_onlonggrid = repmat(kron(income.netymat,ones(p.nxlong,1)),p.nb,1);
     
-    results.mean_s = basemodel.sav_longgrid' * basemodel.SSdist;
-    results.mean_a = basemodel.a_longgrid' * basemodel.SSdist;
-    results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist;
-    results.mean_grossy = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
-    results.mean_loggrossy = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
-    results.mean_nety = (netymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
-    results.mean_lognety = (log(netymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
-    results.var_loggrossy = basemodel.SSdist' * (log(ymat_onlonggrid) - results.mean_loggrossy).^2 * income.yTdist;
-    results.var_lognety = basemodel.SSdist' * (log(netymat_onlonggrid)- results.mean_lognety).^2 * income.yTdist;
+    direct_results.mean_s = basemodel.sav_longgrid' * basemodel.SSdist;
+    direct_results.mean_a = basemodel.a_longgrid' * basemodel.SSdist;
+    direct_results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist;
+    direct_results.mean_grossy = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
+    direct_results.mean_loggrossy = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
+    direct_results.mean_nety = (netymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
+    direct_results.mean_lognety = (log(netymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
+    direct_results.var_loggrossy = basemodel.SSdist' * (log(ymat_onlonggrid) - direct_results.mean_loggrossy).^2 * income.yTdist;
+    direct_results.var_lognety = basemodel.SSdist' * (log(netymat_onlonggrid)- direct_results.mean_lognety).^2 * income.yTdist;
     
-    results.mean_x_check = results.mean_a + results.mean_nety;
+    direct_results.mean_x_check = direct_results.mean_a + direct_results.mean_nety;
    
     % reconstruct yPdist from computed stationary distribution for error
     % checking
@@ -152,21 +160,21 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     
 
     %% Store problems
-    results.issues = {};
-    if  abs((p.targetAY - results.mean_a/income.meany)/p.targetAY) > 1e-3
-        results.issues{end+1} = 'BadAY';
+    direct_results.issues = {};
+    if  abs((p.targetAY - direct_results.mean_a/income.meany)/p.targetAY) > 1e-3
+        direct_results.issues{end+1} = 'BadAY';
     end
-    if abs((results.mean_x-results.mean_x_check)/results.mean_x)> 1e-3
-        results.issues{end+1} = 'DistNotStationary';
+    if abs((direct_results.mean_x-direct_results.mean_x_check)/direct_results.mean_x)> 1e-3
+        direct_results.issues{end+1} = 'DistNotStationary';
     end
-    if abs((income.meannety-results.mean_nety)/income.meannety) > 1e-3
-        results.issues{end+1} = 'BadNetIncomeMean';
+    if abs((income.meannety-direct_results.mean_nety)/income.meannety) > 1e-3
+        direct_results.issues{end+1} = 'BadNetIncomeMean';
     end
     if norm(yPdist_check-income.yPdist) > 1e-3
-        results.issues{end+1} = 'Bad_yP_Dist';
+        direct_results.issues{end+1} = 'Bad_yP_Dist';
     end
     if min(basemodel.SSdist) < - 1e-3
-        results.issues = [results.issues,'NegativeStateProbability'];
+        direct_results.issues = [direct_results.issues,'NegativeStateProbability'];
     end
 
     %% WEALTH DISTRIBUTION
@@ -180,25 +188,25 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
         wpinterp = griddedInterpolant(sav_unique,basemodel.SScumdist(ind),'linear');
         if p.epsilon(i) == 0
             % get exact figure
-            results.constrained(i) = basemodel.SSdist' * (basemodel.sav_longgrid == 0);
+            direct_results.constrained(i) = basemodel.SSdist' * (basemodel.sav_longgrid == 0);
         else
-            results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany*p.freq);
+            direct_results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany*p.freq);
         end
     end
     
     % wealth percentiles
-    results.wpercentiles = interp1(basemodel.SScumdist_unique,basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind),p.percentiles/100,'linear');
+    direct_results.wpercentiles = interp1(basemodel.SScumdist_unique,basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind),p.percentiles/100,'linear');
     
     % top shares
     % fraction of total assets that reside in each pt on asset space
     totassets = basemodel.SSdist_sort .* basemodel.a_longgrid_sort;
-    cumassets = cumsum(totassets) / results.mean_a;
+    cumassets = cumsum(totassets) / direct_results.mean_a;
     cumassets = cumassets(basemodel.SScumdist_uniqueind);
     
     % create interpolant from wealth percentile to cumulative wealth share
     cumwealthshare = griddedInterpolant(basemodel.SScumdist_unique,cumassets,'linear');
-    results.top10share  = 1 - cumwealthshare(0.9);
-    results.top1share   = 1 - cumwealthshare(0.99);
+    direct_results.top10share  = 1 - cumwealthshare(0.9);
+    direct_results.top1share   = 1 - cumwealthshare(0.99);
     
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model
@@ -209,54 +217,46 @@ function [simulations,results] = egp_AR1_IID_tax_recode(p)
     %% SIMULATIONS
     % Full model
     if p.Simulate == 1
-        simulations = simulate(p,income,basemodel,xgrid,prefs);
+        [sim_results,assetmeans] = simulate(p,income,basemodel,xgrid,prefs);
     else
-        simulations = struct();
+        sim_results = struct();
     end
 
     %% MAKE PLOTS
   
     if p.MakePlots ==1 
-        makeplots(p,xgrid,sgrid,basemodel,income,simulations);
+        makeplots(p,xgrid,sgrid,basemodel,income,sim_results,assetmeans);
     end 
     
     %% MPCS
     
     %mpc amounts
     for im = 1:numel(p.mpcfrac)
-        mpcamount{im} = p.mpcfrac{im} * income.meany;
-        xgrid_mpc{im} = xgrid.longgrid_wide + mpcamount{im};
-    end
-    
-    for im = 1:numel(p.mpcfrac)
-        mpc{im} = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
+        mpcamount       = p.mpcfrac{im} * income.meany;
+        xgrid_mpc       = xgrid.longgrid_wide + mpcamount;
+        mpc             = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
+        
         % iterate over (yP,yF,beta)
         for ib = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP 
-            mpc{im}(:,iyP,iyF,ib) = (basemodel.coninterp{iyP,iyF,ib}(xgrid_mpc{im}(:,iyP,iyF))...
-                        - basemodel.con_longgrid_wide(:,iyP,iyF,ib))/mpcamount{im};     
+            mpc(:,iyP,iyF,ib) = (basemodel.coninterp{iyP,iyF,ib}(xgrid_mpc(:,iyP,iyF))...
+                                - basemodel.con_longgrid_wide(:,iyP,iyF,ib))/mpcamount;     
         end
         end
         end
-        % average mpc, one-period ahead
-        results.avg_mpc1{im} = basemodel.SSdist' * mpc{im}(:);
-    end
-    
-        
-    for im = 1:numel(p.mpcfrac)
-        results.mpcamount{im} = p.mpcfrac{im};
+        % average mpc, one-period
+        direct_results.avg_mpc1{im} = basemodel.SSdist' * mpc(:);
     end
         
     if p.ComputeDirectMPC == 1
-        [results.avg_mpc1_alt,results.avg_mpc4,results.distMPCamount] ...
-                = fourperiodmpc(xgrid,p,income,basemodel,prefs);
+        [direct_results.avg_mpc1_alt,direct_results.avg_mpc4] ...
+                = fourperiodmpcs(xgrid,p,income,basemodel,prefs);
     end
     
     %% Print Results
-    if p.PrintStats == 1
-        print_statistics(results,simulations,p);
+    if p.Display == 1
+        print_statistics(direct_results,sim_results,p);
     end
     
-    results.xgrid = xgrid;
 end

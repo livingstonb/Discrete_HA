@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
+path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -72,8 +72,8 @@ prms(1).tol_iter    = 1.0e-6; % EGP
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).nxlong_int  = 100; % For intermediate iterations of EGP
-prms(1).nxlong      = 1000; % Grid size for computing final ergodic distribution
-prms(1).nxmpc       = 1000; % grid size for direct MPC. mpcamount = xmax/nxmpc
+prms(1).nxlong      = 2000; % Grid size for computing final ergodic distribution
+prms(1).nxmpc       = 2000; % grid size for direct MPC. mpcamount = xmax/nxmpc
  
 % beta iteration
 prms(1).targetAY    = 3.5;
@@ -97,14 +97,13 @@ prms(1).percentiles = [10 25 50 75 90 95 99]; % in percent
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
-prms(1).ComputeDirectMPC    = 0;
+prms(1).ComputeDirectMPC    = 1;
 prms(1).SolveDeterministic  = 1;
-prms(1).Simulate            = 0;
-prms(1).PrintStats          = 1;
+prms(1).Simulate            = 1;
 
 %% Call model
 Nprms = size(prms,2);
 % Create structure arrays to store results
 for ip = 1:Nprms
-    [simulations(ip),results(ip)] = egp_AR1_IID_tax_recode(prms(ip));
+    [sim_results(ip),direct_results(ip)] = egp_AR1_IID_tax_recode(prms(ip));
 end

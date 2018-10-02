@@ -35,7 +35,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
 
     % Expectations operator (conditional on yT)
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+    model.Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
 
     %% EGP ITERATION
     iter = 1;
@@ -78,7 +78,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
         % variables defined for each (x,yP,yF,beta) in state space,
         % column vecs of length p.nx*p.nyP*p.nyF*p.nb
         muc_savtaxrate  = (1+p.savtax.*(repmat(sgrid.wide(:),p.nb,1)>=p.savtaxthresh));
-        muc_consumption = (1+p.r)*betastacked*(Emat*(mucnext*income.yTdist));
+        muc_consumption = (1+p.r)*betastacked*(model.Emat*(mucnext*income.yTdist));
         muc_bequest     = p.dieprob*prefs.beq1(repmat(sgrid.wide(:),p.nb,1));
         % muc(s(x,yP,yF,beta))
         muc_s           = (1-p.dieprob) * muc_consumption .* muc_savtaxrate...
@@ -224,6 +224,8 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     end
     end
     end
+    
+    model.statetrans = grid_probabilities;
 
     % SS probability of residing in each state
     fprintf(' Finding ergodic distribution...\n');

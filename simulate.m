@@ -1,4 +1,4 @@
-function simulations = simulate(p,income,model,...
+function [sim_results,assetmeans] = simulate(p,income,model,...
                                         xgrid,prefs)
     % This function runs simulations based on the paratmers in 'p' and the
     % policy functions in 'model'. Output is a structure.
@@ -116,33 +116,26 @@ function simulations = simulate(p,income,model,...
         end
     end
     
-    %% MPCs
-    
-    [simulations.avg_mpc1,simulations.avg_mpc4,simulations.mpcs]...
-        = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
-                                            betaindsim,income,model,xgrid);
-    
     %% Moments/important quantities
-    simulations.mean_s = mean(ssim(:,p.Tsim));
-    simulations.mean_a = mean(asim(:,p.Tsim));
-    simulations.mean_x = mean(xsim(:,p.Tsim));
-    simulations.frac_constrained = mean(ssim(:,p.Tsim)<=p.borrow_lim);
-    simulations.mean_grossy = mean(ygrosssim(:,p.Tsim));
-    simulations.mean_nety = mean(ynetsim(:,p.Tsim));
-    simulations.mean_loggrossy = mean(log(ygrosssim(:,p.Tsim)));
-    simulations.mean_lognety = mean(log(ynetsim(:,p.Tsim)));
-    simulations.var_loggrossy = var(log(ygrosssim(:,p.Tsim)));
-    simulations.var_lognety = var(log(ynetsim(:,p.Tsim)));
-    simulations.frac_less5perc_labincome = mean(asim(:,p.Tsim)<0.05);
-    simulations.assetmeans = p.R * mean(ssim);
-    
-    for i = 1:numel(p.percentiles)
-        simulations.wpercentiles(i) = quantile(ssim(:,p.Tsim),p.percentiles(i)/100);
-    end
+    sim_results.mean_s = mean(ssim(:,p.Tsim));
+    sim_results.mean_a = mean(asim(:,p.Tsim));
+    sim_results.mean_x = mean(xsim(:,p.Tsim));
+    sim_results.mean_grossy = mean(ygrosssim(:,p.Tsim));
+    sim_results.mean_loggrossy = mean(log(ygrosssim(:,p.Tsim)));
+    sim_results.mean_nety = mean(ynetsim(:,p.Tsim));
+    sim_results.mean_lognety = mean(log(ynetsim(:,p.Tsim)));
+    sim_results.var_loggrossy = var(log(ygrosssim(:,p.Tsim)));
+    sim_results.var_lognety = var(log(ynetsim(:,p.Tsim)));
+    assetmeans = p.R * mean(ssim);
     
     % fraction constrained
     for i = 1:numel(p.epsilon)
-        simulations.constrained(i) = mean(ssim(:,p.Tsim)<=p.borrow_lim+p.epsilon(i)*income.meany*p.freq);
+        sim_results.constrained(i) = mean(ssim(:,p.Tsim)<=p.borrow_lim+p.epsilon(i)*income.meany*p.freq);
+    end
+    
+    % wealth percentiles
+    for i = 1:numel(p.percentiles)
+        sim_results.wpercentiles(i) = quantile(ssim(:,p.Tsim),p.percentiles(i)/100);
     end
     
     % top shares
@@ -150,8 +143,14 @@ function simulations = simulate(p,income,model,...
     top1w  = quantile(ssim(:,p.Tsim),0.99);
     idxtop10 = ssim(:,p.Tsim) > top10w;
     idxtop1 = ssim(:,p.Tsim) > top1w;
-    simulations.top10share = sum(ssim(idxtop10,p.Tsim))/sum(ssim(:,p.Tsim));
-    simulations.top1share  = sum(ssim(idxtop1,p.Tsim))/sum(ssim(:,p.Tsim));
+    sim_results.top10share = sum(ssim(idxtop10,p.Tsim))/sum(ssim(:,p.Tsim));
+    sim_results.top1share  = sum(ssim(idxtop1,p.Tsim))/sum(ssim(:,p.Tsim));
+    
+    %% MPCs
+    
+    [sim_results.avg_mpc1,sim_results.avg_mpc4,sim_results.mpcs]...
+        = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
+                                            betaindsim,income,model,xgrid);
 
 
 end
