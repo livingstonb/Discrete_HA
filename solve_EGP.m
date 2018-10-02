@@ -1,5 +1,5 @@
-function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
-                                            ergodic_tol,income,gridsize)
+function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
+                                            ergodic_tol,income,Intermediate)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also computes the
     % stationary distribution over states via direct methods (rather than
@@ -35,7 +35,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
 
     % Expectations operator (conditional on yT)
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    model.Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+    Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
 
     %% EGP ITERATION
     iter = 1;
@@ -78,7 +78,7 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
         % variables defined for each (x,yP,yF,beta) in state space,
         % column vecs of length p.nx*p.nyP*p.nyF*p.nb
         muc_savtaxrate  = (1+p.savtax.*(repmat(sgrid.wide(:),p.nb,1)>=p.savtaxthresh));
-        muc_consumption = (1+p.r)*betastacked*(model.Emat*(mucnext*income.yTdist));
+        muc_consumption = (1+p.r)*betastacked*(Emat*(mucnext*income.yTdist));
         muc_bequest     = p.dieprob*prefs.beq1(repmat(sgrid.wide(:),p.nb,1));
         % muc(s(x,yP,yF,beta))
         muc_s           = (1-p.dieprob) * muc_consumption .* muc_savtaxrate...
@@ -122,7 +122,6 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
         % EGP did not converge, don't find stationary distribution
         AYdiff = 100000;
         model.EGP_cdiff = cdiff;
-        xgridm = [];
         return
     end
 
@@ -149,30 +148,36 @@ function [AYdiff,model,xgridm] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
 
     %% DISTRIBUTION
     
+    if Intermediate == 1
+        cashgrid = xgrid.interm_wide;
+    else
+        cashgrid = xgrid.longgrid_wide;
+    end
+    
+    gridsize = size(cashgrid,1);
+    
     [model.SSdist,model.statetrans,model.sav_longgrid_wide]...
-            = find_stationary(p,model,income,prefs,xgridm,ergodic_tol);
+            = find_stationary(p,model,income,prefs,cashgrid,ergodic_tol);
 
     % SS probability of residing in each state
     model.SSdist_wide = reshape(model.SSdist,[gridsize,p.nyP,p.nyF,p.nb]);
 
     % SS wealth/gross income ratio
     model.mean_s = model.sav_longgrid_wide(:)' * model.SSdist;
-    model.mean_a = p.R * model.mean_s;
-
+    
     % policy functions
     model.sav_longgrid      = model.sav_longgrid_wide(:);
     if p.WealthInherited == 0
-        model.a_longgrid        = (1 - p.dieprob) * p.R * model.sav_longgrid;
+        model.mean_a = (1-p.dieprob) * p.R * model.mean_s;
     else
-        model.a_longgrid        = p.R * model.sav_longgrid;
+        model.mean_a = p.R * model.mean_s;
     end
-    model.con_longgrid      = repmat(xgridm(:),p.nb,1) - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid-p.savtaxthresh,0);
+    model.con_longgrid      = repmat(cashgrid(:),p.nb,1) - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid-p.savtaxthresh,0);
     model.con_longgrid_wide = reshape(model.con_longgrid,[gridsize,p.nyP,p.nyF,p.nb]);
     
     % cumulative distribution
     temp = sortrows([model.sav_longgrid model.SSdist]);
     model.sav_longgrid_sort = temp(:,1);
-    model.a_longgrid_sort = (1 - p.dieprob) * p.R * model.sav_longgrid_sort;
     model.SSdist_sort = temp(:,2);
     model.SScumdist = cumsum(model.SSdist_sort);
     

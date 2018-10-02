@@ -1,4 +1,4 @@
-function [distribution,statetrans,sav] = find_stationary(p,model,income,prefs,xgridinput,ergodic_tol)
+function [distribution,statetrans,sav,con] = find_stationary(p,model,income,prefs,xgridinput,ergodic_tol)
     if p.Display == 1
         fprintf(' Computing state-to-state transition probabilities... \n');
     end
@@ -41,26 +41,26 @@ function [distribution,statetrans,sav] = find_stationary(p,model,income,prefs,xg
         end
         
         % set probabilities equal to 1 at grid endpt when xp is off the grid
-        idx_xpl_max = xp_live>=max(xgridinput(:,iyP2,iyF2));
-        idx_xpl_min = xp_live<=min(xgridinput(:,iyP2,iyF2));
-        
-        idx_xpd_max = xp_death>=max(xgridinput(:,iyP2,iyF2));
-        idx_xpd_min = xp_death<=min(xgridinput(:,iyP2,iyF2));
-        
-        interpl = funbas(fspace,xp_live);
-        interpl(idx_xpl_max | idx_xpl_min,:) = 0;
-        interpl(idx_xpl_max,end) = 1;
-        interpl(idx_xpl_min,1) = 1;
-        
-        interpd = funbas(fspace,xp_death);
-        interpd(idx_xpd_max | idx_xpd_min,:) = 0;
-        interpd(idx_xpd_max,end) = 1;
-        interpd(idx_xpd_min,1) = 1;
-        
-        interp = (1-p.dieprob) * interpl + p.dieprob * interpd;
+%         idx_xpl_max = xp_live>=max(xgridinput(:,iyP2,iyF2));
+%         idx_xpl_min = xp_live<=min(xgridinput(:,iyP2,iyF2));
+%         
+%         idx_xpd_max = xp_death>=max(xgridinput(:,iyP2,iyF2));
+%         idx_xpd_min = xp_death<=min(xgridinput(:,iyP2,iyF2));
+%         
+%         interpl = funbas(fspace,xp_live);
+%         interpl(idx_xpl_max | idx_xpl_min,:) = 0;
+%         interpl(idx_xpl_max,end) = 1;
+%         interpl(idx_xpl_min,1) = 1;
+%         
+%         interpd = funbas(fspace,xp_death);
+%         interpd(idx_xpd_max | idx_xpd_min,:) = 0;
+%         interpd(idx_xpd_max,end) = 1;
+%         interpd(idx_xpd_min,1) = 1;
+%         
+%         interp = (1-p.dieprob) * interpl + p.dieprob * interpd;
         
             % if not setting probabilites to 1 at grid endpts
-            % interp = (1-p.dieprob) * funbas(fspace,xp_live) + p.dieprob * funbas(fspace,xp_death);
+            interp = (1-p.dieprob) * funbas(fspace,xp_live) + p.dieprob * funbas(fspace,xp_death);
             
         interp = reshape(interp,[],p.nyT*nn);
         % Multiply by yT distribution

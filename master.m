@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -43,14 +43,14 @@ prms(1).yTContinuous = 0;
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
 prms(1).lambdaT     = 1; % arrival rate of shocks;
 prms(1).nyP         = 11; %11 persistent component
-prms(1).sd_logyP    = sqrt(0.2); %0.1950;
+prms(1).sd_logyP    = sqrt(0.02); %0.1950;
 prms(1).rho_logyP   = 0.9525;
 prms(1).nyF         = 1;
 prms(1).sd_logyF    = 0;
 
 % cash on hand / savings grid
 prms(1).nx          = 100;
-prms(1).xmax        = 1000;  % need high if using high-variance income shocks
+prms(1).xmax        = 100;  % need high if using high-variance income shocks
 prms(1).xgrid_par   = 0.2; %1 for linear, 0 for L-shaped
 prms(1).borrow_lim  = 0;
 
@@ -71,9 +71,8 @@ prms(1).max_iter    = 1e5; % EGP
 prms(1).tol_iter    = 1.0e-6; % EGP
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
-prms(1).nxlong_int  = 100; % For intermediate iterations of EGP
-prms(1).nxlong      = 1000; % Grid size for computing final ergodic distribution
-prms(1).nxmpc       = 1000; % grid size for direct MPC. mpcamount = xmax/nxmpc
+prms(1).nxinterm    = 100; % For intermediate iterations of EGP
+prms(1).nxlong      = 500; % Grid size for computing final ergodic distribution
  
 % beta iteration
 prms(1).targetAY    = 3.5;
@@ -98,7 +97,7 @@ prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
 prms(1).ComputeDirectMPC    = 1;
-prms(1).SolveDeterministic  = 1;
+prms(1).SolveDeterministic  = 0;
 prms(1).Simulate            = 1;
 
 %% Call model

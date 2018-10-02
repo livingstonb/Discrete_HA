@@ -80,10 +80,28 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
 
     % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
     % cash on hand grid: different min points for each value of (iyP,iyF)
-    minyT = kron(min(income.netymat,[],2),ones(p.nx,1));
-    xgrid.orig = sgrid.wide(:) + minyT;
-    xgrid.orig_wide = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
-    xgrid.norisk_short = sgrid.short + income.meannety;
+    minyT               = kron(min(income.netymat,[],2),ones(p.nx,1));
+    xgrid.orig          = sgrid.wide(:) + minyT;
+    xgrid.orig_wide     = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
+    xgrid.norisk_short  = sgrid.short + income.meannety;
+    
+    % create xgrid for intermediate computations of ergodic distribution
+    minyT = kron(min(income.netymat,[],2),ones(p.nxinterm,1));
+    xgrid.interm      = linspace(0,1,p.nxinterm)';
+    xgrid.interm      = xgrid.interm.^(1/p.xgrid_par);
+    xgrid.interm      = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid.interm;
+    xgrid.interm      = repmat(xgrid.interm,p.nyP*p.nyF,1);
+    xgrid.interm      = xgrid.interm + minyT;
+    xgrid.interm_wide = reshape(xgrid.interm,[p.nxinterm p.nyP p.nyF]);    
+    
+    % create longer xgrid for last computation of ergodic distribution
+    minyT = kron(min(income.netymat,[],2),ones(p.nxlong,1));
+    xgrid.longgrid      = linspace(0,1,p.nxlong)';
+    xgrid.longgrid      = xgrid.longgrid.^(1/p.xgrid_par);
+    xgrid.longgrid      = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid.longgrid;
+    xgrid.longgrid      = repmat(xgrid.longgrid,p.nyP*p.nyF,1);
+    xgrid.longgrid      = xgrid.longgrid + minyT;
+    xgrid.longgrid_wide = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
     
 
     %% UTILITY FUNCTION, BEQUEST FUNCTION
@@ -126,23 +144,22 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     % Use final beta to get policy functions and distribution, with a
     % larger grid and higher tolerance for ergodic distribution
     ergodic_tol = 1e-7;
-    [~,basemodel,xgrid.longgrid] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
-                                            ergodic_tol,income,p.nxlong);
+    Intermediate = 0;
+    [~,basemodel] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
+                                            ergodic_tol,income,Intermediate);
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         direct_results.issues{end+1} = 'NoEGPConv';
         return
     end
-                                        
-    xgrid.longgrid_wide = reshape(xgrid.longgrid,[p.nxlong,p.nyP,p.nyF]);
     
     %% IMPORTANT MOMENTS
     
     ymat_onlonggrid = repmat(kron(income.ymat,ones(p.nxlong,1)),p.nb,1);
     netymat_onlonggrid = repmat(kron(income.netymat,ones(p.nxlong,1)),p.nb,1);
     
-    direct_results.mean_s = basemodel.sav_longgrid' * basemodel.SSdist;
-    direct_results.mean_a = basemodel.a_longgrid' * basemodel.SSdist;
+    direct_results.mean_s = basemodel.mean_s;
+    direct_results.mean_a = basemodel.mean_a;
     direct_results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist;
     direct_results.mean_grossy = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
     direct_results.mean_loggrossy = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
@@ -199,7 +216,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     
     % top shares
     % fraction of total assets that reside in each pt on asset space
-    totassets = basemodel.SSdist_sort .* basemodel.a_longgrid_sort;
+    totassets = basemodel.SSdist_sort .* ((1-p.dieprob)*p.R*basemodel.sav_longgrid_sort);
     cumassets = cumsum(totassets) / direct_results.mean_a;
     cumassets = cumassets(basemodel.SScumdist_uniqueind);
     
@@ -252,7 +269,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         
     if p.ComputeDirectMPC == 1
         [direct_results.avg_mpc1_alt,direct_results.avg_mpc4] ...
-                = fourperiodmpcs(xgrid,p,income,basemodel,prefs);
+                = direct_mpcs(xgrid,p,income,basemodel,prefs);
     end
     
     %% Print Results

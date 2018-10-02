@@ -11,7 +11,7 @@ function print_statistics(direct_results,sim_results,p)
     fprintf('\nWEALTH/SAVINGS: \n')
     
     % Mean wealth
-    direct  = sprintf(' %2.3f (Direct Comp),',direct_results.mean_a);
+    direct  = sprintf(' %2.3f (direct),',direct_results.mean_a);
     if p.Simulate == 1
         sim = sprintf(' %2.3f (Simulation)',sim_results.mean_a);
     end
@@ -54,14 +54,14 @@ function print_statistics(direct_results,sim_results,p)
     fprintf('\nINCOME DISTRIBUTION: \n')
     fprintf('  Cross-sectional variances\n')
     % Variance of log gross labor income
-    direct = sprintf(' %2.3f (Direct Comp)',direct_results.var_loggrossy);
+    direct = sprintf(' %2.3f (direct)',direct_results.var_loggrossy);
     if p.Simulate == 1
         sim = sprintf(', %2.3f (Simulation)',sim_results.var_loggrossy);
     end
     disp(['    Var Log Gross Earnings:' direct sim]);
     
     % Variance of log net labor income
-    direct = sprintf('   %2.3f (Direct Comp)',direct_results.var_lognety);
+    direct = sprintf('   %2.3f (direct)',direct_results.var_lognety);
     if p.Simulate == 1
         sim = sprintf(', %2.3f (Simulation)',sim_results.var_lognety);
     end
@@ -73,9 +73,9 @@ function print_statistics(direct_results,sim_results,p)
     % Average MPC, 1 period
     for i = 1:size(p.mpcfrac,2)
         if p.ComputeDirectMPC == 1
-            direct = sprintf(' %2.3f (Direct Comp)',direct_results.avg_mpc1{i});
+            direct = sprintf(' %2.3f (direct)',direct_results.avg_mpc1{i});
         else
-            direct = ' --- (Direct Comp) ';
+            direct = ' --- (direct) ';
         end
         if p.Simulate == 1
             sim = sprintf(', %2.3f (Simulation)',sim_results.avg_mpc1{i});
@@ -87,10 +87,15 @@ function print_statistics(direct_results,sim_results,p)
         disp([label direct sim]);
     end
     
-    % Average MPC, 4 periods (simulation)
+    % Average MPC, 4 periods
     fprintf('  4-Period MPCs\n')
     for i = 1:numel(p.mpcfrac)
-        direct = ' --- (Direct Comp) ';
+        if p.ComputeDirectMPC == 1
+            direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4(i));
+        else
+            direct = ' --- (Direct) ';
+        end
+        
         if p.Simulate == 1
             sim = sprintf(', %2.3f (Simulation)',sim_results.avg_mpc4{i});
         else
@@ -102,12 +107,12 @@ function print_statistics(direct_results,sim_results,p)
         
     end
     
-    % Average MPC, 4 periods (direct)
-    if p.ComputeDirectMPC == 1
-        msg = sprintf('    MPC out of %6.2g of mean income:',direct_results.avg_mpc4.mpcfrac);
-        direct = sprintf(' %4.3f (Direct Comp)',direct_results.avg_mpc4.value);
-        disp([msg direct]);
-    end
+%     % Average MPC, 4 periods (direct)
+%     if p.ComputeDirectMPC == 1
+%         msg = sprintf('    MPC out of %6.2g of mean income:',direct_results.avg_mpc4);
+%         direct = sprintf(' %4.3f (direct)',direct_results.avg_mpc4);
+%         disp([msg direct]);
+%     end
     
     %% OTHER
     fprintf('\nOTHER: \n')
