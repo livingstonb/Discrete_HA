@@ -60,7 +60,7 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,income,pref
 %         interp = (1-p.dieprob) * interpl + p.dieprob * interpd;
         
             % if not setting probabilites to 1 at grid endpts
-            interp = (1-p.dieprob) * funbas(fspace,xp_live) + p.dieprob * funbas(fspace,xp_death);
+        interp = (1-p.dieprob) * funbas(fspace,xp_live) + p.dieprob * funbas(fspace,xp_death);
             
         interp = reshape(interp,[],p.nyT*nn);
         % Multiply by yT distribution
@@ -76,4 +76,4 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,income,pref
 
     % SS probability of residing in each state
     fprintf(' Finding ergodic distribution...\n');
-    distribution = full(ergodicdist(sparse(statetrans),1,ergodic_tol));
+    distribution = double(full(ergodicdist(sparse(statetrans),1,ergodic_tol)));
