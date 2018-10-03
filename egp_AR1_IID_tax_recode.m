@@ -143,7 +143,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
 
     % Use final beta to get policy functions and distribution, with a
     % larger grid and higher tolerance for ergodic distribution
-    ergodic_tol = 1e-7;
+    ergodic_tol = 1e-8;
     Intermediate = 0;
     [~,basemodel] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
                                             ergodic_tol,income,Intermediate);
@@ -212,11 +212,20 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     end
     
     % wealth percentiles
-    direct_results.wpercentiles = interp1(basemodel.SScumdist_unique,basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind),p.percentiles/100,'linear');
+    if p.WealthInherited == 1
+        a_longgrid_sort = p.R * basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind);
+    else
+        a_longgrid_sort = (1 - p.dieprob) * p.R * basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind);
+    end
+    direct_results.wpercentiles = interp1(basemodel.SScumdist_unique,a_longgrid_sort,p.percentiles/100,'linear');
     
     % top shares
     % fraction of total assets that reside in each pt on asset space
-    totassets = basemodel.SSdist_sort .* ((1-p.dieprob)*p.R*basemodel.sav_longgrid_sort);
+    if p.WealthInherited == 1
+        totassets = basemodel.SSdist_sort .* (p.R*basemodel.sav_longgrid_sort);
+    else
+        totassets = basemodel.SSdist_sort .* ((1-p.dieprob)*p.R*basemodel.sav_longgrid_sort);
+    end
     cumassets = cumsum(totassets) / direct_results.mean_a;
     cumassets = cumassets(basemodel.SScumdist_uniqueind);
     

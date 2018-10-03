@@ -23,6 +23,8 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,income,pref
     netymat_fulldim = reshape(income.netymat,[p.nyP p.nyF p.nyT]);
     
     trans = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
+    ytrans_stationary = repmat(income.yPdist',p.nyP,1);
+    trans_death = kron(prefs.betatrans,kron(eye(p.nyF),ytrans_stationary));
     statetrans = zeros(NN,NN);
     col = 1;
     for ib2 = 1:p.nb
@@ -30,15 +32,8 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,income,pref
     for iyP2 = 1:p.nyP
         fspace = fundef({'spli',xgridinput(:,iyP2,iyF2),0,1});
         % xprime if no death
-        xp_live = (1+p.r)*repmat(sav(:),p.nyT,1) + ...
+        xp = (1+p.r)*repmat(sav(:),p.nyT,1) + ...
             kron(squeeze(netymat_fulldim(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
-
-        % xprime if death (i.e. saving in past period set to 0)
-        if p.WealthInherited == 0
-            xp_death = kron(squeeze(netymat_fulldim(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
-        else
-            xp_death = xp_live;
-        end
         
         % set probabilities equal to 1 at grid endpt when xp is off the grid
 %         idx_xpl_max = xp_live>=max(xgridinput(:,iyP2,iyF2));
@@ -60,13 +55,31 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,income,pref
 %         interp = (1-p.dieprob) * interpl + p.dieprob * interpd;
         
             % if not setting probabilites to 1 at grid endpts
-        interp = (1-p.dieprob) * funbas(fspace,xp_live) + p.dieprob * funbas(fspace,xp_death);
-            
-        interp = reshape(interp,[],p.nyT*nn);
+% %         interp = (1-p.dieprob) * funbas(fspace,xp_live) + p.dieprob * funbas(fspace,xp_death);
+% %             
+% %         interp = reshape(interp,[],p.nyT*nn);
+        
+        xp_live  = xp;
+        if p.WealthInherited == 0
+            % x' is only equal to income
+            xp_death = kron(squeeze(netymat_fulldim(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
+        else
+            % x' is the same as in life
+            xp_death = xp;
+        end
+        
+        interp_live     = reshape(funbas(fspace,xp_live),[],p.nyT*nn);
+        interp_death    = reshape(funbas(fspace,xp_death),[],p.nyT*nn);
+
         % Multiply by yT distribution
-        newcolumn = interp * kron(speye(nn),income.yTdist);
-        % Multiply by (beta,yF,yP) distribution
-        newcolumn = bsxfun(@times,kron(trans(:,col),ones(nn,1)),newcolumn);
+        interp_live     = interp_live  * kron(speye(nn),income.yTdist);
+        interp_death    = interp_death * kron(speye(nn),income.yTdist);
+
+        % Multiply by transition matrix between (yP,yF,beta) states
+        interp_live     = bsxfun(@times,kron(trans(:,col),ones(nn,1)),interp_live);
+        interp_death    = bsxfun(@times,kron(trans_death(:,col),ones(nn,1)),interp_death);
+
+        newcolumn       = (1-p.dieprob)*interp_live + p.dieprob*interp_death;
 
         statetrans(:,nn*(col-1)+1:nn*col) = newcolumn;
         col = col + 1;

@@ -172,7 +172,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     else
         model.mean_a = p.R * model.mean_s;
     end
-    model.con_longgrid      = repmat(cashgrid(:),p.nb,1) - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid-p.savtaxthresh,0);
+    model.con_longgrid      = repmat(cashgrid(:),p.nb,1) - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid(:)-p.savtaxthresh,0);
     model.con_longgrid_wide = reshape(model.con_longgrid,[gridsize,p.nyP,p.nyF,p.nb]);
     
     % cumulative distribution
@@ -183,11 +183,8 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     
     % unique values on cumdist and their indices (needed for interpolants)
     [model.SScumdist_unique,model.SScumdist_uniqueind] = unique(model.SScumdist,'last');
-    
-    mean_s = model.SSdist' * model.sav_longgrid;
 
     fprintf(' A/Y = %2.3f\n',model.mean_a/income.meany);
-    %AYdiffsq = (mean_s/meany - targetAY)^2;
     AYdiff = model.mean_a/income.meany -  p.targetAY;
 
 end

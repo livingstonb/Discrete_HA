@@ -135,16 +135,16 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     
     % wealth percentiles
     for i = 1:numel(p.percentiles)
-        sim_results.wpercentiles(i) = quantile(ssim(:,p.Tsim),p.percentiles(i)/100);
+        sim_results.wpercentiles(i) = quantile(asim(:,p.Tsim),p.percentiles(i)/100);
     end
     
     % top shares
-    top10w = quantile(ssim(:,p.Tsim),0.9);
-    top1w  = quantile(ssim(:,p.Tsim),0.99);
-    idxtop10 = ssim(:,p.Tsim) > top10w;
-    idxtop1 = ssim(:,p.Tsim) > top1w;
-    sim_results.top10share = sum(ssim(idxtop10,p.Tsim))/sum(ssim(:,p.Tsim));
-    sim_results.top1share  = sum(ssim(idxtop1,p.Tsim))/sum(ssim(:,p.Tsim));
+    top10w      = quantile(asim(:,p.Tsim),0.9);
+    top1w       = quantile(asim(:,p.Tsim),0.99);
+    idxtop10    = asim(:,p.Tsim) > top10w;
+    idxtop1     = asim(:,p.Tsim) > top1w;
+    sim_results.top10share = sum(asim(idxtop10,p.Tsim))/sum(asim(:,p.Tsim));
+    sim_results.top1share  = sum(asim(idxtop1,p.Tsim))/sum(asim(:,p.Tsim));
     
     %% MPCs
     
