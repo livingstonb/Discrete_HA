@@ -2,12 +2,12 @@ function [avg_mpc1,avg_mpc2] = direct_mpcs_new(xgrid,p,income,basemodel,prefs)
 
     NN = p.nxlong * p.nyP * p.nyF * p.nb;
 
-    for im = 1:numel(p.mpcfrac)
+    for im = 6:numel(p.mpcfrac)
         xx  = cell(1,4);
         sav = cell(1,4);
         con = cell(1,4);
         
-        mpcamount = p.mpcfrac{1} * income.meany * p.freq;
+        mpcamount = p.mpcfrac{im} * income.meany * p.freq;
         xx{1} = xgrid.longgrid_wide + mpcamount;
         
         %% One-period MPC
@@ -17,13 +17,14 @@ function [avg_mpc1,avg_mpc2] = direct_mpcs_new(xgrid,p,income,basemodel,prefs)
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
             con{1}(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(xx{1}(:,iyP,iyF));
+            sav{1}(:,iyP,iyF,ib) = basemodel.savinterp{iyP,iyF,ib}(xx{1}(:,iyP,iyF));
         end
         end
         end
         mpc{1} = (con{1}(:) - basemodel.con_longgrid) / mpcamount;
         avg_mpc{1} = basemodel.SSdist' * mpc{1};
 
-        sav{1} = get_sav1(p,xx{1},basemodel);
+        % sav{1} = get_sav1(p,xx{1},basemodel);
         
         for t = 1:3
             % create matrix of xprime's, final dim NN by p.nyP*p.nyF*p.nyT
@@ -38,7 +39,9 @@ function [avg_mpc1,avg_mpc2] = direct_mpcs_new(xgrid,p,income,basemodel,prefs)
 
             expected_con = get_mpc(p,xprime{t},NN,basemodel,income,prefs,mpcamount);
             T{t} = transition_matrix(NN,xprime{t},p,xgrid,income,prefs);
-            avg_mpc{2} = (basemodel.SSdist'* expected_con - basemodel.SSdist'*basemodel.con_longgrid) / mpcamount;
+            
+            mpc{2} = (expected_con - basemodel.con_longgrid) / mpcamount;
+            avg_mpc{2} = avg_mpc{1} + basemodel.SSdist' * mpc{2};
         end
 
         %% Multi-period MPCs
@@ -47,40 +50,39 @@ function [avg_mpc1,avg_mpc2] = direct_mpcs_new(xgrid,p,income,basemodel,prefs)
             sav{t} = get_sav(p,x_mpc{t},basemodel,NN);
             x_mpc{t+1}  = find_xp(p,sav{t},income,NN);
         end
-            
+    end   
         
-    end
+   
     
-   function sav = get_sav1(p,xx,basemodel)
-        sav = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
-        for ib  = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP
-            sav(:,iyP,iyF,ib) = basemodel.savinterp{iyP,iyF,ib}(xx(:,iyP,iyF));
-        end
-        end
-        end
-   end
+       function sav = get_sav1(p,xx,basemodel)
+            sav = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
+            for ib  = 1:p.nb
+            for iyF = 1:p.nyF
+            for iyP = 1:p.nyP
+                sav(:,iyP,iyF,ib) = basemodel.savinterp{iyP,iyF,ib}(xx(:,iyP,iyF));
+            end
+            end
+            end
+       end
 
     function expected_con = get_mpc(p,x,NN,basemodel,income,prefs,mpcamount)
-        con_mpc = zeros(NN,p.nyP*p.nyF*p.nb*p.nyT);
-        x       = reshape(x,NN,p.nyP*p.nyF*p.nyT);
-        rowblock = 1;
-        for ib  = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP
-            rowind1 = (rowblock-1)*p.nxlong + 1;
-            rowind2 = rowblock*p.nxlong;
-            x_rowblock = x(rowind1:rowind2,:);
-
-            con_mpc_rowblock = basemodel.coninterp{iyP,iyF,ib}(x_rowblock(:));
-            con_mpc(rowind1:rowind2,:) = reshape(con_mpc_rowblock,p.nxlong,p.nyP*p.nyF*p.nyT);
-
-            rowblock = rowblock + 1;
+        
+        con_mpc = zeros(NN,p.nyP,p.nyF,p.nb,p.nyT);
+        x       = reshape(x,NN,p.nyP,p.nyF,p.nyT);
+        
+        col = 1;
+        for ib2 = 1:p.nb
+        for iyF2 = 1:p.nyF
+        for iyP2 = 1:p.nyP
+            col = col + 1;
+            x_T = x(:,iyP2,iyF2,:);
+            con_col = basemodel.coninterp{iyP2,iyF2,ib2}(x_T(:));
+            con_col = reshape(con_col,[NN 1 1 1 p.nyT]);
+            con_mpc(:,iyP2,iyF2,ib2,:) = con_col;
         end
         end
         end
-
+       
         % take expectation over yT
         ETcon_mpc = reshape(con_mpc,[],p.nyT) * income.yTdist;
         con_mpc  = reshape(ETcon_mpc,NN,p.nyP*p.nyF*p.nb);

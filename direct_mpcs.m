@@ -2,9 +2,9 @@ function [avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,model,prefs)
     % Computes MPCs by shifting the asset grid and comparing the new implied
     % consumption distribution to the stationary distribution of the new
     % asset grid
-
-    ergodic_tol = 1e-11;
-    ergodic_method = 2;
+    
+    ergodic_tol = 0;
+    ergodic_method = 0; % do not find stationary distribution
     
     if p.Display == 1
         disp('Using direct methods to find MPCs')
@@ -43,11 +43,12 @@ function [avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,model,prefs)
         orig_SSdist(newpts+1:end,:,:,:) = model.SSdist_wide;
         
         % find stationary distribution of new asset space
-        [mpcSSdist,mpctrans,SSsav,SScon] = find_stationary(p,model,income,...
+        [~,mpctrans,SSsav,SScon] = find_stationary(p,model,income,...
                                         	prefs,mpc_grid_wide,ergodic_method,ergodic_tol);                        
                                             
         % compute average mpc's
         stationary_con = model.mean_c;
+        mpc1{im} = (SScon(:) - stationary_con)/ mpcamount;
         avg_mpc1(im) = (orig_SSdist(:)'              * SScon(:) - stationary_con)/ mpcamount; 
         avg_mpc2(im) = (orig_SSdist(:)' * mpctrans   * SScon(:) - stationary_con)/ mpcamount + avg_mpc1(im);
         avg_mpc3(im) = (orig_SSdist(:)' * mpctrans^2 * SScon(:) - stationary_con)/ mpcamount + avg_mpc2(im);

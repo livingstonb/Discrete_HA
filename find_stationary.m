@@ -77,6 +77,10 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
     end
 
     % stationary distribution over states
-    fprintf(' Finding ergodic distribution...\n');
-    distribution = double(full(ergodicdist(sparse(statetrans),ergodic_method,ergodic_tol)));
+    if ergodic_method == 0
+        distribution = [];
+    else
+        fprintf(' Finding ergodic distribution...\n');
+        distribution = double(full(ergodicdist(sparse(statetrans),ergodic_method,ergodic_tol)));
+    end
 end
