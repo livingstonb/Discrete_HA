@@ -259,28 +259,30 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     %% MPCS
     
     %mpc amounts
-    for im = 1:numel(p.mpcfrac)
-        mpcamount       = p.mpcfrac{im} * income.meany;
-        xgrid_mpc       = xgrid.longgrid_wide + mpcamount;
-        mpc             = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
-        
-        % iterate over (yP,yF,beta)
-        for ib = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP 
-            mpc(:,iyP,iyF,ib) = (basemodel.coninterp{iyP,iyF,ib}(xgrid_mpc(:,iyP,iyF))...
-                                - basemodel.con_longgrid_wide(:,iyP,iyF,ib))/mpcamount;     
-        end
-        end
-        end
-        % average mpc, one-period
-        direct_results.avg_mpc1{im} = basemodel.SSdist' * mpc(:);
-    end
-        
-    if p.ComputeDirectMPC == 1
-        [direct_results.avg_mpc1_alt,direct_results.avg_mpc4] ...
-                = direct_mpcs(xgrid,p,income,basemodel,prefs);
-    end
+    [direct_results.avg_mpc1,direct_results.avg_mpc4] = direct_mpcs_new(xgrid,p,income,basemodel,prefs)
+    
+%     for im = 1:numel(p.mpcfrac)
+%         mpcamount       = p.mpcfrac{im} * income.meany;
+%         xgrid_mpc       = xgrid.longgrid_wide + mpcamount;
+%         mpc             = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
+%         
+%         % iterate over (yP,yF,beta)
+%         for ib = 1:p.nb
+%         for iyF = 1:p.nyF
+%         for iyP = 1:p.nyP 
+%             mpc(:,iyP,iyF,ib) = (basemodel.coninterp{iyP,iyF,ib}(xgrid_mpc(:,iyP,iyF))...
+%                                 - basemodel.con_longgrid_wide(:,iyP,iyF,ib))/mpcamount;     
+%         end
+%         end
+%         end
+%         % average mpc, one-period
+%         direct_results.avg_mpc1{im} = basemodel.SSdist' * mpc(:);
+%     end
+%         
+%     if p.ComputeDirectMPC == 1
+%         [direct_results.avg_mpc1_alt,direct_results.avg_mpc4] ...
+%                 = direct_mpcs(xgrid,p,income,basemodel,prefs);
+%     end
     
     %% Print Results
     if p.Display == 1

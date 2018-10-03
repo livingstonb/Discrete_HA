@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
+path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -19,7 +19,7 @@ prms(1).freq        = 1; % 1 for yearly, 4 for quarterly
 prms(1).r           = 0.02;
  
 % demographics
-prms(1).dieprob     = 1/50;
+prms(1).dieprob     = 0;
 
 % preferences
 prms(1).risk_aver   = 1;
