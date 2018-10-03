@@ -144,9 +144,10 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     % Use final beta to get policy functions and distribution, with a
     % larger grid and higher tolerance for ergodic distribution
     ergodic_tol = 1e-8;
+    ergodic_method = 1;
     Intermediate = 0;
     [~,basemodel] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
-                                            ergodic_tol,income,Intermediate);
+                           	ergodic_method,ergodic_tol,income,Intermediate);
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         direct_results.issues{end+1} = 'NoEGPConv';

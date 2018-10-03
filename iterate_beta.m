@@ -20,9 +20,10 @@ function [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income)
         % Narrow the interval by optimizing over a small grid with low
         % tolerance
         ergodic_tol = 1e-4;
+        ergodic_method = 1;
         Intermediate = 1;
         iterate_EGP = @(x) solve_EGP(x,p,...
-                xgrid,sgrid,prefs,ergodic_tol,income,Intermediate);
+                xgrid,sgrid,prefs,ergodic_method,ergodic_tol,income,Intermediate);
     
         low_tol = 1e-3;
         check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
@@ -40,9 +41,10 @@ function [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income)
     %% HIGH TOLERANCE, LARGE GRID
     fprintf('Switching to higher tolerance\n')
     ergodic_tol = 1e-6;
+    ergodic_method = 1;
     Intermediate = 0;
     iterate_EGP = @(x) solve_EGP(x,p,...
-        xgrid,sgrid,prefs,ergodic_tol,income,Intermediate);
+        xgrid,sgrid,prefs,ergodic_method,ergodic_tol,income,Intermediate);
 
     high_tol = p.tolAY;
     check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);

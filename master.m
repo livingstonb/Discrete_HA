@@ -43,7 +43,7 @@ prms(1).yTContinuous = 0;
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
 prms(1).lambdaT     = 1; % arrival rate of shocks;
 prms(1).nyP         = 5; %11 persistent component
-prms(1).sd_logyP    = sqrt(0.02); %0.1950;
+prms(1).sd_logyP    = sqrt(0.2); %0.1950;
 prms(1).rho_logyP   = 0.9525;
 prms(1).nyF         = 1;
 prms(1).sd_logyF    = 0;
@@ -96,9 +96,9 @@ prms(1).percentiles = [10 25 50 75 90 95 99]; % in percent
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
-prms(1).ComputeDirectMPC    = 0;
+prms(1).ComputeDirectMPC    = 1;
 prms(1).SolveDeterministic  = 0;
-prms(1).Simulate            = 1;
+prms(1).Simulate            = 0;
 
 %% Call model
 Nprms = size(prms,2);

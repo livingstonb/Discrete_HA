@@ -1,5 +1,5 @@
 function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
-                                            ergodic_tol,income,Intermediate)
+                             	ergodic_method,ergodic_tol,income,Intermediate)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also computes the
     % stationary distribution over states via direct methods (rather than
@@ -157,7 +157,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     gridsize = size(cashgrid,1);
     
     [model.SSdist,model.statetrans,model.sav_longgrid_wide]...
-            = find_stationary(p,model,income,prefs,cashgrid,ergodic_tol);
+            = find_stationary(p,model,income,prefs,cashgrid,ergodic_method,ergodic_tol);
 
     % SS probability of residing in each state
     model.SSdist_wide = reshape(model.SSdist,[gridsize,p.nyP,p.nyF,p.nb]);
@@ -174,6 +174,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
     end
     model.con_longgrid      = repmat(cashgrid(:),p.nb,1) - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid(:)-p.savtaxthresh,0);
     model.con_longgrid_wide = reshape(model.con_longgrid,[gridsize,p.nyP,p.nyF,p.nb]);
+    model.mean_c = model.con_longgrid_wide(:)' * model.SSdist;
     
     % cumulative distribution
     temp = sortrows([model.sav_longgrid model.SSdist]);
