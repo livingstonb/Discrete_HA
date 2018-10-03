@@ -98,7 +98,7 @@ prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
 prms(1).ComputeDirectMPC    = 1;
 prms(1).SolveDeterministic  = 0;
-prms(1).Simulate            = 0;
+prms(1).Simulate            = 0,;
 
 %% Call model
 Nprms = size(prms,2);
