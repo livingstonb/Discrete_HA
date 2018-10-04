@@ -19,7 +19,7 @@ function [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income)
     if p.FastIter == 1
         % Narrow the interval by optimizing over a small grid with low
         % tolerance
-        ergodic_tol = 1e-4;
+        ergodic_tol = 1e-5;
         ergodic_method = 1;
         Intermediate = 1;
         iterate_EGP = @(x) solve_EGP(x,p,...
@@ -40,7 +40,7 @@ function [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income)
         
     %% HIGH TOLERANCE, LARGE GRID
     fprintf('Switching to higher tolerance\n')
-    ergodic_tol = 1e-6;
+    ergodic_tol = 1e-7;
     ergodic_method = 1;
     Intermediate = 0;
     iterate_EGP = @(x) solve_EGP(x,p,...

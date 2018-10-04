@@ -44,6 +44,14 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     else
         error('Frequency must be 1 or 4')
     end
+    
+    if p.nb > 3
+        assert(p.betawidth2>0,'must have betawidth2 > 0')
+        assert(p.betawidth2>p.betawidth1,'must have betawidth2 > betawidth1')
+    elseif p.nb > 1
+        assert(p.betawidth1>0,'must have betawidth1 > 0')
+    end
+
 
     %% LOAD INCOME
 
@@ -58,11 +66,17 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     if  p.nb == 1
         prefs.betadist = 1;
         prefs.betatrans = 1;
-    elseif p.nb ==2 
-        prefs.betadist = [0.5;0.5];
-        prefs.betatrans = [1-p.betaswitch p.betaswitch; p.betaswitch 1-p.betaswitch]; %transitions on average once every 40 years;
-    else
-        error('nb must be 1 or 2');
+    elseif p.nb > 1
+        prefs.betadist = ones(p.nb,1) / p.nb;
+        % nb = 2: prefs.betatrans = [1-p.betaswitch p.betaswitch; p.betaswitch 1-p.betaswitch]; %transitions on average once every 40 years;
+         
+        betaswitch_ij = p.betaswitch / (p.nb-1);
+        % create matrix with (1-betaswitch) on diag and betaswitch_ij
+        % elsewhere
+        diagonal = (1-p.betaswitch) * ones(p.nb,1);
+        off_diag = betaswitch_ij * ones(p.nb);
+        off_diag = off_diag - diag(diag(off_diag));
+        prefs.betatrans = off_diag + diag(diagonal);
     end
     prefs.betacumdist = cumsum(prefs.betadist);
     prefs.betacumtrans = cumsum(prefs.betatrans,2);
@@ -290,6 +304,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     direct_results.netincgini = direct_gini(temp(:,2),temp(:,1));   
 
     function gini = direct_gini(dist_sort,level_sort)
+        % Distribution and levels must be sorted in terms of levels
         S = [0;cumsum(dist_sort .* level_sort)];
         gini = 1 - dist_sort' * (S(1:end-1)+S(2:end)) / S(end);
     end

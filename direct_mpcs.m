@@ -44,14 +44,14 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,
             xprime_death(:,:,iyT) = repmat(income.netymat(:,iyT)',NN,1);
         end
 
-        % Transition matrix of exogenous states
+        % Transition matrix from period t+k to t+k+1 for k > 0
         trans_exo       = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
         trans_exo       = kron(trans_exo,ones(p.nxlong));
         yPtrans_death   = repmat(income.yPdist',p.nyP*p.nyF,1);
         trans_exo_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_death));
         trans_exo_death = kron(trans_exo_death,ones(p.nxlong));
                
-        % Get transition matrix
+        % Transition matrix from t to t+1
         if p.WealthInherited == 1
             T = ((1-p.dieprob)*trans_exo + p.dieprob*trans_exo_death) .* transition_matrix(NN,xprime,p,xgrid,income,prefs);
         else
