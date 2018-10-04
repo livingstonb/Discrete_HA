@@ -49,6 +49,13 @@ function print_statistics(direct_results,sim_results,p)
     disp(['    Wealth, top 10% share:' direct10 sim10])
     disp(['    Wealth, top  1% share:' direct1 sim1])
     
+    % Gini
+    direct = sprintf(' %5.3f (Direct)',direct_results.wealthgini);
+    if p.Simulate == 1
+        sim = sprintf(' %5.3f (Direct)',sim_results.wealthgini);
+    end
+    disp(['    Gini coefficient:' direct sim])
+    
     
     %% Income Distribution
     fprintf('\nINCOME DISTRIBUTION: \n')
@@ -66,6 +73,20 @@ function print_statistics(direct_results,sim_results,p)
         sim = sprintf(', %2.3f (Simulation)',sim_results.var_lognety);
     end
     disp(['    Var Log Net Earnings:' direct sim]);
+    
+    % Gini (gross earnings)
+    direct = sprintf(' %5.3f (Direct)',direct_results.grossincgini);
+    if p.Simulate == 1
+        sim = sprintf(' %5.3f (Direct)',sim_results.grossincgini);
+    end
+    disp(['    Gini coefficient, gross earnings:' direct sim])
+    
+    % Gini (net earnings)
+    direct = sprintf(' %5.3f (Direct)',direct_results.netincgini);
+    if p.Simulate == 1
+        sim = sprintf(' %5.3f (Direct)',sim_results.netincgini);
+    end
+    disp(['    Gini coefficient, net earnings:' direct sim])
     
     %% MPC
     fprintf('\nMPCs: \n')
@@ -107,13 +128,7 @@ function print_statistics(direct_results,sim_results,p)
         disp([label direct sim]);
         
     end
-    
-%     % Average MPC, 4 periods (direct)
-%     if p.ComputeDirectMPC == 1
-%         msg = sprintf('    MPC out of %6.2g of mean ann income:',direct_results.avg_mpc4);
-%         direct = sprintf(' %4.3f (direct)',direct_results.avg_mpc4);
-%         disp([msg direct]);
-%     end
+
     
     %% OTHER
     fprintf('\nOTHER: \n')

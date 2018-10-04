@@ -117,15 +117,18 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     end
     
     %% Moments/important quantities
-    sim_results.mean_s = mean(ssim(:,p.Tsim));
-    sim_results.mean_a = mean(asim(:,p.Tsim));
-    sim_results.mean_x = mean(xsim(:,p.Tsim));
-    sim_results.mean_grossy = mean(ygrosssim(:,p.Tsim));
-    sim_results.mean_loggrossy = mean(log(ygrosssim(:,p.Tsim)));
-    sim_results.mean_nety = mean(ynetsim(:,p.Tsim));
-    sim_results.mean_lognety = mean(log(ynetsim(:,p.Tsim)));
-    sim_results.var_loggrossy = var(log(ygrosssim(:,p.Tsim)));
-    sim_results.var_lognety = var(log(ynetsim(:,p.Tsim)));
+    sim_results.mean_s          = mean(ssim(:,p.Tsim));
+    sim_results.mean_a          = mean(asim(:,p.Tsim));
+    sim_results.mean_x          = mean(xsim(:,p.Tsim));
+    sim_results.mean_grossy     = mean(ygrosssim(:,p.Tsim));
+    sim_results.mean_loggrossy  = mean(log(ygrosssim(:,p.Tsim)));
+    sim_results.mean_nety       = mean(ynetsim(:,p.Tsim));
+    sim_results.mean_lognety    = mean(log(ynetsim(:,p.Tsim)));
+    sim_results.var_loggrossy   = var(log(ygrosssim(:,p.Tsim)));
+    sim_results.var_lognety     = var(log(ynetsim(:,p.Tsim)));
+    sim_results.wealthgini      = ginicoeff(asim(:,p.Tsim));
+    sim_results.grossincgini    = ginicoeff(ygrosssim(:,p.Tsim));
+    sim_results.netincgini      = ginicoeff(ynetsim(:,p.Tsim));
     assetmeans = p.R * mean(ssim);
     
     % fraction constrained

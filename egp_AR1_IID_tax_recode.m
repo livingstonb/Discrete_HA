@@ -214,11 +214,11 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     
     % wealth percentiles
     if p.WealthInherited == 1
-        a_longgrid_sort = p.R * basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind);
+        basemodel.a_longgrid_sort = p.R * basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind);
     else
-        a_longgrid_sort = (1 - p.dieprob) * p.R * basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind);
+        basemodel.a_longgrid_sort = (1 - p.dieprob) * p.R * basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind);
     end
-    direct_results.wpercentiles = interp1(basemodel.SScumdist_unique,a_longgrid_sort,p.percentiles/100,'linear');
+    direct_results.wpercentiles = interp1(basemodel.SScumdist_unique,basemodel.a_longgrid_sort,p.percentiles/100,'linear');
     
     % top shares
     % fraction of total assets that reside in each pt on asset space
@@ -242,46 +242,64 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     end
     
     %% SIMULATIONS
-    % Full model
     if p.Simulate == 1
         [sim_results,assetmeans] = simulate(p,income,basemodel,xgrid,prefs);
     else
         sim_results = struct();
         assetmeans = [];
     end
-
-    %% MAKE PLOTS
-  
-    if p.MakePlots ==1 
-        makeplots(p,xgrid,sgrid,basemodel,income,sim_results,assetmeans);
-    end 
     
     %% MPCS
-    
-    %mpc amounts
-%     for im = 1:numel(p.mpcfrac)
-%         mpcamount       = p.mpcfrac{im} * income.meany;
-%         xgrid_mpc       = xgrid.longgrid_wide + mpcamount;
-%         mpc             = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
-%         
-%         % iterate over (yP,yF,beta)
-%         for ib = 1:p.nb
-%         for iyF = 1:p.nyF
-%         for iyP = 1:p.nyP 
-%             mpc(:,iyP,iyF,ib) = (basemodel.coninterp{iyP,iyF,ib}(xgrid_mpc(:,iyP,iyF))...
-%                                 - basemodel.con_longgrid_wide(:,iyP,iyF,ib))/mpcamount;     
-%         end
-%         end
-%         end
-%         % average mpc, one-period
-%         direct_results.avg_mpc1{im} = basemodel.SSdist' * mpc(:);
-%     end
         
     if p.ComputeDirectMPC == 1
         [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,prefs);
         direct_results.avg_mpc1 = avg_mpc1;
         direct_results.avg_mpc4 = avg_mpc4;
+    else
+        mpcs1 = []; mpcs4 = [];
     end
+    
+    %% GINI
+    % Wealth
+    if p.WealthInherited == 0
+        dist_live   = (1-p.dieprob) * basemodel.SSdist_sort;
+        dist_death  = p.dieprob * basemodel.SSdist_sort;
+        level_live  = p.R * basemodel.sav_longgrid_sort;
+        level_death = zeros(p.nxlong*p.nyP*p.nyF*p.nb,1);
+        
+        distr  = [dist_live;dist_death];
+        level = [level_live;level_death];
+        
+        % Re-sort distribution
+        temp = sortrows([level distr]);
+        level = temp(:,1);
+        distr = temp(:,2);
+        direct_results.wealthgini = direct_gini(distr,level);
+    else
+        distr = basemodel.SSdist_sort;
+        level = p.R * basemodel.sav_longgrid_sort;
+        direct_results.wealthgini = direct_gini(distr,level);
+    end
+    
+    
+    % Gross income
+    direct_results.grossincgini = direct_gini(income.ysortdist,income.ysort);
+    
+    % Net income
+    temp = sortrows([income.netymat(:) income.ymatdist(:)]);
+    direct_results.netincgini = direct_gini(temp(:,2),temp(:,1));   
+
+    function gini = direct_gini(dist_sort,level_sort)
+        S = [0;cumsum(dist_sort .* level_sort)];
+        gini = 1 - dist_sort' * (S(1:end-1)+S(2:end)) / S(end);
+    end
+    
+    %% MAKE PLOTS
+  
+    if p.MakePlots ==1 
+        makeplots(p,xgrid,sgrid,basemodel,income,sim_results,assetmeans,...
+                                                                mpcs1,mpcs4);
+    end 
     
     %% Print Results
     if p.Display == 1
