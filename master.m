@@ -29,24 +29,24 @@ prms(1).betaL       = 0.80;
 % betaH defined in main function file
 
 %warm glow bequests: bequessgrt_weight = 0 is accidental
-prms(1).bequest_weight = 0; %0.07;
-prms(1).bequest_luxury = 0.01; %0.01, must be >0 to avoid NaN error;
+prms(1).bequest_weight  = 0; %0.07;
+prms(1).bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
 prms(1).WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
 
 % income risk: AR(1) + IID in logs
-prms(1).LoadIncomeProcess   = 0;
-prms(1).nyT                 = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+prms(1).LoadIncomeProcess = 0;
+prms(1).nyT               = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 % yT,yP (only relevant if LoadIncomeProcess==0)
-prms(1).NormalizeY  = 1; % 1 to normalize gross income, 0 otherwise
-prms(1).yTContinuous = 0;
-prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
-prms(1).lambdaT     = 1; % arrival rate of shocks;
-prms(1).nyP         = 11; %11 persistent component
-prms(1).sd_logyP    = sqrt(0.02); %0.1950;
-prms(1).rho_logyP   = 0.9525;
-prms(1).nyF         = 1;
-prms(1).sd_logyF    = 0;
+prms(1).NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
+prms(1).yTContinuous = 0; % doesn't seem to work properly
+prms(1).sd_logyT     = sqrt(0.2);  %0.20; %relevant if nyT>1
+prms(1).lambdaT      = 1; % arrival rate of shocks;
+prms(1).nyP          = 11; %11 persistent component
+prms(1).sd_logyP     = sqrt(0.02); %0.1950;
+prms(1).rho_logyP    = 0.9525;
+prms(1).nyF          = 1;
+prms(1).sd_logyF     = 0;
 
 % cash on hand / savings grid
 prms(1).nx          = 100;
@@ -78,7 +78,7 @@ prms(1).tol_iter    = 1.0e-6; % EGP
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).nxinterm    = 200; % For intermediate iterations of EGP
-prms(1).nxlong      = 1000; % Grid size for final computations
+prms(1).nxlong      = 500; % Grid size for final computations
  
 % beta iteration
 prms(1).targetAY    = 3.5;

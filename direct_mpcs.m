@@ -33,6 +33,14 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,
         mpcs{1} = (con(:) - basemodel.con_longgrid) / mpcamount;
         avg_mpc{1} = basemodel.SSdist' * mpcs{1};
 
+        if p.freq == 1
+            % Don't compute four-period MPCs
+            mpcs1{im}       = mpcs{1};
+            mpcs4{im}       = [];
+            avg_mpc1{im}    = avg_mpc{1};
+            avg_mpc4{im}    = [];
+            continue
+        end
         % Create matrix of xprime's, final dim NN by p.nyP*p.nyF*p.nyT
         % Rows index points in today's asset space, columns index
         % next period's yP,yF,yT realizations

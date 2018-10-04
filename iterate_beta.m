@@ -25,7 +25,7 @@ function [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income)
         iterate_EGP = @(x) solve_EGP(x,p,...
                 xgrid,sgrid,prefs,ergodic_method,ergodic_tol,income,Intermediate);
     
-        low_tol = 1e-3;
+        low_tol = 1e-4;
         check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
         options = optimset('TolX',low_tol,'OutputFcn',check_evals);
         [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);

@@ -8,16 +8,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     % structure of parameters, p, this script calls functions primarily to 
     % compute policy functions via the method of endogenous grip points, 
     % and to find the implied stationary distribution over the state space.
-    
-    % IMPORTANT STRUCTURES:
-    % basemodel - stores objects from the model with income risk
-    % norisk - stores objects from the model without income risk
-    % simulations - stores simulation results for basemodel
-    % sgrid - stores savings grid in various sizes
-    % xgrid - stores cash-on-hand grid in various sizes
-    % income - stores objects from the income process
-    % prefs - stores objects related to preferences
-    
+
     direct_results.issues = {};
     sim_results = struct();
     

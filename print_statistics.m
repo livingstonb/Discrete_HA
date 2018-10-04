@@ -91,7 +91,11 @@ function print_statistics(direct_results,sim_results,p)
     %% MPC
     fprintf('\nMPCs: \n')
     fprintf('  NOTE: NEGATIVE SHOCKS ARE NOT FINISHED\n')
-    fprintf('  1-Period MPCs\n')
+    if p.freq == 1
+        fprintf('  1-Period (Annual) MPCs\n')
+    else
+        fprintf('  1-Period (Quarterly) MPCs\n')
+    end
     % Average MPC, 1 period
     for i = 1:size(p.mpcfrac,2)
         if p.ComputeDirectMPC == 1
@@ -110,23 +114,27 @@ function print_statistics(direct_results,sim_results,p)
     end
     
     % Average MPC, 4 periods
-    fprintf('  4-Period MPCs\n')
-    for i = 1:numel(p.mpcfrac)
-        if p.ComputeDirectMPC == 1
-            direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4{i});
-        else
-            direct = ' --- (Direct) ';
+    if p.freq == 4
+        fprintf('  4-Period (Annual) MPCs\n')
+        for i = 1:numel(p.mpcfrac)
+            if p.ComputeDirectMPC == 1
+                direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4{i});
+            else
+                direct = ' --- (Direct) ';
+            end
+
+            if p.Simulate == 1
+                sim = sprintf(', %2.3f (Simulation)',sim_results.avg_mpc4{i});
+            else
+                sim = ', --- (Simulation) ';
+            end
+
+            label = sprintf('    MPC out of %6.2g of mean ann income:',p.mpcfrac{i});
+            disp([label direct sim]);
+
         end
-        
-        if p.Simulate == 1
-            sim = sprintf(', %2.3f (Simulation)',sim_results.avg_mpc4{i});
-        else
-            sim = ', --- (Simulation) ';
-        end
-        
-        label = sprintf('    MPC out of %6.2g of mean ann income:',p.mpcfrac{i});
-        disp([label direct sim]);
-        
+    else
+        fprintf('  4-Period MPCs Not Computed for Annual Frequency\n') 
     end
 
     
