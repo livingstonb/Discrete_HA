@@ -36,15 +36,29 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,
         % Create matrix of xprime's, final dim NN by p.nyP*p.nyF*p.nyT
         % Rows index points in today's asset space, columns index
         % next period's yP,yF,yT realizations
-        xprime   = zeros(NN,p.nyP*p.nyF,p.nyT);
+        xprime        = zeros(NN,p.nyP*p.nyF,p.nyT);
+        xprime_death  = zeros(NN,p.nyP*p.nyF,p.nyT);
         for iyT = 1:p.nyT
             xprime(:,:,iyT) = p.R * repmat(sav(:),1,p.nyP*p.nyF)...
                                     + repmat(income.netymat(:,iyT)',NN,1);
+            xprime_death(:,:,iyT) = repmat(income.netymat(:,iyT)',NN,1);
         end
-        xprime = reshape(xprime,NN,p.nyP*p.nyF*p.nyT);
 
+        % Transition matrix of exogenous states
+        trans_exo       = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
+        trans_exo       = kron(trans_exo,ones(p.nxlong));
+        yPtrans_death   = repmat(income.yPdist',p.nyP*p.nyF,1);
+        trans_exo_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_death));
+        trans_exo_death = kron(trans_exo_death,ones(p.nxlong));
+               
         % Get transition matrix
-        T = transition_matrix(NN,xprime,p,xgrid,income,prefs);
+        if p.WealthInherited == 1
+            T = ((1-p.dieprob)*trans_exo + p.dieprob*trans_exo_death) .* transition_matrix(NN,xprime,p,xgrid,income,prefs);
+        else
+            T_life  = trans_exo       .* transition_matrix(NN,xprime,p,xgrid,income,prefs);
+            T_death = trans_exo_death .* transition_matrix(NN,xprime_death,p,xgrid,income,prefs);
+            T = (1 - p.dieprob) * T_life + p.dieprob * T_death;
+        end
 
         % Multi-period MPCs
         mpcs{2} = (T * basemodel.con_longgrid - basemodel.con_longgrid) / mpcamount;
@@ -84,12 +98,7 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,
         end
         end
         end
-        
-        % Transition matrix of exogenous states
-        trans_exo = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
-        trans_exo = kron(trans_exo,ones(p.nxlong));
-        
-        T = trans_exo .* T;
+ 
     end
 
 end
