@@ -69,6 +69,7 @@ function print_statistics(direct_results,sim_results,p)
     
     %% MPC
     fprintf('\nMPCs: \n')
+    fprintf('  NOTE: NEGATIVE SHOCKS ARE NOT FINISHED\n')
     fprintf('  1-Period MPCs\n')
     % Average MPC, 1 period
     for i = 1:size(p.mpcfrac,2)
@@ -91,7 +92,7 @@ function print_statistics(direct_results,sim_results,p)
     fprintf('  4-Period MPCs\n')
     for i = 1:numel(p.mpcfrac)
         if p.ComputeDirectMPC == 1
-            direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4(i));
+            direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4{i});
         else
             direct = ' --- (Direct) ';
         end

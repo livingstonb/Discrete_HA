@@ -43,7 +43,7 @@ prms(1).yTContinuous = 0;
 prms(1).sd_logyT    = sqrt(0.2);  %0.20; %relevant if nyT>1
 prms(1).lambdaT     = 1; % arrival rate of shocks;
 prms(1).nyP         = 5; %11 persistent component
-prms(1).sd_logyP    = sqrt(0.2); %0.1950;
+prms(1).sd_logyP    = sqrt(0.02); %0.1950;
 prms(1).rho_logyP   = 0.9525;
 prms(1).nyF         = 1;
 prms(1).sd_logyF    = 0;
@@ -72,7 +72,7 @@ prms(1).tol_iter    = 1.0e-6; % EGP
 prms(1).Nsim        = 100000;
 prms(1).Tsim        = 200;
 prms(1).nxinterm    = 100; % For intermediate iterations of EGP
-prms(1).nxlong      = 500; % Grid size for computing final ergodic distribution
+prms(1).nxlong      = 1000; % Grid size for computing final ergodic distribution
  
 % beta iteration
 prms(1).targetAY    = 3.5;
@@ -81,10 +81,10 @@ prms(1).tolAY       = 1e-4;
 prms(1).FastIter    = 1; % 1 to use routine with low tolerance, small grid, until closer to target
 
 % mpc options
-prms(1).mpcfrac{1}  = -1e-5; %approximate thoeretical mpc
+prms(1).mpcfrac{1}  = -1e-3; %approximate thoeretical mpc
 prms(1).mpcfrac{2}  = -0.01;
 prms(1).mpcfrac{3}  = -0.05;
-prms(1).mpcfrac{4}  = 1e-5; % approximate thoeretical mpc
+prms(1).mpcfrac{4}  = 1e-3; % approximate thoeretical mpc
 prms(1).mpcfrac{5}  = 0.01; % 1 percent of average gross labor income: approx $500
 prms(1).mpcfrac{6}  = 0.05; % 5 percent of average gross labor income: approx $5000
 
@@ -98,7 +98,7 @@ prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
 prms(1).ComputeDirectMPC    = 1;
 prms(1).SolveDeterministic  = 0;
-prms(1).Simulate            = 0,;
+prms(1).Simulate            = 1;
 
 %% Call model
 Nprms = size(prms,2);
