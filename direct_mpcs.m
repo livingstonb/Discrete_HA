@@ -17,6 +17,21 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,
         mpcamount = p.mpcfrac{im} * income.meany * p.freq;
         x_mpc = xgrid.longgrid_wide + mpcamount;
         
+        % if shock is negative, deal with households that wind up
+        % below the bottom of their asset grid
+        if mpcamount < 0
+            set_mpc_one = false(p.nxlong,p.nyP,p.nyF);
+            for ib = 1:p.nb
+            for iyF = 1:p.nyF
+            for iyP = 1:p.nyP
+                set_mpc_one(:,iyP,iyF) = x_mpc(:,ib) < xgrid.longgrid_wide(1,iyP,iyF);
+                x_mpc(x_mpc(:,iyP,iyF)<xgrid.longgrid_wide(1,iyP,iyF)) = xgrid.longgrid_wide(1,iyP,iyF);
+            end
+            end
+            end
+            set_mpc_one = repmat(set_mpc_one,[1 1 1 p.nb]);
+        end
+        
         % Get policy functions on shifted grid
         con = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
         sav = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
@@ -31,6 +46,9 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,
         
         % One-period MPC
         mpcs{1} = (con(:) - basemodel.con_longgrid) / mpcamount;
+        if mpcamount < 0
+            mpcs{1}(set_mpc_one(:)) = 1;
+        end
         avg_mpc{1} = basemodel.SSdist' * mpcs{1};
 
         if p.freq == 1

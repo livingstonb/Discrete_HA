@@ -88,6 +88,16 @@ direct_mpcs.m - This function finds MPCs by computing expected consumption funct
 
 	Calls:		none
 
+direct_mpcs_determinisitic.m - This function finds MPCs by computing expected consumption 
+	functions in response to an income shock. Returns one- and four-period MPCs distributed 
+	according to norisk.SSdist. Also returns average MPCs associated with these
+	MPC distributions, and returns the norisk model with new fields.
+
+	Called by: 	egp_AR1_IID_tax_recode.m
+
+	Calls:		none
+
+
 makeplots.m - Makes plots accorded to the passed structures.
 
 	Called by: 	egp_AR1_IID_tax_recode.m

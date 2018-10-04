@@ -35,14 +35,14 @@ prms(1).WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
 
 % income risk: AR(1) + IID in logs
 prms(1).LoadIncomeProcess = 0;
-prms(1).nyT               = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+prms(1).nyT               = 5; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 % yT,yP (only relevant if LoadIncomeProcess==0)
 prms(1).NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
 prms(1).yTContinuous = 0; % doesn't seem to work properly
 prms(1).sd_logyT     = sqrt(0.2);  %0.20; %relevant if nyT>1
 prms(1).lambdaT      = 1; % arrival rate of shocks;
-prms(1).nyP          = 11; %11 persistent component
+prms(1).nyP          = 5; %11 persistent component
 prms(1).sd_logyP     = sqrt(0.02); %0.1950;
 prms(1).rho_logyP    = 0.9525;
 prms(1).nyF          = 1;
@@ -67,7 +67,7 @@ prms(1).savtaxthresh    = 0; %multiple of mean gross labor income
 % nb = 3 --> [beta-bw1  beta  beta+bw1]
 % nb = 4 --> [beta-bw2  beta-bw1  beta+bw1  beta+bw2]
 % nb = 5 --> [beta-bw2  beta-bw1  beta  beta+bw1  beta+bw2]
-prms(1).nb          = 1; % higher numbers dramatically increase computing load
+prms(1).nb          = 2; % higher numbers dramatically increase computing load
 prms(1).betawidth1  = 0.01;
 prms(1).betawidth2  = 0.03; % must have betawidth2 > betawidth1
 prms(1).betaswitch  = 1/50; %0;
@@ -103,7 +103,6 @@ prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 1;
 prms(1).ComputeDirectMPC    = 1;
-prms(1).SolveDeterministic  = 0;
 prms(1).Simulate            = 1;
 
 %% Call model

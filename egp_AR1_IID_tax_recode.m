@@ -88,7 +88,13 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     minyT               = kron(min(income.netymat,[],2),ones(p.nx,1));
     xgrid.orig          = sgrid.wide(:) + minyT;
     xgrid.orig_wide     = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
+    
+    % for model without income risk
     xgrid.norisk_short  = sgrid.short + income.meannety;
+    xgrid.norisk_longgrid   = linspace(0,1,p.nxlong);
+    xgrid.norisk_longgrid   = xgrid.norisk_longgrid.^(1/p.xgrid_par);
+    xgrid.norisk_longgrid = p.borrow_lim + (p.xmax-p.borrow_lim).*xgrid.norisk_longgrid;
+    xgrid.norisk_longgrid = xgrid.norisk_longgrid + income.meannety;
     
     % create xgrid for intermediate computations of ergodic distribution
     minyT = kron(min(income.netymat,[],2),ones(p.nxinterm,1));
@@ -242,9 +248,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model
-    if p.SolveDeterministic == 1
-        [norisk,norisk.EGP_cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income);
-    end
+    [norisk,norisk.EGP_cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income);
     
     %% SIMULATIONS
     if p.Simulate == 1
@@ -254,8 +258,9 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         assetmeans = [];
     end
     
-    %% MPCS
+    %% MPCS (DIRECT METHOD)
         
+    % basemodel
     if p.ComputeDirectMPC == 1
         [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,prefs);
         direct_results.avg_mpc1 = avg_mpc1;
@@ -263,6 +268,10 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     else
         mpcs1 = []; mpcs4 = [];
     end
+    
+    % norisk model, get mpcs and create norisk.SSdist
+    [mpcs1,mpcs4,avg_mpc1,avg_mpc4,norisk] = direct_mpcs_deterministic(...
+                                                xgrid,p,income,norisk,prefs);
     
     %% GINI
     % Wealth
