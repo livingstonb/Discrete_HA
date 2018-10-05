@@ -262,20 +262,70 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         assetmeans = [];
     end
     
-    %% MPCS (DIRECT METHOD)
+    %% MPCS
         
-    % basemodel
-    if p.ComputeDirectMPC == 1
-        [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] ... 
-                                    = direct_MPCs(p,prefs,income,basemodel,xgrid);
-        direct_results.avg_mpc1 = avg_mpc1;
-        direct_results.avg_mpc4 = avg_mpc4;
-        direct_results.var_mpc1 = var_mpc1;
-        direct_results.var_mpc4 = var_mpc4;
+    
+    % 1-period MPCs, model with income risk
+    for im = 1:numel(p.mpcfrac)
+        mpcamount = p.mpcfrac(im) * income.meany * p.freq;
+        xmpc = xgrid.longgrid_wide + mpcamount;
+        set_mpc_one = false(p.nxlong,p.nyP,p.nyF,p.nb);
+        conmpc = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
+        for ib  = 1:p.nb
+        for iyF = 1:p.nyF
+        for iyP = 1:p.nyP
+            if mpcamount < 0
+                below_grid = xmpc(:,iyP,iyF) < xgrid.longgrid_wide(1,iyP,iyF);
+                xmpc(below_grid,iyP,iyF) = xgrid.longgrid_wide(1,iyP,iyF);
+                set_mpc_one(below_grid,iyP,iyF,ib) = true;
+            end
+            conmpc(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(xmpc(:,iyP,iyF));
+        end
+        end
+        end
+    mpcs1 = (conmpc(:) - basemodel.con_longgrid) / mpcamount;
+    mpcs1(set_mpc_one(:)) = 1;
+    direct_results.avg_mpc1{im} = basemodel.SSdist' * mpcs1;
+    end
+
+    % 1-period MPCs, norisk
+    for im = 1:numel(p.mpcfrac)
+        mpcamount = p.mpcfrac(im) * income.meany * p.freq;
+        xmpc = xgrid.norisk_longgrid + mpcamount;
+        set_mpc_one = false(p.nxlong,p.nb);
+        conmpc = zeros(p.nxlong,p.nb);
+        con_grid = zeros(p.nxlong,p.nb);
+        for ib  = p.nb
+            if mpcamount < 0
+                below_grid = xmpc < xgrid.longgrid(1);
+                xmpc(below_grid) = xgrid.longgrid(1);
+                set_mpc_one(below_grid,ib) = true;
+            end
+            conmpc(:,ib) = norisk.coninterp{ib}(xmpc);
+            congrid(:,ib) = norisk.coninterp{ib}(xgrid.norisk_longgrid);
+        end
+    mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
+    mpcs1(set_mpc_one(:)) = 1;
+    norisk.avg_mpc1{im} = reshape(mpcs1,p.nxlong,p.nb) * prefs.betadist;
     end
     
-    % norisk model, get mpcs and create norisk.SSdist
-    [mpc1,mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk)
+    % 4-period MPCs
+    if p.freq == 4
+        % model with income risk
+        if p.ComputeDirectMPC == 1
+            % Simulate the full 4 periods
+            Tmax = 4;
+            
+            [mpcs1,mpcs4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,income,basemodel,xgrid,Tmax);
+            direct_results.avg_mpc1sim = avg_mpc1;
+            direct_results.avg_mpc4 = avg_mpc4;
+            direct_results.var_mpc1sim = var_mpc1;
+            direct_results.var_mpc4 = var_mpc4;
+        end
+
+        % norisk model, get mpcs and create norisk.SSdist
+        [mpc1,mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk)
+    end
     
     %% GINI
     % Wealth

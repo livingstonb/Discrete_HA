@@ -5,6 +5,7 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk)
     end
     
     % Only need to compute MPCs at one point in asset space
+    % Number of draws from distribution
     Nsim = 1e7;
     betarand = rand(Nsim,4);
     dierand  = rand(Nsim,4);
@@ -16,8 +17,6 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk)
     % Consumption at starting point
     c0 = income.meannety;
     
-    % Don't compute mpc4 for annual frequency
-    Tmax = p.freq;
     
     for im = numel(p.mpcfrac)
     	mpcamount = p.mpcfrac(im) * income.meany * p.freq;
@@ -38,7 +37,7 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk)
         end
         
         %% Simulate decision variables
-        for it = 1:Tmax
+        for it = 1:4
             if it == 1
                 % Choose lowest point in asset space, x = mean net income
                 xsim(:,it) = x0 * ones(Nsim,1) + mpcamount;
@@ -61,11 +60,8 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk)
         
         %% COMPUTE MPCs
         mpcs1{im} = mean((csim(:,1) - c0)/mpcamount);
-        if p.freq == 4
-            mpcs2{im} = mpcs1{im} + mean((csim(:,2) - c0)/mpcamount);
-            mpcs3{im} = mpcs2{im} + mean((csim(:,3) - c0)/mpcamount);
-            mpcs4{im} = mpcs3{im} + mean((csim(:,4) - c0)/mpcamount);
-        else
-            mpcs4{im} = [];
+        mpcs2{im} = mpcs1{im} + mean((csim(:,2) - c0)/mpcamount);
+        mpcs3{im} = mpcs2{im} + mean((csim(:,3) - c0)/mpcamount);
+        mpcs4{im} = mpcs3{im} + mean((csim(:,4) - c0)/mpcamount);
         end
     end
