@@ -2,11 +2,9 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
                                  	income,prefs,xgridinput,SkipStationary)
     % Finds the stationary distribution and transition matrix for a given
     % xgridinput. sav and con are the saving and consumption policy functions
-    % associated with xgridinput
-    
-    % xgridinput should be of the _wide format: dimensions (assets,nyP,nyF)
-    
-    % ergodic_method is 1 for iterative, 2 for direct
+    % associated with xgridinput.
+    % --> xgridinput should be of the _wide format: dimensions (assets,nyP,nyF)
+    % --> SkipStationary = 1 skips computing the stationary distribution
 
     if p.Display == 1
         fprintf(' Computing state-to-state transition probabilities... \n');
@@ -16,6 +14,7 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
     
     % Interpolate policy functions onto xgridinput
     sav = zeros(gridsize,p.nyP,p.nyF,p.nb);
+    con = zeros(gridsize,p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
@@ -29,11 +28,11 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
     nn = gridsize;
     netymat_fulldim = reshape(income.netymat,[p.nyP p.nyF p.nyT]);
     
-    % transition matrix between (yP,yF,beta) states, condl on living
+    % transition matrix between (yP,yF,beta) states, cond'l on living
     trans_live = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
-    % find transtion matrix between (yP,yF,beta) states condl on dying
-    ytrans_stationary = repmat(income.yPdist',p.nyP,1);
-    trans_death = kron(prefs.betatrans,kron(eye(p.nyF),ytrans_stationary));
+    % transition matrix between (yP,yF,beta) states cond'l on dying
+    yPtrans_stationary = repmat(income.yPdist',p.nyP,1);
+    trans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_stationary));
     
     % transition matrix over (x,yP,yF,beta) full asset space
     statetrans = sparse(NN,NN);
@@ -65,25 +64,25 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
         interp_death    = interp_death * kron(speye(nn),income.yTdist);
 
         % Multiply by transition matrix between (yP,yF,beta) states
-        interp_live     = bsxfun(@times,kron(trans_live(:,col),ones(nn,1)),interp_live);
-        interp_death    = bsxfun(@times,kron(trans_death(:,col),ones(nn,1)),interp_death);
+        trans_live_expand = kron(trans_live(:,col),ones(nn,1));
+        interp_live     = bsxfun(@times,trans_live_expand,interp_live);
+        trans_death_expand = kron(trans_death(:,col),ones(nn,1));
+        interp_death    = bsxfun(@times,trans_death_expand,interp_death);
 
         % add new column to transition matrix
-        newcolumn       = (1-p.dieprob)*interp_live + p.dieprob*interp_death;
-        statetrans(:,nn*(col-1)+1:nn*col) = newcolumn;
+        statetrans(:,nn*(col-1)+1:nn*col) = (1-p.dieprob)*interp_live...
+                                                + p.dieprob*interp_death;
         col = col + 1;
     end
     end
     end
-    
-    %statetrans = sparse(statetrans);
 
     % stationary distribution over states
     if SkipStationary == 0
         fprintf(' Finding ergodic distribution...\n');
         %distribution = full(ergodicdist(statetrans,ergodic_method,ergodic_tol));
         opts.tol = 1e-8;
-        [distribution,eval] = eigs(statetrans',1,1,opts);
+        [distribution,~] = eigs(statetrans',1,1,opts);
         distribution = distribution/sum(distribution);
     else
         distribution =[];

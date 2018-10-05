@@ -23,7 +23,6 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     p.betaswitch    = 1 - (1-p.betaswitch)^(1/p.freq);
     p.betaL         = p.betaL^(1/p.freq);
     p.betaH         = 1/((p.R)*(1-p.dieprob));
-    p.targetAY      = p.targetAY * p.freq;
     p.savtax        = p.savtax/p.freq;
     p.Tsim          = p.Tsim * p.freq;
     
@@ -194,7 +193,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
 
     %% Store problems
     direct_results.issues = {};
-    if  abs((p.targetAY - direct_results.mean_a/income.meany)/p.targetAY) > 1e-3
+    if  abs((p.targetAY - direct_results.mean_a/(income.meany*p.freq))/p.targetAY) > 1e-3
         direct_results.issues{end+1} = 'BadAY';
     end
     if abs((direct_results.mean_x-direct_results.mean_x_check)/direct_results.mean_x)> 1e-3

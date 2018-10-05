@@ -1,13 +1,9 @@
 function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     % This function performs the method of endogenous grid points to find
-    % saving and consumption policy functions. It also computes the
-    % stationary distribution over states via direct methods (rather than
-    % simulations) and stores the results in the 'model' structure.
-
-
-    % 'gridsize' specifies the number of points in the asset space used to 
-    % find the ergodic distribution, which may be larger than the number of
-    % points used to find the policy functions
+    % saving and consumption policy functions. It also calls 
+    % find_stationary() to compute the stationary distribution over states 
+    % via direct methods (rather than simulations) and stores the results 
+    % in the 'model' structure.
     
     %% CONSTRUCT EXPECTATIONS MATRIX                                     
     if  p.nb == 1
@@ -66,19 +62,22 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
         c_xp = zeros(p.ns,p.nyP,p.nyF,p.nb,p.nyT);
         
         % x'(s)
-        xp_s_wide = (1+p.r)*repmat(sgrid.wide(:),p.nb,p.nyT) + repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
+        temp_sav_wide = repmat(sgrid.wide(:),p.nb,p.nyT);
+        temp_inc_wide = repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
+        xp_s_wide = (1+p.r)*temp_sav_wide + temp_inc_wide;
         xp_s_wide = reshape(xp_s_wide,[p.ns p.nyP p.nyF p.nb p.nyT]);
 
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            coninterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF),conlast_wide(:,iyP,iyF,ib),'linear','linear');
-            c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(reshape(xp_s_wide(:,iyP,iyF,ib,:),[],1)),[],1,1,1,p.nyT);
+            coninterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF),conlast_wide(:,iyP,iyF,ib),'linear');
+            xp_s_wide_ib_iyF_iyP = xp_s_wide(:,iyP,iyF,ib,:);
+            c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_wide_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
         end
         end
         end
         
-        % reshape to take expecation yT first
+        % reshape to take expecation over yT first
         c_xp        = reshape(c_xp,[],p.nyT);
         xp_s_wide   = reshape(xp_s_wide,[],p.nyT);
 
@@ -89,11 +88,12 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
         % variables defined for each (x,yP,yF,beta) in state space,
         % column vecs of length p.nx*p.nyP*p.nyF*p.nb
         muc_savtaxrate  = (1+p.savtax.*(repmat(sgrid.wide(:),p.nb,1)>=p.savtaxthresh));
-        muc_consumption = (1+p.r)*betastacked*(Emat*(mucnext*income.yTdist));
+        muc_consumption = (1+p.r)*betastacked*Emat*(mucnext*income.yTdist);
         muc_bequest     = p.dieprob*prefs.beq1(repmat(sgrid.wide(:),p.nb,1));
+        
         % muc(s(x,yP,yF,beta))
-        muc_s           = (1-p.dieprob) * muc_consumption .* muc_savtaxrate...
-                            + p.dieprob * muc_bequest;
+        muc_s           = (1-p.dieprob) * muc_consumption ./ muc_savtaxrate...
+                                                + p.dieprob * muc_bequest;
                 
         % c(s)
         con_s       = prefs.u1inv(muc_s);
@@ -101,15 +101,14 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
         x_s_wide    = repmat(sgrid.wide(:),p.nb,1)...
                         + p.savtax * max(repmat(sgrid.wide(:),p.nb,1)-p.savtaxthresh,0)...
                         + con_s;
-
-        % interpolate from x(s) to get s(x), interpolate for each (beta,yP,yF)
-        % separately
         x_s_wide = reshape(x_s_wide,[p.ns p.nyP p.nyF p.nb]);
+
+        % interpolate from x(s) to get s(x)
         sav_wide = zeros(p.ns,p.nyP,p.nyF,p.nb);
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            savinterp = griddedInterpolant(x_s_wide(:,iyP,iyF,ib),sgrid.wide(:,iyP,iyF),'linear','linear');
+            savinterp = griddedInterpolant(x_s_wide(:,iyP,iyF,ib),sgrid.wide(:,iyP,iyF),'linear');
             sav_wide(:,iyP,iyF,ib) = savinterp(xgrid.orig_wide(:,iyP,iyF)); 
         end
         end
@@ -119,8 +118,9 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
         sav_wide(sav_wide<p.borrow_lim) = p.borrow_lim;
 
         % updated consumption function, column vec length of
-        % p.nx*p.nyP*p.nyF*p.nb
-        conupdate = repmat(xgrid.orig_wide(:),p.nb,1) - sav_wide(:) - p.savtax * max(sav_wide(:)-p.savtaxthresh,0);
+        % length p.nx*p.nyP*p.nyF*p.nb
+        conupdate = repmat(xgrid.orig_wide(:),p.nb,1) - sav_wide(:)...
+                            - p.savtax * max(sav_wide(:)-p.savtaxthresh,0);
 
         cdiff = max(abs(conupdate-conlast));
         if mod(iter,50) ==0
@@ -158,33 +158,32 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
 
 
     %% DISTRIBUTION
-    
-    cashgrid = xgrid.longgrid_wide;
-    
-    gridsize = size(cashgrid,1);
-    
+
     SkipStationary = 0;
     [model.SSdist,model.statetrans,model.sav_longgrid_wide]...
-            = find_stationary(p,model,income,prefs,cashgrid,SkipStationary);
+            = find_stationary(p,model,income,prefs,xgrid.longgrid_wide,SkipStationary);
 
     % SS probability of residing in each state
-    model.SSdist_wide = reshape(model.SSdist,[gridsize,p.nyP,p.nyF,p.nb]);
-
-    % SS wealth/gross income ratio
+    model.SSdist_wide = reshape(model.SSdist,[p.nxlong,p.nyP,p.nyF,p.nb]);
+    
+    % mean saving
     model.mean_s = model.sav_longgrid_wide(:)' * model.SSdist;
     
-    % policy functions
-    model.sav_longgrid      = model.sav_longgrid_wide(:);
-    if p.WealthInherited == 0
-        model.mean_a = (1-p.dieprob) * p.R * model.mean_s;
-    else
-        model.mean_a = p.R * model.mean_s;
-    end
-    model.con_longgrid      = repmat(cashgrid(:),p.nb,1) - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid(:)-p.savtaxthresh,0);
-    model.con_longgrid_wide = reshape(model.con_longgrid,[gridsize,p.nyP,p.nyF,p.nb]);
+    % policy functions on longgrid
+    model.sav_longgrid = model.sav_longgrid_wide(:);
+    model.con_longgrid = repmat(xgrid.longgrid_wide(:),p.nb,1)...
+        - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid(:)-p.savtaxthresh,0);
+    model.con_longgrid_wide = reshape(model.con_longgrid,[p.nxlong,p.nyP,p.nyF,p.nb]);
     model.mean_c = model.con_longgrid_wide(:)' * model.SSdist;
     
-    % cumulative distribution
+    % mean assets
+    if p.WealthInherited == 1
+        model.mean_a = p.R * model.mean_s;
+    else
+        model.mean_a = (1-p.dieprob) * p.R * model.mean_s;
+    end
+    
+    % cumulative distribution, sorted by saving
     temp = sortrows([model.sav_longgrid model.SSdist]);
     model.sav_longgrid_sort = temp(:,1);
     model.SSdist_sort = temp(:,2);
@@ -193,7 +192,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     % unique values on cumdist and their indices (needed for interpolants)
     [model.SScumdist_unique,model.SScumdist_uniqueind] = unique(model.SScumdist,'last');
 
-    fprintf(' A/Y = %2.3f\n',model.mean_a/income.meany);
-    AYdiff = model.mean_a/income.meany -  p.targetAY;
+    fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany*p.freq));
+    AYdiff = model.mean_a/(income.meany*p.freq) -  p.targetAY;
 
 end
