@@ -69,9 +69,9 @@ simulate.m - This function performs simulations based on the policy functions fo
 	Calls:		simulation_MPCs.m
 
 expected_direct_mpcs.m (NOT USED) - This function finds expected MPCs by computing expected 
-consumption functions in response to an income shock. Returns one- and four-period expected 
-MPCs distributed according to basemodel.SSdist. Also returns average expected MPCs associated with 
-these expected MPC distributions.
+	consumption functions in response to an income shock. Returns one- and four-period expected 
+	MPCs distributed according to basemodel.SSdist. Also returns average expected MPCs associated with 
+	these expected MPC distributions.
 
 	Called by: 	none
 
@@ -84,6 +84,13 @@ expected_direct_mpcs_determinisitic.m (NOT USED) - Same as above but for norisk 
 	Calls:		none
 
 direct_MPCs.m - Computes MPCs by drawing from the stationary distribution and simulating 4 periods.
+
+	Called by: 	egp_AR1_IID_tax_recode.m
+
+	Calls:  	none
+
+direct_MPCs_deterministic.m - Computes MPCs by drawing from the stationary distribution and 
+simulating 4 periods, using the model with no income risk
 
 	Called by: 	egp_AR1_IID_tax_recode.m
 
