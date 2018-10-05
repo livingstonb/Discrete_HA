@@ -1,4 +1,4 @@
-function [mpcs1,mpcs4,avg_mpc1,avg_mpc4,var_mpc4] = direct_mpcs(xgrid,p,income,basemodel,prefs)
+function [mpcs1,mpcs4,avg_mpc1,avg_mpc4,var_mpc4] = expected_mpcs(xgrid,p,income,basemodel,prefs)
     % Uses direct methods to compute MPCs
     
     if p.Display == 1

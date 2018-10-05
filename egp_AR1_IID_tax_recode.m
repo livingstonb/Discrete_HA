@@ -10,7 +10,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     % and to find the implied stationary distribution over the state space.
 
     direct_results.issues = {};
-    norisk_results = struct();
+    norisk_results.issues = {};
     sim_results = struct();
     
     %% ADJUST PARAMETERS FOR DATA FREQUENCY
@@ -44,7 +44,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     end
 
 
-    %% LOAD INCOME
+    %% LOAD INCOME VARIABLES2
 
     income = gen_income_variables(p);
     
@@ -96,16 +96,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     xgrid.norisk_longgrid = p.borrow_lim + (p.xmax-p.borrow_lim).*xgrid.norisk_longgrid;
     xgrid.norisk_longgrid = xgrid.norisk_longgrid + income.meannety;
     
-    % create xgrid for intermediate computations of ergodic distribution
-    minyT = kron(min(income.netymat,[],2),ones(p.nxinterm,1));
-    xgrid.interm      = linspace(0,1,p.nxinterm)';
-    xgrid.interm      = xgrid.interm.^(1/p.xgrid_par);
-    xgrid.interm      = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid.interm;
-    xgrid.interm      = repmat(xgrid.interm,p.nyP*p.nyF,1);
-    xgrid.interm      = xgrid.interm + minyT;
-    xgrid.interm_wide = reshape(xgrid.interm,[p.nxinterm p.nyP p.nyF]);    
-    
-    % create longer xgrid for last computation of ergodic distribution
+    % create longer xgrid
     minyT = kron(min(income.netymat,[],2),ones(p.nxlong,1));
     xgrid.longgrid      = linspace(0,1,p.nxlong)';
     xgrid.longgrid      = xgrid.longgrid.^(1/p.xgrid_par);
@@ -288,6 +279,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     end
 
     % 1-period MPCs, norisk
+    norisk_results.mpc1 = zeros(1,numel(p.mpcfrac));
     for im = 1:numel(p.mpcfrac)
         mpcamount = p.mpcfrac(im) * income.meany * p.freq;
         xmpc = xgrid.norisk_longgrid + mpcamount;
@@ -303,11 +295,13 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
             conmpc(:,ib) = norisk.coninterp{ib}(xmpc);
             congrid(:,ib) = norisk.coninterp{ib}(xgrid.norisk_longgrid);
         end
-    mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
-    mpcs1(set_mpc_one(:)) = 1;
-    mpcs1 = reshape(mpcs1,p.nxlong,p.nb);
-    norisk_results.avg_mpc1{im} = mpcs1(1,:) * prefs.betadist;
+        mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
+        mpcs1(set_mpc_one(:)) = 1;
+        mpcs1 = reshape(mpcs1,p.nxlong,p.nb);
+        % Only need mpc at one point
+        norisk_results.mpc1(im) = mpcs1(1,:) * prefs.betadist;
     end
+    norisk_results.mpc1 = mean(norisk_results.mpc1);
     
     % 4-period MPCs
     if p.freq == 4
@@ -323,10 +317,15 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
             direct_results.var_mpc4 = var_mpc4;
         end
 
-        % norisk model, get mpcs and create norisk.SSdist
-        [mpc1,mpc4,avg_mpc1,avg_mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk)
-        norisk_results.avg_mpc1sim = avg_mpc1;
-        norisk_results.avg_mpc4 = avg_mpc4;
+        % norisk model
+        [mpc1,mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk);
+        norisk_results.mpc1sim  = mpc1;
+        norisk_results.mpc4     = mpc4;
+    end
+    
+    % Check that one-period mpc is the same, computed two diff ways
+    if abs(norisk_results.mpc1sim - norisk_results.mpc1) / norisk_results.mpc1sim > 1e-3
+        norisk_results.issues = 'MPCsInconsistent';
     end
     
     %% GINI

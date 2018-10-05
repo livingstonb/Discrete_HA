@@ -103,7 +103,7 @@ prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 0;
 prms(1).ComputeDirectMPC    = 1;
-prms(1).Simulate            = 0;
+prms(1).Simulate            = 1;
 
 %% Call model
 Nprms = size(prms,2);

@@ -11,8 +11,7 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
         if mpcamount{im} < 0
             set_mpc_one = false(p.Nsim,1);
         end
-            
-        
+
         xsim_mpc{im}        = zeros(p.Nsim,4);
         ssim_mpc{im}        = zeros(p.Nsim,4);
         asim_mpc{im}        = zeros(p.Nsim,4);

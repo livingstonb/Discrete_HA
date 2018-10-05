@@ -81,7 +81,7 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
     if SkipStationary == 0
         fprintf(' Finding ergodic distribution...\n');
         %distribution = full(ergodicdist(statetrans,ergodic_method,ergodic_tol));
-        opts.tol = 1e-8;
+        opts.tol = 1e-14;
         [distribution,~] = eigs(statetrans',1,1,opts);
         distribution = distribution/sum(distribution);
     else
