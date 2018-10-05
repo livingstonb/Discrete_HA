@@ -111,3 +111,6 @@ Nprms = size(prms,2);
 for ip = 1:Nprms
     [sim_results(ip),direct_results(ip),norisk_results(ip)] = egp_AR1_IID_tax_recode(prms(ip));
 end
+
+%% Save
+% save('Results','sim_results','direct_results','norisk_results')

@@ -165,7 +165,8 @@ function print_statistics(direct_results,sim_results,norisk_results,p)
     
     %% ISSUES
     fprintf('\nISSUES: \n')
-    for i = 1:numel(direct_results.issues)
-        fprintf('    %s\n',direct_results.issues{i})
+    issues = [direct_results.issues,sim_results.issues,norisk_results.issues];
+    for i = 1:numel(issues)
+        fprintf('    %s\n',issues{i})
     end
 end

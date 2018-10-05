@@ -11,7 +11,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
 
     direct_results.issues = {};
     norisk_results.issues = {};
-    sim_results = struct();
+    sim_results.issues    = {};
     
     %% ADJUST PARAMETERS FOR DATA FREQUENCY
 
