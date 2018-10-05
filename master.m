@@ -75,10 +75,10 @@ prms(1).betaswitch  = 1/50; %0;
 % computation
 prms(1).max_iter    = 1e5; % EGP
 prms(1).tol_iter    = 1.0e-6; % EGP
-prms(1).Nsim        = 10000; % 100000
+prms(1).Nsim        = 100000; % 100000
 prms(1).Tsim        = 200;
 prms(1).nxinterm    = 200; % For intermediate iterations of EGP
-prms(1).nxlong      = 500; % Grid size for final computations
+prms(1).nxlong      = 1000; % Grid size for final computations
  
 % beta iteration
 prms(1).targetAY    = 3.5;

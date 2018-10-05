@@ -14,7 +14,6 @@ egp_AR1_IID_tax_recode.m - Main function file. Given a structure of parameters
 	Called by: 	master.m
 	
 	Calls: 		gen_income_variables.m
-			iterate_beta.m
 			solve_EGP.m
 			solve_EGP_deterministic.m
 			simulate.m
@@ -29,16 +28,6 @@ gen_income_variables.m - Function that creates the `income’ structure, which
 	
 	Calls:		egp_AR1_IID_tax_recode.m
 
-iterate_beta.m - Function used to help find the beta associated with the desired
-	wealth/income ratio. This function runs the optimization in two steps:
-	(1) pass the function solve_EGP() to fzero() with a small grid and 
-	large convergence tolerance, and (2) once beta has been found, restrict
-	the search interval to within 0.01 of beta, and pass the function
-	solve_EGP() to fzero() with a larger grid and smaller convergence tolerance.
-
-	Called by: 	egp_AR1_IID_tax_recode.m
-	
-	Calls:		passes solve_EGP() to fzero()
 
 solve_EGP.m - This function performs the method of endogenous grid functions to find
 	saving and consumption policy functions. Also calls find_stationary() to
@@ -60,7 +49,7 @@ find_stationary.m - This function finds the stationary distribution and transiti
 
 	Called by: 	egp_AR1_IID_tax_recode.m
 	
-	Calls:		ergodicdist.m
+	Calls:		eigs()
 
 	
 solve_EGP_deterministic.m - This function performs the same role as solve_EGP, except

@@ -1,5 +1,4 @@
-function [norisk,cdiff] = solve_EGP_deterministic(p,...
-                                                xgrid,sgrid,prefs,income)
+function [norisk,cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
     % This function uses the method of endogenous grid points to find the
     % policy functions of the deterministic model.
     

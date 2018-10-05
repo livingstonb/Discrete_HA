@@ -23,7 +23,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     p.betaswitch    = 1 - (1-p.betaswitch)^(1/p.freq);
     p.betaL         = p.betaL^(1/p.freq);
     p.betaH         = 1/((p.R)*(1-p.dieprob));
-    p.targetAY      = p.targetAY/p.freq;
+    p.targetAY      = p.targetAY * p.freq;
     p.savtax        = p.savtax/p.freq;
     p.Tsim          = p.Tsim * p.freq;
     
@@ -131,34 +131,38 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
 
 
     %% MODEL SOLUTION
-
     if p.IterateBeta == 1
-        % Pass to function that will speed up iteration
-        [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income);
+
+        iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,prefs,income);
+
+        if p.nb == 1
+            beta_ub = p.betaH - 1e-5;
+        else
+            beta_ub = p.betaH - 1e-5 - p.betawidth2;
+        end
+        beta_lb = p.betaL;
+
+        check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
+        options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
+        [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
         if exitflag ~= 1
             direct_results.issues{end+1} = 'NoBetaConv';
             return
+        else
         end
-        % beta associated with chosen frequency
-        p.beta = beta;
     else
-        p.maxiterAY = 1;
         % beta associated with chosen frequency
-        p.beta = p.beta0;
-        beta = p.beta0;
+        beta = p.beta0;    
     end
     
+    [~,basemodel] = solve_EGP(beta,p,...
+            xgrid,sgrid,prefs,income);
+
     % Report beta and annualized beta
     direct_results.beta_annualized = beta^p.freq;
     direct_results.beta = beta;
+    p.beta = beta;
 
-    % Use final beta to get policy functions and distribution, with a
-    % larger grid and higher tolerance for ergodic distribution
-    ergodic_tol = 1e-8;
-    ergodic_method = 1;
-    Intermediate = 0;
-    [~,basemodel] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
-                           	ergodic_method,ergodic_tol,income,Intermediate);
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         direct_results.issues{end+1} = 'NoEGPConv';

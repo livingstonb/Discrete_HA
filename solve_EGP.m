@@ -1,13 +1,9 @@
-function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
-                             	ergodic_method,ergodic_tol,income,Intermediate)
+function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also computes the
     % stationary distribution over states via direct methods (rather than
     % simulations) and stores the results in the 'model' structure.
-    
-    % 'ergodic_tol' specifies the tolerance used to find the ergodic
-    % distribution from the transition matrix
-    
+
 
     % 'gridsize' specifies the number of points in the asset space used to 
     % find the ergodic distribution, which may be larger than the number of
@@ -163,16 +159,12 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,...
 
     %% DISTRIBUTION
     
-    if Intermediate == 1
-        cashgrid = xgrid.interm_wide;
-    else
-        cashgrid = xgrid.longgrid_wide;
-    end
+    cashgrid = xgrid.longgrid_wide;
     
     gridsize = size(cashgrid,1);
     
     [model.SSdist,model.statetrans,model.sav_longgrid_wide]...
-            = find_stationary(p,model,income,prefs,cashgrid,ergodic_method,ergodic_tol);
+            = find_stationary(p,model,income,prefs,cashgrid);
 
     % SS probability of residing in each state
     model.SSdist_wide = reshape(model.SSdist,[gridsize,p.nyP,p.nyF,p.nb]);
