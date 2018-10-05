@@ -163,8 +163,9 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     
     gridsize = size(cashgrid,1);
     
+    SkipStationary = 0;
     [model.SSdist,model.statetrans,model.sav_longgrid_wide]...
-            = find_stationary(p,model,income,prefs,cashgrid);
+            = find_stationary(p,model,income,prefs,cashgrid,SkipStationary);
 
     % SS probability of residing in each state
     model.SSdist_wide = reshape(model.SSdist,[gridsize,p.nyP,p.nyF,p.nb]);

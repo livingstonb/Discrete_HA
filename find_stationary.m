@@ -1,5 +1,5 @@
 function [distribution,statetrans,sav,con] = find_stationary(p,model,...
-                            income,prefs,xgridinput,ergodic_method,ergodic_tol)
+                                 	income,prefs,xgridinput,SkipStationary)
     % Finds the stationary distribution and transition matrix for a given
     % xgridinput. sav and con are the saving and consumption policy functions
     % associated with xgridinput
@@ -79,13 +79,13 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
     %statetrans = sparse(statetrans);
 
     % stationary distribution over states
-    if ergodic_method == 0
-        distribution = [];
-    else
+    if SkipStationary == 0
         fprintf(' Finding ergodic distribution...\n');
         %distribution = full(ergodicdist(statetrans,ergodic_method,ergodic_tol));
-        opts.tol = ergodic_tol; %1e-8;
+        opts.tol = 1e-8;
         [distribution,eval] = eigs(statetrans',1,1,opts);
         distribution = distribution/sum(distribution);
+    else
+        distribution =[];
     end
 end

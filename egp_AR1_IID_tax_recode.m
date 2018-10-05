@@ -266,17 +266,16 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         
     % basemodel
     if p.ComputeDirectMPC == 1
-        [mpcs1,mpcs4,avg_mpc1,avg_mpc4,var_mpc4] = direct_mpcs(xgrid,p,income,basemodel,prefs);
+        [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] ... 
+                                    = direct_MPCs(p,prefs,income,basemodel,xgrid);
         direct_results.avg_mpc1 = avg_mpc1;
         direct_results.avg_mpc4 = avg_mpc4;
+        direct_results.var_mpc1 = var_mpc1;
         direct_results.var_mpc4 = var_mpc4;
-    else
-        mpcs1 = []; mpcs4 = [];
     end
     
     % norisk model, get mpcs and create norisk.SSdist
-    [mpcs1,mpcs4,avg_mpc1,avg_mpc4,norisk] = direct_mpcs_deterministic(...
-                                                xgrid,p,income,norisk,prefs);
+    [mpc1,mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk)
     
     %% GINI
     % Wealth
@@ -317,8 +316,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     %% MAKE PLOTS
   
     if p.MakePlots ==1 
-        makeplots(p,xgrid,sgrid,basemodel,income,sim_results,assetmeans,...
-                                                                mpcs1,mpcs4);
+        makeplots(p,xgrid,sgrid,basemodel,income,sim_results,assetmeans);
     end 
     
     %% Print Results

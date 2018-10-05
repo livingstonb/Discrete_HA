@@ -96,7 +96,7 @@ function print_statistics(direct_results,sim_results,p)
         fprintf('  1-Period (Quarterly) MPCs\n')
     end
     % Average MPC, 1 period
-    for i = 1:size(p.mpcfrac,2)
+    for i = 1:numel(p.mpcfrac)
         if p.ComputeDirectMPC == 1
             direct = sprintf(' %2.3f (Direct)',direct_results.avg_mpc1{i});
         else
@@ -108,7 +108,7 @@ function print_statistics(direct_results,sim_results,p)
             sim = ', --- (Simulation) ';
         end
         
-        label = sprintf('    MPC out of %6.2g of mean ann income:',p.mpcfrac{i});
+        label = sprintf('    MPC out of %6.2g of mean ann income:',p.mpcfrac(i));
         disp([label direct sim]);
     end
     
@@ -128,7 +128,7 @@ function print_statistics(direct_results,sim_results,p)
                 sim = ', --- (Simulation) ';
             end
 
-            label = sprintf('    MPC out of %6.2g of mean ann income:',p.mpcfrac{i});
+            label = sprintf('    MPC out of %6.2g of mean ann income:',p.mpcfrac(i));
             disp([label direct sim]);
 
         end

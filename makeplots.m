@@ -1,5 +1,4 @@
-function makeplots(p,xgrid,sgrid,basemodel,income,sim_results,assetmeans,...
-    mpcs1,mpcs2)
+function makeplots(p,xgrid,sgrid,basemodel,income,sim_results,assetmeans)
     % This function makes plots based on fields from 'direct_results'
     % and 'simulation_results' and 'income' as well as plotting MPCs
 
