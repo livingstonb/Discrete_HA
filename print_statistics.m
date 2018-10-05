@@ -1,4 +1,4 @@
-function print_statistics(direct_results,sim_results,p)
+function print_statistics(direct_results,sim_results,norisk_results,p)
     % This function prints the main results associated with the
     % parameterization structure 'p'
     
@@ -91,9 +91,9 @@ function print_statistics(direct_results,sim_results,p)
     %% MPC
     fprintf('\nMPCs: \n')
     if p.freq == 1
-        fprintf('  1-Period (Annual) MPCs\n')
+        fprintf('  Annual (1-Period) MPCs\n')
     else
-        fprintf('  1-Period (Quarterly) MPCs\n')
+        fprintf('  Quarterly (1-Period) MPCs\n')
     end
     % Average MPC, 1 period
     for i = 1:numel(p.mpcfrac)
@@ -114,7 +114,7 @@ function print_statistics(direct_results,sim_results,p)
     
     % Average MPC, 4 periods
     if p.freq == 4
-        fprintf('  4-Period (Annual) MPCs\n')
+        fprintf('  Annual (4-Period) MPCs\n')
         for i = 1:numel(p.mpcfrac)
             if p.ComputeDirectMPC == 1
                 direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4{i});
@@ -132,13 +132,13 @@ function print_statistics(direct_results,sim_results,p)
             disp([label direct sim]);
 
         end
-    else
-        fprintf('  4-Period MPCs Not Computed for Annual Frequency\n') 
     end
 
     
     %% OTHER
     fprintf('\nOTHER: \n')
+    
+    % beta
     if p.freq == 4
         betamsg = sprintf(' %2.3f (Quarterly), %2.3f (Annualized),',direct_results.beta,direct_results.beta_annualized);
     elseif p.freq == 1
@@ -150,6 +150,17 @@ function print_statistics(direct_results,sim_results,p)
         disp([label betamsg ' found by iteration']);
     else
         disp([label betamsg ' set in parameters']);
+    end
+    
+    % norisk MPC
+    if p.freq == 1
+        value = norisk_results.avg_mpc1{4};
+        fprintf('    Annual MPC for model without risk: %5.3f',value);
+    else
+        valueQ = norisk_results.avg_mpc1{1};
+        valueY = norisk_results.avg_mpc4{1};
+        fprintf('    Quarterly MPC for model without risk: %5.3f\n',valueQ);
+        fprintf('    Annual MPC for model without risk: %5.3f\n',valueY);
     end
     
     %% ISSUES

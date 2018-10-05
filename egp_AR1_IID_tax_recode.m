@@ -1,4 +1,4 @@
-function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
+function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -10,6 +10,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     % and to find the implied stationary distribution over the state space.
 
     direct_results.issues = {};
+    norisk_results = struct();
     sim_results = struct();
     
     %% ADJUST PARAMETERS FOR DATA FREQUENCY
@@ -263,7 +264,6 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     
     %% MPCS
         
-    
     % 1-period MPCs, model with income risk
     for im = 1:numel(p.mpcfrac)
         mpcamount = p.mpcfrac(im) * income.meany * p.freq;
@@ -282,9 +282,9 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         end
         end
         end
-    mpcs1 = (conmpc(:) - basemodel.con_longgrid) / mpcamount;
-    mpcs1(set_mpc_one(:)) = 1;
-    direct_results.avg_mpc1{im} = basemodel.SSdist' * mpcs1;
+        mpcs1 = (conmpc(:) - basemodel.con_longgrid) / mpcamount;
+        mpcs1(set_mpc_one(:)) = 1;
+        direct_results.avg_mpc1{im} = basemodel.SSdist' * mpcs1;
     end
 
     % 1-period MPCs, norisk
@@ -293,8 +293,8 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         xmpc = xgrid.norisk_longgrid + mpcamount;
         set_mpc_one = false(p.nxlong,p.nb);
         conmpc = zeros(p.nxlong,p.nb);
-        con_grid = zeros(p.nxlong,p.nb);
-        for ib  = p.nb
+        congrid = zeros(p.nxlong,p.nb);
+        for ib  = 1:p.nb
             if mpcamount < 0
                 below_grid = xmpc < xgrid.longgrid(1);
                 xmpc(below_grid) = xgrid.longgrid(1);
@@ -305,7 +305,8 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         end
     mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
     mpcs1(set_mpc_one(:)) = 1;
-    norisk.avg_mpc1{im} = reshape(mpcs1,p.nxlong,p.nb) * prefs.betadist;
+    mpcs1 = reshape(mpcs1,p.nxlong,p.nb);
+    norisk_results.avg_mpc1{im} = mpcs1(1,:) * prefs.betadist;
     end
     
     % 4-period MPCs
@@ -323,7 +324,9 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         end
 
         % norisk model, get mpcs and create norisk.SSdist
-        [mpc1,mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk)
+        [mpc1,mpc4,avg_mpc1,avg_mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk)
+        norisk_results.avg_mpc1sim = avg_mpc1;
+        norisk_results.avg_mpc4 = avg_mpc4;
     end
     
     %% GINI
@@ -370,7 +373,7 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
     
     %% Print Results
     if p.Display == 1
-        print_statistics(direct_results,sim_results,p);
+        print_statistics(direct_results,sim_results,norisk_results,p);
     end
     
 end

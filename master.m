@@ -13,7 +13,7 @@ cd(path);
 prms = struct();
 
 % data frequency
-prms(1).freq        = 1; % 1 for yearly, 4 for quarterly
+prms(1).freq        = 4; % 1 for yearly, 4 for quarterly
 
 % returns
 prms(1).r           = 0.02;
@@ -103,11 +103,11 @@ prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
 prms(1).MakePlots           = 0;
 prms(1).ComputeDirectMPC    = 1;
-prms(1).Simulate            = 1;
+prms(1).Simulate            = 0;
 
 %% Call model
 Nprms = size(prms,2);
 % Create structure arrays to store results
 for ip = 1:Nprms
-    [sim_results(ip),direct_results(ip)] = egp_AR1_IID_tax_recode(prms(ip));
+    [sim_results(ip),direct_results(ip),norisk_results(ip)] = egp_AR1_IID_tax_recode(prms(ip));
 end

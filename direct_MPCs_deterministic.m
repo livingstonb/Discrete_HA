@@ -1,4 +1,4 @@
-function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk)
+function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk)
 
     if p.Display == 1
         disp(' Simulating 4 periods to get deterministic MPCs')
@@ -6,7 +6,7 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk)
     
     % Only need to compute MPCs at one point in asset space
     % Number of draws from distribution
-    Nsim = 1e7;
+    Nsim = 1e5;
     betarand = rand(Nsim,4);
     dierand  = rand(Nsim,4);
     diesim   = dierand < p.dieprob;
@@ -18,8 +18,9 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk)
     c0 = income.meannety;
     
     
-    for im = numel(p.mpcfrac)
-    	mpcamount = p.mpcfrac(im) * income.meany * p.freq;
+    for im = 1; % 1:numel(p.mpcfrac)
+    	%mpcamount = p.mpcfrac(im) * income.meany * p.freq;
+        mpcamount = 0.01 * income.meany * p.freq;
         
         xsim        = zeros(Nsim,4);
         betaindsim  = zeros(Nsim,4);
@@ -42,7 +43,7 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk)
                 % Choose lowest point in asset space, x = mean net income
                 xsim(:,it) = x0 * ones(Nsim,1) + mpcamount;
             else
-                xsim(:,it) = asim(:,it-1) + 1;
+                xsim(:,it) = asim(:,it-1) + income.meannety;
             end
             
             for ib = 1:p.nb
@@ -63,5 +64,8 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk)
         mpcs2{im} = mpcs1{im} + mean((csim(:,2) - c0)/mpcamount);
         mpcs3{im} = mpcs2{im} + mean((csim(:,3) - c0)/mpcamount);
         mpcs4{im} = mpcs3{im} + mean((csim(:,4) - c0)/mpcamount);
+        
+        avg_mpc1{im} = mean(mpcs1{im});
+        avg_mpc4{im} = mean(mpcs4{im});
         end
     end
