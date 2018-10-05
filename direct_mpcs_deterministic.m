@@ -98,17 +98,17 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4,norisk] = direct_mpcs_deterministic(...
                
         % Transition matrix from t to t+1
         if p.WealthInherited == 1
-            T = ((1-p.dieprob)*trans_exo + p.dieprob*trans_exo_death) .* transition_matrix(xprime,p,xgrid);
+            T = trans_exo .* transition_matrix(xprime,p,xgrid);
         else
-            T_life  = trans_exo       .* transition_matrix(xprime,p,xgrid);
-            T_death = trans_exo_death .* transition_matrix(xprime_death,p,xgrid);
+            T_life  = trans_exo  .* transition_matrix(xprime,p,xgrid);
+            T_death = trans_exo  .* transition_matrix(xprime_death,p,xgrid);
             T = (1 - p.dieprob) * T_life + p.dieprob * T_death;
         end
 
         % Multi-period MPCs
         mpcs{2} = (T * norisk.con_longgrid_wide(:) - norisk.con_longgrid_wide(:)) / mpcamount;
         mpcs{3} = (T * norisk.statetrans   * norisk.con_longgrid_wide(:) - norisk.con_longgrid_wide(:)) / mpcamount;
-        mpcs{4} = (T * statetrans^2 * basemodel.con_longgrid_wide(:) - norisk.con_longgrid_wide(:)) / mpcamount;
+        mpcs{4} = (T * norisk.statetrans^2 * norisk.con_longgrid_wide(:) - norisk.con_longgrid_wide(:)) / mpcamount;
         
         for it = 2:4;
             avg_mpc{it} = avg_mpc{it-1} + norisk.SSdist' * mpcs{it};

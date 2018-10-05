@@ -1,4 +1,4 @@
-function [avg_mpc1,avg_mpc4,mpc1] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
+function [avg_mpc1,avg_mpc4,mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
     betaindsim,income,simulationstruct,xgrid)
     % This function is called by simulate.m to compute MPCs. Outputs are
     % cell arrays, each cell associated with one mpcamount.
@@ -64,7 +64,14 @@ function [avg_mpc1,avg_mpc4,mpc1] = simulation_MPCs(p,xsim,csim,diesim,ynetsim,y
             mpc3{im}(set_mpc_one(:,3)) = 1;
             mpc4{im}(set_mpc_one(:,4)) = 1;
         end
+        
+        mpc2{im} = mpc2{im} + mpc1{im};
+        mpc3{im} = mpc3{im} + mpc2{im};
+        mpc4{im} = mpc4{im} + mpc3{im};
+        
         avg_mpc1{im} = mean(mpc1{im});
-        avg_mpc4{im} = mean(mpc1{im}+mpc2{im}+mpc3{im}+mpc4{im});
+        avg_mpc4{im} = mean(mpc4{im});
+        
+        var_mpc4{im} = var(mpc4{im});
     end
 end

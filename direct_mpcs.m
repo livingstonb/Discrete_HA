@@ -1,4 +1,4 @@
-function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,prefs)
+function [mpcs1,mpcs4,avg_mpc1,avg_mpc4,var_mpc4] = direct_mpcs(xgrid,p,income,basemodel,prefs)
     % Uses direct methods to compute MPCs
     
     if p.Display == 1
@@ -57,6 +57,7 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,
             mpcs4{im}       = [];
             avg_mpc1{im}    = avg_mpc{1};
             avg_mpc4{im}    = [];
+            var_mpc4{im}    = [];
             continue
         end
         % Create matrix of xprime's, final dim NN by p.nyP*p.nyF*p.nyT
@@ -69,6 +70,7 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,
                                     + repmat(income.netymat(:,iyT)',NN,1);
             xprime_death(:,:,iyT) = repmat(income.netymat(:,iyT)',NN,1);
         end
+
 
         % Transition matrix from period t+k to t+k+1 for k > 0
         trans_exo       = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
@@ -87,13 +89,15 @@ function [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,
         end
 
         % Multi-period MPCs
-        mpcs{2} = (T * basemodel.con_longgrid - basemodel.con_longgrid) / mpcamount;
-        mpcs{3} = (T * basemodel.statetrans  * basemodel.con_longgrid - basemodel.con_longgrid) / mpcamount;
-        mpcs{4} = (T * statetrans2 * basemodel.con_longgrid - basemodel.con_longgrid) / mpcamount;
+        mpcs{2} = mpcs{1} + (T * basemodel.con_longgrid - basemodel.con_longgrid) / mpcamount;
+        mpcs{3} = mpcs{2} + (T * basemodel.statetrans  * basemodel.con_longgrid - basemodel.con_longgrid) / mpcamount;
+        mpcs{4} = mpcs{3} + (T * statetrans2 * basemodel.con_longgrid - basemodel.con_longgrid) / mpcamount;
         
         for it = 2:4;
-            avg_mpc{it} = avg_mpc{it-1} + basemodel.SSdist' * mpcs{it};
+            avg_mpc{it} = basemodel.SSdist' * mpcs{it};
         end
+        % Find variance of 4-period mpcs
+        var_mpc4{im} = basemodel.SSdist' * (mpcs{4} - avg_mpc{4}).^2;
         
         % Store one- and four-period MPCs
         mpcs1{im}       = mpcs{1};

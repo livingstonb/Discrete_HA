@@ -36,7 +36,7 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
     trans_death = kron(prefs.betatrans,kron(eye(p.nyF),ytrans_stationary));
     
     % transition matrix over (x,yP,yF,beta) full asset space
-    statetrans = zeros(NN,NN);
+    statetrans = sparse(NN,NN);
     col = 1;
     for ib2 = 1:p.nb
     for iyF2 = 1:p.nyF
@@ -76,13 +76,16 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
     end
     end
     
-    statetrans = sparse(statetrans);
+    %statetrans = sparse(statetrans);
 
     % stationary distribution over states
     if ergodic_method == 0
         distribution = [];
     else
         fprintf(' Finding ergodic distribution...\n');
-        distribution = double(full(ergodicdist(statetrans,ergodic_method,ergodic_tol)));
+        %distribution = full(ergodicdist(statetrans,ergodic_method,ergodic_tol));
+        opts.tol = ergodic_tol; %1e-8;
+        [distribution,eval] = eigs(statetrans',1,1,opts);
+        distribution = distribution/sum(distribution);
     end
 end

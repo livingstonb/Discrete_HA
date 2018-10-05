@@ -12,16 +12,16 @@ function [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income)
     if p.nb == 1
         beta_ub = p.betaH - 1e-5;
     else
-        beta_ub = p.betaH - 1e-5 - betawidth;
+        beta_ub = p.betaH - 1e-5 - p.betawidth2;
     end
     beta_lb = p.betaL;
 
     if p.FastIter == 1
         % Narrow the interval by optimizing over a small grid with low
         % tolerance
-        ergodic_tol = 1e-5;
+        ergodic_tol = 1e-4;
         ergodic_method = 1;
-        Intermediate = 1;
+        Intermediate = 1; % use smaller grid
         iterate_EGP = @(x) solve_EGP(x,p,...
                 xgrid,sgrid,prefs,ergodic_method,ergodic_tol,income,Intermediate);
     
@@ -34,8 +34,8 @@ function [beta,exitflag] = iterate_beta(p,xgrid,sgrid,prefs,income)
             return
         end
         
-        beta_lb = beta - 0.01;
-        beta_ub = beta + 0.01;
+        beta_lb = beta - 0.005;
+        beta_ub = beta + 0.005;
     end
         
     %% HIGH TOLERANCE, LARGE GRID

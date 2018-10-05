@@ -262,9 +262,10 @@ function [sim_results,direct_results] = egp_AR1_IID_tax_recode(p)
         
     % basemodel
     if p.ComputeDirectMPC == 1
-        [mpcs1,mpcs4,avg_mpc1,avg_mpc4] = direct_mpcs(xgrid,p,income,basemodel,prefs);
+        [mpcs1,mpcs4,avg_mpc1,avg_mpc4,var_mpc4] = direct_mpcs(xgrid,p,income,basemodel,prefs);
         direct_results.avg_mpc1 = avg_mpc1;
         direct_results.avg_mpc4 = avg_mpc4;
+        direct_results.var_mpc4 = var_mpc4;
     else
         mpcs1 = []; mpcs4 = [];
     end

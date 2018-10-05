@@ -13,7 +13,7 @@ cd(path);
 prms = struct();
 
 % data frequency
-prms(1).freq        = 1; % 1 for yearly, 4 for quarterly
+prms(1).freq        = 4; % 1 for yearly, 4 for quarterly
 
 % returns
 prms(1).r           = 0.02;
@@ -23,7 +23,7 @@ prms(1).dieprob     = 1/50;
 
 % preferences
 prms(1).risk_aver   = 1;
-prms(1).beta0       = 0.96;
+prms(1).beta0       = 0.99;
 prms(1).temptation  = 0;
 prms(1).betaL       = 0.80;
 % betaH defined in main function file
@@ -35,14 +35,14 @@ prms(1).WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
 
 % income risk: AR(1) + IID in logs
 prms(1).LoadIncomeProcess = 0;
-prms(1).nyT               = 5; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
+prms(1).nyT               = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 % yT,yP (only relevant if LoadIncomeProcess==0)
 prms(1).NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
 prms(1).yTContinuous = 0; % doesn't seem to work properly
 prms(1).sd_logyT     = sqrt(0.2);  %0.20; %relevant if nyT>1
 prms(1).lambdaT      = 1; % arrival rate of shocks;
-prms(1).nyP          = 5; %11 persistent component
+prms(1).nyP          = 11; %11 persistent component
 prms(1).sd_logyP     = sqrt(0.02); %0.1950;
 prms(1).rho_logyP    = 0.9525;
 prms(1).nyF          = 1;
@@ -51,7 +51,7 @@ prms(1).sd_logyF     = 0;
 % cash on hand / savings grid
 prms(1).nx          = 100;
 prms(1).xmax        = 1000;  % need high if using high-variance income shocks
-prms(1).xgrid_par   = 0.2; %1 for linear, 0 for L-shaped
+prms(1).xgrid_par   = 0.3; %1 for linear, 0 for L-shaped
 prms(1).borrow_lim  = 0;
 
 %government
@@ -62,12 +62,12 @@ prms(1).savtax          = 0; %0.0001;  %tax rate on savings
 prms(1).savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks;
-% nb = 1 --> [beta]
-% nb = 2 --> [beta-bw1  beta+bw1]
-% nb = 3 --> [beta-bw1  beta  beta+bw1]
-% nb = 4 --> [beta-bw2  beta-bw1  beta+bw1  beta+bw2]
+% nb = 1 -->                     [beta]
+% nb = 2 -->           [beta-bw1        beta+bw1]
+% nb = 3 -->           [beta-bw1  beta  beta+bw1]
+% nb = 4 --> [beta-bw2  beta-bw1        beta+bw1  beta+bw2]
 % nb = 5 --> [beta-bw2  beta-bw1  beta  beta+bw1  beta+bw2]
-prms(1).nb          = 2; % higher numbers dramatically increase computing load
+prms(1).nb          = 1; % higher numbers dramatically increase computing load
 prms(1).betawidth1  = 0.01;
 prms(1).betawidth2  = 0.03; % must have betawidth2 > betawidth1
 prms(1).betaswitch  = 1/50; %0;
@@ -75,7 +75,7 @@ prms(1).betaswitch  = 1/50; %0;
 % computation
 prms(1).max_iter    = 1e5; % EGP
 prms(1).tol_iter    = 1.0e-6; % EGP
-prms(1).Nsim        = 100000;
+prms(1).Nsim        = 10000; % 100000
 prms(1).Tsim        = 200;
 prms(1).nxinterm    = 200; % For intermediate iterations of EGP
 prms(1).nxlong      = 500; % Grid size for final computations
@@ -83,7 +83,7 @@ prms(1).nxlong      = 500; % Grid size for final computations
 % beta iteration
 prms(1).targetAY    = 3.5;
 prms(1).maxiterAY   = 20;
-prms(1).tolAY       = 1e-4;
+prms(1).tolAY       = 1e-5;
 prms(1).FastIter    = 1; % 1 to use routine with low tolerance, small grid, until closer to target
 
 % mpc options
@@ -101,7 +101,7 @@ prms(1).percentiles = [10 25 50 75 90 95 99]; % in percent
 % OPTIONS
 prms(1).IterateBeta         = 0;
 prms(1).Display             = 1;
-prms(1).MakePlots           = 1;
+prms(1).MakePlots           = 0;
 prms(1).ComputeDirectMPC    = 1;
 prms(1).Simulate            = 1;
 
