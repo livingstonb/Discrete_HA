@@ -6,6 +6,12 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p)
         sim = [];
     end
     
+    if p.freq == 1
+        fprintf('\nANNUAL FREQUENCY\n')
+    else
+        fprintf('\nQUARTERLY FREQUENCY\n')
+    end
+    
     %% WEALTH DISTRIBUTION
     
     fprintf('\nWEALTH/SAVINGS: \n')

@@ -1,4 +1,5 @@
-function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
+function [sim_results,direct_results,norisk_results,checks] ... 
+                                                = egp_AR1_IID_tax_recode(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -12,7 +13,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     direct_results  = struct();
     norisk_results  = struct();
     sim_results     = struct();
-              = cell{};
+    checks          = {};
     
     %% ADJUST PARAMETERS FOR DATA FREQUENCY
 
@@ -28,6 +29,16 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     p.savtax        = p.savtax/p.freq;
     p.Tsim          = p.Tsim * p.freq;
     
+    if p.freq == 1
+        p.sd_logyT  = p.sd_logyT.A;
+        p.sd_logyP  = p.sd_logyP.A;
+        p.rho_logyP = p.rho_logyP.A;        
+    else
+        p.sd_logyT  = p.sd_logyT.Q;
+        p.sd_logyP  = p.sd_logyP.Q;
+        p.rho_logyP = p.rho_logyP.Q;
+    end
+
     p.N = p.nx*p.nyF*p.nyP*p.nb;
     if p.freq == 1
         direct_results.frequency = 'Annual';
@@ -36,13 +47,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     else
         error('Frequency must be 1 or 4')
     end
-    
-    if p.nb > 3
-        assert(p.betawidth2>0,'must have betawidth2 > 0')
-        assert(p.betawidth2>p.betawidth1,'must have betawidth2 > betawidth1')
-    elseif p.nb > 1
-        assert(p.betawidth1>0,'must have betawidth1 > 0')
-    end
+   
 
     %% LOAD INCOME VARIABLES2
 
@@ -371,7 +376,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     direct_results.grossincgini = direct_gini(income.ysortdist,income.ysort);
     
     % Net income
-    direct_results.netincgini = direct_gini(income.netymat,income.ymatdist);   
+    direct_results.netincgini = direct_gini(income.ymatdist,income.netymat);   
 
     function gini = direct_gini(level,distr)
         % Sort distribution and levels by levels

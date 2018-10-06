@@ -51,7 +51,7 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
             disp([' EGP Iteration (no risk) ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
     end
-    norisk.EGP_diff = cdiff;
+    norisk.EGP_cdiff = cdiff;
     norisk.con = con;
     norisk.sav = sav;
     
