@@ -97,13 +97,35 @@ prms(1).Display             = 1;
 prms(1).MakePlots           = 0;
 prms(1).ComputeDirectMPC    = 1;
 prms(1).Simulate            = 1;
+prms(1).IgnoreExceptions    = 0; % 1 to skip to the next parameterization if
+                                 % this one throws an exception
 
 %% Call model
 Nprms = size(prms,2);
-% Create structure arrays to store results
+
+direct_results = struct([]);
+norisk_results = struct([]);
+sim_results    = struct([]);
+exceptions     = struct([]);
+checks         = {};
+
 for ip = 1:Nprms
-    [sim_results(ip),direct_results(ip),norisk_results(ip)] = egp_AR1_IID_tax_recode(prms(ip));
+    try
+        % Main function
+        [SR,DR,NR,checks{ip}] = egp_AR1_IID_tax_recode(prms(ip));
+        direct_results(ip)  = DR;
+        norisk_results(ip)  = NR;
+        sim_results(ip)     = SR;
+    catch ME
+        checks{ip} = 'EXCEPTION_THROWN';
+        exceptions(ip) = ME;
+        if prms(ip).IgnoreExceptions == 0
+            % Do not skip to next parameterization
+            rethrow(ME);
+        end
+    end
 end
 
 %% Save
-% save('Results','sim_results','direct_results','norisk_results')
+% save('Results','sim_results','direct_results','norisk_results',...
+%                                                   'checks','exceptions')

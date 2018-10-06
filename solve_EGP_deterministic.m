@@ -1,4 +1,4 @@
-function [norisk,cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
+function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
     % This function uses the method of endogenous grid points to find the
     % policy functions of the deterministic model. Output is in the
     % 'norisk' structure.
@@ -51,7 +51,7 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
             disp([' EGP Iteration (no risk) ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
     end
-    
+    norisk.EGP_diff = cdiff;
     norisk.con = con;
     norisk.sav = sav;
     

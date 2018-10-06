@@ -9,9 +9,10 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     % compute policy functions via the method of endogenous grip points, 
     % and to find the implied stationary distribution over the state space.
 
-    direct_results.issues = {};
-    norisk_results.issues = {};
-    sim_results.issues    = {};
+    direct_results  = struct();
+    norisk_results  = struct();
+    sim_results     = struct();
+              = cell{};
     
     %% ADJUST PARAMETERS FOR DATA FREQUENCY
 
@@ -152,7 +153,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
         options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
         [beta_final,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
         if exitflag ~= 1
-            direct_results.issues{end+1} = 'NoBetaConv';
+            checks{end+1} = 'NoBetaConv';
             return
         else
         end
@@ -173,7 +174,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
 
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
-        direct_results.issues{end+1} = 'NoEGPConv';
+        checks{end+1} = 'NoEGPConv';
         return
     end
     
@@ -201,21 +202,20 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     
 
     %% Store problems
-    direct_results.issues = {};
     if  abs((p.targetAY - direct_results.mean_a/(income.meany*p.freq))/p.targetAY) > 1e-3
-        direct_results.issues{end+1} = 'BadAY';
+        checks{end+1} = 'BadAY';
     end
     if abs((direct_results.mean_x-direct_results.mean_x_check)/direct_results.mean_x)> 1e-3
-        direct_results.issues{end+1} = 'DistNotStationary';
+        checks{end+1} = 'DistNotStationary';
     end
     if abs((income.meannety-direct_results.mean_nety)/income.meannety) > 1e-3
-        direct_results.issues{end+1} = 'BadNetIncomeMean';
+        checks{end+1} = 'BadNetIncomeMean';
     end
     if norm(yPdist_check-income.yPdist) > 1e-3
-        direct_results.issues{end+1} = 'Bad_yP_Dist';
+        checks{end+1} = 'Bad_yP_Dist';
     end
     if min(basemodel.SSdist) < - 1e-3
-        direct_results.issues = [direct_results.issues,'NegativeStateProbability'];
+        checks{end+1} = 'NegativeStateProbability';
     end
 
     %% WEALTH DISTRIBUTION
@@ -260,8 +260,12 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model
-    [norisk,norisk.EGP_cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income);
-    
+    norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income);
+    if norisk.EGP_cdiff > p.tol_iter
+        % EGP did not converge for beta, escape this parameterization
+        checks{end+1} = 'NoRiskNoEGPConv';
+        return
+    end
     %% SIMULATIONS
     if p.Simulate == 1
         [sim_results,assetmeans] = simulate(p,income,basemodel,xgrid,prefs);
@@ -342,7 +346,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     
     % Check that one-period mpc is the same, computed two diff ways
     if abs(norisk_results.mpc1sim - norisk_results.mpc1) / norisk_results.mpc1sim > 1e-3
-        norisk_results.issues = 'MPCsInconsistent';
+        checks{end+1} = 'NoRiskMPCsInconsistent';
     end
     
     %% GINI
@@ -386,7 +390,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     
     %% Print Results
     if p.Display == 1
-        print_statistics(direct_results,sim_results,norisk_results,p);
+        print_statistics(direct_results,sim_results,norisk_results,checks,p);
     end
     
 end

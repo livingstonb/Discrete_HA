@@ -1,4 +1,4 @@
-function print_statistics(direct_results,sim_results,norisk_results,p)
+function print_statistics(direct_results,sim_results,norisk_results,checks,p)
     % This function prints the main results associated with the
     % parameterization structure 'p'
     
@@ -164,9 +164,8 @@ function print_statistics(direct_results,sim_results,norisk_results,p)
     end
     
     %% ISSUES
-    fprintf('\nISSUES: \n')
-    issues = [direct_results.issues,sim_results.issues,norisk_results.issues];
-    for i = 1:numel(issues)
-        fprintf('    %s\n',issues{i})
+    fprintf('\nERRORS: \n')
+    for i = 1:numel(checks)
+        fprintf('    %s\n',checks{i})
     end
 end
