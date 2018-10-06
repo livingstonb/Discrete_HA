@@ -11,26 +11,7 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
     con1= zeros(p.nx,p.nb);
     cash1= zeros(p.nx,p.nb);
     
-    if  p.nb == 1
-        betagrid = p.beta;
-    elseif p.nb == 2 
-        betagrid = [p.beta-p.betawidth1;p.beta+p.betawidth1];
-    elseif p.nb == 3
-        betagrid = [p.beta-p.betawidth1;p.beta;p.beta+p.betawidth1];
-    elseif p.nb == 4
-        betagrid = [p.beta-p.betawidth2
-                    p.beta-p.betawidth1
-                    p.beta+p.betawidth1
-                    p.beta+p.betawidth2];
-    elseif p.nb == 5
-        betagrid = [p.beta-p.betawidth2
-                    p.beta-p.betawidth1
-                    p.beta
-                    p.beta+p.betawidth1
-                    p.beta+p.betawidth2];
-    else
-        error('nb must be an integer between 1 and 5')
-    end
+    betagrid = beta + prefs.betagrid0;
 
     con = p.r * repmat(sgrid.short,1,p.nb);
 

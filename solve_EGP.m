@@ -6,27 +6,8 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     % in the 'model' structure.
     
     %% CONSTRUCT EXPECTATIONS MATRIX                                     
-    if  p.nb == 1
-        betagrid = beta;
-    elseif p.nb == 2 
-        betagrid = [beta-p.betawidth1;beta+p.betawidth1];
-    elseif p.nb == 3
-        betagrid = [beta-p.betawidth1;beta;beta+p.betawidth1];
-    elseif p.nb == 4
-        betagrid = [beta-p.betawidth2
-                    beta-p.betawidth1
-                    beta+p.betawidth1
-                    beta+p.betawidth2];
-    elseif p.nb == 5
-        betagrid = [beta-p.betawidth2
-                    beta-p.betawidth1
-                    beta
-                    beta+p.betawidth1
-                    beta+p.betawidth2];
-    else
-        error('nb must be an integer between 1 and 5')
-    end
-
+    betagrid = beta + prefs.betagrid0;
+    
     if p.IterateBeta == 1
         disp(['Trying betagrid = ' num2str(betagrid)])
     end

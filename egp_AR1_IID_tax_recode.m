@@ -43,7 +43,6 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
         assert(p.betawidth1>0,'must have betawidth1 > 0')
     end
 
-
     %% LOAD INCOME VARIABLES2
 
     income = gen_income_variables(p);
@@ -72,6 +71,21 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     prefs.betacumdist = cumsum(prefs.betadist);
     prefs.betacumtrans = cumsum(prefs.betatrans,2);
     
+    % create grid - add beta to grid later since we may iterate
+    bw = p.betawidth;
+    switch p.nb
+        case 1
+            prefs.betagrid0 = 0;
+        case 2
+            prefs.betagrid0 = [-bw/2 bw/2];
+        case 3
+            prefs.betagrid0 = [-bw 0 bw];
+        case 4
+            prefs.betagrid0 = [-3*bw/2 -bw/2 bw/2 3*bw/2];
+        case 5
+            prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw];
+    end
+        
 
     %% ASSET GRIDS
 
@@ -129,30 +143,33 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
         if p.nb == 1
             beta_ub = p.betaH - 1e-5;
         else
-            beta_ub = p.betaH - 1e-5 - p.betawidth2;
+            % don't let highest beta be such that (1-dieprob)*R*beta >= 1
+            beta_ub = p.betaH - 1e-5 - max(prefs.betagrid0);
         end
         beta_lb = p.betaL;
 
         check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
         options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
-        [beta,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
+        [beta_final,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
         if exitflag ~= 1
             direct_results.issues{end+1} = 'NoBetaConv';
             return
         else
         end
     else
-        % beta associated with chosen frequency
-        beta = p.beta0;    
+        % Beta set in parameters
+        beta_final = p.beta0;    
     end
     
-    [~,basemodel] = solve_EGP(beta,p,...
-            xgrid,sgrid,prefs,income);
+    % Get policy functions and stationary distribution for final beta
+    [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,prefs,income);
 
     % Report beta and annualized beta
-    direct_results.beta_annualized = beta^p.freq;
-    direct_results.beta = beta;
-    p.beta = beta;
+    direct_results.beta_annualized = beta_final^p.freq;
+    direct_results.beta = beta_final;
+    
+    % Set parameter equal to this beta
+    p.beta = beta_final;
 
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization

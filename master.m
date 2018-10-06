@@ -61,30 +61,23 @@ prms(1).labtaxthreshpc  = 0.99; %percentile of earnings distribution where high 
 prms(1).savtax          = 0; %0.0001;  %tax rate on savings
 prms(1).savtaxthresh    = 0; %multiple of mean gross labor income
 
-%discount factor shocks;
-% nb = 1 -->                     [beta]
-% nb = 2 -->           [beta-bw1        beta+bw1]
-% nb = 3 -->           [beta-bw1  beta  beta+bw1]
-% nb = 4 --> [beta-bw2  beta-bw1        beta+bw1  beta+bw2]
-% nb = 5 --> [beta-bw2  beta-bw1  beta  beta+bw1  beta+bw2]
+%discount factor shocks
 prms(1).nb          = 1; % higher numbers dramatically increase computing load
-prms(1).betawidth1  = 0.01;
-prms(1).betawidth2  = 0.03; % must have betawidth2 > betawidth1
+prms(1).betawidth   = 0.02;
 prms(1).betaswitch  = 1/50; %0;
 
 % computation
 prms(1).max_iter    = 1e5; % EGP
 prms(1).tol_iter    = 1.0e-6; % EGP
-prms(1).Nsim        = 100000/prms(1).freq; % 100000
+prms(1).Nsim        = 100000; % 100000
 prms(1).Tsim        = 200;
 prms(1).nxinterm    = 200; % For intermediate iterations of EGP
 prms(1).nxlong      = 2000; % Grid size for final computations
  
 % beta iteration
 prms(1).targetAY    = 3.5;
-prms(1).maxiterAY   = 20;
+prms(1).maxiterAY   = 40;
 prms(1).tolAY       = 1e-5;
-prms(1).FastIter    = 1; % 1 to use routine with low tolerance, small grid, until closer to target
 
 % mpc options
 prms(1).mpcfrac(1)  = -1e-5; %approximate thoeretical mpc
