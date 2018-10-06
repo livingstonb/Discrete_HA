@@ -77,14 +77,14 @@ function print_statistics(direct_results,sim_results,norisk_results,p)
     % Gini (gross earnings)
     direct = sprintf(' %5.3f (Direct)',direct_results.grossincgini);
     if p.Simulate == 1
-        sim = sprintf(' %5.3f (Direct)',sim_results.grossincgini);
+        sim = sprintf(' %5.3f (Simulation)',sim_results.grossincgini);
     end
     disp(['    Gini coefficient, gross earnings:' direct sim])
     
     % Gini (net earnings)
     direct = sprintf(' %5.3f (Direct)',direct_results.netincgini);
     if p.Simulate == 1
-        sim = sprintf(' %5.3f (Direct)',sim_results.netincgini);
+        sim = sprintf(' %5.3f (Simulation)',sim_results.netincgini);
     end
     disp(['    Gini coefficient, net earnings:' direct sim])
     

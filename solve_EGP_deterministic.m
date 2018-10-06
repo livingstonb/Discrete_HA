@@ -11,7 +11,7 @@ function [norisk,cdiff] = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
     con1= zeros(p.nx,p.nb);
     cash1= zeros(p.nx,p.nb);
     
-    betagrid = beta + prefs.betagrid0;
+    betagrid = p.beta + prefs.betagrid0;
 
     con = p.r * repmat(sgrid.short,1,p.nb);
 

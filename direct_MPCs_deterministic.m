@@ -62,5 +62,4 @@ function [mpc1,mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk)
     mpc2 = mpc1 + mean((csim(:,2) - c0)/mpcamount);
     mpc3 = mpc2 + mean((csim(:,3) - c0)/mpcamount);
     mpc4 = mpc3 + mean((csim(:,4) - c0)/mpcamount);
-
 end

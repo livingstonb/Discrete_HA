@@ -348,35 +348,32 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     %% GINI
     % Wealth
     if p.WealthInherited == 0
-        dist_live   = (1-p.dieprob) * basemodel.SSdist_sort;
-        dist_death  = p.dieprob * basemodel.SSdist_sort;
-        level_live  = p.R * basemodel.sav_longgrid_sort;
+        % Create asset distribution
+        dist_live   = (1-p.dieprob) * basemodel.SSdist;
+        dist_death  = p.dieprob * basemodel.SSdist;
+        level_live  = p.R * basemodel.sav_longgrid;
         level_death = zeros(p.nxlong*p.nyP*p.nyF*p.nb,1);
-        
         distr  = [dist_live;dist_death];
         level = [level_live;level_death];
-        
-        % Re-sort distribution
-        temp = sortrows([level distr]);
-        level = temp(:,1);
-        distr = temp(:,2);
-        direct_results.wealthgini = direct_gini(distr,level);
+
+        direct_results.wealthgini = direct_gini(level,distr);
     else
         distr = basemodel.SSdist_sort;
         level = p.R * basemodel.sav_longgrid_sort;
-        direct_results.wealthgini = direct_gini(distr,level);
+        direct_results.wealthgini = direct_gini(level,distr);
     end
-    
     
     % Gross income
     direct_results.grossincgini = direct_gini(income.ysortdist,income.ysort);
     
     % Net income
-    temp = sortrows([income.netymat(:) income.ymatdist(:)]);
-    direct_results.netincgini = direct_gini(temp(:,2),temp(:,1));   
+    direct_results.netincgini = direct_gini(income.netymat,income.ymatdist);   
 
-    function gini = direct_gini(dist_sort,level_sort)
-        % Distribution and levels must be sorted in terms of levels
+    function gini = direct_gini(level,distr)
+        % Sort distribution and levels by levels
+        sorted = sortrows([level(:),distr(:)]);
+        level_sort = sorted(:,1);
+        dist_sort  = sorted(:,2);
         S = [0;cumsum(dist_sort .* level_sort)];
         gini = 1 - dist_sort' * (S(1:end-1)+S(2:end)) / S(end);
     end
@@ -384,7 +381,7 @@ function [sim_results,direct_results,norisk_results] = egp_AR1_IID_tax_recode(p)
     %% MAKE PLOTS
   
     if p.MakePlots ==1 
-        makeplots(p,xgrid,sgrid,basemodel,income,sim_results,assetmeans);
+        makeplots(p,xgrid,sgrid,basemodel,income,assetmeans);
     end 
     
     %% Print Results
