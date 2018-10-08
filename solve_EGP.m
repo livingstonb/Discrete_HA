@@ -170,6 +170,16 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     model.SSdist_sort = temp(:,2);
     model.SScumdist = cumsum(model.SSdist_sort);
     
+    % Collapse the distribution from (x,yP,yF,beta) to (x,beta) for norisk
+    % model
+    if p.nyP>1 && p.nyF>1
+        model.SSdist_noincrisk =  sum(model.SSdist_wide,[2 3]);
+    elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 & p.nyF>1)
+        model.SSdist_noincrisk =  sum(model.SSdist_wide,2);
+    elseif p.nyP==1 && p.nyF==1
+        model.SSdist_noincrisk = model.SSdist_wide;
+    end
+    
     % unique values on cumdist and their indices (needed for interpolants)
     [model.SScumdist_unique,model.SScumdist_uniqueind] = unique(model.SScumdist,'last');
 

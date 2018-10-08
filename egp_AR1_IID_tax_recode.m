@@ -83,13 +83,13 @@ function [sim_results,direct_results,norisk_results,checks] ...
         case 1
             prefs.betagrid0 = 0;
         case 2
-            prefs.betagrid0 = [-bw/2 bw/2];
+            prefs.betagrid0 = [-bw/2 bw/2]';
         case 3
-            prefs.betagrid0 = [-bw 0 bw];
+            prefs.betagrid0 = [-bw 0 bw]';
         case 4
-            prefs.betagrid0 = [-3*bw/2 -bw/2 bw/2 3*bw/2];
+            prefs.betagrid0 = [-3*bw/2 -bw/2 bw/2 3*bw/2]';
         case 5
-            prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw];
+            prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
     end
         
 
@@ -111,8 +111,8 @@ function [sim_results,direct_results,norisk_results,checks] ...
     
     % for model without income risk
     xgrid.norisk_short  = sgrid.short + income.meannety;
-    xgrid.norisk_longgrid   = linspace(0,1,p.nxlong);
-    xgrid.norisk_longgrid   = xgrid.norisk_longgrid.^(1/p.xgrid_par);
+    xgrid.norisk_longgrid = linspace(0,1,p.nxlong);
+    xgrid.norisk_longgrid = xgrid.norisk_longgrid.^(1/p.xgrid_par);
     xgrid.norisk_longgrid = p.borrow_lim + (p.xmax-p.borrow_lim).*xgrid.norisk_longgrid;
     xgrid.norisk_longgrid = xgrid.norisk_longgrid + income.meannety;
     
@@ -304,30 +304,24 @@ function [sim_results,direct_results,norisk_results,checks] ...
         direct_results.avg_mpc1{im} = basemodel.SSdist' * mpcs1;
     end
 
-    % 1-period MPCs, norisk
-    norisk_results.mpc1 = zeros(1,numel(p.mpcfrac));
-    for im = 1:numel(p.mpcfrac)
-        mpcamount = p.mpcfrac(im) * income.meany * p.freq;
-        xmpc = xgrid.norisk_longgrid + mpcamount;
-        set_mpc_one = false(p.nxlong,p.nb);
-        conmpc = zeros(p.nxlong,p.nb);
-        congrid = zeros(p.nxlong,p.nb);
-        for ib  = 1:p.nb
-            if mpcamount < 0
-                below_grid = xmpc < xgrid.longgrid(1);
-                xmpc(below_grid) = xgrid.longgrid(1);
-                set_mpc_one(below_grid,ib) = true;
-            end
-            conmpc(:,ib) = norisk.coninterp{ib}(xmpc);
-            congrid(:,ib) = norisk.coninterp{ib}(xgrid.norisk_longgrid);
+    % 1-period MPCs, norisk 0.01 shock
+    mpcamount = 0.01 * income.meany * p.freq;
+    xmpc = xgrid.norisk_longgrid + mpcamount;
+    set_mpc_one = false(p.nxlong,p.nb);
+    conmpc = zeros(p.nxlong,p.nb);
+    congrid = zeros(p.nxlong,p.nb);
+    for ib  = 1:p.nb
+        if mpcamount < 0
+            below_grid = xmpc < xgrid.longgrid(1);
+            xmpc(below_grid) = xgrid.longgrid(1);
+            set_mpc_one(below_grid,ib) = true;
         end
-        mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
-        mpcs1(set_mpc_one(:)) = 1;
-        mpcs1 = reshape(mpcs1,p.nxlong,p.nb);
-        % Only need mpc at one point
-        norisk_results.mpc1(im) = mpcs1(1,:) * prefs.betadist;
+        conmpc(:,ib) = norisk.coninterp{ib}(xmpc);
+        congrid(:,ib) = norisk.coninterp{ib}(xgrid.norisk_longgrid);
     end
-    norisk_results.mpc1 = mean(norisk_results.mpc1);
+    mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
+    mpcs1(set_mpc_one(:)) = 1;
+    norisk_results.avg_mpc1 = basemodel.SSdist_noincrisk(:)' * mpcs1;
     
     % 4-period MPCs
     if p.freq == 4
@@ -344,14 +338,16 @@ function [sim_results,direct_results,norisk_results,checks] ...
         end
 
         % norisk model
-        [mpc1,mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk);
-        norisk_results.mpc1sim  = mpc1;
-        norisk_results.mpc4     = mpc4;
+        [mpc1,mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid);
+        norisk_results.avg_mpc1sim  = mpc1;
+        norisk_results.avg_mpc4     = mpc4;
     end
     
     % Check that one-period mpc is the same, computed two diff ways
-    if abs(norisk_results.mpc1sim - norisk_results.mpc1) / norisk_results.mpc1sim > 1e-3
-        checks{end+1} = 'NoRiskMPCsInconsistent';
+    if (p.freq==4) 
+        if abs(norisk_results.avg_mpc1sim - norisk_results.avg_mpc1) / norisk_results.avg_mpc1sim > 1e-3
+            checks{end+1} = 'NoRiskMPCsInconsistent';
+        end
     end
     
     %% GINI
@@ -373,10 +369,10 @@ function [sim_results,direct_results,norisk_results,checks] ...
     end
     
     % Gross income
-    direct_results.grossincgini = direct_gini(income.ysortdist,income.ysort);
+    direct_results.grossincgini = direct_gini(income.ysort,income.ysortdist);
     
     % Net income
-    direct_results.netincgini = direct_gini(income.ymatdist,income.netymat);   
+    direct_results.netincgini = direct_gini(income.netymat,income.ymatdist);   
 
     function gini = direct_gini(level,distr)
         % Sort distribution and levels by levels

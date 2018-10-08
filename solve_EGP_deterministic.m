@@ -13,7 +13,7 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
     
     betagrid = p.beta + prefs.betagrid0;
 
-    con = p.r * repmat(sgrid.short,1,p.nb);
+    con = p.r * repmat(sgrid.short,1,p.nb) + income.meannety;
 
     iter = 0;
     cdiff = 1000;
@@ -40,10 +40,10 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
         
         for ib = 1:p.nb
             savinterp = griddedInterpolant(cash1(:,ib),sgrid.short,'linear');
-            sav(:,ib) = savinterp(sgrid.short);
+            sav(:,ib) = savinterp(xgrid.norisk_short);
         end
         sav(sav<p.borrow_lim) = p.borrow_lim;
-        con = repmat(sgrid.short,1,p.nb) - sav...
+        con = repmat(xgrid.norisk_short,1,p.nb) - sav...
                                 - p.savtax * max(sav - p.savtaxthresh,0);
         
         cdiff = max(abs(con(:)-conlast(:)));

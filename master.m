@@ -12,7 +12,7 @@ cd(path);
 %% SPECIFY BASELINE PARAMETERS
 
 % data frequency
-baseline.freq        = 1; % 1 for yearly, 4 for quarterly
+baseline.freq        = 4; % 1 for yearly, 4 for quarterly
 
 % returns
 baseline.r           = 0.02;
@@ -22,12 +22,12 @@ baseline.dieprob     = 1/50;
 
 % preferences
 baseline.risk_aver   = 1;
-baseline.beta0       = 0.99;
+baseline.beta0       = 0.95; % annualized
 baseline.temptation  = 0;
 baseline.betaL       = 0.80;
 % betaH defined in main function file
 
-%warm glow bequests: bequessgrt_weight = 0 is accidental
+%warm glow bequests: bequest weight = 0 is accidental
 baseline.bequest_weight  = 0; %0.07;
 baseline.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
 baseline.WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
@@ -64,7 +64,7 @@ baseline.savtax          = 0; %0.0001;  %tax rate on savings
 baseline.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
-baseline.nb          = 1; % higher numbers dramatically increase computing load
+baseline.nb          = 2; % higher numbers dramatically increase computing load
 baseline.betawidth   = 0.02;
 baseline.betaswitch  = 1/50; %0;
 
@@ -74,7 +74,7 @@ baseline.tol_iter    = 1.0e-6; % EGP
 baseline.Nsim        = 100000; % 100000
 baseline.Tsim        = 200;
 baseline.nxinterm    = 200; % For intermediate iterations of EGP
-baseline.nxlong      = 2000; % Grid size for final computations
+baseline.nxlong      = 1000; % Grid size for final computations
  
 % beta iteration
 baseline.targetAY    = 3.5;
@@ -98,7 +98,7 @@ baseline.IterateBeta        = 0;
 baseline.Display            = 1;
 baseline.MakePlots          = 0;
 baseline.ComputeDirectMPC   = 1;
-baseline.Simulate           = 1;
+baseline.Simulate           = 0;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
@@ -111,25 +111,28 @@ end
 %% CALL MAIN FUNCTION
 Nparams = size(params,2);
 
-direct_results = cell{1,Nparams};
-norisk_results = cell{1,Nparams};
-sim_results    = cell{1,Nparams};
-exceptions     = cell{1,Nparams};
-checks         = cell{1,Nparams};
+direct_results = cell(1,Nparams);
+norisk_results = cell(1,Nparams);
+sim_results    = cell(1,Nparams);
+exceptions     = cell(1,Nparams);
+checks         = cell(1,Nparams);
 
 for ip = 1:Nparams
-    try
-        % Main function
+    if Batch == 0
         [SR,DR,NR,checks{ip}] = egp_AR1_IID_tax_recode(params(ip));
         direct_results{ip}  = DR;
         norisk_results{ip}  = NR;
-        sim_results{ip}     = SR;
-    catch ME
-        checks{ip} = 'EXCEPTION_THROWN';
-        exceptions{ip} = ME;
-        if Batch == 0
-            % Not running as batch, throw the exception
-            rethrow(ME);
+        sim_results{ip}     = SR;      
+    else
+        try
+            % Main function
+            [SR,DR,NR,checks{ip}] = egp_AR1_IID_tax_recode(params(ip));
+            direct_results{ip}  = DR;
+            norisk_results{ip}  = NR;
+            sim_results{ip}     = SR;
+        catch ME
+            checks{ip} = 'EXCEPTION_THROWN';
+            exceptions{ip} = ME;
         end
     end
 end

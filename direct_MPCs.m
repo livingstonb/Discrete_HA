@@ -18,6 +18,7 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
     state_rand  = rand(Nsim,Tmax);
     yPrand      = rand(Nsim,Tmax);
     dierand     = rand(Nsim,Tmax);
+    betarand    = rand(Nsim,Tmax);
     yTrand      = rand(Nsim,Tmax);
     ygrosssim   = zeros(Nsim,Tmax);
     ynetsim     = zeros(Nsim,Tmax);
@@ -33,6 +34,7 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
     % Done in partitions to economize on memory
     partitionsize = 1e5;
     Npartition = Nsim/partitionsize;
+    xgrid_extended = repmat(xgrid.longgrid,p.nb,1);
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
@@ -44,19 +46,19 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
         betaindsim(partition,1)	= betaind_trans(ind);
         
         % Initial cash-on-hand from stationary distribution
-        x0(partition) = xgrid.longgrid(ind);
+        x0(partition) = xgrid_extended(ind);
     end
     
     
     
-    %% SIMULATE INCOME
+    %% SIMULATE INCOME AND BETA
     
     if Tmax == 4
         for it = 2:4
             live = (diesim(:,it)==0);
             [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
             [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
-            [~,betaindsim(:,it)]    = max(bsxfun(@le,betaindsim(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
+            [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
             [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
         end
     end
