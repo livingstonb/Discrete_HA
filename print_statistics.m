@@ -161,12 +161,12 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p)
     % norisk MPC
     if p.freq == 1
         value = norisk_results.avg_mpc1;
-        fprintf('    Annual MPC for model without risk: %5.3f',value);
+        fprintf('    Mean annual MPC for model without risk (using dist of model with risk): %5.3f',value);
     else
         valueQ = norisk_results.avg_mpc1;
         valueY = norisk_results.avg_mpc4;
-        fprintf('    Quarterly MPC for model without risk: %5.3f\n',valueQ);
-        fprintf('    Annual MPC for model without risk: %5.3f\n',valueY);
+        fprintf('    Mean quarterly MPC for model without risk (using dist of model with risk): %5.3f\n',valueQ);
+        fprintf('    Mean annual MPC for model without risk (using dist of model with risk): %5.3f\n',valueY);
     end
     
     %% ISSUES

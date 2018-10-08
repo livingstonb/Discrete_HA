@@ -9,7 +9,8 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     betagrid = beta + prefs.betagrid0;
     
     if p.IterateBeta == 1
-        disp(['Trying betagrid = ' num2str(betagrid)])
+        msg = sprintf(' %3.3f',betagrid);
+        disp([' Trying betagrid =' msg])
     end
 
     % initial guess for consumption function, stacked state combinations

@@ -11,12 +11,12 @@ cd(path);
 
 %% SPECIFY BASELINE PARAMETERS
 
-% data frequency
+% data frequency 
 baseline.freq        = 4; % 1 for yearly, 4 for quarterly
 
 % returns
 baseline.r           = 0.02;
- 
+
 % demographics
 baseline.dieprob     = 1/50;
 
@@ -39,13 +39,13 @@ baseline.nyT               = 11; %transitory component (not a state variable) (s
 % yT,yP (only relevant if LoadIncomeProcess==0)
 baseline.NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
 baseline.yTContinuous = 0; % doesn't seem to work properly
-baseline.sd_logyT.Q   = sqrt(0.2);  % (Quarterly) 0.20, relevant if nyT>1
-baseline.sd_logyT.A   = sqrt(0.2);  % (Annual) 0.20, relevant if nyT>1
+baseline.sd_logyT.Q   = sqrt(0.2087);  % (Quarterly) 0.20, relevant if nyT>1
+baseline.sd_logyT.A   = sqrt(0.0497);  % (Annual) 0.20, relevant if nyT>1
 baseline.lambdaT      = 1; % arrival rate of shocks;
 baseline.nyP          = 11; %11 persistent component
-baseline.sd_logyP.Q   = sqrt(0.02); % (Quarterly) 0.1950;
-baseline.sd_logyP.A   = sqrt(0.02); % (Annual)
-baseline.rho_logyP.Q  = 0.9525;
+baseline.sd_logyP.Q   = sqrt(0.0108); % (Quarterly) 0.1950;
+baseline.sd_logyP.A   = sqrt(0.0422); % (Annual)
+baseline.rho_logyP.Q  = 0.9881;
 baseline.rho_logyP.A  = 0.9525;
 baseline.nyF          = 1;
 baseline.sd_logyF     = 0;
@@ -64,8 +64,8 @@ baseline.savtax          = 0; %0.0001;  %tax rate on savings
 baseline.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
-baseline.nb          = 2; % higher numbers dramatically increase computing load
-baseline.betawidth   = 0.01;
+baseline.nb          = 1; % higher numbers dramatically increase computing load
+baseline.betawidth   = 0.001; % too large and eigs hangs while finding stat distribution
 baseline.betaswitch  = 1/50; %0;
 
 % computation
@@ -73,7 +73,6 @@ baseline.max_iter    = 1e5; % EGP
 baseline.tol_iter    = 1.0e-6; % EGP
 baseline.Nsim        = 100000; % 100000
 baseline.Tsim        = 200;
-baseline.nxinterm    = 200; % For intermediate iterations of EGP
 baseline.nxlong      = 500; % Grid size for final computations
  
 % beta iteration
@@ -94,7 +93,7 @@ baseline.epsilon = [0 0.005 0.01 0.02 0.05 0.1]; % fraction of mean labor income
 baseline.percentiles = [10 25 50 75 90 95 99]; % in percent
 
 % OPTIONS
-baseline.IterateBeta        = 0;
+baseline.IterateBeta        = 1;
 baseline.Display            = 1;
 baseline.MakePlots          = 0;
 baseline.ComputeDirectMPC   = 1;
