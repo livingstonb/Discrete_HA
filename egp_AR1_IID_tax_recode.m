@@ -277,6 +277,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
         checks{end+1} = 'NoRiskNoEGPConv';
         return
     end
+    
     %% SIMULATIONS
     if p.Simulate == 1
         [sim_results,assetmeans] = simulate(p,income,basemodel,xgrid,prefs);
@@ -305,9 +306,9 @@ function [sim_results,direct_results,norisk_results,checks] ...
         end
         end
         end
-        mpcs1 = (conmpc(:) - basemodel.con_longgrid) / mpcamount;
-        mpcs1(set_mpc_one(:)) = 1;
-        direct_results.avg_mpc1{im} = basemodel.SSdist' * mpcs1;
+        risk_mpcs1 = (conmpc(:) - basemodel.con_longgrid) / mpcamount;
+        risk_mpcs1(set_mpc_one(:)) = 1;
+        direct_results.avg_mpc1{im} = basemodel.SSdist' * risk_mpcs1;
     end
 
     % 1-period MPCs, norisk 0.01 shock
@@ -325,9 +326,9 @@ function [sim_results,direct_results,norisk_results,checks] ...
         conmpc(:,ib) = norisk.coninterp{ib}(xmpc);
         congrid(:,ib) = norisk.coninterp{ib}(xgrid.norisk_longgrid);
     end
-    mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
-    mpcs1(set_mpc_one(:)) = 1;
-    norisk_results.avg_mpc1 = basemodel.SSdist_noincrisk(:)' * mpcs1;
+    norisk_mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
+    norisk_mpcs1(set_mpc_one(:)) = 1;
+    norisk_results.avg_mpc1 = basemodel.SSdist_noincrisk(:)' * norisk_mpcs1;
     
     % 4-period MPCs
     if p.freq == 4
@@ -355,7 +356,20 @@ function [sim_results,direct_results,norisk_results,checks] ...
     end
     
     %% DECOMPOSITION
-    
+    decomp = struct([]);
+    if p.nb == 1
+        direct_results.m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
+        for ia = 1:numel(p.abars)
+            constrained_ind = basemodel.SSdist <= p.abars(ia);
+            decomp(ia).term1 = direct_results.m_ra;
+            decomp(ia).term2 = basemodel.SSdist(constrained_ind)' ...
+                                    * (risk_mpcs1(constrained_ind) - direct_results.m_ra);
+            decomp(ia).term3 = basemodel.SSdist(~constrained_ind)' ...
+                                    * (norisk_mpcs1(~constrained_ind) - direct_results.m_ra);
+            decomp(ia).term4 = basemodel.SSdist(~constrained_ind)' ...
+                         * (risk_mpcs1(~constrained_ind) - norisk_mpcs1(~constrained_ind));
+        end
+    end
     
     %% GINI
     % Wealth
@@ -398,7 +412,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     
     %% Print Results
     if p.Display == 1
-        print_statistics(direct_results,sim_results,norisk_results,checks,p);
+        print_statistics(direct_results,sim_results,norisk_results,checks,p,decomp);
     end
     
 end

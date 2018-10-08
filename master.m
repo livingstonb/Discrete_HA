@@ -22,7 +22,7 @@ baseline.dieprob     = 1/50;
 
 % preferences
 baseline.risk_aver   = 1;
-baseline.beta0       = 0.90; % annualized
+baseline.beta0       = 0.97; % annualized
 baseline.temptation  = 0;
 baseline.betaL       = 0.80;
 % betaH defined in main function file
@@ -92,12 +92,15 @@ baseline.mpcfrac(6)  = 0.05; % 5 percent of average gross labor income: approx $
 baseline.epsilon = [0 0.005 0.01 0.02 0.05 0.1]; % fraction of mean labor income
 baseline.percentiles = [10 25 50 75 90 95 99]; % in percent
 
+% decomposition
+baseline.abars = [0 0.01 0.05];
+
 % OPTIONS
-baseline.IterateBeta        = 1;
+baseline.IterateBeta        = 0;
 baseline.Display            = 1;
 baseline.MakePlots          = 0;
 baseline.ComputeDirectMPC   = 1;
-baseline.Simulate           = 1;
+baseline.Simulate           = 0;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY

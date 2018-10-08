@@ -1,4 +1,4 @@
-function print_statistics(direct_results,sim_results,norisk_results,checks,p)
+function print_statistics(direct_results,sim_results,norisk_results,checks,p,decomp)
     % This function prints the main results associated with the
     % parameterization structure 'p'
     
@@ -139,7 +139,26 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p)
 
         end
     end
-
+    
+    %% DECOMPOSITION
+    fprintf('\nDECOMPOSITION: \n')
+    disp(' For epsilon == 0')
+    fprintf('    RA MPC:                                               %5.3f\n',decomp(1).term1)
+    fprintf('    Effect of HtM households:                             %5.3f\n',decomp(1).term2)
+    fprintf('    Effect of borrowing constraint on non-HtM households: %5.3f\n',decomp(1).term3)
+    fprintf('    Effect of idiosyncratic risk on non-HtM households:   %5.3f\n',decomp(1).term4)
+    
+    disp(' For epsilon == 0.01')
+    fprintf('    RA MPC:                                               %5.3f\n',decomp(2).term1)
+    fprintf('    Effect of HtM households:                             %5.3f\n',decomp(2).term2)
+    fprintf('    Effect of borrowing constraint on non-HtM households: %5.3f\n',decomp(2).term3)
+    fprintf('    Effect of idiosyncratic risk on non-HtM households:   %5.3f\n',decomp(2).term4)
+    
+    disp(' For epsilon == 0.05')
+    fprintf('    RA MPC:                                               %5.3f\n',decomp(3).term1)
+    fprintf('    Effect of HtM households:                             %5.3f\n',decomp(3).term2)
+    fprintf('    Effect of borrowing constraint on non-HtM households: %5.3f\n',decomp(3).term3)
+    fprintf('    Effect of idiosyncratic risk on non-HtM households:   %5.3f\n',decomp(3).term4)
     
     %% OTHER
     fprintf('\nOTHER: \n')
