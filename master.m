@@ -9,10 +9,10 @@ addpath([path '/Auxiliary Functions']);
 cd(path);
 
 
-%% SPECIFY BASELINE params
+%% SPECIFY BASELINE PARAMETERS
 
 % data frequency
-baseline.freq        = 4; % 1 for yearly, 4 for quarterly
+baseline.freq        = 1; % 1 for yearly, 4 for quarterly
 
 % returns
 baseline.r           = 0.02;
@@ -109,15 +109,15 @@ else
 end
 
 %% CALL MAIN FUNCTION
-Nbaseline = size(params,2);
+Nparams = size(params,2);
 
-direct_results = {};
-norisk_results = {};
-sim_results    = {};
-exceptions     = {};
-checks         = {};
+direct_results = cell{1,Nparams};
+norisk_results = cell{1,Nparams};
+sim_results    = cell{1,Nparams};
+exceptions     = cell{1,Nparams};
+checks         = cell{1,Nparams};
 
-for ip = 1:Nbaseline
+for ip = 1:Nparams
     try
         % Main function
         [SR,DR,NR,checks{ip}] = egp_AR1_IID_tax_recode(params(ip));

@@ -3,8 +3,8 @@ function params = parameters(baseline)
     baseline.name = 'baseline_A';
 
     %% PARAMETERIZATION 1 - BASELINE (ANNUAL)
-    params(1) = baseline;
-    params(1).name
+    params(1)       = baseline;
+    params(1).name  = 'baseline_A';
 
 
     %% PARAMETERIZATION 2 - BASELINE (QUARTERLY)
