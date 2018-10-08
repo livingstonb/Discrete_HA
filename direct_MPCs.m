@@ -1,7 +1,7 @@
-function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,income,basemodel,xgrid,Tmax)
+function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
 
     if p.Display == 1
-        disp([' Simulating ' num2str(Tmax) ' period(s) to get MPCs'])
+        disp([' Simulating ' num2str(4) ' period(s) to get MPCs'])
     end
     
     % Number of draws from distribution
@@ -15,16 +15,16 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
     cumdist = cumsum(basemodel.SSdist);
 
     % Construct stationary distribution
-    state_rand  = rand(Nsim,Tmax);
-    yPrand      = rand(Nsim,Tmax);
-    dierand     = rand(Nsim,Tmax);
-    betarand    = rand(Nsim,Tmax);
-    yTrand      = rand(Nsim,Tmax);
-    ygrosssim   = zeros(Nsim,Tmax);
-    ynetsim     = zeros(Nsim,Tmax);
-    betaindsim  = ones(Nsim,Tmax);
-    yPindsim    = ones(Nsim,Tmax);
-    yTindsim    = ones(Nsim,Tmax);
+    state_rand  = rand(Nsim,4);
+    yPrand      = rand(Nsim,4);
+    dierand     = rand(Nsim,4);
+    betarand    = rand(Nsim,4);
+    yTrand      = rand(Nsim,4);
+    ygrosssim   = zeros(Nsim,4);
+    ynetsim     = zeros(Nsim,4);
+    betaindsim  = ones(Nsim,4);
+    yPindsim    = ones(Nsim,4);
+    yTindsim    = ones(Nsim,4);
     yFindsim    = ones(Nsim,1);
     x0          = zeros(Nsim,1);
 
@@ -53,7 +53,7 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
     
     %% SIMULATE INCOME AND BETA
     
-    if Tmax == 4
+    if 4 == 4
         for it = 2:4
             live = (diesim(:,it)==0);
             [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
@@ -65,7 +65,7 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
     
     % Column 1 is irrelevant
     ygrosssim = income.yPgrid(yPindsim) .*...
-            repmat(income.yFgrid(yFindsim),1,Tmax) .* income.yTgrid(yTindsim);
+            repmat(income.yFgrid(yFindsim),1,4) .* income.yTgrid(yTindsim);
         
     % Normalize so mean annual income == 1
     if p.NormalizeY == 1
@@ -78,14 +78,16 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
     
     % Loop over mpcfrac sizes, first running simulation as if there was no
     % shock
-    mpcamounts = [0 ; p.mpcfrac'*income.meany*p.freq];
-    for count = 1:numel(mpcamounts)
-        mpcamount = mpcamounts(count);
-        im = count - 1;
+    for im = 0:numel(p.mpcfrac)
+        if im == 0
+            mpcamount = 0;
+        else
+            mpcamount = p.mpcfrac(im) * income.meany * p.freq;
+        end
         
-        xsim = zeros(Nsim,Tmax);
-        ssim = zeros(Nsim,Tmax);
-        asim = zeros(Nsim,Tmax);
+        xsim = zeros(Nsim,4);
+        ssim = zeros(Nsim,4);
+        asim = zeros(Nsim,4);
         
         %% SIMULATE DECISION VARIABLES UPON MPC SHOCK
         
@@ -93,7 +95,7 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
         % in first period upon shock
         set_mpc_one = false(Nsim,1);
         
-        for it = 1:Tmax
+        for it = 1:4
             % Update cash-on-hand
             if it == 1
                 xsim(:,it) = x0 + mpcamount;
@@ -108,8 +110,8 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
                 if mpcamount < 0 && it == 1
                     below_grid = xsim(:,it)<xgrid.longgrid_wide(1,iyP,iyF);
                     % Bring households pushed below grid back up to grid
-                    xsim(set_mpc_one,it) = xgrid.longgrid_wide(1,iyP,iyF);
                     idx_below = idx & below_grid;
+                    xsim(idx_below,it) = xgrid.longgrid_wide(1,iyP,iyF);
                     % Update set_mpc_one
                     set_mpc_one = set_mpc_one | idx_below;
                 end
@@ -138,7 +140,7 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
             mpc1{im}(set_mpc_one,1) = 1;
             avg_mpc1{im} = mean(mpc1{im});
             
-            if Tmax == 1
+            if 4 == 1
                 mpc4{im} = []; avg_mpc4{im} =[]; var_mpc4{im} = [];
                 continue
             end

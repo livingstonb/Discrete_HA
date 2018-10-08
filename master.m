@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
+path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -22,7 +22,7 @@ baseline.dieprob     = 1/50;
 
 % preferences
 baseline.risk_aver   = 1;
-baseline.beta0       = 0.95; % annualized
+baseline.beta0       = 0.90; % annualized
 baseline.temptation  = 0;
 baseline.betaL       = 0.80;
 % betaH defined in main function file
@@ -30,7 +30,7 @@ baseline.betaL       = 0.80;
 %warm glow bequests: bequest weight = 0 is accidental
 baseline.bequest_weight  = 0; %0.07;
 baseline.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
-baseline.WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
+baseline.WealthInherited = 0; % 1 for wealth left as bequest, 0 for disappears
 
 % income risk: AR(1) + IID in logs
 baseline.LoadIncomeProcess = 0;
@@ -65,7 +65,7 @@ baseline.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
 baseline.nb          = 2; % higher numbers dramatically increase computing load
-baseline.betawidth   = 0.02;
+baseline.betawidth   = 0.01;
 baseline.betaswitch  = 1/50; %0;
 
 % computation
@@ -74,7 +74,7 @@ baseline.tol_iter    = 1.0e-6; % EGP
 baseline.Nsim        = 100000; % 100000
 baseline.Tsim        = 200;
 baseline.nxinterm    = 200; % For intermediate iterations of EGP
-baseline.nxlong      = 1000; % Grid size for final computations
+baseline.nxlong      = 500; % Grid size for final computations
  
 % beta iteration
 baseline.targetAY    = 3.5;
@@ -98,7 +98,7 @@ baseline.IterateBeta        = 0;
 baseline.Display            = 1;
 baseline.MakePlots          = 0;
 baseline.ComputeDirectMPC   = 1;
-baseline.Simulate           = 0;
+baseline.Simulate           = 1;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY

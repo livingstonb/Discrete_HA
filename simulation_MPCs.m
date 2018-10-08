@@ -6,7 +6,7 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
     %% MPCs
     Nmpcamount = numel(p.mpcfrac);
     for im = 1:Nmpcamount
-        mpcamount{im} = p.mpcfrac(im) * income.meany;
+        mpcamount{im} = p.mpcfrac(im) * income.meany * p.freq;
         
         if mpcamount{im} < 0
             set_mpc_one = false(p.Nsim,1);
@@ -59,9 +59,6 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
         % cash-on-hand grids
         if mpcamount{im} < 0
             mpc1{im}(set_mpc_one,1) = 1;
-            mpc2{im}(set_mpc_one,1) = 1;
-            mpc3{im}(set_mpc_one,1) = 1;
-            mpc4{im}(set_mpc_one,1) = 1;
         end
         
         mpc2{im} = mpc2{im} + mpc1{im};

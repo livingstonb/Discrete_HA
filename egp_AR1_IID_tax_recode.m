@@ -92,6 +92,12 @@ function [sim_results,direct_results,norisk_results,checks] ...
             prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
     end
         
+    if p.R * (1-p.dieprob) * max(p.beta0+prefs.betagrid0) >= 0.999
+        warning('Invalid beta0, assets will diverge')
+        checks{end+1} = 'InvalidBeta0';
+    else
+        disp(['Largest beta = ' num2str(max(p.beta0+prefs.betagrid0))])
+    end
 
     %% ASSET GRIDS
 
@@ -327,10 +333,8 @@ function [sim_results,direct_results,norisk_results,checks] ...
     if p.freq == 4
         % model with income risk
         if p.ComputeDirectMPC == 1
-            % Simulate the full 4 periods
-            Tmax = 4;
             
-            [mpcs1,mpcs4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,income,basemodel,xgrid,Tmax);
+            [mpcs1,mpcs4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,income,basemodel,xgrid);
             direct_results.avg_mpc1sim = avg_mpc1;
             direct_results.avg_mpc4 = avg_mpc4;
             direct_results.var_mpc1sim = var_mpc1;
@@ -345,7 +349,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     
     % Check that one-period mpc is the same, computed two diff ways
     if (p.freq==4) 
-        if abs(norisk_results.avg_mpc1sim - norisk_results.avg_mpc1) / norisk_results.avg_mpc1sim > 1e-3
+        if abs(norisk_results.avg_mpc1sim - norisk_results.avg_mpc1) / norisk_results.avg_mpc1sim > 1e-2
             checks{end+1} = 'NoRiskMPCsInconsistent';
         end
     end
