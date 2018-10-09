@@ -1,11 +1,11 @@
-function [asim1,mpcs1,mpcs4,betaindsim0] = direct_MPCs(p,prefs,income,basemodel,xgrid)
+function [asim1,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
 
     if p.Display == 1
         disp([' Simulating ' num2str(4) ' period(s) to get MPCs'])
     end
     
-    % Number of draws from distribution each period
-    Nsim = p.Nmpcsim;
+    % Number of draws from distribution
+    Nsim = 1e6;
 
     % vector of indexes for (yP,yF,beta) consistent with of mean ann inc
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nxlong,1)),p.nyF*p.nb,1);
@@ -15,14 +15,20 @@ function [asim1,mpcs1,mpcs4,betaindsim0] = direct_MPCs(p,prefs,income,basemodel,
     cumdist = cumsum(basemodel.SSdist);
 
     % Construct stationary distribution
-    % Simulate 0th period to get distribution over assets, then add shock to
-    % cash-on-hand and simulate 4 periods
-    
-    state_rand0 = rand(Nsim,1);
-    betaindsim0 = ones(Nsim,1);
-    yPindsim0   = ones(Nsim,1);
-    x0          = zeros(Nsim,1);
+    state_rand  = rand(Nsim,4);
+    yPrand      = rand(Nsim,4);
+    dierand     = rand(Nsim,4);
+    betarand    = rand(Nsim,4);
+    yTrand      = rand(Nsim,4);
+    ygrosssim   = zeros(Nsim,4);
+    ynetsim     = zeros(Nsim,4);
+    betaindsim  = ones(Nsim,4);
+    yPindsim    = ones(Nsim,4);
+    yTindsim    = ones(Nsim,4);
     yFindsim    = ones(Nsim,1);
+    x0          = zeros(Nsim,1);
+
+    diesim      = dierand < p.dieprob;
     
     % Find (yPgrid,yFgrid,betagrid) indices of draws from stationary distribution
     % Done in partitions to economize on memory
@@ -32,47 +38,32 @@ function [asim1,mpcs1,mpcs4,betaindsim0] = direct_MPCs(p,prefs,income,basemodel,
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
-        [~,ind0] = max(bsxfun(@lt,state_rand0(partition,1),cumdist'),[],2);
+        [~,ind] = max(bsxfun(@lt,state_rand(partition,1),cumdist'),[],2);
         
         % (yPgrid,yFgrid,betagrid) indices
-        yPindsim0(partition)	= yPind_trans(ind0);
-        yFindsim0(partition)    = yFind_trans(ind0);
-        betaindsim0(partition)	= betaind_trans(ind0);
+        yPindsim(partition,1)	= yPind_trans(ind);
+        yFindsim(partition)     = yFind_trans(ind);
+        betaindsim(partition,1)	= betaind_trans(ind);
         
         % Initial cash-on-hand from stationary distribution
-        x0(partition) = xgrid_extended(ind0);
+        x0(partition) = xgrid_extended(ind);
     end
     
-    % Future random draws
-    yPrand      = rand(Nsim,4);
-    dierand     = rand(Nsim,4);
-    betarand    = rand(Nsim,4);
-    yTrand      = rand(Nsim,4);
     
-    % Evolution of exogenous variables
-    ygrosssim   = zeros(Nsim,4);
-    ynetsim     = zeros(Nsim,4);
-    betaindsim  = ones(Nsim,4);  
-    yPindsim    = ones(Nsim,4);
-    yTindsim    = ones(Nsim,4);
-    diesim      = dierand < p.dieprob; 
     
-    %% SIMULATE INCOME AND BETA   
-
-    for it = 1:4
-        [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
-        live = (diesim(:,it)==0);
-        
-        [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
-        if it == 1
-            [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim0,:)),[],2);
-            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim0(live))),[],2);
-        else
-            [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
+    %% SIMULATE INCOME AND BETA
+    
+    if 4 == 4
+        for it = 2:4
+            live = (diesim(:,it)==0);
             [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
+            [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
+            [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
+            [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
         end
     end
-   
+    
+    % Column 1 is irrelevant
     ygrosssim = income.yPgrid(yPindsim) .*...
             repmat(income.yFgrid(yFindsim),1,4) .* income.yTgrid(yTindsim);
         
@@ -85,25 +76,8 @@ function [asim1,mpcs1,mpcs4,betaindsim0] = direct_MPCs(p,prefs,income,basemodel,
     ynetsim = income.lumptransfer + (1-p.labtaxlow)*ygrosssim...
                         - p.labtaxhigh*max(ygrosssim-income.labtaxthresh,0);
     
-                    
-    %% Simulate 0th period
-    sav0 = zeros(Nsim,1);
-    for ib = 1:p.nb
-    for iyF = 1:p.nyF
-    for iyP = 1:p.nyP
-        idx = yPindsim0==iyP & yFindsim==iyF & betaindsim0==ib;
-        sav0(idx) = basemodel.savinterp{iyP,iyF,ib}(x0(idx));
-    end
-    end
-    end
-    sav0 = max(sav0,p.borrow_lim);
-    asim1 = p.R * sav0;
-    if p.WealthInherited == 0
-        asim1(diesim(:,1)==1) = 0;
-    end
-    
-    %% Loop over mpcfrac
-    % First run simulation as if there was no shock
+    % Loop over mpcfrac sizes, first running simulation as if there was no
+    % shock
     for im = 0:numel(p.mpcfrac)
         if im == 0
             mpcamount = 0;
@@ -121,17 +95,14 @@ function [asim1,mpcs1,mpcs4,betaindsim0] = direct_MPCs(p,prefs,income,basemodel,
         % in first period upon shock
         set_mpc_one = false(Nsim,1);
         
-        % Iterate through periods 1-4
         for it = 1:4
-            
+            % Update cash-on-hand
             if it == 1
-                % Update cash-on-hand
-                xsim(:,1) = asim1 + ynetsim(:,1) + mpcamount;
+                xsim(:,it) = x0 + mpcamount;
             else
-                xsim(:,it) = asim(:,it) + ynetsim(:,it);
+                xsim(:,it) = asim(:,it-1) + ynetsim(:,it);
             end
             
-            % Get this period's saving
             for ib = 1:p.nb
             for iyF = 1:p.nyF
             for iyP = 1:p.nyP
@@ -151,16 +122,18 @@ function [asim1,mpcs1,mpcs4,betaindsim0] = direct_MPCs(p,prefs,income,basemodel,
             
             ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
 
-            if it < 4
-                asim(:,it+1) = p.R * ssim(:,it);
-                if p.WealthInherited == 0
-                    % Assets discarded
-                    asim(diesim(:,it+1)==1,it+1) = 0;
-                end
+            asim(:,it) = p.R * ssim(:,it);
+            if p.WealthInherited == 0
+                % Assets discarded
+                asim(diesim(:,it)==1,it) = 0;
             end
         end
         
         csim = xsim - ssim - p.savtax * max(ssim-p.savtaxthresh,0);
+        
+        if im == 5
+            asim1 = asim(:,1);
+        end
         
         %% COMPUTE MPCs
         if im == 0
