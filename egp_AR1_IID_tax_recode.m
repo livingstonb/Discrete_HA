@@ -247,25 +247,18 @@ function [sim_results,direct_results,norisk_results,checks] ...
     end
     
     % wealth percentiles
-    if p.WealthInherited == 1
-        basemodel.a_longgrid_sort = p.R * basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind);
-    else
-        basemodel.a_longgrid_sort = (1 - p.dieprob) * p.R * basemodel.sav_longgrid_sort(basemodel.SScumdist_uniqueind);
-    end
-    direct_results.wpercentiles = interp1(basemodel.SScumdist_unique,basemodel.a_longgrid_sort,p.percentiles/100,'linear');
+    direct_results.wpercentiles = interp1(basemodel.asset_cumdist_unique,...
+            basemodel.asset_sortvalues(basemodel.asset_uniqueind),p.percentiles/100,'linear');
     
     % top shares
     % fraction of total assets that reside in each pt on asset space
-    if p.WealthInherited == 1
-        totassets = basemodel.SSdist_sort .* (p.R*basemodel.sav_longgrid_sort);
-    else
-        totassets = basemodel.SSdist_sort .* ((1-p.dieprob)*p.R*basemodel.sav_longgrid_sort);
-    end
+    totassets = basemodel.asset_dist_sort .* basemodel.asset_sortvalues;
+    
     cumassets = cumsum(totassets) / direct_results.mean_a;
     cumassets = cumassets(basemodel.SScumdist_uniqueind);
     
     % create interpolant from wealth percentile to cumulative wealth share
-    cumwealthshare = griddedInterpolant(basemodel.SScumdist_unique,cumassets,'linear');
+    cumwealthshare = griddedInterpolant(basemodel.asset_cumdist_unique,cumassets,'linear');
     direct_results.top10share  = 1 - cumwealthshare(0.9);
     direct_results.top1share   = 1 - cumwealthshare(0.99);
     
@@ -333,23 +326,26 @@ function [sim_results,direct_results,norisk_results,checks] ...
     % 4-period MPCs
     if p.freq == 4
         % model with income risk
-        if p.ComputeDirectMPC == 1
-            
-            [mpcs1,mpcs4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,income,basemodel,xgrid);
-            direct_results.avg_mpc1sim = avg_mpc1;
-            direct_results.avg_mpc4 = avg_mpc4;
-            direct_results.var_mpc1sim = var_mpc1;
-            direct_results.var_mpc4 = var_mpc4;
+        if p.ComputeDirectMPC == 1          
+            [basemodel.asim1,basemodel.mpcs1,basemodel.mpcs4] ...
+                            = direct_MPCs(p,prefs,income,basemodel,xgrid);
+            for im = 1:numel(p.mpcfrac)
+                direct_results.avg_mpc1sim{im} = mean(basemodel.mpcs1{im});
+                direct_results.avg_mpc4{im} = mean(basemodel.mpcs4{im});
+                direct_results.var_mpc1sim{im} = var(basemodel.mpcs1{im});
+                direct_results.var_mpc4{im} = var(basemodel.mpcs4{im});
+            end
         end
 
         % norisk model
-        [mpc1,mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid);
-        norisk_results.avg_mpc1sim  = mpc1;
-        norisk_results.avg_mpc4     = mpc4;
+        [norisk.asim1,norisk.mpcs1,norisk.mpcs4] = ...
+            direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid);
+        norisk_results.avg_mpc1sim  = mean(norisk.mpcs1);
+        norisk_results.avg_mpc4     = mean(norisk.mpcs4);
     end
     
     % Check that one-period mpc is the same, computed two diff ways
-    if (p.freq==4) 
+    if p.freq == 4 
         if abs(norisk_results.avg_mpc1sim - norisk_results.avg_mpc1) / norisk_results.avg_mpc1sim > 1e-2
             checks{end+1} = 'NoRiskMPCsInconsistent';
         end
@@ -358,36 +354,22 @@ function [sim_results,direct_results,norisk_results,checks] ...
     %% DECOMPOSITION
     decomp = struct([]);
     if p.nb == 1
-        direct_results.m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
+        m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
         for ia = 1:numel(p.abars)
-            constrained_ind = basemodel.SSdist <= p.abars(ia);
-            decomp(ia).term1 = direct_results.m_ra;
-            decomp(ia).term2 = basemodel.SSdist(constrained_ind)' ...
-                                    * (risk_mpcs1(constrained_ind) - direct_results.m_ra);
-            decomp(ia).term3 = basemodel.SSdist(~constrained_ind)' ...
-                                    * (norisk_mpcs1(~constrained_ind) - direct_results.m_ra);
-            decomp(ia).term4 = basemodel.SSdist(~constrained_ind)' ...
-                         * (risk_mpcs1(~constrained_ind) - norisk_mpcs1(~constrained_ind));
+            cind         = basemodel.asim1 <= p.abars(ia); % constrained households
+            cprob        = sum(cind)/numel(basemodel.asim1); % total fraction constr
+            cind_norisk  = norisk.asim1 <= p.abars(ia);
+            cprob_norisk = sum(cind_norisk)/numel(norisk.asim1);
+            decomp(ia).term1 = m_ra;
+            decomp(ia).term2 = mean(basemodel.mpcs1{5}(cind))*cprob - m_ra*cprob; 
+            decomp(ia).term3 = mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk) - m_ra*(1-cprob); 
+            decomp(ia).term4 = mean(basemodel.mpcs1{5}(~cind))*(1-cprob) - mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk);
         end
     end
     
     %% GINI
     % Wealth
-    if p.WealthInherited == 0
-        % Create asset distribution
-        dist_live   = (1-p.dieprob) * basemodel.SSdist;
-        dist_death  = p.dieprob * basemodel.SSdist;
-        level_live  = p.R * basemodel.sav_longgrid;
-        level_death = zeros(p.nxlong*p.nyP*p.nyF*p.nb,1);
-        distr  = [dist_live;dist_death];
-        level = [level_live;level_death];
-
-        direct_results.wealthgini = direct_gini(level,distr);
-    else
-        distr = basemodel.SSdist_sort;
-        level = p.R * basemodel.sav_longgrid_sort;
-        direct_results.wealthgini = direct_gini(level,distr);
-    end
+    direct_results.wealthgini = direct_gini(basemodel.asset_values,basemodel.asset_dist);
     
     % Gross income
     direct_results.grossincgini = direct_gini(income.ysort,income.ysortdist);

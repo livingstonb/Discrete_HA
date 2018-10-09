@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -85,7 +85,7 @@ baseline.mpcfrac(1)  = -1e-5; %approximate thoeretical mpc
 baseline.mpcfrac(2)  = -0.01;
 baseline.mpcfrac(3)  = -0.05;
 baseline.mpcfrac(4)  = 1e-5; % approximate thoeretical mpc
-baseline.mpcfrac(5)  = 0.01; % 1 percent of average gross labor income: approx $500
+baseline.mpcfrac(5)  = 0.01; % used in decomposition, 1 percent of average gross labor income: approx $500
 baseline.mpcfrac(6)  = 0.05; % 5 percent of average gross labor income: approx $5000
 
 % wealth statistics options

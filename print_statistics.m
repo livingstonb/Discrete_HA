@@ -142,19 +142,19 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p,dec
     
     %% DECOMPOSITION
     fprintf('\nDECOMPOSITION: \n')
-    disp(' For epsilon == 0')
+    disp(' For a == 0')
     fprintf('    RA MPC:                                               %5.3f\n',decomp(1).term1)
     fprintf('    Effect of HtM households:                             %5.3f\n',decomp(1).term2)
     fprintf('    Effect of borrowing constraint on non-HtM households: %5.3f\n',decomp(1).term3)
     fprintf('    Effect of idiosyncratic risk on non-HtM households:   %5.3f\n',decomp(1).term4)
     
-    disp(' For epsilon == 0.01')
+    disp(' For a <=0.01')
     fprintf('    RA MPC:                                               %5.3f\n',decomp(2).term1)
     fprintf('    Effect of HtM households:                             %5.3f\n',decomp(2).term2)
     fprintf('    Effect of borrowing constraint on non-HtM households: %5.3f\n',decomp(2).term3)
     fprintf('    Effect of idiosyncratic risk on non-HtM households:   %5.3f\n',decomp(2).term4)
     
-    disp(' For epsilon == 0.05')
+    disp(' For a <= 0.05')
     fprintf('    RA MPC:                                               %5.3f\n',decomp(3).term1)
     fprintf('    Effect of HtM households:                             %5.3f\n',decomp(3).term2)
     fprintf('    Effect of borrowing constraint on non-HtM households: %5.3f\n',decomp(3).term3)

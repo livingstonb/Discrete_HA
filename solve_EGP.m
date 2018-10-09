@@ -148,6 +148,22 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     % SS probability of residing in each state
     model.SSdist_wide = reshape(model.SSdist,[p.nxlong,p.nyP,p.nyF,p.nb]);
     
+    % SS distribution of assets
+    model.asset_values = p.R * model.sav_longgrid_wide;
+    if p.WealthInherited == 1
+        model.asset_dist = model.SSdist_wide;
+    else
+        % Shift fraction of distribution to zero
+        model.asset_dist = (1-p.dieprob) * model.SSdist_wide;
+        model.asset_dist(1,:,:,:) = p.dieprob * sum(model.SSdist_wide,1);
+    end
+    asset_temp = sortrows([model.asset_values(:) model.asset_dist(:)]);
+    model.asset_sortvalues = asset_temp(:,1);
+    model.asset_dist_sort  = asset_temp(:,2);
+    model.asset_cumdist    = cumsum(model.asset_dist_sort);
+    % Get unique values from cumdist for interpolant
+    [model.asset_cumdist_unique,model.asset_uniqueind] = unique(model.asset_cumdist,'last');
+    
     % mean saving
     model.mean_s = model.sav_longgrid_wide(:)' * model.SSdist;
     

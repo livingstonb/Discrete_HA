@@ -1,4 +1,4 @@
-function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
+function [asim1,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
 
     if p.Display == 1
         disp([' Simulating ' num2str(4) ' period(s) to get MPCs'])
@@ -131,29 +131,21 @@ function [mpc1,mpc4,avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = direct_MPCs(p,prefs,i
         
         csim = xsim - ssim - p.savtax * max(ssim-p.savtaxthresh,0);
         
+        if im == 5
+            asim1 = asim(:,1);
+        end
+        
         %% COMPUTE MPCs
         if im == 0
             % No MPC schock
             csim_noshock = csim;
         else
-            mpc1{im} = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
-            mpc1{im}(set_mpc_one,1) = 1;
-            avg_mpc1{im} = mean(mpc1{im});
-            
-            if 4 == 1
-                mpc4{im} = []; avg_mpc4{im} =[]; var_mpc4{im} = [];
-                continue
-            end
-                
-            mpc2{im} = (csim(:,2) - csim_noshock(:,2)) / mpcamount + mpc1{im};
-            mpc3{im} = (csim(:,3) - csim_noshock(:,3)) / mpcamount + mpc2{im};
-            mpc4{im} = (csim(:,4) - csim_noshock(:,4)) / mpcamount + mpc3{im};
-
-            avg_mpc4{im} = mean(mpc4{im});
-            
-            var_mpc1{im} = var(mpc1{im});
-            var_mpc4{im} = var(mpc4{im});
+            mpcs1{im} = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
+            mpcs1{im}(set_mpc_one,1) = 1;  
+            mpcs2{im} = (csim(:,2) - csim_noshock(:,2)) / mpcamount + mpcs1{im};
+            mpcs3{im} = (csim(:,3) - csim_noshock(:,3)) / mpcamount + mpcs2{im};
+            mpcs4{im} = (csim(:,4) - csim_noshock(:,4)) / mpcamount + mpcs3{im};
         end
     end
-
+    
 end

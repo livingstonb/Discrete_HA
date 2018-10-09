@@ -1,10 +1,13 @@
-function [avg_mpc1,avg_mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid)
+function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid)
 
     if p.Display == 1
         disp(' Simulating 4 periods to get deterministic MPCs')
     end
     
     % Draw from same stationary distribution as in stochastic case,
+    % collapsed over (yP,yF,beta). This is so we can integrate with respect
+    % to the probability measure associated with the model with income
+    % risk.
     cumdistr = cumsum(basemodel.SSdist_noincrisk(:));
     
     % Number of draws from stationary distribution
@@ -74,12 +77,11 @@ function [avg_mpc1,avg_mpc4] = direct_MPCs_deterministic(p,prefs,income,norisk,b
    
     end
     
-     %% COMPUTE MPCs
-    mpc1 = (csim(:,1) - csim_noshock(:,1))/mpcamount;
-    mpc2 = mpc1 + (csim(:,2) - csim_noshock(:,2))/mpcamount;
-    mpc3 = mpc2 + (csim(:,3) - csim_noshock(:,3))/mpcamount;
-    mpc4 = mpc3 + (csim(:,4) - csim_noshock(:,4))/mpcamount;
+    asim1 = asim(:,1);
     
-    avg_mpc1 = mean(mpc1);
-    avg_mpc4 = mean(mpc4);
+     %% COMPUTE MPCs
+    mpcs1 = (csim(:,1) - csim_noshock(:,1))/mpcamount;
+    mpcs2 = mpcs1 + (csim(:,2) - csim_noshock(:,2))/mpcamount;
+    mpcs3 = mpcs2 + (csim(:,3) - csim_noshock(:,3))/mpcamount;
+    mpcs4 = mpcs3 + (csim(:,4) - csim_noshock(:,4))/mpcamount;
 end
