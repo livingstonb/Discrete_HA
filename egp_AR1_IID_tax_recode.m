@@ -255,7 +255,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     totassets = basemodel.asset_dist_sort .* basemodel.asset_sortvalues;
     
     cumassets = cumsum(totassets) / direct_results.mean_a;
-    cumassets = cumassets(basemodel.SScumdist_uniqueind);
+    cumassets = cumassets(basemodel.asset_uniqueind);
     
     % create interpolant from wealth percentile to cumulative wealth share
     cumwealthshare = griddedInterpolant(basemodel.asset_cumdist_unique,cumassets,'linear');
@@ -324,33 +324,29 @@ function [sim_results,direct_results,norisk_results,checks] ...
     norisk_results.avg_mpc1 = basemodel.SSdist_noincrisk(:)' * norisk_mpcs1;
     
     % 4-period MPCs
-    if p.freq == 4
-        % model with income risk
-        if p.ComputeDirectMPC == 1          
-            [basemodel.asim1,basemodel.mpcs1,basemodel.mpcs4] ...
-                            = direct_MPCs(p,prefs,income,basemodel,xgrid);
-            for im = 1:numel(p.mpcfrac)
-                direct_results.avg_mpc1sim{im} = mean(basemodel.mpcs1{im});
-                direct_results.avg_mpc4{im} = mean(basemodel.mpcs4{im});
-                direct_results.var_mpc1sim{im} = var(basemodel.mpcs1{im});
-                direct_results.var_mpc4{im} = var(basemodel.mpcs4{im});
-            end
+    % model with income risk
+    if p.ComputeDirectMPC == 1          
+        [basemodel.asim1,basemodel.mpcs1,basemodel.mpcs4] ...
+                        = direct_MPCs(p,prefs,income,basemodel,xgrid);
+        for im = 1:numel(p.mpcfrac)
+            direct_results.avg_mpc1sim{im} = mean(basemodel.mpcs1{im});
+            direct_results.avg_mpc4{im} = mean(basemodel.mpcs4{im});
+            direct_results.var_mpc1sim{im} = var(basemodel.mpcs1{im});
+            direct_results.var_mpc4{im} = var(basemodel.mpcs4{im});
         end
-
-        % norisk model
-        [norisk.asim1,norisk.mpcs1,norisk.mpcs4] = ...
-            direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid);
-        norisk_results.avg_mpc1sim  = mean(norisk.mpcs1);
-        norisk_results.avg_mpc4     = mean(norisk.mpcs4);
     end
+
+    % norisk model
+    [norisk.asim1,norisk.mpcs1,norisk.mpcs4] = ...
+        direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid);
+    norisk_results.avg_mpc1sim  = mean(norisk.mpcs1);
+    norisk_results.avg_mpc4     = mean(norisk.mpcs4);
     
     % Check that one-period mpc is the same, computed two diff ways
-    if p.freq == 4 
-        if abs(norisk_results.avg_mpc1sim - norisk_results.avg_mpc1) / norisk_results.avg_mpc1sim > 1e-2
-            checks{end+1} = 'NoRiskMPCsInconsistent';
-        end
+    if abs(norisk_results.avg_mpc1sim - norisk_results.avg_mpc1) / norisk_results.avg_mpc1sim > 1e-2
+        checks{end+1} = 'NoRiskMPCsInconsistent';
     end
-    
+
     %% DECOMPOSITION
     decomp = struct([]);
     if p.nb == 1
