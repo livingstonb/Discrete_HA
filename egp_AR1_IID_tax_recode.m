@@ -362,8 +362,10 @@ function [sim_results,direct_results,norisk_results,checks] ...
             cprob_norisk = sum(cind_norisk)/numel(norisk.asim1);
             decomp(ia).term1 = m_ra;
             decomp(ia).term2 = mean(basemodel.mpcs1{5}(cind))*cprob - m_ra*cprob; 
-            decomp(ia).term3 = mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk) - m_ra*(1-cprob); 
-            decomp(ia).term4 = mean(basemodel.mpcs1{5}(~cind))*(1-cprob) - mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk);
+            decomp(ia).term3 = mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk)...
+                                                            - m_ra*(1-cprob); 
+            decomp(ia).term4 = mean(basemodel.mpcs1{5}(~cind))*(1-cprob)...
+                        - mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk);
         end
     end
     
