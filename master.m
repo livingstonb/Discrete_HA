@@ -81,6 +81,7 @@ baseline.maxiterAY   = 40;
 baseline.tolAY       = 1e-5;
 
 % mpc options
+baseline.Nmpcsim     = 1e6;
 baseline.mpcfrac(1)  = -1e-5; %approximate thoeretical mpc
 baseline.mpcfrac(2)  = -0.01;
 baseline.mpcfrac(3)  = -0.05;
@@ -100,7 +101,7 @@ baseline.IterateBeta        = 0;
 baseline.Display            = 1;
 baseline.MakePlots          = 0;
 baseline.ComputeDirectMPC   = 1;
-baseline.Simulate           = 0;
+baseline.Simulate           = 1;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY

@@ -1,4 +1,4 @@
-function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid)
+function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid)
 
     if p.Display == 1
         disp(' Simulating 4 periods to get deterministic MPCs')
@@ -11,27 +11,12 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,b
     cumdistr = cumsum(basemodel.SSdist_noincrisk(:));
     
     % Number of draws from stationary distribution
-    Nsim = 1e5;
-    
-    % Initial state random draw
-    state_rand0 = rand(Nsim,1);
-    
+    Nsim = p.Nmpcsim;
+
     betarand = rand(Nsim,4);
     dierand  = rand(Nsim,4);
     diesim   = dierand < p.dieprob;
     betaindsim  = zeros(Nsim,4);
-    diesim      = zeros(Nsim,4);
-    
-    % Extended xgrid to coincide with above distribution
-    xgrid_extended = repmat(xgrid.longgrid,p.nb,1);
-    
-    % Index of beta for each point in distr
-    betainds = kron((1:p.nb)',ones(p.nxlong,1));
-    
-    % Starting point in asset space
-    [~,ind0] = max(bsxfun(@le,state_rand0,cumdistr'),[],2);
-    x0 = xgrid_extended(ind0);
-    betaindsim0 = betainds(ind0)';
     
     % 1 percent of mean gross annual income
     mpcamount = 0.01 * income.meany * p.freq;
@@ -40,24 +25,11 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,b
     %% Simulate beta
     for it = 1:4
         if it == 1
-            [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim0,:)),[],2);
+            [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(basemodel.betaindsim0,:)),[],2);
         else
             [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
         end
     end
-    
-    %% Simulate 0th period to get starting assets and cash-in-hand
-    sav0 = zeros(Nsim,1);
-    for ib = 1:p.nb
-        idx = betaindsim0==ib;
-        sav0(idx) = basemodel.savinterp{ib}(x0(idx));
-    end
-    sav0 = max(sav0,p.borrow_lim);
-    asim1 = p.R * sav0;
-    if p.WealthInherited == 0
-        asim1(diesim(:,1)==1) = 0;
-    end
-    
 
     %% Simulate decision variables
     
@@ -69,7 +41,7 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,b
     
         for it = 1:4
             if it == 1
-                xsim(:,it) = asim1 + income.meannety + shock;
+                xsim(:,it) = basemodel.asim1 + income.meannety + shock;
             else
                 xsim(:,it) = asim(:,it) + income.meannety;
             end

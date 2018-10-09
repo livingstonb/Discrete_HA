@@ -42,12 +42,14 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,asim,xsim,csi
             end
             end
             ssim_mpc{im}(ssim_mpc{im}(:,it)<p.borrow_lim,it) = p.borrow_lim;
-            asim_mpc{im}(:,it) = p.R * ssim_mpc{im}(:,it);
             csim_mpc{im}(:,it) = xsim_mpc{im}(:,it) - ssim_mpc{im}(:,it) - p.savtax*max(ssim_mpc{im}(:,it)-p.savtaxthresh,0);
-            if p.WealthInherited == 0
-                % set assets equal to 0 if hh dies at end of this period
-                asim_mpc{im}(diesim(:,simT)==1,it) = 0;
-            end
+            
+            if it < 4
+                asim_mpc{im}(:,it+1) = p.R * asim_mpc{im}(:,it);
+                if p.WealthInherited == 0
+                    % set assets equal to 0 if hh dies at end of this period
+                    asim_mpc{im}(diesim(:,simT+1)==1,it+1) = 0;
+                end
         end
         
         mpc1{im} = (csim_mpc{im}(:,1) - csim(:,p.Tsim-3))/mpcamount{im};

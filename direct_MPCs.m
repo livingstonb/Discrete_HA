@@ -1,11 +1,11 @@
-function [asim1,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
+function [asim1,mpcs1,mpcs4,betaindsim0] = direct_MPCs(p,prefs,income,basemodel,xgrid)
 
     if p.Display == 1
         disp([' Simulating ' num2str(4) ' period(s) to get MPCs'])
     end
     
     % Number of draws from distribution each period
-    Nsim = 1e6;
+    Nsim = p.Nmpcsim;
 
     % vector of indexes for (yP,yF,beta) consistent with of mean ann inc
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nxlong,1)),p.nyF*p.nb,1);
@@ -66,7 +66,7 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
         [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
         if it == 1
             [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim0,:)),[],2);
-            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim0(live,:))),[],2);
+            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim0(live))),[],2);
         else
             [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
             [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
