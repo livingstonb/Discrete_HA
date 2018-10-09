@@ -71,7 +71,7 @@ baseline.betaswitch  = 1/50; %0;
 % computation
 baseline.max_iter    = 1e5; % EGP
 baseline.tol_iter    = 1.0e-6; % EGP
-baseline.Nsim        = 100000; % 100000
+baseline.Nsim        = 10000; % 100000
 baseline.Tsim        = 200;
 baseline.nxlong      = 500; % Grid size for final computations
  

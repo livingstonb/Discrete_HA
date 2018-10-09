@@ -12,8 +12,6 @@ function [mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
     yFind_trans = repmat(kron((1:p.nyF)',ones(p.nxlong*p.nyP,1)),p.nb,1);
     betaind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
 
-    cumdist = cumsum(basemodel.SSdist);
-
     % Construct stationary distribution
     state_rand  = rand(Nsim,4);
     yPrand      = rand(Nsim,4);
@@ -26,7 +24,10 @@ function [mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
     yPindsim    = ones(Nsim,4);
     yTindsim    = ones(Nsim,4);
     yFindsim    = ones(Nsim,1);
-    x0          = zeros(Nsim,1);
+    
+    a1          = zeros(Nsim,1);
+    yPindsim0   = zeros(Nsim,1);
+    betaindsim0 = zeros(Nsim,1);
 
     diesim      = dierand < p.dieprob;
     
@@ -34,36 +35,39 @@ function [mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
     % Done in partitions to economize on memory
     partitionsize = 1e5;
     Npartition = Nsim/partitionsize;
-    xgrid_extended = repmat(xgrid.longgrid,p.nb,1);
+    cumdist = cumsum(basemodel.asset_dist(:));
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
         [~,ind] = max(bsxfun(@lt,state_rand(partition,1),cumdist'),[],2);
         
         % (yPgrid,yFgrid,betagrid) indices
-        yPindsim(partition,1)	= yPind_trans(ind);
+        yPindsim0(partition)	= yPind_trans(ind);
         yFindsim(partition)     = yFind_trans(ind);
-        betaindsim(partition,1)	= betaind_trans(ind);
+        betaindsim0(partition)	= betaind_trans(ind);
         
-        % Initial cash-on-hand from stationary distribution
-        x0(partition) = xgrid_extended(ind);
+        % Initial assets from stationary distribution
+        a1(partition) = basemodel.asset_values(ind);
     end
     
     
     
     %% SIMULATE INCOME AND BETA
-    
-    if 4 == 4
-        for it = 2:4
-            live = (diesim(:,it)==0);
-            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
-            [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
+
+    for it = 1:4
+        live = (diesim(:,it)==0);
+        [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
+        [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
+        
+        if it == 1
+            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim0(live),:)),[],2); 
+            [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim0,:)),[],2);
+        else
+            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2); 
             [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
-            [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
         end
     end
     
-    % Column 1 is irrelevant
     ygrosssim = income.yPgrid(yPindsim) .*...
             repmat(income.yFgrid(yFindsim),1,4) .* income.yTgrid(yTindsim);
         
@@ -96,9 +100,10 @@ function [mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
         set_mpc_one = false(Nsim,1);
         
         for it = 1:4
-            % Update cash-on-hand
+            % Update cash-on-hand          
             if it == 1
-                xsim(:,it) = x0 + mpcamount;
+                asim(:,1) = a1;
+                xsim(:,it) = asim(:,it) + ynetsim(:,it) + mpcamount;
             else
                 xsim(:,it) = asim(:,it) + ynetsim(:,it);
             end
