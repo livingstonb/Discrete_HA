@@ -114,11 +114,11 @@ end
 %% CALL MAIN FUNCTION
 Nparams = size(params,2);
 
-direct_results = cell(1,Nparams);
-norisk_results = cell(1,Nparams);
-sim_results    = cell(1,Nparams);
-exceptions     = cell(1,Nparams);
-checks         = cell(1,Nparams);
+direct_results = cell(1,Nparams); % Results from direct computations
+norisk_results = cell(1,Nparams); % Results from norisk model
+sim_results    = cell(1,Nparams); % Results from simulations
+exceptions     = cell(1,Nparams); % ME objects on any exceptions thrown
+checks         = cell(1,Nparams); % Information on failed sanity checks
 
 for ip = 1:Nparams
     if Batch == 0

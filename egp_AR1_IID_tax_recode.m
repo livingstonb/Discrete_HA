@@ -27,7 +27,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     p.betaL         = p.betaL^(1/p.freq);
     p.betaH         = 1/((p.R)*(1-p.dieprob));
     p.savtax        = p.savtax/p.freq;
-    p.Tsim          = p.Tsim * p.freq;
+    p.Tsim          = p.Tsim * p.freq; % Increase simulation time if quarterly
     
     if p.freq == 1
         p.sd_logyT  = p.sd_logyT.A;
@@ -40,34 +40,29 @@ function [sim_results,direct_results,norisk_results,checks] ...
     end
 
     p.N = p.nx*p.nyF*p.nyP*p.nb;
-    if p.freq == 1
-        direct_results.frequency = 'Annual';
-    elseif p.freq == 4
-        direct_results.frequency = 'Quarterly';
-    else
+    if (p.freq ~= 1) && (p.freq ~= 4)
         error('Frequency must be 1 or 4')
     end
    
 
-    %% LOAD INCOME VARIABLES2
-
+    %% LOAD INCOME VARIABLES
+    % Create income structure
     income = gen_income_variables(p);
     
     % savtaxthresh should be a multiple of mean gross labor income
     p.savtaxthresh  = p.savtaxthresh * income.meany;
 
     %% DISCOUNT FACTOR
-
     % discount factor distribution
     if  p.nb == 1
         prefs.betadist = 1;
         prefs.betatrans = 1;
     elseif p.nb > 1
-        prefs.betadist = ones(p.nb,1) / p.nb;
-        % nb = 2: prefs.betatrans = [1-p.betaswitch p.betaswitch; p.betaswitch 1-p.betaswitch]; %transitions on average once every 40 years;
-         
+        % Equal probability in stationary distribution
+        prefs.betadist = ones(p.nb,1) / p.nb; 
+        % Probability of switching from beta_i to beta_j, for i=/=j
         betaswitch_ij = p.betaswitch / (p.nb-1);
-        % create matrix with (1-betaswitch) on diag and betaswitch_ij
+        % Create matrix with (1-betaswitch) on diag and betaswitch_ij
         % elsewhere
         diagonal = (1-p.betaswitch) * ones(p.nb,1);
         off_diag = betaswitch_ij * ones(p.nb);
@@ -77,7 +72,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     prefs.betacumdist = cumsum(prefs.betadist);
     prefs.betacumtrans = cumsum(prefs.betatrans,2);
     
-    % create grid - add beta to grid later since we may iterate
+    % Create grid - add beta to grid later since we may iterate
     bw = p.betawidth;
     switch p.nb
         case 1
@@ -94,7 +89,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
 
     %% ASSET GRIDS
 
-    % savings grid
+    % savings grids
     sgrid.orig = linspace(0,1,p.nx)';
     sgrid.orig = sgrid.orig.^(1./p.xgrid_par);
     sgrid.orig = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid.orig;
@@ -102,13 +97,12 @@ function [sim_results,direct_results,norisk_results,checks] ...
     sgrid.wide = repmat(sgrid.short,[1 p.nyP p.nyF]);
     p.ns = p.nx;
 
-    % xgrid, indexed by beta,yF,yP,x (N by 1 matrix)
-    % cash on hand grid: different min points for each value of (iyP,iyF)
+    % xgrids (cash on hand), different min points for each value of (iyP,iyF)
     minyT               = kron(min(income.netymat,[],2),ones(p.nx,1));
     xgrid.orig          = sgrid.wide(:) + minyT;
     xgrid.orig_wide     = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
     
-    % for model without income risk
+    % xgrid for model without income risk
     xgrid.norisk_short  = sgrid.short + income.meannety;
     xgrid.norisk_longgrid = linspace(0,1,p.nxlong);
     xgrid.norisk_longgrid = xgrid.norisk_longgrid.^(1/p.xgrid_par);
@@ -138,7 +132,6 @@ function [sim_results,direct_results,norisk_results,checks] ...
     prefs.u1inv = @(u) u.^(-1./p.risk_aver);
     prefs.beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.risk_aver);
 
-
     %% MODEL SOLUTION
     if p.IterateBeta == 1
         
@@ -147,7 +140,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
         if p.nb == 1
             beta_ub = p.betaH - 1e-4;
         else
-            % don't let highest beta be such that (1-dieprob)*R*beta >= 1
+            % Don't let highest beta be such that (1-dieprob)*R*beta >= 1
             beta_ub = p.betaH - 1e-4 - max(prefs.betagrid0);
         end
         beta_lb = p.betaL;
@@ -158,14 +151,14 @@ function [sim_results,direct_results,norisk_results,checks] ...
         if exitflag ~= 1
             checks{end+1} = 'NoBetaConv';
             return
-        else
         end
     else
-        % Beta set in parameters
+        % Beta was set in parameters
         beta_final = p.beta0;    
     end
     
-    % Get policy functions and stationary distribution for final beta
+    % Get policy functions and stationary distribution for final beta, in
+    % 'basemodel' structure
     [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,prefs,income);
 
     % Report beta and annualized beta
@@ -182,7 +175,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     end
     
     %% IMPORTANT MOMENTS
-    
+    % Create income grid associated with longgrid
     ymat_onlonggrid = repmat(kron(income.ymat,ones(p.nxlong,1)),p.nb,1);
     netymat_onlonggrid = repmat(kron(income.netymat,ones(p.nxlong,1)),p.nb,1);
     
@@ -198,13 +191,13 @@ function [sim_results,direct_results,norisk_results,checks] ...
     
     direct_results.mean_x_check = direct_results.mean_a + direct_results.mean_nety;
    
-    % reconstruct yPdist from computed stationary distribution for error
-    % checking
+    % Reconstruct yPdist from computed stationary distribution for sanity
+    % check
     yPdist_check = reshape(basemodel.SSdist_wide,[p.nxlong p.nyP p.nyF*p.nb]);
     yPdist_check = sum(sum(yPdist_check,3),1)';
     
 
-    %% Store problems
+    %% RECORD PROBLEMS
     if  abs((p.targetAY - direct_results.mean_a/(income.meany*p.freq))/p.targetAY) > 1e-3
         checks{end+1} = 'BadAY';
     end
@@ -223,7 +216,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
 
     %% WEALTH DISTRIBUTION
     
-    % create values for fraction constrained at every pt in asset space,
+    % Create values for fraction constrained at every pt in asset space,
     % defining constrained as s <= epsilon * mean annual gross labor income 
     % + borrowing limit
     for i = 1:numel(p.epsilon)        
@@ -231,21 +224,21 @@ function [sim_results,direct_results,norisk_results,checks] ...
         [sav_unique,ind] = unique(basemodel.sav_longgrid_sort,'last');
         wpinterp = griddedInterpolant(sav_unique,basemodel.SScumdist(ind),'linear');
         if p.epsilon(i) == 0
-            % get exact figure
+            % Get exact figure
             direct_results.constrained(i) = basemodel.SSdist' * (basemodel.sav_longgrid == 0);
         else
             direct_results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany*p.freq);
         end
     end
     
-    % wealth percentiles
+    % Wealth percentiles
     direct_results.wpercentiles = interp1(basemodel.asset_cumdist_unique,...
             basemodel.asset_sortvalues(basemodel.asset_uniqueind),p.percentiles/100,'linear');
     
-    % top shares
-    % fraction of total assets that reside in each pt on asset space
+    % Top shares
+    % Amount of total assets that reside in each pt on asset space
     totassets = basemodel.asset_dist_sort .* basemodel.asset_sortvalues;
-    
+    % Fraction of total assets in each pt on asset space
     cumassets = cumsum(totassets) / direct_results.mean_a;
     cumassets = cumassets(basemodel.asset_uniqueind);
     
@@ -267,12 +260,10 @@ function [sim_results,direct_results,norisk_results,checks] ...
     if p.Simulate == 1
         [sim_results,assetmeans] = simulate(p,income,basemodel,xgrid,prefs);
     else
-        sim_results = struct();
         assetmeans = [];
     end
     
-    %% MPCS
-        
+    %% DIRECTLY COMPUTED MPCs (will probably not be used)
     % 1-period MPCs, model with income risk
     for im = 1:numel(p.mpcfrac)
         mpcamount = p.mpcfrac(im) * income.meany * p.freq;
@@ -284,6 +275,8 @@ function [sim_results,direct_results,norisk_results,checks] ...
         for iyP = 1:p.nyP
             if mpcamount < 0
                 below_grid = xmpc(:,iyP,iyF) < xgrid.longgrid_wide(1,iyP,iyF);
+                % Shift x back up to bottom of grid, for whom it's fallen
+                % below
                 xmpc(below_grid,iyP,iyF) = xgrid.longgrid_wide(1,iyP,iyF);
                 set_mpc_one(below_grid,iyP,iyF,ib) = true;
             end
@@ -315,8 +308,8 @@ function [sim_results,direct_results,norisk_results,checks] ...
     norisk_mpcs1(set_mpc_one(:)) = 1;
     norisk_results.avg_mpc1 = basemodel.SSdist_noincrisk(:)' * norisk_mpcs1;
     
-    % Simulate last periods to find MPCs
-        % model with income risk
+    %% MPCs FROM DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
+    % Model with income risk
     if p.ComputeDirectMPC == 1          
         [basemodel.a1,basemodel.betaindsim0,basemodel.mpcs1,basemodel.mpcs4] ...
                         = direct_MPCs(p,prefs,income,basemodel,xgrid);

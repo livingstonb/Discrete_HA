@@ -53,9 +53,9 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
         end
         
         mpc1{im} = (csim_mpc{im}(:,1) - csim(:,p.Tsim-3))/mpcamount{im};
-        mpc2{im} = (csim_mpc{im}(:,2) - csim(:,p.Tsim-2))/mpcamount{im};
-        mpc3{im} = (csim_mpc{im}(:,3) - csim(:,p.Tsim-1))/mpcamount{im};
-        mpc4{im} = (csim_mpc{im}(:,4) - csim(:,p.Tsim))/mpcamount{im};
+        mpc2{im} = mpc1{im} + (csim_mpc{im}(:,2) - csim(:,p.Tsim-2))/mpcamount{im};
+        mpc3{im} = mpc2{im} + (csim_mpc{im}(:,3) - csim(:,p.Tsim-1))/mpcamount{im};
+        mpc4{im} = mpc3{im} + (csim_mpc{im}(:,4) - csim(:,p.Tsim))/mpcamount{im};
         
         
         % set MPCs equal to one for households at the bottom of their
@@ -63,11 +63,7 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
         if mpcamount{im} < 0
             mpc1{im}(set_mpc_one,1) = 1;
         end
-        
-        mpc2{im} = mpc2{im} + mpc1{im};
-        mpc3{im} = mpc3{im} + mpc2{im};
-        mpc4{im} = mpc4{im} + mpc3{im};
-        
+
         avg_mpc1{im} = mean(mpc1{im});
         avg_mpc4{im} = mean(mpc4{im});
         
