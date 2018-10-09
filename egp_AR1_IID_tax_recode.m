@@ -91,13 +91,6 @@ function [sim_results,direct_results,norisk_results,checks] ...
         case 5
             prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
     end
-        
-    if p.R * (1-p.dieprob) * max(p.beta0+prefs.betagrid0) >= 0.999
-        warning('Invalid beta0, assets will diverge')
-        checks{end+1} = 'InvalidBeta0';
-    else
-        disp(['Largest beta = ' num2str(max(p.beta0+prefs.betagrid0))])
-    end
 
     %% ASSET GRIDS
 
@@ -255,7 +248,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     totassets = basemodel.asset_dist_sort .* basemodel.asset_sortvalues;
     
     cumassets = cumsum(totassets) / direct_results.mean_a;
-    cumassets = cumassets(basemodel.SScumdist_uniqueind);
+    cumassets = cumassets(basemodel.asset_uniqueind);
     
     % create interpolant from wealth percentile to cumulative wealth share
     cumwealthshare = griddedInterpolant(basemodel.asset_cumdist_unique,cumassets,'linear');
@@ -323,26 +316,26 @@ function [sim_results,direct_results,norisk_results,checks] ...
     norisk_mpcs1(set_mpc_one(:)) = 1;
     norisk_results.avg_mpc1 = basemodel.SSdist_noincrisk(:)' * norisk_mpcs1;
     
-    % 4-period MPCs
-    if p.freq == 4
+    % Simulate last periods to find MPCs
         % model with income risk
-        if p.ComputeDirectMPC == 1          
-            [basemodel.a1,basemodel.betaindsim0,basemodel.mpcs1,basemodel.mpcs4] ...
-                            = direct_MPCs(p,prefs,income,basemodel,xgrid);
-            for im = 1:numel(p.mpcfrac)
-                direct_results.avg_mpc1sim{im} = mean(basemodel.mpcs1{im});
+    if p.ComputeDirectMPC == 1          
+        [basemodel.a1,basemodel.betaindsim0,basemodel.mpcs1,basemodel.mpcs4] ...
+                        = direct_MPCs(p,prefs,income,basemodel,xgrid);
+        for im = 1:numel(p.mpcfrac)
+            direct_results.avg_mpc1sim{im} = mean(basemodel.mpcs1{im});
+            direct_results.var_mpc1sim{im} = var(basemodel.mpcs1{im});
+            if p.freq == 4
                 direct_results.avg_mpc4{im} = mean(basemodel.mpcs4{im});
-                direct_results.var_mpc1sim{im} = var(basemodel.mpcs1{im});
                 direct_results.var_mpc4{im} = var(basemodel.mpcs4{im});
             end
         end
-
-        % norisk model
-        [norisk.mpcs1,norisk.mpcs4] = ...
-            direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid);
-        norisk_results.avg_mpc1sim  = mean(norisk.mpcs1);
-        norisk_results.avg_mpc4     = mean(norisk.mpcs4);
     end
+
+    % norisk model
+    [norisk.mpcs1,norisk.mpcs4] = ...
+        direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid);
+    norisk_results.avg_mpc1sim  = mean(norisk.mpcs1);
+    norisk_results.avg_mpc4     = mean(norisk.mpcs4);
     
     %% DECOMPOSITION
     decomp = struct([]);

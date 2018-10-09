@@ -1,37 +1,38 @@
 function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
 
     if p.Display == 1
-        disp([' Simulating ' num2str(4) ' period(s) to get MPCs'])
+        disp([' Simulating ' num2str(p.freq) ' period(s) to get MPCs'])
     end
     
     % Number of draws from distribution
-    Nsim = 1e5;
+    Nsim = p.Nmpcsim;
 
-    % vector of indexes for (yP,yF,beta) consistent with of mean ann inc
+    % Vector of indexes for (yP,yF,beta) consistent with of mean ann inc
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nxlong,1)),p.nyF*p.nb,1);
     yFind_trans = repmat(kron((1:p.nyF)',ones(p.nxlong*p.nyP,1)),p.nb,1);
     betaind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
 
     % Construct stationary distribution
     state_rand  = rand(Nsim,1);
-    yPrand      = rand(Nsim,4);
-    dierand     = rand(Nsim,4);
-    betarand    = rand(Nsim,4);
-    yTrand      = rand(Nsim,4);
-    ygrosssim   = zeros(Nsim,4);
-    ynetsim     = zeros(Nsim,4);
-    betaindsim  = ones(Nsim,4);
-    yPindsim    = ones(Nsim,4);
-    yTindsim    = ones(Nsim,4);
+    yPrand      = rand(Nsim,p.freq);
+    dierand     = rand(Nsim,p.freq);
+    betarand    = rand(Nsim,p.freq);
+    yTrand      = rand(Nsim,p.freq);
+    betaindsim  = ones(Nsim,p.freq);
+    yPindsim    = ones(Nsim,p.freq);
+    yTindsim    = ones(Nsim,p.freq);
     yFindsim    = ones(Nsim,1);
     
+    % Period 1 assets
     a1          = zeros(Nsim,1);
+    
+    % Period 0 yP,beta
     yPindsim0   = zeros(Nsim,1);
     betaindsim0 = zeros(Nsim,1);
 
     diesim      = dierand < p.dieprob;
     
-    % Find (yPgrid,yFgrid,betagrid) indices of draws from stationary distribution
+    % Find (yPgrid0,yFgrid0,betagrid0) indices of draws from stationary distribution
     % Done in partitions to economize on memory
     partitionsize = 1e5;
     Npartition = Nsim/partitionsize;
@@ -54,7 +55,8 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
     
     %% SIMULATE INCOME AND BETA
 
-    for it = 1:4
+    % Only simulate 4 periods when using quarterly frequency
+    for it = 1:p.freq
         live = (diesim(:,it)==0);
         [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
         [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
@@ -69,7 +71,7 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
     end
     
     ygrosssim = income.yPgrid(yPindsim) .*...
-            repmat(income.yFgrid(yFindsim),1,4) .* income.yTgrid(yTindsim);
+            repmat(income.yFgrid(yFindsim),1,p.freq) .* income.yTgrid(yTindsim);
         
     % Normalize so mean annual income == 1
     if p.NormalizeY == 1
@@ -89,9 +91,9 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
             mpcamount = p.mpcfrac(im) * income.meany * p.freq;
         end
         
-        xsim = zeros(Nsim,4);
-        ssim = zeros(Nsim,4);
-        asim = zeros(Nsim,4);
+        xsim = zeros(Nsim,p.freq);
+        ssim = zeros(Nsim,p.freq);
+        asim = zeros(Nsim,p.freq);
         
         %% SIMULATE DECISION VARIABLES UPON MPC SHOCK
         
@@ -99,7 +101,7 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
         % in first period upon shock
         set_mpc_one = false(Nsim,1);
         
-        for it = 1:4
+        for it = 1:p.freq
             % Update cash-on-hand          
             if it == 1
                 asim(:,1) = a1;
@@ -127,7 +129,7 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
             
             ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
 
-            if it < 4
+            if it < p.freq
                 asim(:,it+1) = p.R * ssim(:,it);
                 if p.WealthInherited == 0
                     % Assets discarded
@@ -145,6 +147,10 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
         else
             mpcs1{im} = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
             mpcs1{im}(set_mpc_one,1) = 1;  
+            if p.freq == 1
+                mpcs4 = [];
+                continue
+            end
             mpcs2{im} = (csim(:,2) - csim_noshock(:,2)) / mpcamount + mpcs1{im};
             mpcs3{im} = (csim(:,3) - csim_noshock(:,3)) / mpcamount + mpcs2{im};
             mpcs4{im} = (csim(:,4) - csim_noshock(:,4)) / mpcamount + mpcs3{im};

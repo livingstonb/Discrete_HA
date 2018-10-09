@@ -12,7 +12,7 @@ cd(path);
 %% SPECIFY BASELINE PARAMETERS
 
 % data frequency 
-baseline.freq        = 4; % 1 for yearly, 4 for quarterly
+baseline.freq        = 1; % 1 for yearly, 4 for quarterly
 
 % returns
 baseline.r           = 0.02;
@@ -22,7 +22,7 @@ baseline.dieprob     = 1/50;
 
 % preferences
 baseline.risk_aver   = 1;
-baseline.beta0       = 0.97; % annualized
+baseline.beta0       = 0.99; % annualized
 baseline.temptation  = 0;
 baseline.betaL       = 0.80;
 % betaH defined in main function file
@@ -30,7 +30,7 @@ baseline.betaL       = 0.80;
 %warm glow bequests: bequest weight = 0 is accidental
 baseline.bequest_weight  = 0; %0.07;
 baseline.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
-baseline.WealthInherited = 0; % 1 for wealth left as bequest, 0 for disappears
+baseline.WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
 
 % income risk: AR(1) + IID in logs
 baseline.LoadIncomeProcess = 0;
@@ -71,9 +71,9 @@ baseline.betaswitch  = 1/50; %0;
 % computation
 baseline.max_iter    = 1e5; % EGP
 baseline.tol_iter    = 1.0e-6; % EGP
-baseline.Nsim        = 10000; % 100000
+baseline.Nsim        = 100000; % 100000
 baseline.Tsim        = 200;
-baseline.nxlong      = 500; % Grid size for final computations
+baseline.nxlong      = 1000; % Grid size for final computations
  
 % beta iteration
 baseline.targetAY    = 3.5;
@@ -81,6 +81,7 @@ baseline.maxiterAY   = 40;
 baseline.tolAY       = 1e-5;
 
 % mpc options
+baseline.Nmpcsim     = 1e6;
 baseline.mpcfrac(1)  = -1e-5; %approximate thoeretical mpc
 baseline.mpcfrac(2)  = -0.01;
 baseline.mpcfrac(3)  = -0.05;
@@ -96,11 +97,11 @@ baseline.percentiles = [10 25 50 75 90 95 99]; % in percent
 baseline.abars = [0 0.01 0.05];
 
 % OPTIONS
-baseline.IterateBeta        = 0;
+baseline.IterateBeta        = 1;
 baseline.Display            = 1;
 baseline.MakePlots          = 0;
 baseline.ComputeDirectMPC   = 1;
-baseline.Simulate           = 1;
+baseline.Simulate           = 0;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
