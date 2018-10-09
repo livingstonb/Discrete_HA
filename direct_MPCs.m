@@ -1,11 +1,11 @@
-function [mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
+function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
 
     if p.Display == 1
         disp([' Simulating ' num2str(4) ' period(s) to get MPCs'])
     end
     
     % Number of draws from distribution
-    Nsim = 1e6;
+    Nsim = 1e5;
 
     % vector of indexes for (yP,yF,beta) consistent with of mean ann inc
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nxlong,1)),p.nyF*p.nb,1);
@@ -13,7 +13,7 @@ function [mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
     betaind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
 
     % Construct stationary distribution
-    state_rand  = rand(Nsim,4);
+    state_rand  = rand(Nsim,1);
     yPrand      = rand(Nsim,4);
     dierand     = rand(Nsim,4);
     betarand    = rand(Nsim,4);
@@ -39,7 +39,7 @@ function [mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
-        [~,ind] = max(bsxfun(@lt,state_rand(partition,1),cumdist'),[],2);
+        [~,ind] = max(bsxfun(@lt,state_rand(partition),cumdist'),[],2);
         
         % (yPgrid,yFgrid,betagrid) indices
         yPindsim0(partition)	= yPind_trans(ind);

@@ -187,14 +187,19 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     model.SSdist_sort = temp(:,2);
     model.SScumdist = cumsum(model.SSdist_sort);
 
-    % Collapse the distribution from (x,yP,yF,beta) to (x,beta) for norisk
-    % model
+    % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
+    % model, and from (x,yP,yF,beta) to (x,beta)
     if p.nyP>1 && p.nyF>1
-        model.SSdist_noincrisk =  sum(model.SSdist_wide,[2 3]);
-    elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 & p.nyF>1)
-        model.SSdist_noincrisk =  sum(model.SSdist_wide,2);
+        % a
+        model.assetdist_noincrisk =  sum(model.asset_dist,[2 3]);
+        % x
+        model.SSdist_noincrisk    = sum(model.SSdist_wide,[2 3]);
+    elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
+        model.assetdist_noincrisk =  sum(model.asset_dist,2);
+        model.SSdist_noincrisk    = sum(model.SSdist_wide,2);
     elseif p.nyP==1 && p.nyF==1
-        model.SSdist_noincrisk = model.SSdist_wide;
+        model.assetdist_noincrisk = model.asset_dist;
+        model.SSdist_noincrisk    = model.SSdist_wide;
     end
     
     % unique values on cumdist and their indices (needed for interpolants)

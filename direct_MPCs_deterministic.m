@@ -8,7 +8,7 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemod
     % collapsed over (yP,yF,beta). This is so we can integrate with respect
     % to the probability measure associated with the model with income
     % risk.
-    cumdistr = cumsum(basemodel.SSdist_noincrisk(:));
+    cumdist = cumsum(basemodel.asset_dist(:));
     
     % Number of draws from stationary distribution
     Nsim = 1e5;
@@ -17,26 +17,19 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemod
     dierand  = rand(Nsim,4);
     diesim   = dierand < p.dieprob;
     betaindsim  = zeros(Nsim,4);
-    
-    % Index of assets for each point in distr
-    xinds = repmat((1:p.nxlong)',p.nb,1);
-    
-    % Index of beta for each point in distr
-    betainds = kron((1:p.nb)',ones(p.nxlong,1));
-    
-    % Starting point in asset space
-    [~,distr_ind1] = max(bsxfun(@le,staterand,cumdistr'),[],2);
-    x_ind1 = xinds(distr_ind1);
-    xsim1 = xgrid.norisk_longgrid(x_ind1)'; % add MPC shock later
-    betaindsim(:,1) = betainds(distr_ind1)';
+
     
     % 1 percent of mean gross annual income
     mpcamount = 0.01 * income.meany * p.freq;
 
 
     %% Simulate beta
-    for it = 2:4
-        [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
+    for it = 1:4
+        if it == 1
+            [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(basemodel.betaindsim0,:)),[],2);    
+        else
+            [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
+        end
     end
 
     %% Simulate decision variables
@@ -46,10 +39,11 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemod
         xsim = zeros(Nsim,4);
         ssim = zeros(Nsim,4);
         asim = zeros(Nsim,4);
+        asim(:,1) = basemodel.a1;
     
         for it = 1:4
             if it == 1
-                xsim(:,it) = xsim1 + shock;
+                xsim(:,it) = asim(:,it) + income.meannety + shock;
             else
                 xsim(:,it) = asim(:,it) + income.meannety;
             end
