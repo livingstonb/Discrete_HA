@@ -110,7 +110,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
         
         if it < p.Tsim
             asim(:,it+1) = p.R * ssim(:,it);
-            if p.WealthInherited == 0
+            if p.Bequests == 0
                 % set saving equal to 0 if hh dies at end of this period. In it+1,
                 % household will have x = net income
                 asim(diesim(:,it+1)==1,it+1) = 0;

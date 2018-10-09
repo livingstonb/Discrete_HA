@@ -45,7 +45,7 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
             
             if it < 4
                 asim_mpc{im}(:,it+1) = p.R * ssim_mpc{im}(:,it);
-                if p.WealthInherited == 0
+                if p.Bequests == 0
                     % set assets equal to 0 if hh dies at end of this period
                     asim_mpc{im}(diesim(:,simT+1)==1,it+1) = 0;
                 end

@@ -49,7 +49,7 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemod
             % Assets
             if it < p.freq
                 asim(:,it+1) = p.R * ssim(:,it);
-                if p.WealthInherited == 1
+                if p.Bequests == 1
                     asim(diesim(:,it+1)==1,it+1) = 0;
                 end
             end

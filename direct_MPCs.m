@@ -131,7 +131,7 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
 
             if it < p.freq
                 asim(:,it+1) = p.R * ssim(:,it);
-                if p.WealthInherited == 0
+                if p.Bequests == 0
                     % Assets discarded
                     asim(diesim(:,it+1)==1,it+1) = 0;
                 end

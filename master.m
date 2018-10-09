@@ -12,7 +12,7 @@ cd(path);
 %% SPECIFY BASELINE PARAMETERS
 
 % data frequency 
-baseline.freq        = 1; % 1 for yearly, 4 for quarterly
+baseline.freq        = 1; % 1 yearly, 4 quarterly
 
 % returns
 baseline.r           = 0.02;
@@ -22,7 +22,7 @@ baseline.dieprob     = 1/50;
 
 % preferences
 baseline.risk_aver   = 1;
-baseline.beta0       = 0.95; % annualized
+baseline.beta0       = 0.97; % annualized
 baseline.temptation  = 0;
 baseline.betaL       = 0.80;
 % betaH defined in main function file
@@ -30,7 +30,7 @@ baseline.betaL       = 0.80;
 %warm glow bequests: bequest weight = 0 is accidental
 baseline.bequest_weight  = 0; %0.07;
 baseline.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
-baseline.WealthInherited = 1; % 1 for wealth left as bequest, 0 for disappears
+baseline.Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
 
 % income risk: AR(1) + IID in logs
 baseline.LoadIncomeProcess = 0;

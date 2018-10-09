@@ -46,7 +46,7 @@ function [distribution,sav] = find_stationary(p,model,...
             kron(squeeze(netymat_fulldim(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
         
         xp_live  = xp;
-        if p.WealthInherited == 0
+        if p.Bequests == 0
             % x' is only equal to income
             xp_death = kron(squeeze(netymat_fulldim(iyP2,iyF2,:)),ones(nn*p.nyP*p.nyF*p.nb,1));
         else

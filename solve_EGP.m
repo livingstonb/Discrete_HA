@@ -155,7 +155,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     
     % Distribution over (assets,yP_lag,yF_lag,beta_lag)
     model.asset_values = p.R * model.sav_longgrid_wide;
-    if p.WealthInherited == 1
+    if p.Bequests == 1
         model.asset_dist = model.SSdist_wide;
     else
         % Shift fraction of distribution to zero
