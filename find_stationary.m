@@ -1,7 +1,7 @@
-function [distribution,statetrans,sav,con] = find_stationary(p,model,...
-                                 	income,prefs,xgridinput,SkipStationary)
+function [distribution,sav] = find_stationary(p,model,...
+                                 	income,prefs,xgridinput)
     % Finds the stationary distribution and transition matrix for a given
-    % xgridinput. sav and con are the saving and consumption policy functions
+    % xgridinput. sav is the saving policy function
     % associated with xgridinput.
     % --> xgridinput should be of the _wide format: dimensions (assets,nyP,nyF)
     % --> SkipStationary = 1 skips computing the stationary distribution
@@ -14,12 +14,10 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
     
     % Interpolate policy functions onto xgridinput
     sav = zeros(gridsize,p.nyP,p.nyF,p.nb);
-    con = zeros(gridsize,p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
         sav(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(xgridinput(:,iyP,iyF));
-        con(:,iyP,iyF,ib) = model.coninterp{iyP,iyF,ib}(xgridinput(:,iyP,iyF));
     end
     end
     end
@@ -78,13 +76,9 @@ function [distribution,statetrans,sav,con] = find_stationary(p,model,...
     end
 
     % stationary distribution over states
-    if SkipStationary == 0
-        fprintf(' Finding ergodic distribution...\n');
-        %distribution = full(ergodicdist(statetrans));
-        opts.tol = 1e-8;
-        [distribution,~] = eigs(statetrans',1,1,opts);
-        distribution = distribution/sum(distribution);
-    else
-        distribution =[];
-    end
+    fprintf(' Finding ergodic distribution...\n');
+    %distribution = full(ergodicdist(statetrans));
+    opts.tol = 1e-8;
+    [distribution,~] = eigs(statetrans',1,1,opts);
+    distribution = full(distribution/sum(distribution));
 end

@@ -140,15 +140,20 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
 
 
     %% DISTRIBUTION
-
-    SkipStationary = 0;
-    [model.SSdist,model.statetrans,model.sav_longgrid_wide]...
-            = find_stationary(p,model,income,prefs,xgrid.longgrid_wide,SkipStationary);
-
-    % SS probability of residing in each state
-    model.SSdist_wide = reshape(model.SSdist,[p.nxlong,p.nyP,p.nyF,p.nb]);
     
-    % SS distribution of assets
+    % Distribution over (x,yP,yF,beta)
+    [model.SSdist,model.sav_longgrid_wide]...
+            = find_stationary(p,model,income,prefs,xgrid.longgrid_wide);
+    model.SSdist_wide = reshape(model.SSdist,[p.nxlong,p.nyP,p.nyF,p.nb]);
+    % Cumulative distribution, sorted by saving
+    temp = sortrows([model.sav_longgrid_wide(:) model.SSdist]);
+    model.sav_longgrid_sort = temp(:,1);
+    model.SSdist_sort = temp(:,2);
+    model.SScumdist = cumsum(model.SSdist_sort);
+    % unique values on cumdist and their indices (needed for interpolants)
+    [model.SScumdist_unique,model.SScumdist_uniqueind] = unique(model.SScumdist,'last');
+    
+    % Distribution over (assets,yP_lag,yF_lag,beta_lag)
     model.asset_values = p.R * model.sav_longgrid_wide;
     if p.WealthInherited == 1
         model.asset_dist = model.SSdist_wide;
@@ -164,29 +169,10 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     % Get unique values from cumdist for interpolant
     [model.asset_cumdist_unique,model.asset_uniqueind] = unique(model.asset_cumdist,'last');
     
-    % mean saving
+    % mean saving, mean assets
     model.mean_s = model.sav_longgrid_wide(:)' * model.SSdist;
-    
-    % policy functions on longgrid
-    model.sav_longgrid = model.sav_longgrid_wide(:);
-    model.con_longgrid = repmat(xgrid.longgrid_wide(:),p.nb,1)...
-        - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid(:)-p.savtaxthresh,0);
-    model.con_longgrid_wide = reshape(model.con_longgrid,[p.nxlong,p.nyP,p.nyF,p.nb]);
-    model.mean_c = model.con_longgrid_wide(:)' * model.SSdist;
-    
-    % mean assets
-    if p.WealthInherited == 1
-        model.mean_a = p.R * model.mean_s;
-    else
-        model.mean_a = (1-p.dieprob) * p.R * model.mean_s;
-    end
-    
-    % cumulative distribution, sorted by saving
-    temp = sortrows([model.sav_longgrid model.SSdist]);
-    model.sav_longgrid_sort = temp(:,1);
-    model.SSdist_sort = temp(:,2);
-    model.SScumdist = cumsum(model.SSdist_sort);
-
+    model.mean_a = model.asset_values(:)' * model.asset_dist(:);
+ 
     % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
     % model, and from (x,yP,yF,beta) to (x,beta)
     if p.nyP>1 && p.nyF>1
@@ -202,8 +188,14 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
         model.SSdist_noincrisk    = model.SSdist_wide;
     end
     
-    % unique values on cumdist and their indices (needed for interpolants)
-    [model.SScumdist_unique,model.SScumdist_uniqueind] = unique(model.SScumdist,'last');
+    % Policy functions on longgrid
+    model.sav_longgrid = model.sav_longgrid_wide(:);
+    model.con_longgrid = repmat(xgrid.longgrid_wide(:),p.nb,1)...
+        - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid(:)-p.savtaxthresh,0);
+    model.con_longgrid_wide = reshape(model.con_longgrid,[p.nxlong,p.nyP,p.nyF,p.nb]);
+    
+    % Mean consumption
+    model.mean_c = model.con_longgrid_wide(:)' * model.SSdist;
 
     fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany*p.freq));
     AYdiff = model.mean_a/(income.meany*p.freq) -  p.targetAY;

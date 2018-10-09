@@ -22,7 +22,7 @@ baseline.dieprob     = 1/50;
 
 % preferences
 baseline.risk_aver   = 1;
-baseline.beta0       = 0.99; % annualized
+baseline.beta0       = 0.95; % annualized
 baseline.temptation  = 0;
 baseline.betaL       = 0.80;
 % betaH defined in main function file
@@ -97,7 +97,7 @@ baseline.percentiles = [10 25 50 75 90 95 99]; % in percent
 baseline.abars = [0 0.01 0.05];
 
 % OPTIONS
-baseline.IterateBeta        = 1;
+baseline.IterateBeta        = 0;
 baseline.Display            = 1;
 baseline.MakePlots          = 0;
 baseline.ComputeDirectMPC   = 1;

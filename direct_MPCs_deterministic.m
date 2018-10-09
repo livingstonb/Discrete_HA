@@ -1,4 +1,4 @@
-function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid)
+function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel)
 
     if p.Display == 1
         disp([' Simulating ' num2str(p.freq) ' periods to get deterministic MPCs'])
@@ -10,7 +10,6 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemod
     dierand  = rand(Nsim,p.freq);
     diesim   = dierand < p.dieprob;
     betaindsim  = zeros(Nsim,p.freq);
-
     
     % 1 percent of mean gross annual income
     mpcamount = 0.01 * income.meany * p.freq;

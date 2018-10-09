@@ -124,7 +124,6 @@ function [sim_results,direct_results,norisk_results,checks] ...
     xgrid.longgrid      = xgrid.longgrid + minyT;
     xgrid.longgrid_wide = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
     
-
     %% UTILITY FUNCTION, BEQUEST FUNCTION
 
     if p.risk_aver==1
@@ -142,7 +141,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
 
     %% MODEL SOLUTION
     if p.IterateBeta == 1
-
+        
         iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,prefs,income);
 
         if p.nb == 1
@@ -332,8 +331,12 @@ function [sim_results,direct_results,norisk_results,checks] ...
     end
 
     % norisk model
+    % Initial assets distributed as in basemodel.a1, so the mpc
+    % distribution here will not match that of norisk_mpcs1, which is based
+    % off stationary distribution of cash-on-hand from risky model, not
+    % assets
     [norisk.mpcs1,norisk.mpcs4] = ...
-        direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid);
+        direct_MPCs_deterministic(p,prefs,income,norisk,basemodel);
     norisk_results.avg_mpc1sim  = mean(norisk.mpcs1);
     norisk_results.avg_mpc4     = mean(norisk.mpcs4);
     
@@ -342,14 +345,12 @@ function [sim_results,direct_results,norisk_results,checks] ...
     if p.nb == 1
         m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
         for ia = 1:numel(p.abars)
-            cind         = basemodel.a1 <= p.abars(ia); % constrained households
-            cprob        = mean(cind); % total fraction constr
+            % Use the initial distribution of assets from direct_MPCs(), a1
+            cind  = basemodel.a1 <= p.abars(ia); % constrained households
             decomp(ia).term1 = m_ra;
-            decomp(ia).term2 = mean(basemodel.mpcs1{5}(cind))*cprob - m_ra*cprob; 
-            decomp(ia).term3 = mean(norisk.mpcs1(~cind))*(1-cprob)...
-                                                            - m_ra*(1-cprob); 
-            decomp(ia).term4 = mean(basemodel.mpcs1{5}(~cind))*(1-cprob)...
-                        - mean(norisk.mpcs1(~cind))*(1-cprob);
+            decomp(ia).term2 = mean( (basemodel.mpcs1{5} - m_ra) .* cind);
+            decomp(ia).term3 = mean( (norisk.mpcs1 - m_ra) .* (~cind));
+            decomp(ia).term4 = mean( (basemodel.mpcs1{5} - norisk.mpcs1) .* (~cind));
         end
     end
     
