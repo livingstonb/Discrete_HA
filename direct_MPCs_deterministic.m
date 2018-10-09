@@ -1,4 +1,4 @@
-function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid)
+function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid)
 
     if p.Display == 1
         disp(' Simulating 4 periods to get deterministic MPCs')
@@ -17,7 +17,6 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,b
     dierand  = rand(Nsim,4);
     diesim   = dierand < p.dieprob;
     betaindsim  = zeros(Nsim,4);
-    diesim      = zeros(Nsim,4);
     
     % Index of assets for each point in distr
     xinds = repmat((1:p.nxlong)',p.nb,1);
@@ -52,7 +51,7 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,b
             if it == 1
                 xsim(:,it) = xsim1 + shock;
             else
-                xsim(:,it) = asim(:,it-1) + income.meannety;
+                xsim(:,it) = asim(:,it) + income.meannety;
             end
 
             for ib = 1:p.nb
@@ -62,9 +61,11 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,b
             ssim(:,it) = max(ssim(:,it),p.borrow_lim);
 
             % Assets
-            asim(:,it) = p.R * ssim(:,it);
-            if p.WealthInherited == 1
-                asim(diesim(:,it)==1,it) = 0;
+            if it < 4
+                asim(:,it+1) = p.R * ssim(:,it);
+                if p.WealthInherited == 1
+                    asim(diesim(:,it+1)==1,it+1) = 0;
+                end
             end
 
         end
@@ -76,8 +77,6 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,b
         end
    
     end
-    
-    asim1 = asim(:,1);
     
      %% COMPUTE MPCs
     mpcs1 = (csim(:,1) - csim_noshock(:,1))/mpcamount;

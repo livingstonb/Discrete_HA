@@ -93,7 +93,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
         end
         % update cash-on-hand
         if it > 1
-            xsim(:,it) = asim(:,it-1) + ynetsim(:,it);
+            xsim(:,it) = asim(:,it) + ynetsim(:,it);
         end
         
         for iyF = 1:p.nyF
@@ -108,11 +108,13 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
         ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
         csim(:,it) = xsim(:,it) - ssim(:,it) - p.savtax * max(ssim(:,it) - p.savtaxthresh,0);
         
-        asim(:,it) = p.R * ssim(:,it);
-        if p.WealthInherited == 0
-            % set saving equal to 0 if hh dies at end of this period. In it+1,
-            % household will have x = net income
-            asim(diesim(:,it)==1,it) = 0;
+        if it < p.Tsim
+            asim(:,it+1) = p.R * ssim(:,it);
+            if p.WealthInherited == 0
+                % set saving equal to 0 if hh dies at end of this period. In it+1,
+                % household will have x = net income
+                asim(diesim(:,it+1)==1,it+1) = 0;
+            end
         end
     end
     

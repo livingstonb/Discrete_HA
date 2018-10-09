@@ -327,7 +327,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     if p.freq == 4
         % model with income risk
         if p.ComputeDirectMPC == 1          
-            [basemodel.asim1,basemodel.mpcs1,basemodel.mpcs4] ...
+            [basemodel.mpcs1,basemodel.mpcs4] ...
                             = direct_MPCs(p,prefs,income,basemodel,xgrid);
             for im = 1:numel(p.mpcfrac)
                 direct_results.avg_mpc1sim{im} = mean(basemodel.mpcs1{im});
@@ -338,7 +338,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
         end
 
         % norisk model
-        [norisk.asim1,norisk.mpcs1,norisk.mpcs4] = ...
+        [norisk.mpcs1,norisk.mpcs4] = ...
             direct_MPCs_deterministic(p,prefs,income,norisk,basemodel,xgrid);
         norisk_results.avg_mpc1sim  = mean(norisk.mpcs1);
         norisk_results.avg_mpc4     = mean(norisk.mpcs4);
@@ -352,22 +352,23 @@ function [sim_results,direct_results,norisk_results,checks] ...
     end
     
     %% DECOMPOSITION
-    decomp = struct([]);
-    if p.nb == 1
-        m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
-        for ia = 1:numel(p.abars)
-            cind         = basemodel.asim1 <= p.abars(ia); % constrained households
-            cprob        = sum(cind)/numel(basemodel.asim1); % total fraction constr
-            cind_norisk  = norisk.asim1 <= p.abars(ia);
-            cprob_norisk = sum(cind_norisk)/numel(norisk.asim1);
-            decomp(ia).term1 = m_ra;
-            decomp(ia).term2 = mean(basemodel.mpcs1{5}(cind))*cprob - m_ra*cprob; 
-            decomp(ia).term3 = mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk)...
-                                                            - m_ra*(1-cprob); 
-            decomp(ia).term4 = mean(basemodel.mpcs1{5}(~cind))*(1-cprob)...
-                        - mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk);
-        end
-    end
+%     decomp = struct([]);
+%     if p.nb == 1
+%         m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
+%         for ia = 1:numel(p.abars)
+%             cind         = basemodel.xsim1 <= p.abars(ia); % constrained households
+%             cprob        = sum(cind)/numel(basemodel.xsim1); % total fraction constr
+%             cind_norisk  = norisk.xsim1 <=  p.abars(ia);
+%             cprob        = sum(cind_norisk)/numel(norisk.xsim1);
+%             decomp(ia).term1 = m_ra;
+%             decomp(ia).term2 = mean(basemodel.mpcs1{5}(cind))*cprob - m_ra*cprob; 
+%             decomp(ia).term3 = mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk)...
+%                                                             - m_ra*(1-cprob); 
+%             decomp(ia).term4 = mean(basemodel.mpcs1{5}(~cind))*(1-cprob)...
+%                         - mean(norisk.mpcs1(~cind_norisk))*(1-cprob_norisk);
+%         end
+%     end
+    decomp = [];
     
     %% GINI
     % Wealth

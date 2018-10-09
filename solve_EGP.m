@@ -186,9 +186,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     model.sav_longgrid_sort = temp(:,1);
     model.SSdist_sort = temp(:,2);
     model.SScumdist = cumsum(model.SSdist_sort);
-    
-    %
-    
+
     % Collapse the distribution from (x,yP,yF,beta) to (x,beta) for norisk
     % model
     if p.nyP>1 && p.nyF>1

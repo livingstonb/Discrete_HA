@@ -20,7 +20,7 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
         for it = 1:4
             simT = p.Tsim - 4 + it;
             if it > 1
-                xsim_mpc{im}(:,it) = asim_mpc{im}(:,it-1) + ynetsim(:,simT);
+                xsim_mpc{im}(:,it) = asim_mpc{im}(:,it) + ynetsim(:,simT);
             end
 
             for iyF = 1:p.nyF
@@ -41,11 +41,14 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
             end
             end
             ssim_mpc{im}(ssim_mpc{im}(:,it)<p.borrow_lim,it) = p.borrow_lim;
-            asim_mpc{im}(:,it) = p.R * ssim_mpc{im}(:,it);
             csim_mpc{im}(:,it) = xsim_mpc{im}(:,it) - ssim_mpc{im}(:,it) - p.savtax*max(ssim_mpc{im}(:,it)-p.savtaxthresh,0);
-            if p.WealthInherited == 0
-                % set assets equal to 0 if hh dies at end of this period
-                asim_mpc{im}(diesim(:,simT)==1,it) = 0;
+            
+            if it < 4
+                asim_mpc{im}(:,it+1) = p.R * ssim_mpc{im}(:,it);
+                if p.WealthInherited == 0
+                    % set assets equal to 0 if hh dies at end of this period
+                    asim_mpc{im}(diesim(:,simT+1)==1,it+1) = 0;
+                end
             end
         end
         

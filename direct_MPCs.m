@@ -1,4 +1,4 @@
-function [asim1,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
+function [mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
 
     if p.Display == 1
         disp([' Simulating ' num2str(4) ' period(s) to get MPCs'])
@@ -100,7 +100,7 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
             if it == 1
                 xsim(:,it) = x0 + mpcamount;
             else
-                xsim(:,it) = asim(:,it-1) + ynetsim(:,it);
+                xsim(:,it) = asim(:,it) + ynetsim(:,it);
             end
             
             for ib = 1:p.nb
@@ -122,18 +122,16 @@ function [asim1,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
             
             ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
 
-            asim(:,it) = p.R * ssim(:,it);
-            if p.WealthInherited == 0
-                % Assets discarded
-                asim(diesim(:,it)==1,it) = 0;
+            if it < 4
+                asim(:,it+1) = p.R * ssim(:,it);
+                if p.WealthInherited == 0
+                    % Assets discarded
+                    asim(diesim(:,it+1)==1,it+1) = 0;
+                end
             end
         end
         
         csim = xsim - ssim - p.savtax * max(ssim-p.savtaxthresh,0);
-        
-        if im == 5
-            asim1 = asim(:,1);
-        end
         
         %% COMPUTE MPCs
         if im == 0
