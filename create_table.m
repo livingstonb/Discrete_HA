@@ -1,5 +1,53 @@
 function T = create_table(params,direct_results,norisk_results,sim_results,decomps)
 
+    % Rownames
+    rows = {'Beta (Annualized)'
+            'Mean gross annual income'
+            'Stdev log annual gross income'
+            'Stdev log annual net income'
+            'Mean assets'
+            'Fraction with a == 0'
+            'Fraction with a <= 0.5% mean ann gross lab inc'
+            'Fraction with a <= 1% mean ann gross lab inc'
+            'Fraction with a <= 2% mean ann gross lab inc'
+            'Fraction with a <= 5% mean ann gross lab inc'
+            'Fraction with a <= 10% mean ann gross lab inc'
+            'Wealth, 10th percentile'
+            'Wealth, 25th percentile'
+            'Wealth, 50th percentile'
+            'Wealth, 75th percentile'
+            'Wealth, 90th percentile'
+            'Wealth, 95th percentile'
+            'Wealth, 99th percentile'
+            'Wealth, top 10% share'
+            'Wealth, top 1% share'
+            'Gini coefficient'
+            'Mean annual MPC (size = -1e-5)'
+            'Mean annual MPC (size = -0.01)'
+            'Mean annual MPC (size = -0.1)'
+            'Mean annual MPC (size = 1e-5)'
+            'Mean annual MPC (size = 0.01)'
+            'Mean annual MPC (size = 0.1)'
+            'Mean quarterly MPC (size = -1e-5)'
+            'Mean quarterly MPC (size = -0.01)'
+            'Mean quarterly MPC (size = -0.1)'
+            'Mean quarterly MPC (size = 1e-5)'
+            'Mean quarterly MPC (size = 0.01)'
+            'Mean quarterly MPC (size = 0.1)'
+            'MPC decomp around 0 (size = 0.01), term 1'
+            'MPC decomp around 0 (size = 0.01), term 2'
+            'MPC decomp around 0 (size = 0.01), term 3'
+            'MPC decomp around 0 (size = 0.01), term 4'
+            'MPC decomp around 0.01 (size = 0.01), term 1'
+            'MPC decomp around 0.01 (size = 0.01), term 2'
+            'MPC decomp around 0.01 (size = 0.01), term 3'
+            'MPC decomp around 0.01 (size = 0.01), term 4'
+            'MPC decomp around 0.05 (size = 0.01), term 1'
+            'MPC decomp around 0.05 (size = 0.01), term 2'
+            'MPC decomp around 0.05 (size = 0.01), term 3'
+            'MPC decomp around 0.05 (size = 0.01), term 4'
+            };
+
     % Iterate over parameterizations
     names = {};
     tablearray = zeros(45,numel(params));
@@ -69,6 +117,7 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
         tablearray(:,ip) = column;
     end
     
-    T = table(tablearray)
+    T = table(tablearray,'RowNames',rows)
+    writetable(T,'/Users/brianlivingston/Documents/table.xls');
 
 end
