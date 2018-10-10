@@ -1,4 +1,4 @@
-function [sim_results,direct_results,norisk_results,checks] ... 
+function [sim_results,direct_results,norisk_results,checks,decomp] ... 
                                                 = egp_AR1_IID_tax_recode(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
@@ -28,18 +28,6 @@ function [sim_results,direct_results,norisk_results,checks] ...
     p.betaswitch    = 1 - (1-p.betaswitch)^(1/p.freq);
     p.betaL         = p.betaL^(1/p.freq);
     p.betaH         = 1/((p.R)*(1-p.dieprob));
-    
-    if p.freq == 1
-        p.sd_logyT  = p.sd_logyT.A;
-        p.sd_logyP  = p.sd_logyP.A;
-        p.rho_logyP = p.rho_logyP.A;        
-    elseif p.freq == 4
-        p.sd_logyT  = p.sd_logyT.Q;
-        p.sd_logyP  = p.sd_logyP.Q;
-        p.rho_logyP = p.rho_logyP.Q;
-    else
-        error('Frequency must be 1 or 4')
-    end
 
     p.N = p.nx*p.nyF*p.nyP*p.nb;
    
@@ -288,7 +276,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
         end
         risk_mpcs1 = (conmpc(:) - basemodel.con_longgrid(:)) / mpcamount;
         risk_mpcs1(set_mpc_one(:)) = 1;
-        direct_results.avg_mpc1{im} = basemodel.SSdist(:)' * risk_mpcs1;
+        direct_results.avg_mpc1(im) = basemodel.SSdist(:)' * risk_mpcs1;
     end
 
     % 1-period MPCs, norisk 0.01 shock
@@ -313,22 +301,30 @@ function [sim_results,direct_results,norisk_results,checks] ...
     %% MPCs FROM DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
     if p.ComputeDirectMPC == 1          
-        [a1,betaindsim0,mpcs1,mpcs4,var_loggrossy_A,var_lognety_A,mean_grossy_A] ...
+        [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A] ...
                         = direct_MPCs(p,prefs,income,basemodel,xgrid);
         basemodel.a1 = a1;
         basemodel.betaindsim0 = betaindsim0;
         basemodel.mpcs1 = mpcs1;
         basemodel.mpcs4 = mpcs4;
-        direct_results.var_loggrossy_A = var_loggrossy_A;
-        direct_results.var_lognety_A = var_lognety_A;
+        if p.freq == 4
+            direct_results.stdev_loggrossy_A = stdev_loggrossy_A;
+            direct_results.stdev_lognety_A = stdev_lognety_A;
+        else
+            direct_results.stdev_loggrossy_A = sqrt(direct_results.var_loggrossy);
+            direct_results.stdev_lognety_A = sqrt(direct_results.var_lognety);
+        end
         direct_results.mean_grossy_A = mean_grossy_A;
+        if p.freq == 1
+            direct_results.mean_grossy_A = 1;
+        end
         
         for im = 1:numel(p.mpcfrac)
-            direct_results.avg_mpc1sim{im} = mean(basemodel.mpcs1{im});
-            direct_results.var_mpc1sim{im} = var(basemodel.mpcs1{im});
+            direct_results.avg_mpc1sim(im) = mean(basemodel.mpcs1{im});
+            direct_results.var_mpc1sim(im) = var(basemodel.mpcs1{im});
             if p.freq == 4
-                direct_results.avg_mpc4{im} = mean(basemodel.mpcs4{im});
-                direct_results.var_mpc4{im} = var(basemodel.mpcs4{im});
+                direct_results.avg_mpc4(im) = mean(basemodel.mpcs4{im});
+                direct_results.var_mpc4(im) = var(basemodel.mpcs4{im});
             end
         end
     end

@@ -1,4 +1,4 @@
-function [a1,betaindsim0,mpcs1,mpcs4,var_loggrossy_A,var_lognety_A,mean_grossy_A]... 
+function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]... 
                                 = direct_MPCs(p,prefs,income,basemodel,xgrid)
     % This function draws from the stationary distribution of assets and
     % the previous period's (yP,yF,beta) and simulates 1-4 periods to find MPCs.
@@ -87,12 +87,12 @@ function [a1,betaindsim0,mpcs1,mpcs4,var_loggrossy_A,var_lognety_A,mean_grossy_A
                     
     % Find income variances
     if p.freq == 4
-        var_loggrossy_A = var(log(sum(ygrosssim,2)));
-        var_lognety_A = var(log(sum(ynetsim,2)));
+        stdev_loggrossy_A = std(log(sum(ygrosssim,2)));
+        stdev_lognety_A = std(log(sum(ynetsim,2)));
         mean_grossy_A = mean(sum(ygrosssim,2));
     else
-        var_loggrossy_A = [];
-        var_lognety_A = [];
+        stdev_loggrossy_A = [];
+        stdev_lognety_A = [];
         mean_grossy_A = [];
     end
     

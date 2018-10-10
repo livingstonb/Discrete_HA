@@ -12,7 +12,7 @@ cd(path);
 %% SPECIFY BASELINE PARAMETERS
 
 % data frequency 
-baseline.freq        = 4; % 1 yearly, 4 quarterly
+baseline.freq        = 1; % 1 yearly, 4 quarterly
 
 % returns
 baseline.r           = 0.02;
@@ -22,7 +22,7 @@ baseline.dieprob     = 1/50;
 
 % preferences
 baseline.risk_aver   = 1;
-baseline.beta0       = 0.97; % annualized
+baseline.beta0       = 0.98; % annualized
 baseline.temptation  = 0;
 baseline.betaL       = 0.80;
 % betaH defined in main function file
@@ -39,14 +39,11 @@ baseline.nyT               = 11; %transitory component (not a state variable) (s
 % yT,yP (only relevant if LoadIncomeProcess==0)
 baseline.NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
 baseline.yTContinuous = 0; % doesn't seem to work properly
-baseline.sd_logyT.Q   = sqrt(0.2087);  % (Quarterly) 0.20, relevant if nyT>1
-baseline.sd_logyT.A   = sqrt(0.0497);  % (Annual) 0.20, relevant if nyT>1
+baseline.sd_logyT  = sqrt(0.0497);  % 0.20, relevant if nyT>1
 baseline.lambdaT      = 1; % arrival rate of shocks;
 baseline.nyP          = 11; %11 persistent component
-baseline.sd_logyP.Q   = sqrt(0.0108); % (Quarterly) 0.1950;
-baseline.sd_logyP.A   = sqrt(0.0422); % (Annual)
-baseline.rho_logyP.Q  = 0.9881;
-baseline.rho_logyP.A  = 0.9525;
+baseline.sd_logyP     = sqrt(.0422); % 0.1950;
+baseline.rho_logyP    = 0.9525;
 baseline.nyF          = 1;
 baseline.sd_logyF     = 0;
 
@@ -73,7 +70,7 @@ baseline.max_iter    = 1e5; % EGP
 baseline.tol_iter    = 1.0e-6; % EGP
 baseline.Nsim        = 100000; % 100000
 baseline.Tsim        = 200;
-baseline.nxlong      = 1500; % Grid size for final computations
+baseline.nxlong      = 500; % Grid size for final computations
  
 % beta iteration
 baseline.targetAY    = 3.5;
@@ -101,11 +98,11 @@ baseline.IterateBeta        = 1;
 baseline.Display            = 1;
 baseline.MakePlots          = 1;
 baseline.ComputeDirectMPC   = 1;
-baseline.Simulate           = 1;
+baseline.Simulate           = 0;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
-if Batch == 0
+if Batch == 1
     params = baseline;
 else
     params = parameters(baseline);
@@ -119,17 +116,18 @@ norisk_results = cell(1,Nparams); % Results from norisk model
 sim_results    = cell(1,Nparams); % Results from simulations
 exceptions     = cell(1,Nparams); % ME objects on any exceptions thrown
 checks         = cell(1,Nparams); % Information on failed sanity checks
+decomps        = cell(1,Nparams);
 
 for ip = 1:Nparams
     if Batch == 0
-        [SR,DR,NR,checks{ip}] = egp_AR1_IID_tax_recode(params(ip));
+        [SR,DR,NR,checks{ip},decomps{ip}] = egp_AR1_IID_tax_recode(params(ip));
         direct_results{ip}  = DR;
         norisk_results{ip}  = NR;
         sim_results{ip}     = SR;      
     else
         try
             % Main function
-            [SR,DR,NR,checks{ip}] = egp_AR1_IID_tax_recode(params(ip));
+            [SR,DR,NR,checks{ip},decomps{ip}] = egp_AR1_IID_tax_recode(params(ip));
             direct_results{ip}  = DR;
             norisk_results{ip}  = NR;
             sim_results{ip}     = SR;
@@ -139,6 +137,8 @@ for ip = 1:Nparams
         end
     end
 end
+
+T = create_table(params,direct_results,norisk_results,sim_results,decomps)
 
 %% SAVE
 % save('Results','sim_results','direct_results','norisk_results',...

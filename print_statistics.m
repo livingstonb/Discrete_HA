@@ -104,12 +104,12 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p,dec
     % Average MPC, 1 period
     for i = 1:numel(p.mpcfrac)
         if p.ComputeDirectMPC == 1
-            direct = sprintf(' %2.3f (Direct)',direct_results.avg_mpc1{i});
+            direct = sprintf(' %2.3f (Direct)',direct_results.avg_mpc1(i));
         else
             direct = ' --- (Direct) ';
         end
         if p.Simulate == 1
-            sim = sprintf(', %2.3f (Simulation)',sim_results.avg_mpc1{i});
+            sim = sprintf(', %2.3f (Simulation)',sim_results.avg_mpc1(i));
         else
             sim = ', --- (Simulation) ';
         end
@@ -123,13 +123,13 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p,dec
         fprintf('  Annual (4-Period) MPCs\n')
         for i = 1:numel(p.mpcfrac)
             if p.ComputeDirectMPC == 1
-                direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4{i});
+                direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4(i));
             else
                 direct = ' --- (Direct) ';
             end
 
             if p.Simulate == 1
-                sim = sprintf(', %2.3f (Simulation)',sim_results.avg_mpc4{i});
+                sim = sprintf(', %2.3f (Simulation)',sim_results.avg_mpc4(i));
             else
                 sim = ', --- (Simulation) ';
             end
