@@ -61,7 +61,10 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
         % set MPCs equal to one for households at the bottom of their
         % cash-on-hand grids
         if mpcamount{im} < 0
-            mpc1{im}(set_mpc_one,1) = 1;
+            mpc1{im}(set_mpc_one) = 1;
+            mpc2{im}(set_mpc_one) = 1;
+            mpc3{im}(set_mpc_one) = 1;
+            mpc4{im}(set_mpc_one) = 1;
         end
 
         avg_mpc1{im} = mean(mpc1{im});

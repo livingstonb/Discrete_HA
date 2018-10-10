@@ -166,8 +166,11 @@ function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_gros
                 continue
             end
             mpcs2{im} = (csim(:,2) - csim_noshock(:,2)) / mpcamount + mpcs1{im};
+            mpcs2{im}(set_mpc_one) = 1;
             mpcs3{im} = (csim(:,3) - csim_noshock(:,3)) / mpcamount + mpcs2{im};
+            mpcs3{im}(set_mpc_one) = 1;
             mpcs4{im} = (csim(:,4) - csim_noshock(:,4)) / mpcamount + mpcs3{im};
+            mpcs4{im}(set_mpc_one) = 1;
         end
     end
     
