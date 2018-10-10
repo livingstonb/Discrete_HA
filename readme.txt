@@ -6,6 +6,10 @@ M-FILES
 master.m - Set parameters and call main function file.
 	
 	Calls:		egp_AR1_IID_tax_recode.m
+			parameters.m
+
+parameters.m - Creates structure array containing all of our desired
+	parameterizations. Not yet complete.
 
 egp_AR1_IID_tax_recode.m - Main function file. Given a structure of parameters 
 	from master.m, this script calls various other functions to generate
@@ -17,7 +21,8 @@ egp_AR1_IID_tax_recode.m - Main function file. Given a structure of parameters
 			solve_EGP.m
 			solve_EGP_deterministic.m
 			simulate.m
-			direct_mpcs.m
+			direct_MPCs.m
+			direct_MPCs_deterministic.m
 			makeplots.m
 			print_statistics.m
 
@@ -39,13 +44,9 @@ solve_EGP.m - This function performs the method of endogenous grid functions to 
 
 	Calls:		find_stationary.m
 
-find_stationary.m - This function finds the stationary distribution and transition matrix
+find_stationary.m - This function finds the stationary distribution
 	for the passed arguments. Also returns the policy functions interpolated onto
-	the grid `xgridinput’. All outputs are associated with `xgridinput’. The argument
-	`ergodic_method’ allows the user to specify an iterative procedure to find
-	the ergodic distribution (ergodic_method=1) or a direct method (ergodic_method=2).
-	The argument `ergodic_tol’ specifies the tolerance of the iterative procedure
-	if ergodic_method is equal to 1.
+	the grid `xgridinput’. All outputs are associated with `xgridinput’.
 
 	Called by: 	egp_AR1_IID_tax_recode.m
 	
@@ -68,29 +69,21 @@ simulate.m - This function performs simulations based on the policy functions fo
 	
 	Calls:		simulation_MPCs.m
 
-expected_direct_mpcs.m (NOT USED) - This function finds expected MPCs by computing expected 
-	consumption functions in response to an income shock. Returns one- and four-period expected 
-	MPCs distributed according to basemodel.SSdist. Also returns average expected MPCs associated with 
-	these expected MPC distributions.
+simulation_MPCs.m - Computes MPCs from the simulated data generated in simulate().
 
-	Called by: 	none
-
+	Called by:	simulate.m
+	
 	Calls:		none
 
-expected_direct_mpcs_determinisitic.m (NOT USED) - Same as above but for norisk model.
-
-	Called by: 	none
-
-	Calls:		none
-
-direct_MPCs.m - Computes MPCs by drawing from the stationary distribution and simulating 4 periods.
+direct_MPCs.m - Computes MPCs by drawing from the stationary distribution of assets (not
+	cash-on-hand) and simulating 1-4 periods.
 
 	Called by: 	egp_AR1_IID_tax_recode.m
 
 	Calls:  	none
 
-direct_MPCs_deterministic.m - Computes MPCs by drawing from the stationary distribution and 
-simulating 4 periods, using the model with no income risk
+direct_MPCs_deterministic.m - Computes MPCs by using the sample for initial assets found in
+	direct_MPCs(), via simulating 1-4 periods.
 
 	Called by: 	egp_AR1_IID_tax_recode.m
 
@@ -114,10 +107,11 @@ STRUCTURES LOCAL TO egp_AR1_IID_tax_recode.m
 p -			stores parameters
 basemodel - 		stores objects from the model with income risk
 norisk 	- 		stores objects from the model without income risk
-simulations - 		stores simulation results associated with basemodel
+simulations - 		stores simulation objects associated with basemodel
 sgrid - 		stores savings grid in various sizes
 xgrid - 		stores cash-on-hand grid in various sizes
 income - 		stores objects from the income process
 prefs - 		stores objects related to preferences
-direct_results - 	stores important results associated with direct methods
-sim_results - 		stores important results associated with simulations
+direct_results - 	stores results associated with direct methods for basemodel
+sim_results - 		stores results associated with simulations for basemodel
+norisk_results 		stores results associated with direct methods for norisk model

@@ -97,11 +97,11 @@ baseline.percentiles = [10 25 50 75 90 95 99]; % in percent
 baseline.abars = [0 0.01 0.05];
 
 % OPTIONS
-baseline.IterateBeta        = 0;
+baseline.IterateBeta        = 1;
 baseline.Display            = 1;
-baseline.MakePlots          = 0;
+baseline.MakePlots          = 1;
 baseline.ComputeDirectMPC   = 1;
-baseline.Simulate           = 0;
+baseline.Simulate           = 1;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY

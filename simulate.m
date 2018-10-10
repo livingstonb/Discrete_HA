@@ -1,7 +1,7 @@
 function [sim_results,assetmeans] = simulate(p,income,model,...
                                         xgrid,prefs)
     % This function runs simulations based on the paratmers in 'p' and the
-    % policy functions in 'model'. Output is a structure.
+    % policy functions in 'model'.
     
     %% Simulate income process
     disp(['Simulating income process...']);

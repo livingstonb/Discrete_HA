@@ -1,5 +1,7 @@
 function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemodel)
-
+    % Starting from assets  basemodel.a1 drawn from the stationary distribution,
+    % this function simulates 1-4 periods to find MPCs
+    
     if p.Display == 1
         disp([' Simulating ' num2str(p.freq) ' periods to get deterministic MPCs'])
     end

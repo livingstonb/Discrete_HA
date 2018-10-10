@@ -20,7 +20,7 @@ function makeplots(p,xgrid,sgrid,basemodel,income,assetmeans)
 
     % consumption policy function
     subplot(2,4,1);
-    plot(xgrid.orig_wide(:,1,iyF,iyb),basemodel.con_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),basemodel.con_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
+    plot(xgrid.full(:,1,iyF,iyb),basemodel.con(:,1,iyF,iyb),'b-',xgrid.full(:,p.nyP,iyF,iyb),basemodel.con(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
     grid;
     xlim([p.borrow_lim p.xmax]);
     title('Consumption Policy Function');
@@ -28,7 +28,7 @@ function makeplots(p,xgrid,sgrid,basemodel,income,assetmeans)
 
     % savings policy function
     subplot(2,4,2);
-    plot(xgrid.orig_wide(:,1,iyF,iyb),basemodel.sav_wide(:,1,iyF,iyb)./xgrid.orig_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),basemodel.sav_wide(:,p.nyP,iyF,iyb)./xgrid.orig_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
+    plot(xgrid.full(:,1,iyF,iyb),basemodel.sav(:,1,iyF,iyb)./xgrid.full(:,1,iyF,iyb),'b-',xgrid.full(:,p.nyP,iyF,iyb),basemodel.sav(:,p.nyP,iyF,iyb)./xgrid.full(:,p.nyP,iyF,iyb),'r-','LineWidth',1);
     hold on;
     plot(sgrid.short,ones(p.nx,1),'k','LineWidth',0.5);
     hold off;
@@ -38,14 +38,14 @@ function makeplots(p,xgrid,sgrid,basemodel,income,assetmeans)
 
     % consumption policy function: zoomed in
     subplot(2,4,3);
-    plot(xgrid.orig_wide(:,1,iyF),basemodel.con_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),basemodel.con_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',2);
+    plot(xgrid.full(:,1,iyF),basemodel.con(:,1,iyF,iyb),'b-',xgrid.full(:,p.nyP,iyF,iyb),basemodel.con(:,p.nyP,iyF,iyb),'r-','LineWidth',2);
     grid;
     xlim([0 4]);
     title('Consumption: Zoomed');
 
      % savings policy function: zoomed in
     subplot(2,4,4);
-    plot(xgrid.orig_wide(:,1,iyF,iyb),basemodel.sav_wide(:,1,iyF,iyb)./xgrid.orig_wide(:,1,iyF,iyb),'b-',xgrid.orig_wide(:,p.nyP,iyF,iyb),basemodel.sav_wide(:,p.nyP,iyF,iyb)./xgrid.orig_wide(:,p.nyP,iyF,iyb),'r-','LineWidth',2);
+    plot(xgrid.full(:,1,iyF,iyb),basemodel.sav(:,1,iyF,iyb)./xgrid.full(:,1,iyF,iyb),'b-',xgrid.full(:,p.nyP,iyF,iyb),basemodel.sav(:,p.nyP,iyF,iyb)./xgrid.full(:,p.nyP,iyF,iyb),'r-','LineWidth',2);
     hold on;
     plot(sgrid.short,ones(p.nx,1),'k','LineWidth',0.5);
     hold off;
@@ -90,19 +90,18 @@ function makeplots(p,xgrid,sgrid,basemodel,income,assetmeans)
     end
 
     %% MPCs
-    if p.ComputeDirectMPC == 1
-        % STILL NEED TO GET MPCs sorted!
-        figure(2);
-        [mpc1_bins,mpc1_values] = create_bins(p,1,20,basemodel.a_longgrid_sort,...
-                                                        basemodel.SSdist_sort);
-        b = bar(mpc1_bins,mpc1_values);
-        b.FaceColor = 'blue';
-        b.EdgeColor = 'blue';
-        grid;
-        xlim([0 1]);
-        ylim([0 max(income_values)]);
-        title('One-Period MPC Histogram');
-    end
+%     if p.ComputeDirectMPC == 1
+%         figure(2);
+%         [mpc1_bins,mpc1_values] = create_bins(p,1,20,basemodel.a_longgrid_sort,...
+%                                                         basemodel.SSdist_sort);
+%         b = bar(mpc1_bins,mpc1_values);
+%         b.FaceColor = 'blue';
+%         b.EdgeColor = 'blue';
+%         grid;
+%         xlim([0 1]);
+%         ylim([0 max(income_values)]);
+%         title('One-Period MPC Histogram');
+%     end
 
     %% Histogram helper function
     function [bins,values] = create_bins(p,binmax,nbins,vals_sort,dist_sort)

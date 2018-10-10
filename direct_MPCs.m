@@ -1,5 +1,9 @@
 function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
-
+    % This function draws from the stationary distribution of assets and
+    % the previous period's (yP,yF,beta) and simulates 1-4 periods to find MPCs.
+    % The initial asset sample a1 is later passed to
+    % direct_MPCs_deterministic, as are the prior period's beta indices.
+    
     if p.Display == 1
         disp([' Simulating ' num2str(p.freq) ' period(s) to get MPCs'])
     end
@@ -50,8 +54,6 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
         % Initial assets from stationary distribution
         a1(partition) = basemodel.asset_values(ind);
     end
-    
-    
     
     %% SIMULATE INCOME AND BETA
 
@@ -115,10 +117,10 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
             for iyP = 1:p.nyP
                 idx = yPindsim(:,it)==iyP & yFindsim==iyF & betaindsim(:,it)==ib;
                 if mpcamount < 0 && it == 1
-                    below_grid = xsim(:,it)<xgrid.longgrid_wide(1,iyP,iyF);
+                    below_grid = xsim(:,it)<xgrid.longgrid(1,iyP,iyF);
                     % Bring households pushed below grid back up to grid
                     idx_below = idx & below_grid;
-                    xsim(idx_below,it) = xgrid.longgrid_wide(1,iyP,iyF);
+                    xsim(idx_below,it) = xgrid.longgrid(1,iyP,iyF);
                     % Update set_mpc_one
                     set_mpc_one = set_mpc_one | idx_below;
                 end
@@ -127,7 +129,7 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
             end
             end
             
-            ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
+            ssim(ssim(:,it) < p.borrow_lim,it) = p.borrow_lim;
 
             if it < p.freq
                 asim(:,it+1) = p.R * ssim(:,it);

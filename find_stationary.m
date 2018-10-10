@@ -3,8 +3,6 @@ function [distribution,sav] = find_stationary(p,model,...
     % Finds the stationary distribution and transition matrix for a given
     % xgridinput. sav is the saving policy function
     % associated with xgridinput.
-    % --> xgridinput should be of the _wide format: dimensions (assets,nyP,nyF)
-    % --> SkipStationary = 1 skips computing the stationary distribution
 
     if p.Display == 1
         fprintf(' Computing state-to-state transition probabilities... \n');
@@ -81,4 +79,6 @@ function [distribution,sav] = find_stationary(p,model,...
     opts.tol = 1e-8;
     [distribution,~] = eigs(statetrans',1,1,opts);
     distribution = full(distribution/sum(distribution));
+    
+    distribution = reshape(distribution,[nn,p.nyP,p.nyF,p.nb]);
 end

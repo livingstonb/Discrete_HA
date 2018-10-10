@@ -94,13 +94,13 @@ function [sim_results,direct_results,norisk_results,checks] ...
     sgrid.orig = sgrid.orig.^(1./p.xgrid_par);
     sgrid.orig = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid.orig;
     sgrid.short = sgrid.orig;
-    sgrid.wide = repmat(sgrid.short,[1 p.nyP p.nyF]);
+    sgrid.full = repmat(sgrid.short,[1 p.nyP p.nyF]);
     p.ns = p.nx;
 
     % xgrids (cash on hand), different min points for each value of (iyP,iyF)
     minyT               = kron(min(income.netymat,[],2),ones(p.nx,1));
-    xgrid.orig          = sgrid.wide(:) + minyT;
-    xgrid.orig_wide     = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
+    xgrid.orig          = sgrid.full(:) + minyT;
+    xgrid.full          = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
     
     % xgrid for model without income risk
     xgrid.norisk_short  = sgrid.short + income.meannety;
@@ -116,7 +116,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     xgrid.longgrid      = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid.longgrid;
     xgrid.longgrid      = repmat(xgrid.longgrid,p.nyP*p.nyF,1);
     xgrid.longgrid      = xgrid.longgrid + minyT;
-    xgrid.longgrid_wide = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
+    xgrid.longgrid      = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
     
     %% UTILITY FUNCTION, BEQUEST FUNCTION
 
@@ -181,19 +181,19 @@ function [sim_results,direct_results,norisk_results,checks] ...
     
     direct_results.mean_s = basemodel.mean_s;
     direct_results.mean_a = basemodel.mean_a;
-    direct_results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist;
-    direct_results.mean_grossy = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
-    direct_results.mean_loggrossy = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
-    direct_results.mean_nety = (netymat_onlonggrid*income.yTdist)' * basemodel.SSdist;
-    direct_results.mean_lognety = (log(netymat_onlonggrid)*income.yTdist)' * basemodel.SSdist;
-    direct_results.var_loggrossy = basemodel.SSdist' * (log(ymat_onlonggrid) - direct_results.mean_loggrossy).^2 * income.yTdist;
-    direct_results.var_lognety = basemodel.SSdist' * (log(netymat_onlonggrid)- direct_results.mean_lognety).^2 * income.yTdist;
+    direct_results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist(:);
+    direct_results.mean_grossy = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist(:);
+    direct_results.mean_loggrossy = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist(:);
+    direct_results.mean_nety = (netymat_onlonggrid*income.yTdist)' * basemodel.SSdist(:);
+    direct_results.mean_lognety = (log(netymat_onlonggrid)*income.yTdist)' * basemodel.SSdist(:);
+    direct_results.var_loggrossy = basemodel.SSdist(:)' * (log(ymat_onlonggrid) - direct_results.mean_loggrossy).^2 * income.yTdist;
+    direct_results.var_lognety = basemodel.SSdist(:)' * (log(netymat_onlonggrid)- direct_results.mean_lognety).^2 * income.yTdist;
     
     direct_results.mean_x_check = direct_results.mean_a + direct_results.mean_nety;
    
     % Reconstruct yPdist from computed stationary distribution for sanity
     % check
-    yPdist_check = reshape(basemodel.SSdist_wide,[p.nxlong p.nyP p.nyF*p.nb]);
+    yPdist_check = reshape(basemodel.SSdist,[p.nxlong p.nyP p.nyF*p.nb]);
     yPdist_check = sum(sum(yPdist_check,3),1)';
     
 
@@ -210,7 +210,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
     if norm(yPdist_check-income.yPdist) > 1e-3
         checks{end+1} = 'Bad_yP_Dist';
     end
-    if min(basemodel.SSdist) < - 1e-3
+    if min(basemodel.SSdist(:)) < - 1e-3
         checks{end+1} = 'NegativeStateProbability';
     end
 
@@ -225,7 +225,7 @@ function [sim_results,direct_results,norisk_results,checks] ...
         wpinterp = griddedInterpolant(sav_unique,basemodel.SScumdist(ind),'linear');
         if p.epsilon(i) == 0
             % Get exact figure
-            direct_results.constrained(i) = basemodel.SSdist' * (basemodel.sav_longgrid == 0);
+            direct_results.constrained(i) = basemodel.SSdist(:)' * (basemodel.sav_longgrid(:) == 0);
         else
             direct_results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany*p.freq);
         end
@@ -267,26 +267,26 @@ function [sim_results,direct_results,norisk_results,checks] ...
     % 1-period MPCs, model with income risk
     for im = 1:numel(p.mpcfrac)
         mpcamount = p.mpcfrac(im) * income.meany * p.freq;
-        xmpc = xgrid.longgrid_wide + mpcamount;
+        xmpc = xgrid.longgrid + mpcamount;
         set_mpc_one = false(p.nxlong,p.nyP,p.nyF,p.nb);
         conmpc = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
             if mpcamount < 0
-                below_grid = xmpc(:,iyP,iyF) < xgrid.longgrid_wide(1,iyP,iyF);
+                below_grid = xmpc(:,iyP,iyF) < xgrid.longgrid(1,iyP,iyF);
                 % Shift x back up to bottom of grid, for whom it's fallen
                 % below
-                xmpc(below_grid,iyP,iyF) = xgrid.longgrid_wide(1,iyP,iyF);
+                xmpc(below_grid,iyP,iyF) = xgrid.longgrid(1,iyP,iyF);
                 set_mpc_one(below_grid,iyP,iyF,ib) = true;
             end
             conmpc(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(xmpc(:,iyP,iyF));
         end
         end
         end
-        risk_mpcs1 = (conmpc(:) - basemodel.con_longgrid) / mpcamount;
+        risk_mpcs1 = (conmpc(:) - basemodel.con_longgrid(:)) / mpcamount;
         risk_mpcs1(set_mpc_one(:)) = 1;
-        direct_results.avg_mpc1{im} = basemodel.SSdist' * risk_mpcs1;
+        direct_results.avg_mpc1{im} = basemodel.SSdist(:)' * risk_mpcs1;
     end
 
     % 1-period MPCs, norisk 0.01 shock
@@ -297,12 +297,12 @@ function [sim_results,direct_results,norisk_results,checks] ...
     congrid = zeros(p.nxlong,p.nb);
     for ib  = 1:p.nb
         if mpcamount < 0
-            below_grid = xmpc < xgrid.longgrid(1);
-            xmpc(below_grid) = xgrid.longgrid(1);
+            below_grid = xmpc < xgrid.norisk_longgrid(1);
+            xmpc(below_grid) = xgrid.norisk_longgrid(1);
             set_mpc_one(below_grid,ib) = true;
         end
         conmpc(:,ib) = norisk.coninterp{ib}(xmpc);
-        congrid(:,ib) = norisk.coninterp{ib}(xgrid.norisk_longgrid);
+        congrid(:,ib) = norisk.coninterp{ib}(xgrid.norisk_longgrid(:));
     end
     norisk_mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
     norisk_mpcs1(set_mpc_one(:)) = 1;

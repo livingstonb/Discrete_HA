@@ -15,7 +15,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
 
     % initial guess for consumption function, stacked state combinations
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
-    con = p.r * repmat(xgrid.orig_wide(:),p.nb,1);
+    con = p.r * repmat(xgrid.full(:),p.nb,1);
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
@@ -39,39 +39,39 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
 
         % interpolate to get c(x') using c(x)
         % c(x)
-        conlast_wide = reshape(conlast,[p.ns p.nyP p.nyF p.nb]);
+        conlast = reshape(conlast,[p.ns p.nyP p.nyF p.nb]);
         % c(x')
         c_xp = zeros(p.ns,p.nyP,p.nyF,p.nb,p.nyT);
         
         % x'(s)
-        temp_sav_wide = repmat(sgrid.wide(:),p.nb,p.nyT);
-        temp_inc_wide = repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
-        xp_s_wide = (1+p.r)*temp_sav_wide + temp_inc_wide;
-        xp_s_wide = reshape(xp_s_wide,[p.ns p.nyP p.nyF p.nb p.nyT]);
+        temp_sav = repmat(sgrid.full(:),p.nb,p.nyT);
+        temp_inc = repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
+        xp_s = (1+p.r)*temp_sav + temp_inc;
+        xp_s = reshape(xp_s,[p.ns p.nyP p.nyF p.nb p.nyT]);
 
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            coninterp = griddedInterpolant(xgrid.orig_wide(:,iyP,iyF),conlast_wide(:,iyP,iyF,ib),'linear');
-            xp_s_wide_ib_iyF_iyP = xp_s_wide(:,iyP,iyF,ib,:);
-            c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_wide_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+            coninterp = griddedInterpolant(xgrid.full(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
+            xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
+            c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
         end
         end
         end
         
         % reshape to take expecation over yT first
         c_xp        = reshape(c_xp,[],p.nyT);
-        xp_s_wide   = reshape(xp_s_wide,[],p.nyT);
+        xp_s	    = reshape(xp_s,[],p.nyT);
 
         % matrix of next period muc, muc(x',yP',yF)
-        mucnext     = prefs.u1(c_xp) - p.temptation/(1+p.temptation) * prefs.u1(xp_s_wide);
+        mucnext     = prefs.u1(c_xp) - p.temptation/(1+p.temptation) * prefs.u1(xp_s);
         
         % now find muc this period as a function of s:
         % variables defined for each (x,yP,yF,beta) in state space,
         % column vecs of length p.nx*p.nyP*p.nyF*p.nb
-        muc_savtaxrate  = (1+p.savtax.*(repmat(sgrid.wide(:),p.nb,1)>=p.savtaxthresh));
+        muc_savtaxrate  = (1+p.savtax.*(repmat(sgrid.full(:),p.nb,1)>=p.savtaxthresh));
         muc_consumption = (1+p.r)*betastacked*Emat*(mucnext*income.yTdist);
-        muc_bequest     = p.dieprob*prefs.beq1(repmat(sgrid.wide(:),p.nb,1));
+        muc_bequest     = p.dieprob*prefs.beq1(repmat(sgrid.full(:),p.nb,1));
         
         % muc(s(x,yP,yF,beta))
         muc_s           = (1-p.dieprob) * muc_consumption ./ muc_savtaxrate...
@@ -79,32 +79,33 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
                 
         % c(s)
         con_s       = prefs.u1inv(muc_s);
+        
         % x(s) = s + stax + c(s)
-        x_s_wide    = repmat(sgrid.wide(:),p.nb,1)...
-                        + p.savtax * max(repmat(sgrid.wide(:),p.nb,1)-p.savtaxthresh,0)...
+        x_s         = repmat(sgrid.full(:),p.nb,1)...
+                        + p.savtax * max(repmat(sgrid.full(:),p.nb,1)-p.savtaxthresh,0)...
                         + con_s;
-        x_s_wide = reshape(x_s_wide,[p.ns p.nyP p.nyF p.nb]);
+        x_s         = reshape(x_s,[p.ns p.nyP p.nyF p.nb]);
 
         % interpolate from x(s) to get s(x)
-        sav_wide = zeros(p.ns,p.nyP,p.nyF,p.nb);
+        sav = zeros(p.ns,p.nyP,p.nyF,p.nb);
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            savinterp = griddedInterpolant(x_s_wide(:,iyP,iyF,ib),sgrid.wide(:,iyP,iyF),'linear');
-            sav_wide(:,iyP,iyF,ib) = savinterp(xgrid.orig_wide(:,iyP,iyF)); 
+            savinterp = griddedInterpolant(x_s(:,iyP,iyF,ib),sgrid.full(:,iyP,iyF),'linear');
+            sav(:,iyP,iyF,ib) = savinterp(xgrid.full(:,iyP,iyF)); 
         end
         end
         end
 
         % deal with borrowing limit
-        sav_wide(sav_wide<p.borrow_lim) = p.borrow_lim;
+        sav(sav<p.borrow_lim) = p.borrow_lim;
 
         % updated consumption function, column vec length of
         % length p.nx*p.nyP*p.nyF*p.nb
-        conupdate = repmat(xgrid.orig_wide(:),p.nb,1) - sav_wide(:)...
-                            - p.savtax * max(sav_wide(:)-p.savtaxthresh,0);
+        conupdate = repmat(xgrid.full(:),p.nb,1) - sav(:)...
+                            - p.savtax * max(sav(:)-p.savtaxthresh,0);
 
-        cdiff = max(abs(conupdate-conlast));
+        cdiff = max(abs(conupdate(:)-conlast(:)));
         if mod(iter,50) ==0
             disp([' EGP Iteration ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
@@ -118,10 +119,8 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
         return
     end
 
-    model.sav_wide = sav_wide;
-    model.sav = sav_wide(:);
-    model.con = conupdate;
-    model.con_wide = reshape(conupdate,[p.nx p.nyP p.nyF p.nb]);
+    model.sav = sav;
+    model.con = reshape(conupdate,[p.nx p.nyP p.nyF p.nb]);
     model.EGP_cdiff = cdiff;
     
     % create interpolants from optimal policy functions
@@ -131,9 +130,9 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
         model.savinterp{iyP,iyF,ib} = ...
-            griddedInterpolant(xgrid.orig_wide(:,iyP,iyF),model.sav_wide(:,iyP,iyF,ib),'linear');
+            griddedInterpolant(xgrid.full(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
         model.coninterp{iyP,iyF,ib} = ...
-            griddedInterpolant(xgrid.orig_wide(:,iyP,iyF),model.con_wide(:,iyP,iyF,ib),'linear');
+            griddedInterpolant(xgrid.full(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');
     end
     end
     end
@@ -142,11 +141,11 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     %% DISTRIBUTION
     
     % Distribution over (x,yP,yF,beta)
-    [model.SSdist,model.sav_longgrid_wide]...
-            = find_stationary(p,model,income,prefs,xgrid.longgrid_wide);
-    model.SSdist_wide = reshape(model.SSdist,[p.nxlong,p.nyP,p.nyF,p.nb]);
+    [model.SSdist,model.sav_longgrid]...
+            = find_stationary(p,model,income,prefs,xgrid.longgrid);
+    
     % Cumulative distribution, sorted by saving
-    temp = sortrows([model.sav_longgrid_wide(:) model.SSdist]);
+    temp = sortrows([model.sav_longgrid(:) model.SSdist(:)]);
     model.sav_longgrid_sort = temp(:,1);
     model.SSdist_sort = temp(:,2);
     model.SScumdist = cumsum(model.SSdist_sort);
@@ -154,13 +153,13 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     [model.SScumdist_unique,model.SScumdist_uniqueind] = unique(model.SScumdist,'last');
     
     % Distribution over (assets,yP_lag,yF_lag,beta_lag)
-    model.asset_values = p.R * model.sav_longgrid_wide;
+    model.asset_values = p.R * model.sav_longgrid;
     if p.Bequests == 1
-        model.asset_dist = model.SSdist_wide;
+        model.asset_dist = model.SSdist;
     else
         % Shift fraction of distribution to zero
-        model.asset_dist = (1-p.dieprob) * model.SSdist_wide;
-        model.asset_dist(1,:,:,:) = p.dieprob * sum(model.SSdist_wide,1);
+        model.asset_dist = (1-p.dieprob) * model.SSdist;
+        model.asset_dist(1,:,:,:) = p.dieprob * sum(model.SSdist,1);
     end
     asset_temp = sortrows([model.asset_values(:) model.asset_dist(:)]);
     model.asset_sortvalues = asset_temp(:,1);
@@ -170,32 +169,31 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     [model.asset_cumdist_unique,model.asset_uniqueind] = unique(model.asset_cumdist,'last');
     
     % mean saving, mean assets
-    model.mean_s = model.sav_longgrid_wide(:)' * model.SSdist;
+    model.mean_s = model.sav_longgrid(:)' * model.SSdist(:);
     model.mean_a = model.asset_values(:)' * model.asset_dist(:);
  
     % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
     % model, and from (x,yP,yF,beta) to (x,beta)
     if p.nyP>1 && p.nyF>1
         % a
-        model.assetdist_noincrisk =  sum(model.asset_dist,[2 3]);
+        model.assetdist_noincrisk =  sum(sum(model.asset_dist,3),2);
         % x
-        model.SSdist_noincrisk    = sum(model.SSdist_wide,[2 3]);
+        model.SSdist_noincrisk    = sum(sum(model.SSdist,3),2);
     elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
         model.assetdist_noincrisk =  sum(model.asset_dist,2);
-        model.SSdist_noincrisk    = sum(model.SSdist_wide,2);
+        model.SSdist_noincrisk    = sum(model.SSdist,2);
     elseif p.nyP==1 && p.nyF==1
         model.assetdist_noincrisk = model.asset_dist;
-        model.SSdist_noincrisk    = model.SSdist_wide;
+        model.SSdist_noincrisk    = model.SSdist;
     end
     
     % Policy functions on longgrid
-    model.sav_longgrid = model.sav_longgrid_wide(:);
-    model.con_longgrid = repmat(xgrid.longgrid_wide(:),p.nb,1)...
+    model.con_longgrid = repmat(xgrid.longgrid(:),p.nb,1)...
         - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid(:)-p.savtaxthresh,0);
-    model.con_longgrid_wide = reshape(model.con_longgrid,[p.nxlong,p.nyP,p.nyF,p.nb]);
+    model.con_longgrid = reshape(model.con_longgrid,[p.nxlong,p.nyP,p.nyF,p.nb]);
     
     % Mean consumption
-    model.mean_c = model.con_longgrid_wide(:)' * model.SSdist;
+    model.mean_c = model.con_longgrid(:)' * model.SSdist(:);
 
     fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany*p.freq));
     AYdiff = model.mean_a/(income.meany*p.freq) -  p.targetAY;
