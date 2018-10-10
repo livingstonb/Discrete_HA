@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -138,7 +138,7 @@ for ip = 1:Nparams
     end
 end
 
-T = create_table(params,direct_results,norisk_results,sim_results,decomps)
+T = create_table(params,direct_results,norisk_results,sim_results,decomps,checks,exceptions)
 
 %% SAVE
 % save('Results','sim_results','direct_results','norisk_results',...
