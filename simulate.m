@@ -135,7 +135,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     
     % fraction constrained
     for i = 1:numel(p.epsilon)
-        sim_results.constrained(i) = mean(ssim(:,p.Tsim)<=p.borrow_lim+p.epsilon(i)*income.meany*p.freq);
+        sim_results.constrained(i) = mean(asim(:,p.Tsim)<=p.borrow_lim+p.epsilon(i)*income.meany*p.freq);
     end
     
     % wealth percentiles

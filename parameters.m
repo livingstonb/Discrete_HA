@@ -6,7 +6,6 @@ function params = parameters(baseline)
     params(1)       = baseline;
     params(1).name  = 'baseline_A';
 
-
     %% PARAMETERIZATION 2 - BASELINE (QUARTERLY)
     params(2)       = baseline;
     params(2).name  = 'baseline_Q';

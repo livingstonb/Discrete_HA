@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
+path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -12,7 +12,7 @@ cd(path);
 %% SPECIFY BASELINE PARAMETERS
 
 % data frequency 
-baseline.freq        = 1; % 1 yearly, 4 quarterly
+baseline.freq        = 4; % 1 yearly, 4 quarterly
 
 % returns
 baseline.r           = 0.02;
@@ -73,7 +73,7 @@ baseline.max_iter    = 1e5; % EGP
 baseline.tol_iter    = 1.0e-6; % EGP
 baseline.Nsim        = 100000; % 100000
 baseline.Tsim        = 200;
-baseline.nxlong      = 1000; % Grid size for final computations
+baseline.nxlong      = 1500; % Grid size for final computations
  
 % beta iteration
 baseline.targetAY    = 3.5;
@@ -84,10 +84,10 @@ baseline.tolAY       = 1e-5;
 baseline.Nmpcsim     = 1e6;
 baseline.mpcfrac(1)  = -1e-5; %approximate thoeretical mpc
 baseline.mpcfrac(2)  = -0.01;
-baseline.mpcfrac(3)  = -0.05;
+baseline.mpcfrac(3)  = -0.1;
 baseline.mpcfrac(4)  = 1e-5; % approximate thoeretical mpc
 baseline.mpcfrac(5)  = 0.01; % used in decomposition, 1 percent of average gross labor income: approx $500
-baseline.mpcfrac(6)  = 0.05; % 5 percent of average gross labor income: approx $5000
+baseline.mpcfrac(6)  = 0.1; % 5 percent of average gross labor income: approx $5000
 
 % wealth statistics options
 baseline.epsilon = [0 0.005 0.01 0.02 0.05 0.1]; % fraction of mean labor income
@@ -101,7 +101,7 @@ baseline.IterateBeta        = 1;
 baseline.Display            = 1;
 baseline.MakePlots          = 1;
 baseline.ComputeDirectMPC   = 1;
-baseline.Simulate           = 0;
+baseline.Simulate           = 1;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY

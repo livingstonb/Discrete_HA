@@ -1,4 +1,5 @@
-function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgrid)
+function [a1,betaindsim0,mpcs1,mpcs4,var_loggrossy_A,var_lognety_A,mean_grossy_A]... 
+                                = direct_MPCs(p,prefs,income,basemodel,xgrid)
     % This function draws from the stationary distribution of assets and
     % the previous period's (yP,yF,beta) and simulates 1-4 periods to find MPCs.
     % The initial asset sample a1 is later passed to
@@ -83,6 +84,17 @@ function [a1,betaindsim0,mpcs1,mpcs4] = direct_MPCs(p,prefs,income,basemodel,xgr
     % Net income
     ynetsim = income.lumptransfer + (1-p.labtaxlow)*ygrosssim...
                         - p.labtaxhigh*max(ygrosssim-income.labtaxthresh,0);
+                    
+    % Find income variances
+    if p.freq == 4
+        var_loggrossy_A = var(log(sum(ygrosssim,2)));
+        var_lognety_A = var(log(sum(ynetsim,2)));
+        mean_grossy_A = mean(sum(ygrosssim,2));
+    else
+        var_loggrossy_A = [];
+        var_lognety_A = [];
+        mean_grossy_A = [];
+    end
     
     % Loop over mpcfrac sizes, first running simulation as if there was no
     % shock

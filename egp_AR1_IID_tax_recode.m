@@ -221,21 +221,21 @@ function [sim_results,direct_results,norisk_results,checks] ...
     % Create values for fraction constrained at every pt in asset space,
     % defining constrained as s <= epsilon * mean annual gross labor income 
     % + borrowing limit
+    [uniquevals, iu] = unique(basemodel.asset_sortvalues,'last');
+    wpinterp = griddedInterpolant(uniquevals,basemodel.asset_cumdist(iu),'linear');
     for i = 1:numel(p.epsilon)        
         % create interpolant to find fraction of constrained households
-        [sav_unique,ind] = unique(basemodel.sav_longgrid_sort,'last');
-        wpinterp = griddedInterpolant(sav_unique,basemodel.SScumdist(ind),'linear');
         if p.epsilon(i) == 0
             % Get exact figure
-            direct_results.constrained(i) = basemodel.SSdist(:)' * (basemodel.sav_longgrid(:) == 0);
+            direct_results.constrained(i) = basemodel.asset_dist(:)' * (basemodel.asset_values(:) == 0);
         else
             direct_results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany*p.freq);
         end
     end
     
     % Wealth percentiles
-    direct_results.wpercentiles = interp1(basemodel.asset_cumdist_unique,...
-            basemodel.asset_sortvalues(basemodel.asset_uniqueind),p.percentiles/100,'linear');
+    wpinterp_inverse = griddedInterpolant(basemodel.asset_cumdist_unique,basemodel.asset_sortvalues(basemodel.asset_uniqueind),'linear');
+    direct_results.wpercentiles = wpinterp_inverse(p.percentiles/100);
     
     % Top shares
     % Amount of total assets that reside in each pt on asset space
@@ -313,8 +313,16 @@ function [sim_results,direct_results,norisk_results,checks] ...
     %% MPCs FROM DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
     if p.ComputeDirectMPC == 1          
-        [basemodel.a1,basemodel.betaindsim0,basemodel.mpcs1,basemodel.mpcs4] ...
+        [a1,betaindsim0,mpcs1,mpcs4,var_loggrossy_A,var_lognety_A,mean_grossy_A] ...
                         = direct_MPCs(p,prefs,income,basemodel,xgrid);
+        basemodel.a1 = a1;
+        basemodel.betaindsim0 = betaindsim0;
+        basemodel.mpcs1 = mpcs1;
+        basemodel.mpcs4 = mpcs4;
+        direct_results.var_loggrossy_A = var_loggrossy_A;
+        direct_results.var_lognety_A = var_lognety_A;
+        direct_results.mean_grossy_A = mean_grossy_A;
+        
         for im = 1:numel(p.mpcfrac)
             direct_results.avg_mpc1sim{im} = mean(basemodel.mpcs1{im});
             direct_results.var_mpc1sim{im} = var(basemodel.mpcs1{im});

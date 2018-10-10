@@ -25,7 +25,7 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p,dec
     
     % Borrowing constrained    
     for i = 1:numel(p.epsilon)
-        label  = sprintf('    Fraction with s <= %3.1f%% mean ann gross inc:',p.epsilon(i)*100);
+        label  = sprintf('    Fraction with a <= %3.1f%% mean ann gross inc:',p.epsilon(i)*100);
         direct = sprintf(' %3.3f (Direct)',direct_results.constrained(i));
         if p.Simulate == 1
             sim    = sprintf(', %3.3f (Simulation)',sim_results.constrained(i));
