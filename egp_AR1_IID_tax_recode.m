@@ -21,28 +21,27 @@ function [sim_results,direct_results,norisk_results,checks] ...
     p.R = p.R^(1/p.freq);
     p.r = p.R - 1;
     
+    p.savtax        = p.savtax/p.freq;
+    p.Tsim          = p.Tsim * p.freq; % Increase simulation time if quarterly
     p.beta0         = p.beta0^(1/p.freq);
     p.dieprob       = 1 - (1-p.dieprob)^(1/p.freq);
     p.betaswitch    = 1 - (1-p.betaswitch)^(1/p.freq);
     p.betaL         = p.betaL^(1/p.freq);
     p.betaH         = 1/((p.R)*(1-p.dieprob));
-    p.savtax        = p.savtax/p.freq;
-    p.Tsim          = p.Tsim * p.freq; % Increase simulation time if quarterly
     
     if p.freq == 1
         p.sd_logyT  = p.sd_logyT.A;
         p.sd_logyP  = p.sd_logyP.A;
         p.rho_logyP = p.rho_logyP.A;        
-    else
+    elseif p.freq == 4
         p.sd_logyT  = p.sd_logyT.Q;
         p.sd_logyP  = p.sd_logyP.Q;
         p.rho_logyP = p.rho_logyP.Q;
+    else
+        error('Frequency must be 1 or 4')
     end
 
     p.N = p.nx*p.nyF*p.nyP*p.nb;
-    if (p.freq ~= 1) && (p.freq ~= 4)
-        error('Frequency must be 1 or 4')
-    end
    
 
     %% LOAD INCOME VARIABLES
@@ -86,6 +85,10 @@ function [sim_results,direct_results,norisk_results,checks] ...
         case 5
             prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
     end
+    
+    if (max(p.beta0+prefs.betagrid0) >= p.betaH) && (p.IterateBeta == 0)
+        error('Max beta on betagrid too high, no stationary distribution')
+    end
 
     %% ASSET GRIDS
 
@@ -119,7 +122,6 @@ function [sim_results,direct_results,norisk_results,checks] ...
     xgrid.longgrid      = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
     
     %% UTILITY FUNCTION, BEQUEST FUNCTION
-
     if p.risk_aver==1
         prefs.u = @(c)log(c);
         prefs.beq = @(a) p.bequest_weight.* log(a+ p.bequest_luxury);
@@ -340,10 +342,11 @@ function [sim_results,direct_results,norisk_results,checks] ...
         for ia = 1:numel(p.abars)
             % Use the initial distribution of assets from direct_MPCs(), a1
             cind  = basemodel.a1 <= p.abars(ia); % constrained households
+            Ntotal = numel(basemodel.a1);
             decomp(ia).term1 = m_ra;
-            decomp(ia).term2 = mean( (basemodel.mpcs1{5} - m_ra) .* cind);
-            decomp(ia).term3 = mean( (norisk.mpcs1 - m_ra) .* (~cind));
-            decomp(ia).term4 = mean( (basemodel.mpcs1{5} - norisk.mpcs1) .* (~cind));
+            decomp(ia).term2 = sum( (basemodel.mpcs1{5} - m_ra) .* cind/Ntotal);
+            decomp(ia).term3 = sum( (norisk.mpcs1 - m_ra) .* (~cind)/Ntotal);
+            decomp(ia).term4 = sum( (basemodel.mpcs1{5} - norisk.mpcs1) .* (~cind)/Ntotal);
         end
     end
     

@@ -101,7 +101,7 @@ baseline.IterateBeta        = 1;
 baseline.Display            = 1;
 baseline.MakePlots          = 1;
 baseline.ComputeDirectMPC   = 1;
-baseline.Simulate           = 1;
+baseline.Simulate           = 0;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
