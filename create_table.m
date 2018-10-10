@@ -34,18 +34,18 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
             'Mean quarterly MPC (size = 1e-5)'
             'Mean quarterly MPC (size = 0.01)'
             'Mean quarterly MPC (size = 0.1)'
-            'MPC decomp around 0 (size = 0.01), term 1'
-            'MPC decomp around 0 (size = 0.01), term 2'
-            'MPC decomp around 0 (size = 0.01), term 3'
-            'MPC decomp around 0 (size = 0.01), term 4'
-            'MPC decomp around 0.01 (size = 0.01), term 1'
-            'MPC decomp around 0.01 (size = 0.01), term 2'
-            'MPC decomp around 0.01 (size = 0.01), term 3'
-            'MPC decomp around 0.01 (size = 0.01), term 4'
-            'MPC decomp around 0.05 (size = 0.01), term 1'
-            'MPC decomp around 0.05 (size = 0.01), term 2'
-            'MPC decomp around 0.05 (size = 0.01), term 3'
-            'MPC decomp around 0.05 (size = 0.01), term 4'
+            'Decomp around 0 (size 0.01), RA MPC'
+            'Decomp around 0 (size 0.01), HtM Effect'
+            'Decomp around 0 (size 0.01), Non-HtM, constraint'
+            'Decomp around 0 (size 0.01), Non-HtM, inc risk'
+            'Decomp around 0.01 (size 0.01), RA MPC'
+            'Decomp around 0.01 (size 0.01), HtM Effect'
+            'Decomp around 0.01 (size 0.01), Non-HtM, constraint'
+            'Decomp around 0.01 (size 0.01), Non-HtM, inc risk'
+            'Decomp around 0.05 (size 0.01), RA MPC'
+            'Decomp around 0.05 (size 0.01), HtM Effect'
+            'Decomp around 0.05 (size 0.01), Non-HtM, constraint'
+            'Decomp around 0.05 (size 0.01), Non-HtM, inc risk'
             };
 
     % Iterate over parameterizations
@@ -111,13 +111,14 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
             decomps{ip}(3).term4];                
         
         % Add column name
-        names{end+1} = params(ip).name;
+        names{end+1} = p.name;
         
         % Add this column to table
         tablearray(:,ip) = column;
     end
     
-    T = table(tablearray,'RowNames',rows)
+    T = array2table(tablearray,'VariableNames',names);
+    T.Properties.RowNames = rows;
     writetable(T,'/Users/brianlivingston/Documents/table.xls');
 
 end
