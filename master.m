@@ -5,11 +5,12 @@ clear;
 close all;
 
 path = '/Users/Brian/Documents/GitHub/MPCrecode';
+savetablepath = '/Users/Brian/Documents/output.xls';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
 
-%% PARAMATERS IF NOT RUNNING IN BATCH
+%% PARAMETERS IF NOT RUNNING IN BATCH
 
 params0.name = 'params0';
 
@@ -142,7 +143,7 @@ for ip = 1:Nparams
 end
 
 T = create_table(params,direct_results,norisk_results,sim_results,decomps,checks,exceptions);
-% writetable(T,'/Users/brianlivingston/Documents/table.xls');
+% writetable(T,savetablepath);
     
 %% SAVE
 % save('Results','sim_results','direct_results','norisk_results',...

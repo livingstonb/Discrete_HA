@@ -1,6 +1,4 @@
 function T = create_table(params,direct_results,norisk_results,sim_results,decomps,checks,exceptions)
-    Nrows = 46;
-
     % Rownames
     rows = {'Beta (Annualized)'
             'Mean gross annual income'
@@ -49,9 +47,10 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
             'Decomp around 0.05 (size 0.01), Non-HtM, inc risk'
             'Failed one or more checks'
             };
-
+    Nrows = numel(rows);
+    
     % Iterate over parameterizations
-    names = {};
+    names = {params.name};
     tablearray = zeros(Nrows,numel(params));
     for ip = 1:numel(params)
         p = params(ip);
@@ -78,51 +77,19 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
                 direct_results{ip}.stdev_loggrossy_A    % Stdev log annual gross income
                 direct_results{ip}.stdev_lognety_A      % Stdev log annual net income
                 direct_results{ip}.mean_a               % Mean assets
-                direct_results{ip}.constrained(1)       % Fraction with a < eps * mean ann gross inc
-                direct_results{ip}.constrained(2)
-                direct_results{ip}.constrained(3)
-                direct_results{ip}.constrained(4)
-                direct_results{ip}.constrained(5)
-                direct_results{ip}.constrained(6)
-                direct_results{ip}.wpercentiles(1)      % Wealth percentiles
-                direct_results{ip}.wpercentiles(2)
-                direct_results{ip}.wpercentiles(3)
-                direct_results{ip}.wpercentiles(4)
-                direct_results{ip}.wpercentiles(5)
-                direct_results{ip}.wpercentiles(6)
-                direct_results{ip}.wpercentiles(7)
+                direct_results{ip}.constrained(:)       % Fraction with a < eps * mean ann gross inc
+                direct_results{ip}.wpercentiles(:)      % Wealth percentiles
                 direct_results{ip}.top10share           % Top 10% wealth share
                 direct_results{ip}.top1share            % Top 1% wealth share
                 direct_results{ip}.wealthgini           % Gini coefficient
-                mpcs_A(1)                               % Annual MPCs
-                mpcs_A(2)
-                mpcs_A(3)
-                mpcs_A(4)
-                mpcs_A(5)
-                mpcs_A(6)
-                mpcs_Q(1)                               % Quarterly MPCs (if freq = 4)
-                mpcs_Q(2)
-                mpcs_Q(3)
-                mpcs_Q(4)
-                mpcs_Q(5)
-                mpcs_Q(6)
-                decomps{ip}(1).term1                    % Decomposition around a=0
-                decomps{ip}(1).term2  
-                decomps{ip}(1).term3               
-                decomps{ip}(1).term4
-                decomps{ip}(2).term1                    
-                decomps{ip}(2).term2
-                decomps{ip}(2).term3
-                decomps{ip}(2).term4
-                decomps{ip}(3).term1                    
-                decomps{ip}(3).term2
-                decomps{ip}(3).term3
-                decomps{ip}(3).term4
+                mpcs_A(:)                               % Annual MPCs
+                mpcs_Q(:)                               % Quarterly MPCs (if freq = 4)
+                cell2mat({decomps{ip}.term1})'          % Decomposition
+                cell2mat({decomps{ip}.term2})'  
+                cell2mat({decomps{ip}.term3})'               
+                cell2mat({decomps{ip}.term4})'
                 numel(checks{ip})>0];                
         end
-        
-        % Add column name
-        names{end+1} = p.name;
 
         % Add this column to table
         tablearray(:,ip) = column;    
