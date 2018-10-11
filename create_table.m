@@ -66,7 +66,7 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
             % Annual and quarterly MPCs
             if p.freq == 1
                 mpcs_A = direct_results{ip}.avg_mpc1(:);
-                mpcs_Q = NaN(6,1);
+                mpcs_Q = NaN(numel(p.mpcfrac),1);
             else
                 mpcs_A = direct_results{ip}.avg_mpc4(:);
                 mpcs_Q = direct_results{ip}.avg_mpc1(:);

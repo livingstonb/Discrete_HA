@@ -51,7 +51,7 @@ function income = gen_income_variables(p)
         yTdist = lp;
         yTcumdist = cumsum(yTdist,1);
 
-    elseif nyT==1
+    elseif p.nyT==1
         logyTgrid = 0;
         yTdist = 1;
     end

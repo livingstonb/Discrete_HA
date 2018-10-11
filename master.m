@@ -103,7 +103,7 @@ params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 1;
-Batch = 0; % Run alternate parameterizations
+Batch = 1; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
 if Batch == 0
