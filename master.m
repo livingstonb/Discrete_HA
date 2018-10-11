@@ -73,7 +73,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
-params0.nxlong      = 1500; % Grid size for final computations
+params0.nxlong      = 1000; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;

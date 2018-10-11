@@ -187,12 +187,12 @@ function params = parameters()
     params(end).sd_logyT = sqrt(0.02);
     
     % iii
-%     params(end+1) = baseline;
-%     params(end).name = 'a_iii_NoTrans_ReEst';
-%     params(end).rho_logyP = 0.8592;
-%     params(end).sd_logyP = sqrt(0.132);
-%     params(end).nyT = 1;
-%     params(end).sd_logyT = 0;
+    params(end+1) = baseline;
+    params(end).name = 'a_iii_NoTrans_ReEst';
+    params(end).rho_logyP = 0.8592;
+    params(end).sd_logyP = sqrt(0.132);
+    params(end).nyT = 1;
+    params(end).sd_logyT = 0;
 
     % iv
     params(end+1) = baseline;
@@ -211,26 +211,26 @@ function params = parameters()
     params(end).name = 'a_vi_LowPers_NotReEst';
     params(end).rho_logyP = 0.9;
 
-%     % vii
-%     params(end+1) = baseline;
-%     params(end).name = 'a_vii_HighPers_ReEst';
-%     params(end).rho_logyP = 0.99;
-%     params(end).sd_logyP = sqrt(0.0088);
-%     params(end).sd_logyT = sqrt(0.0667);
-%     
-%     % viii
-%     params(end+1) = baseline;
-%     params(end).name = 'a_viii_EvenHigherPers_ReEst';
-%     params(end).rho_logyP = 0.995;
-%     params(end).sd_logyP = 0.0043;
-%     params(end).sd_logyT = 0.0688;
-%     
-%     % ix
-%     params(end+1) = baseline;
-%     params(end).name = 'a_ix_HighPersNoTrans_ReEst';
-%     params(end).rho_logyP = 0.99;
-%     params(end).sd_logyP = 0.0088;
-%     params(end).nyT = 1;
-%     params(end).sd_logyT = 0;
+    % vii
+    params(end+1) = baseline;
+    params(end).name = 'a_vii_HighPers_ReEst';
+    params(end).rho_logyP = 0.99;
+    params(end).sd_logyP = sqrt(0.0088);
+    params(end).sd_logyT = sqrt(0.0667);
+    
+    % viii
+    params(end+1) = baseline;
+    params(end).name = 'a_viii_EvenHigherPers_ReEst';
+    params(end).rho_logyP = 0.995;
+    params(end).sd_logyP = 0.0043;
+    params(end).sd_logyT = 0.0688;
+    
+    % ix
+    params(end+1) = baseline;
+    params(end).name = 'a_ix_HighPersNoTrans_ReEst';
+    params(end).rho_logyP = 0.99;
+    params(end).sd_logyP = 0.0088;
+    params(end).nyT = 1;
+    params(end).sd_logyT = 0;
     
 end
