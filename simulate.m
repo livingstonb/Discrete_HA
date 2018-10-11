@@ -34,9 +34,10 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     end
     
     % simulate yT outside of time loop
-    if p.yTContinuous == 1
-        logyTsim = - 0.5*p.sd_logyT.^2 + yTrand*p.sd_logyT;
-    else
+    if p.yTContinuous == 1 && p.nyT > 1
+        lambdarand = rand(p.Nsim,p.Tsim);
+        logyTsim = (lambdarand < p.lambdaT) .* (- 0.5*p.sd_logyT.^2 + yTrand*p.sd_logyT);
+    elseif p.yTContinuous == 0 && p.nyT > 1
         for iyT = 1:p.nyT
             if iyT == 1
                 idx = yTrand<income.yTcumdist(iyT);
@@ -45,7 +46,10 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
             end
             yTindsim(idx) = iyT;
         end
+    elseif p.nyT == 0
+        logyTsim = 0;
     end
+    
         
     % iterate over time periods
     for it = 1:p.Tsim
@@ -57,7 +61,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     end
     
     % gross income
-    if p.yTContinuous == 1
+    if (p.yTContinuous==1) || (p.nyT==0)
         ygrosssim = bsxfun(@times,income.yPgrid(yPindsim).*exp(logyTsim),income.yFgrid(yFindsim));
     else
         ygrosssim = bsxfun(@times,income.yPgrid(yPindsim).*income.yTgrid(yTindsim),income.yFgrid(yFindsim));

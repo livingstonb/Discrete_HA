@@ -178,6 +178,7 @@ function params = parameters()
     % i
     params(end+1) = baseline;
     params(end).name = 'a_i_NoTransShocks';
+    params(end).nyT = 1;
     params(end).sd_logyT = 0;
     
     % ii
@@ -190,6 +191,7 @@ function params = parameters()
 %     params(end).name = 'a_iii_NoTrans_ReEst';
 %     params(end).rho_logyP = 0.8592;
 %     params(end).sd_logyP = sqrt(0.132);
+%     params(end).nyT = 1;
 %     params(end).sd_logyT = 0;
 
     % iv
@@ -228,6 +230,7 @@ function params = parameters()
 %     params(end).name = 'a_ix_HighPersNoTrans_ReEst';
 %     params(end).rho_logyP = 0.99;
 %     params(end).sd_logyP = 0.0088;
+%     params(end).nyT = 1;
 %     params(end).sd_logyT = 0;
     
 end

@@ -43,7 +43,7 @@ params0.nyT               = 11; %transitory component (not a state variable) (se
 params0.NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
 params0.yTContinuous = 0; % doesn't seem to work properly
 params0.sd_logyT     = sqrt(0.0497);  % 0.20, relevant if nyT>1
-params0.lambdaT      = 1; % arrival rate of shocks;
+params0.lambdaT      = 0.6; % arrival rate of shocks;
 params0.nyP          = 11; %11 persistent component
 params0.sd_logyP     = sqrt(.0422); % 0.1950;
 params0.rho_logyP    = 0.9525;
@@ -97,11 +97,11 @@ params0.percentiles = [10 25 50 75 90 95 99]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 1;
+params0.IterateBeta        = 0;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
-params0.Simulate           = 0;
+params0.Simulate           = 1;
 Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
