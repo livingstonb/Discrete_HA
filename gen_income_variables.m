@@ -45,8 +45,8 @@ function income = gen_income_variables(p)
 
         %fit thjose moments
         optionsNLLS = optimoptions(@lsqnonlin,'Display','Off');
-        lpar = lsqnonlin(@(lp)discretize_normal_var_kurt(lp,p.nyT,lmu2,lmu4),[2 0.1],[],[],optionsNLLS);
-        [lf,lx,lp] = discretize_normal_var_kurt(lpar,p.nyT,lmu2,lmu4);
+        lpar = lsqnonlin(@(lp)discretize_normal_var_kurt(lp,p.nyT,-lmu2/2,lmu2,lmu4),[2 0.1],[],[],optionsNLLS);
+        [lf,lx,lp] = discretize_normal_var_kurt(lpar,p.nyT,-lmu2/2,lmu2,lmu4);
         logyTgrid = lx;
         yTdist = lp;
         yTcumdist = cumsum(yTdist,1);

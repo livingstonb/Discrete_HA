@@ -1,8 +1,8 @@
-function [f,lx,lp] = discretize_normal_var_kurt(y,n,mu2,mu4)
+function [f,lx,lp] = discretize_normal_var_kurt(y,n,mu1,mu2,mu4)
     lwidth = y(1);
     llambda = y(2);
-    lx = linspace(-lwidth*sqrt(mu2), lwidth*sqrt(mu2),n)';
-    lp = discrete_normal_alt(lx,0,sqrt(mu2));
+    lx = linspace(-lwidth*sqrt(mu2)+mu1, lwidth*sqrt(mu2)+mu1,n)';
+    lp = discrete_normal_alt(lx,mu1,sqrt(mu2));
     lmass0 = zeros(n,1);
     lmass0((n+1)/2) = 1; 
     

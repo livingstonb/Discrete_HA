@@ -41,7 +41,7 @@ params0.nyT               = 11; %transitory component (not a state variable) (se
 
 % yT,yP (only relevant if LoadIncomeProcess==0)
 params0.NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
-params0.yTContinuous = 0; % doesn't seem to work properly
+params0.yTContinuous = 1; % doesn't seem to work properly
 params0.sd_logyT     = sqrt(0.0497);  % 0.20, relevant if nyT>1
 params0.lambdaT      = 0.6; % arrival rate of shocks;
 params0.nyP          = 11; %11 persistent component
@@ -74,7 +74,7 @@ params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
 params0.nxlong      = 1500; % Grid size for final computations
- 
+
 % beta iteration
 params0.targetAY    = 3.5;
 params0.maxiterAY   = 40;
