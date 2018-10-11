@@ -195,7 +195,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     % Mean consumption
     model.mean_c = model.con_longgrid(:)' * model.SSdist(:);
 
-    fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany*p.freq));
-    AYdiff = model.mean_a/(income.meany*p.freq) -  p.targetAY;
+    fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany1*p.freq));
+    AYdiff = model.mean_a/(income.meany1*p.freq) -  p.targetAY;
 
 end

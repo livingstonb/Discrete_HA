@@ -37,7 +37,7 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     income = gen_income_variables(p);
     
     % savtaxthresh should be a multiple of mean gross labor income
-    p.savtaxthresh  = p.savtaxthresh * income.meany;
+    p.savtaxthresh  = p.savtaxthresh * income.meany1;
 
     %% DISCOUNT FACTOR
     % discount factor distribution
@@ -94,11 +94,11 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     xgrid.full          = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
     
     % xgrid for model without income risk
-    xgrid.norisk_short  = sgrid.short + income.meannety;
+    xgrid.norisk_short  = sgrid.short + income.meannety1;
     xgrid.norisk_longgrid = linspace(0,1,p.nxlong);
     xgrid.norisk_longgrid = xgrid.norisk_longgrid.^(1/p.xgrid_par);
     xgrid.norisk_longgrid = p.borrow_lim + (p.xmax-p.borrow_lim).*xgrid.norisk_longgrid;
-    xgrid.norisk_longgrid = xgrid.norisk_longgrid + income.meannety;
+    xgrid.norisk_longgrid = xgrid.norisk_longgrid + income.meannety1;
     
     % create longer xgrid
     minyT = kron(min(income.netymat,[],2),ones(p.nxlong,1));
@@ -172,14 +172,16 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     direct_results.mean_s = basemodel.mean_s;
     direct_results.mean_a = basemodel.mean_a;
     direct_results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist(:);
-    direct_results.mean_grossy = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist(:);
-    direct_results.mean_loggrossy = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist(:);
-    direct_results.mean_nety = (netymat_onlonggrid*income.yTdist)' * basemodel.SSdist(:);
-    direct_results.mean_lognety = (log(netymat_onlonggrid)*income.yTdist)' * basemodel.SSdist(:);
-    direct_results.var_loggrossy = basemodel.SSdist(:)' * (log(ymat_onlonggrid) - direct_results.mean_loggrossy).^2 * income.yTdist;
-    direct_results.var_lognety = basemodel.SSdist(:)' * (log(netymat_onlonggrid)- direct_results.mean_lognety).^2 * income.yTdist;
     
-    direct_results.mean_x_check = direct_results.mean_a + direct_results.mean_nety;
+    % One-period income statistics
+    direct_results.mean_grossy1 = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist(:);
+    direct_results.mean_loggrossy1 = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist(:);
+    direct_results.mean_nety1 = (netymat_onlonggrid*income.yTdist)' * basemodel.SSdist(:);
+    direct_results.mean_lognety1 = (log(netymat_onlonggrid)*income.yTdist)' * basemodel.SSdist(:);
+    direct_results.var_loggrossy1 = basemodel.SSdist(:)' * (log(ymat_onlonggrid) - direct_results.mean_loggrossy1).^2 * income.yTdist;
+    direct_results.var_lognety1 = basemodel.SSdist(:)' * (log(netymat_onlonggrid)- direct_results.mean_lognety1).^2 * income.yTdist;
+    
+    direct_results.mean_x_check = direct_results.mean_a + direct_results.mean_nety1;
    
     % Reconstruct yPdist from computed stationary distribution for sanity
     % check
@@ -188,13 +190,13 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     
 
     %% RECORD PROBLEMS
-    if  abs((p.targetAY - direct_results.mean_a/(income.meany*p.freq))/p.targetAY) > 1e-3
+    if  abs((p.targetAY - direct_results.mean_a/(income.meany1*p.freq))/p.targetAY) > 1e-3
         checks{end+1} = 'BadAY';
     end
     if abs((direct_results.mean_x-direct_results.mean_x_check)/direct_results.mean_x)> 1e-3
         checks{end+1} = 'DistNotStationary';
     end
-    if abs((income.meannety-direct_results.mean_nety)/income.meannety) > 1e-3
+    if abs((income.meannety1-direct_results.mean_nety1)/income.meannety1) > 1e-3
         checks{end+1} = 'BadNetIncomeMean';
     end
     if norm(yPdist_check-income.yPdist) > 1e-3
@@ -217,7 +219,7 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
             % Get exact figure
             direct_results.constrained(i) = basemodel.asset_dist(:)' * (basemodel.asset_values(:) == 0);
         else
-            direct_results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany*p.freq);
+            direct_results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany1*p.freq);
         end
     end
     
@@ -252,52 +254,7 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     else
         assetmeans = [];
     end
-    
-    %% DIRECTLY COMPUTED MPCs (will probably not be used)
-    % 1-period MPCs, model with income risk
-    for im = 1:numel(p.mpcfrac)
-        mpcamount = p.mpcfrac(im) * income.meany * p.freq;
-        xmpc = xgrid.longgrid + mpcamount;
-        set_mpc_one = false(p.nxlong,p.nyP,p.nyF,p.nb);
-        conmpc = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
-        for ib  = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP
-            if mpcamount < 0
-                below_grid = xmpc(:,iyP,iyF) < xgrid.longgrid(1,iyP,iyF);
-                % Shift x back up to bottom of grid, for whom it's fallen
-                % below
-                xmpc(below_grid,iyP,iyF) = xgrid.longgrid(1,iyP,iyF);
-                set_mpc_one(below_grid,iyP,iyF,ib) = true;
-            end
-            conmpc(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(xmpc(:,iyP,iyF));
-        end
-        end
-        end
-        risk_mpcs1 = (conmpc(:) - basemodel.con_longgrid(:)) / mpcamount;
-        risk_mpcs1(set_mpc_one(:)) = 1;
-        direct_results.avg_mpc1(im) = basemodel.SSdist(:)' * risk_mpcs1;
-    end
 
-    % 1-period MPCs, norisk 0.01 shock
-    mpcamount = 0.01 * income.meany * p.freq;
-    xmpc = xgrid.norisk_longgrid + mpcamount;
-    set_mpc_one = false(p.nxlong,p.nb);
-    conmpc = zeros(p.nxlong,p.nb);
-    congrid = zeros(p.nxlong,p.nb);
-    for ib  = 1:p.nb
-        if mpcamount < 0
-            below_grid = xmpc < xgrid.norisk_longgrid(1);
-            xmpc(below_grid) = xgrid.norisk_longgrid(1);
-            set_mpc_one(below_grid,ib) = true;
-        end
-        conmpc(:,ib) = norisk.coninterp{ib}(xmpc);
-        congrid(:,ib) = norisk.coninterp{ib}(xgrid.norisk_longgrid(:));
-    end
-    norisk_mpcs1 = (conmpc(:) - congrid(:)) / mpcamount;
-    norisk_mpcs1(set_mpc_one(:)) = 1;
-    norisk_results.avg_mpc1 = basemodel.SSdist_noincrisk(:)' * norisk_mpcs1;
-    
     %% MPCs FROM DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
     if p.ComputeDirectMPC == 1          
@@ -307,21 +264,24 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         basemodel.betaindsim0 = betaindsim0;
         basemodel.mpcs1 = mpcs1;
         basemodel.mpcs4 = mpcs4;
+        
+        % Find annual mean and standard deviations of income
         if p.freq == 4
+            % Direct computations
+            direct_results.mean_grossy_A = direct_results.mean_grossy1 * 4;
+            % Simulations
             direct_results.stdev_loggrossy_A = stdev_loggrossy_A;
-            direct_results.stdev_lognety_A = stdev_lognety_A;
+            direct_results.stdev_lognety_A = stdev_lognety_A;     
         else
-            direct_results.stdev_loggrossy_A = sqrt(direct_results.var_loggrossy);
-            direct_results.stdev_lognety_A = sqrt(direct_results.var_lognety);
-        end
-        direct_results.mean_grossy_A = mean_grossy_A;
-        if p.freq == 1
-            direct_results.mean_grossy_A = 1;
+            % Use direct computations
+            direct_results.mean_grossy_A = direct_results.mean_grossy1;
+            direct_results.stdev_loggrossy_A = sqrt(direct_results.var_loggrossy1);
+            direct_results.stdev_lognety_A = sqrt(direct_results.var_lognety1);
         end
         
         for im = 1:numel(p.mpcfrac)
-            direct_results.avg_mpc1sim(im) = mean(basemodel.mpcs1{im});
-            direct_results.var_mpc1sim(im) = var(basemodel.mpcs1{im});
+            direct_results.avg_mpc1(im) = mean(basemodel.mpcs1{im});
+            direct_results.var_mpc1(im) = var(basemodel.mpcs1{im});
             if p.freq == 4
                 direct_results.avg_mpc4(im) = mean(basemodel.mpcs4{im});
                 direct_results.var_mpc4(im) = var(basemodel.mpcs4{im});
@@ -335,9 +295,9 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     % off stationary distribution of cash-on-hand from risky model, not
     % assets
     [norisk.mpcs1,norisk.mpcs4] = ...
-        direct_MPCs_deterministic(p,prefs,income,norisk,basemodel);
-    norisk_results.avg_mpc1sim  = mean(norisk.mpcs1);
-    norisk_results.avg_mpc4     = mean(norisk.mpcs4);
+                direct_MPCs_deterministic(p,prefs,income,norisk,basemodel);
+    norisk_results.avg_mpc1 = mean(norisk.mpcs1);
+    norisk_results.avg_mpc4 = mean(norisk.mpcs4);
     
     %% DECOMPOSITION
     decomp = struct([]);

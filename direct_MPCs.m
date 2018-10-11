@@ -78,7 +78,7 @@ function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_gros
         
     % Normalize so mean annual income == 1
     if p.NormalizeY == 1
-        ygrosssim = ygrosssim / (income.original_meany * p.freq);
+        ygrosssim = ygrosssim / (income.original_meany1 * p.freq);
     end
     
     % Net income
@@ -102,7 +102,7 @@ function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_gros
         if im == 0
             mpcamount = 0;
         else
-            mpcamount = p.mpcfrac(im) * income.meany * p.freq;
+            mpcamount = p.mpcfrac(im) * income.meany1 * p.freq;
         end
         
         xsim = zeros(Nsim,p.freq);

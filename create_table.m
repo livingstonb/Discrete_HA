@@ -84,10 +84,18 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
                 direct_results{ip}.wealthgini           % Gini coefficient
                 mpcs_A(:)                               % Annual MPCs
                 mpcs_Q(:)                               % Quarterly MPCs (if freq = 4)
-                cell2mat({decomps{ip}.term1})'          % Decomposition
-                cell2mat({decomps{ip}.term2})'  
-                cell2mat({decomps{ip}.term3})'               
-                cell2mat({decomps{ip}.term4})'
+                decomps{ip}(1).term1                    % Decomposition
+                decomps{ip}(1).term2 
+                decomps{ip}(1).term3
+                decomps{ip}(1).term4
+                decomps{ip}(2).term1                    % Decomposition
+                decomps{ip}(2).term2 
+                decomps{ip}(2).term3
+                decomps{ip}(2).term4
+                decomps{ip}(3).term1                    % Decomposition
+                decomps{ip}(3).term2 
+                decomps{ip}(3).term3
+                decomps{ip}(3).term4
                 numel(checks{ip})>0];                
         end
 

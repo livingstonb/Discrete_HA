@@ -14,7 +14,7 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemod
     betaindsim  = zeros(Nsim,p.freq);
     
     % 1 percent of mean gross annual income
-    mpcamount = 0.01 * income.meany * p.freq;
+    mpcamount = 0.01 * income.meany1 * p.freq;
 
 
     %% Simulate beta
@@ -37,9 +37,9 @@ function [mpcs1,mpcs4] = direct_MPCs_deterministic(p,prefs,income,norisk,basemod
     
         for it = 1:p.freq
             if it == 1
-                xsim(:,it) = asim(:,it) + income.meannety + shock;
+                xsim(:,it) = asim(:,it) + income.meannety1 + shock;
             else
-                xsim(:,it) = asim(:,it) + income.meannety;
+                xsim(:,it) = asim(:,it) + income.meannety1;
             end
 
             for ib = 1:p.nb

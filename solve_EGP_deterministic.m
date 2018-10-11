@@ -13,7 +13,7 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
     
     betagrid = p.beta + prefs.betagrid0;
 
-    con = p.r * repmat(sgrid.short,1,p.nb) + income.meannety;
+    con = p.r * repmat(sgrid.short,1,p.nb) + income.meannety1;
 
     iter = 0;
     cdiff = 1000;
@@ -25,7 +25,7 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
         for ib = 1:p.nb
             coninterp{ib} = griddedInterpolant(xgrid.norisk_short,conlast(:,ib),'linear');
             % cash-on-hand is just Rs + meannety
-            mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R.*sgrid.short + income.meannety));
+            mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R.*sgrid.short + income.meannety1));
         end
         
         % take expectation over beta

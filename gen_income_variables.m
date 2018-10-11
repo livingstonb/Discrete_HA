@@ -99,16 +99,18 @@ function income = gen_income_variables(p)
     ysort = temp(:,1);
     ysortdist = temp(:,2);
     ycumdist = cumsum(ysortdist);
-    meany = ymat(:)'*ymatdist(:);
-    original_meany = meany;
+    
+    % 1-period statistics
+    meany1 = ymat(:)'*ymatdist(:);
+    original_meany1 = meany1;
 
     % normalize so that mean annual gross income is 1
     if p.NormalizeY == 1
-        ymat = ymat/(meany*p.freq);
-        ysort = ysort/(meany*p.freq);
-        meany = 1/p.freq;
+        ymat = ymat/(meany1*p.freq);
+        ysort = ysort/(meany1*p.freq);
+        meany1 = 1/p.freq;
     end
-    totgrossy = meany;
+    totgrossy1 = meany1;
 
     % find tax threshold on labor income
     if numel(ysort)>1
@@ -119,16 +121,16 @@ function income = gen_income_variables(p)
 
     % find net income
     totgrossyhigh = max(ymat(:)-labtaxthresh,0)'*ymatdist(:);
-    lumptransfer = p.labtaxlow*totgrossy + p.labtaxhigh*totgrossyhigh;
+    lumptransfer = p.labtaxlow*totgrossy1 + p.labtaxhigh*totgrossyhigh;
     % netymat is N by nyT matrix
     netymat = lumptransfer + (1-p.labtaxlow)*ymat - p.labtaxhigh*max(ymat-labtaxthresh,0);
-    meannety = netymat(:)'*ymatdist(:);
+    meannety1 = netymat(:)'*ymatdist(:);
     
         % Store income variables in a structure
-    newfields = {'ymat','netymat','meany','original_meany','yPgrid',...
+    newfields = {'ymat','netymat','meany1','original_meany1','yPgrid',...
         'yTgrid','yFgrid','yPdist','yTdist','yFdist','yPcumtrans',...
         'yPtrans','yPcumdist','yFcumdist','yTcumdist','ytrans',...
-        'meannety','labtaxthresh','lumptransfer','ysortdist','ysort',...
+        'meannety1','labtaxthresh','lumptransfer','ysortdist','ysort',...
         'ymatdist'};
     for i = 1:numel(newfields)
         income.(newfields{i}) = eval(newfields{i});

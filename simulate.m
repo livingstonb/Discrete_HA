@@ -64,7 +64,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     end
     
     if p.NormalizeY == 1
-        ygrosssim = ygrosssim / (income.original_meany * p.freq);
+        ygrosssim = ygrosssim / (income.original_meany1 * p.freq);
     end
     
     % net income
@@ -122,12 +122,12 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     sim_results.mean_s          = mean(ssim(:,p.Tsim));
     sim_results.mean_a          = mean(asim(:,p.Tsim));
     sim_results.mean_x          = mean(xsim(:,p.Tsim));
-    sim_results.mean_grossy     = mean(ygrosssim(:,p.Tsim));
-    sim_results.mean_loggrossy  = mean(log(ygrosssim(:,p.Tsim)));
-    sim_results.mean_nety       = mean(ynetsim(:,p.Tsim));
-    sim_results.mean_lognety    = mean(log(ynetsim(:,p.Tsim)));
-    sim_results.var_loggrossy   = var(log(ygrosssim(:,p.Tsim)));
-    sim_results.var_lognety     = var(log(ynetsim(:,p.Tsim)));
+    sim_results.mean_grossy1    = mean(ygrosssim(:,p.Tsim));
+    sim_results.mean_loggrossy1 = mean(log(ygrosssim(:,p.Tsim)));
+    sim_results.mean_nety1      = mean(ynetsim(:,p.Tsim));
+    sim_results.mean_lognety1   = mean(log(ynetsim(:,p.Tsim)));
+    sim_results.var_loggrossy1  = var(log(ygrosssim(:,p.Tsim)));
+    sim_results.var_lognety1    = var(log(ynetsim(:,p.Tsim)));
     sim_results.wealthgini      = ginicoeff(asim(:,p.Tsim));
     sim_results.grossincgini    = ginicoeff(ygrosssim(:,p.Tsim));
     sim_results.netincgini      = ginicoeff(ynetsim(:,p.Tsim));
@@ -135,7 +135,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     
     % fraction constrained
     for i = 1:numel(p.epsilon)
-        sim_results.constrained(i) = mean(asim(:,p.Tsim)<=p.borrow_lim+p.epsilon(i)*income.meany*p.freq);
+        sim_results.constrained(i) = mean(asim(:,p.Tsim)<=p.borrow_lim+p.epsilon(i)*income.meany1*p.freq);
     end
     
     % wealth percentiles

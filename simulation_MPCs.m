@@ -6,7 +6,7 @@ function [avg_mpc1,avg_mpc4,var_mpc1,var_mpc4] = simulation_MPCs(p,xsim,csim,die
     %% MPCs
     Nmpcamount = numel(p.mpcfrac);
     for im = 1:Nmpcamount
-        mpcamount{im} = p.mpcfrac(im) * income.meany * p.freq;
+        mpcamount{im} = p.mpcfrac(im) * income.meany1 * p.freq;
         
         if mpcamount{im} < 0
             set_mpc_one = false(p.Nsim,1);

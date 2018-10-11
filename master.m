@@ -42,7 +42,7 @@ params0.nyT               = 11; %transitory component (not a state variable) (se
 % yT,yP (only relevant if LoadIncomeProcess==0)
 params0.NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
 params0.yTContinuous = 0; % doesn't seem to work properly
-params0.sd_logyT  = sqrt(0.0497);  % 0.20, relevant if nyT>1
+params0.sd_logyT     = sqrt(0.0497);  % 0.20, relevant if nyT>1
 params0.lambdaT      = 1; % arrival rate of shocks;
 params0.nyP          = 11; %11 persistent component
 params0.sd_logyP     = sqrt(.0422); % 0.1950;
@@ -51,7 +51,7 @@ params0.nyF          = 1;
 params0.sd_logyF     = 0;
 
 % cash on hand / savings grid
-params0.nx          = 50;
+params0.nx          = 100;
 params0.xmax        = 1000;  % need high if using high-variance income shocks
 params0.xgrid_par   = 0.3; %1 for linear, 0 for L-shaped
 params0.borrow_lim  = 0;
@@ -64,7 +64,7 @@ params0.savtax          = 0; %0.0001;  %tax rate on savings
 params0.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
-params0.nb          = 5; % higher numbers dramatically increase computing load
+params0.nb          = 1; % higher numbers dramatically increase computing load
 params0.betawidth   = 0.015; % too large and eigs hangs while finding stat distribution
 params0.betaswitch  = 1/50; %0;
 
@@ -73,7 +73,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
-params0.nxlong      = 400; % Grid size for final computations
+params0.nxlong      = 1500; % Grid size for final computations
  
 % beta iteration
 params0.targetAY    = 3.5;
@@ -81,7 +81,7 @@ params0.maxiterAY   = 40;
 params0.tolAY       = 1e-5;
 
 % mpc options
-params0.Nmpcsim     = 1e5;
+params0.Nmpcsim     = 1e6;
 params0.mpcfrac(1)  = -1e-5; %approximate thoeretical mpc
 params0.mpcfrac(2)  = -0.01;
 params0.mpcfrac(3)  = -0.1;
