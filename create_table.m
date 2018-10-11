@@ -56,11 +56,11 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
     for ip = 1:numel(params)
         p = params(ip);
 
-        if numel(fieldnames(exceptions{ip})) == 1
+        if numel(exceptions{ip}) == 1
             % Exception was thrown for this parameterization
             column = NaN(Nrows,1);
         elseif sum(ismember({'NoEGPConv','NoBetaConv'},checks{ip})) > 0
-            % Some sort of code failure
+            % Critical code failure
             column = NaN(Nrows,1);
         else
             % Annual and quarterly MPCs
@@ -130,6 +130,5 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
     
     T = array2table(tablearray,'VariableNames',names);
     T.Properties.RowNames = rows;
-    writetable(T,'/Users/brianlivingston/Documents/table.xls');
 
 end

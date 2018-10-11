@@ -352,6 +352,13 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
             decomp(ia).term3 = sum( (norisk.mpcs1 - m_ra) .* (~cind)/Ntotal);
             decomp(ia).term4 = sum( (basemodel.mpcs1{5} - norisk.mpcs1) .* (~cind)/Ntotal);
         end
+    else
+        for ia = 1:numel(p.abars)
+            decomp(ia).term1 = NaN;
+            decomp(ia).term2 = NaN;
+            decomp(ia).term3 = NaN;
+            decomp(ia).term4 = NaN;
+        end
     end
     
     %% GINI
@@ -380,7 +387,7 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     end 
     
     %% Print Results
-    if p.Display == 1
+    if p.Display == 1 && 0
         print_statistics(direct_results,sim_results,norisk_results,checks,p,decomp);
     end
     
