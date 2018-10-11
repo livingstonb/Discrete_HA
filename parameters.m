@@ -131,39 +131,31 @@ function params = parameters()
     %----------------------------------------------------------------------
     
     % different mean wealth targets
-    count = 1;
     for mw = [0.25, 0.5, 1, 2.5, 5]
         params(end+1) = baseline;
-        params(end).name = ['AYtarget' num2str(count)];
+        params(end).name = ['AYtarget' num2str(mw)];
         params(end).targetAY = mw;
-        count = count + 1;
     end
     
     % different interest rates
-    count = 1;
     for ii = [0, 1, 3, 5]
         params(end+1) = baseline;
         params(end).name = ['IntRate' num2str(ii)];
         params(end).r = ii/100;
-        count = count + 1;
     end
     
     % different risk aversion coeffs
-    count = 1;
     for ira = [0.5, 1.5, 2, 4, 6]
         params(end+1) = baseline;
         params(end).name = ['RiskAver' num2str(ira)];
         params(end).risk_aver = ira;
-        count = count + 1;
     end
     
     % different tax rates
-    count = 1;
     for itax = [0.05, 0.1, 0.15, 0.25]
         params(end+1) = baseline;
         params(end).name = ['LabTax' num2str(itax)];
         params(end).labtaxlow = itax;
-        count = count + 1;
     end
     
     % no death
@@ -184,29 +176,22 @@ function params = parameters()
     % luxury motive...
     
     % fixed beta heterogeneity
-    count = 1;
     for ibw = [0.001, 0.005, 0.01]
         params(end+1) = baseline;
         params(end).name = ['FixedBetaHet_Width' num2str(ibw)];
         params(end).nb = 5;
         params(end).betawidth = ibw;
-        count = count + 1;
     end
     
     % random beta heterogeneity
-    countbw = 1;
     for ibw = [0.001, 0.005, 0.01]
-        countbs = 1;
         for bs = [1/10, 1/50]
             params(end+1) = baseline;
-            params(end).name = ['RandomBetaHet_Width' num2str(countbw) '_SwitchP' num2str(countbs)];
+            params(end).name = ['RandomBetaHet_Width' num2str(ibw) '_SwitchP' num2str(bs)];
             params(end).nb = 5;
             params(end).betawidth = ibw;
             params(end).betaswitch = bs;
-            
-            countbs = countbs + 1;
         end
-        countbw = countbw + 1;
     end
     
     %----------------------------------------------------------------------

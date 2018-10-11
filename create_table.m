@@ -1,6 +1,7 @@
 function T = create_table(params,direct_results,norisk_results,sim_results,decomps,checks,exceptions)
     % Rownames
-    rows = {'Beta (Annualized)'
+    rows = {'Specification'
+            'Beta (Annualized)'
             'Mean gross annual income'
             'Stdev log annual gross income'
             'Stdev log annual net income'
@@ -48,7 +49,7 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
             'Decomp around 0.05 (size 0.01), Non-HtM, inc risk'
             'Failed one or more checks'
             };
-    Nrows = numel(rows);
+    Nrows = numel(rows) - 1;
     
     % Iterate over parameterizations
     names = {params.name};
@@ -104,7 +105,9 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
         tablearray(:,ip) = column;    
     end
     
-    T = array2table(tablearray,'VariableNames',names);
+    tablearray = num2cell(tablearray);
+    tablearray = [names;tablearray];
+    T = array2table(tablearray);
     T.Properties.RowNames = rows;
-
+    
 end

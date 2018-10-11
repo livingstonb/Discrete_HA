@@ -130,6 +130,7 @@ for ip = 1:Nparams
         norisk_results{ip}  = NR;
         sim_results{ip}     = SR;      
     else
+        disp(['Trying parameterization ' num2str(ip)])
         try
             % Main function
             [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
