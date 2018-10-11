@@ -4,7 +4,7 @@
 clear;
 close all;
 
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
+path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 savetablepath = '/Users/Brian/Documents/output.xls';
 addpath([path '/Auxiliary Functions']);
 cd(path);
@@ -26,14 +26,15 @@ params0.dieprob     = 1/50;
 % preferences
 params0.risk_aver   = 1;
 params0.beta0       = 0.98; % annualized
-params0.temptation  = 0;
+params0.temptation  = 0.05;
 params0.betaL       = 0.80;
 % betaH defined in main function file
 
-%warm glow bequests: bequest weight = 0 is accidental
+% bequests/annuities. bequest weight = 0 is accidental
 params0.bequest_weight  = 0; %0.07;
 params0.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
 params0.Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
+params0.Annuities = 0; % Automatically turns off bequests if set to 1
 
 % income risk: AR(1) + IID in logs
 params0.LoadIncomeProcess = 0;
@@ -91,7 +92,7 @@ params0.mpcfrac(6)  = 0.1; % 5 percent of average gross labor income: approx $50
 
 % wealth statistics options
 params0.epsilon = [0 0.005 0.01 0.02 0.05 0.1]; % fraction of mean labor income
-params0.percentiles = [10 25 50 75 90 95 99]; % in percent
+params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 
 % decomposition
 params0.abars = [0 0.01 0.05];
@@ -124,14 +125,14 @@ decomps        = cell(1,Nparams);
 
 for ip = 1:Nparams
     if Batch == 0
-        [SR,DR,NR,checks{ip},decomps{ip}] = egp_AR1_IID_tax_recode(params(ip));
+        [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
         direct_results{ip}  = DR;
         norisk_results{ip}  = NR;
         sim_results{ip}     = SR;      
     else
         try
             % Main function
-            [SR,DR,NR,checks{ip},decomps{ip}] = egp_AR1_IID_tax_recode(params(ip));
+            [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
             direct_results{ip}  = DR;
             norisk_results{ip}  = NR;
             sim_results{ip}     = SR;

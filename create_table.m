@@ -18,6 +18,7 @@ function T = create_table(params,direct_results,norisk_results,sim_results,decom
             'Wealth, 90th percentile'
             'Wealth, 95th percentile'
             'Wealth, 99th percentile'
+            'Wealth, 99.9th percentile'
             'Wealth, top 10% share'
             'Wealth, top 1% share'
             'Gini coefficient'

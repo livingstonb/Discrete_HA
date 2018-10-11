@@ -32,7 +32,7 @@ function params = parameters()
 
     % yT,yP (only relevant if LoadIncomeProcess==0)
     baseline.NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
-    baseline.yTContinuous = 0; % doesn't seem to work properly
+    baseline.yTContinuous = 0;
     baseline.sd_logyT     = sqrt(0.0497);  % 0.20, relevant if nyT>1
     baseline.lambdaT      = 1; % arrival rate of shocks;
     baseline.nyP          = 11; %11 persistent component
@@ -57,7 +57,7 @@ function params = parameters()
     %discount factor shocks
     baseline.nb          = 1; % higher numbers dramatically increase computing load
     baseline.betawidth   = 0.005; % too large and eigs hangs while finding stat distribution
-    baseline.betaswitch  = 1/50; %0;
+    baseline.betaswitch  = 0; %0;
 
     % computation
     baseline.max_iter    = 1e5; % EGP
@@ -102,6 +102,11 @@ function params = parameters()
     % annual baseline
     params(1)       = baseline;
     params(1).name  = 'Baseline_A';
+    
+    % annual baseline with continuous yT
+    params(end+1) = baseline;
+    params(end).name = 'Baseline_A_Cont_yT';
+    params(end).yTContinuous = 1;
 
     % quarterly baseline
     params(end+1) = baseline;
@@ -110,6 +115,15 @@ function params = parameters()
     params(end).sd_logyP = sqrt(0.0108);
     params(end).sd_logyT = sqrt(0.2087);
     params(end).rho_logyP = 0.9881;
+    
+    % quarterly baseline with continuous yT
+    params(end+1) = baseline;
+    params(end).name = 'Baseline_Q_Cont_yT';
+    params(end).freq = 4;
+    params(end).sd_logyP = sqrt(0.0108);
+    params(end).sd_logyT = sqrt(0.2087);
+    params(end).rho_logyP = 0.9881;
+    params(end).yTContinuous = 1;
     
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -156,8 +170,7 @@ function params = parameters()
     % perfect annuities
     params(end+1) = baseline;
     params(end).name = 'Annuities';
-    params(end).Bequests = 0;
-    params(end).r = params(end).r + params(end).dieprob;
+    params(end).Annuities = 1;
     
     % luxury motive...
     
@@ -169,7 +182,16 @@ function params = parameters()
         params(end).betawidth = ibw;
     end
     
-    % random beta heterogeneity...
+    % random beta heterogeneity
+    for ibw = [0.001, 0.005, 0.01]
+        for bs = [1/10, 1/50]
+            params(end+1) = baseline;
+            params(end).name = ['RandomBetaHet_Width' num2str(ibw) '_SwitchP' num2str(bs)];
+            params(end).nb = 5;
+            params(end).betawidth = ibw;
+            params(end).betaswitch = bs;
+        end
+    end
     
     %----------------------------------------------------------------------
     % PART 3a, ANNUAL MODEL

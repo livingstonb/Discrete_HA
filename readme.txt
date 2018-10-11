@@ -5,13 +5,13 @@ M-FILES
 
 master.m - Set parameters and call main function file.
 	
-	Calls:		egp_AR1_IID_tax_recode.m
+	Calls:		main.m
 			parameters.m
 
 parameters.m - Creates structure array containing all of our desired
 	parameterizations. Not yet complete.
 
-egp_AR1_IID_tax_recode.m - Main function file. Given a structure of parameters 
+main.m - Main function file. Given a structure of parameters 
 	from master.m, this script calls various other functions to generate
 	the `sim_results’ and `direct_results’ structures and makes plots.
 	
@@ -31,7 +31,7 @@ gen_income_variables.m - Function that creates the `income’ structure, which
 
 	Called by:	none
 	
-	Calls:		egp_AR1_IID_tax_recode.m
+	Calls:		main.m
 
 
 solve_EGP.m - This function performs the method of endogenous grid functions to find
@@ -40,7 +40,7 @@ solve_EGP.m - This function performs the method of endogenous grid functions to 
 	wealth/income ratio from the target as `AYdiff’, and returns the structure
 	`model’ which contains various important objects used elsewhere in the code.
 
-	Called by:	egp_AR1_IID_tax_recode.m
+	Called by:	main.m
 
 	Calls:		find_stationary.m
 
@@ -48,7 +48,7 @@ find_stationary.m - This function finds the stationary distribution
 	for the passed arguments. Also returns the policy functions interpolated onto
 	the grid `xgridinput’. All outputs are associated with `xgridinput’.
 
-	Called by: 	egp_AR1_IID_tax_recode.m
+	Called by: 	main.m
 	
 	Calls:		eigs()
 
@@ -56,7 +56,7 @@ find_stationary.m - This function finds the stationary distribution
 solve_EGP_deterministic.m - This function performs the same role as solve_EGP, except
 	for the model without income risk.
 
-	Called by: 	egp_AR1_IID_tax_recode.m
+	Called by: 	main.m
 	
 	Calls: 		none
 
@@ -65,7 +65,7 @@ simulate.m - This function performs simulations based on the policy functions fo
 	structure `sim_results’ and the column vector `assetmeans’, where the latter
 	shows mean assets as a function of time (to check convergence).
 
-	Called by:	egp_AR1_IID_tax_recode.m
+	Called by:	main.m
 	
 	Calls:		simulation_MPCs.m
 
@@ -78,31 +78,31 @@ simulation_MPCs.m - Computes MPCs from the simulated data generated in simulate(
 direct_MPCs.m - Computes MPCs by drawing from the stationary distribution of assets (not
 	cash-on-hand) and simulating 1-4 periods.
 
-	Called by: 	egp_AR1_IID_tax_recode.m
+	Called by: 	main.m
 
 	Calls:  	none
 
 direct_MPCs_deterministic.m - Computes MPCs by using the sample for initial assets found in
 	direct_MPCs(), via simulating 1-4 periods.
 
-	Called by: 	egp_AR1_IID_tax_recode.m
+	Called by: 	main.m
 
 	Calls:  	none
 
 makeplots.m - Makes plots accorded to the passed structures.
 
-	Called by: 	egp_AR1_IID_tax_recode.m
+	Called by: 	main.m
 
 	Calls:		none
 
 print_statistics.m - Prints important statistics to the screen.
 
-	Called by: 	egp_AR1_IID_tax_recode.m
+	Called by: 	main.m
 
 	Calls:		none
 
 ————————————————————————————————————————————————————————————————————————————
-STRUCTURES LOCAL TO egp_AR1_IID_tax_recode.m
+STRUCTURES LOCAL TO main.m
 ————————————————————————————————————————————————————————————————————————————
 p -			stores parameters
 basemodel - 		stores objects from the model with income risk

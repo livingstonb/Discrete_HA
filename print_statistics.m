@@ -66,19 +66,19 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p,dec
     %% Income Distribution
     fprintf('\nINCOME DISTRIBUTION: \n')
     fprintf('  Cross-sectional variances\n')
-    % Variance of log gross labor income
-    direct = sprintf(' %2.3f (direct)',direct_results.var_loggrossy);
+    % Stdev of log gross labor income
+    direct = sprintf(' %2.3f (Direct)',direct_results.stdev_loggrossy_A);
     if p.Simulate == 1
         sim = sprintf(', %2.3f (Simulation)',sim_results.var_loggrossy);
     end
-    disp(['    Var Log Gross Earnings:' direct sim]);
+    disp(['    StDev Log Gross Earnings:' direct sim]);
     
-    % Variance of log net labor income
-    direct = sprintf('   %2.3f (direct)',direct_results.var_lognety);
+    % Stdev of log net labor income
+    direct = sprintf('   %2.3f (direct)',direct_results.stdev_lognety_A);
     if p.Simulate == 1
         sim = sprintf(', %2.3f (Simulation)',sim_results.var_lognety);
     end
-    disp(['    Var Log Net Earnings:' direct sim]);
+    disp(['    StDev Log Net Earnings:' direct sim]);
     
     % Gini (gross earnings)
     direct = sprintf(' %5.3f (Direct)',direct_results.grossincgini);

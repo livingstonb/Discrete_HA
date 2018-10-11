@@ -15,7 +15,7 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     sim_results     = struct();
     checks          = {};
     
-    %% ADJUST PARAMETERS FOR DATA FREQUENCY
+    %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER FACTORS
 
     p.R = 1 + p.r;
     p.R = p.R^(1/p.freq);
@@ -28,6 +28,13 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     p.betaswitch    = 1 - (1-p.betaswitch)^(1/p.freq);
     p.betaL         = p.betaL^(1/p.freq);
     p.betaH         = 1/((p.R)*(1-p.dieprob));
+    
+    if p.Annuities == 1
+        % Turn off bequests
+        p.Bequests = 0;
+        p.bequest_weight = 0;
+        p.r = p.r + p.dieprob;
+    end
 
     p.N = p.nx*p.nyF*p.nyP*p.nb;
    
