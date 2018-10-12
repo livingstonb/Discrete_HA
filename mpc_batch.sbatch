@@ -6,7 +6,7 @@
 #SBATCH --partition=broadwl
 #SBATCH --time=02:00:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=4
 #SBATCH --mem-per-cpu=2000
 
 module load matlab

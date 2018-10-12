@@ -161,7 +161,7 @@ T = create_table(params,direct_results,norisk_results,sim_results,decomps,checks
 %% SAVE
                                     
 if Batch == 1
-    writetable(T,savetablepath);
+    writetable(T,savetablepath,'WriteRowNames',true);
     save(savematpath,'sim_results','direct_results','norisk_results',...
                                                  'checks','exceptions');
     exit
