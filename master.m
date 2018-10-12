@@ -4,8 +4,9 @@
 clear;
 close all;
 
-path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+path = '/Users/Brian/Documents/GitHub/MPCrecode';
 savetablepath = '/Users/Brian/Documents/output.xls';
+savematpath = '/Users/Brian/Documents/variables.mat';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -21,17 +22,17 @@ params0.freq        = 1; % 1 yearly, 4 quarterly
 params0.r           = 0.02;
 
 % demographics
-params0.dieprob     = 1/50;
+params0.dieprob     = 5/50;
 
 % preferences
 params0.risk_aver   = 1;
 params0.beta0       = 0.98; % annualized
-params0.temptation  = 0.05;
+params0.temptation  = 0;
 params0.betaL       = 0.80;
 % betaH defined in main function file
 
 % bequests/annuities. bequest weight = 0 is accidental
-params0.bequest_weight  = 0; %0.07;
+params0.bequest_weight  = 0.1; %0.07;
 params0.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
 params0.Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
 params0.Annuities = 0; % Automatically turns off bequests if set to 1
@@ -42,7 +43,7 @@ params0.nyT               = 11; %transitory component (not a state variable) (se
 
 % yT,yP (only relevant if LoadIncomeProcess==0)
 params0.NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
-params0.yTContinuous = 1; % doesn't seem to work properly
+params0.yTContinuous = 0; % doesn't seem to work properly
 params0.sd_logyT     = sqrt(0.0497);  % 0.20, relevant if nyT>1
 params0.lambdaT      = 0.6; % arrival rate of shocks;
 params0.nyP          = 11; %11 persistent component
@@ -98,12 +99,12 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 0;
+params0.IterateBeta        = 1;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 1;
-Batch = 1; % Run alternate parameterizations
+Batch = 0; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
 if Batch == 0
@@ -145,8 +146,8 @@ for ip = 1:Nparams
 end
 
 T = create_table(params,direct_results,norisk_results,sim_results,decomps,checks,exceptions);
-% writetable(T,savetablepath);
+writetable(T,savetablepath);
     
 %% SAVE
-% save('Results','sim_results','direct_results','norisk_results',...
-%                                                   'checks','exceptions')
+save(savematpath,'sim_results','direct_results','norisk_results',...
+                                                 'checks','exceptions');

@@ -43,7 +43,7 @@ function params = parameters()
     baseline.sd_logyF     = 0;
 
     % cash on hand / savings grid
-    baseline.nx          = 100;
+    baseline.nx          = 150;
     baseline.xmax        = 1000;  % need high if using high-variance income shocks
     baseline.xgrid_par   = 0.3; %1 for linear, 0 for L-shaped
     baseline.borrow_lim  = 0;
@@ -73,13 +73,13 @@ function params = parameters()
     baseline.tolAY       = 1e-5;
 
     % mpc options
-    baseline.Nmpcsim     = 1e6;
+    baseline.Nmpcsim     = 1e6; % Number of draws to compute MPCs
     baseline.mpcfrac(1)  = -1e-5; %approximate thoeretical mpc
     baseline.mpcfrac(2)  = -0.01;
     baseline.mpcfrac(3)  = -0.1;
     baseline.mpcfrac(4)  = 1e-5; % approximate thoeretical mpc
     baseline.mpcfrac(5)  = 0.01; % used in decomposition, 1 percent of average gross labor income: approx $500
-    baseline.mpcfrac(6)  = 0.1; % 5 percent of average gross labor income: approx $5000
+    baseline.mpcfrac(6)  = 0.1; % 10 percent of average gross labor income: approx $10000
 
     % wealth statistics options
     baseline.epsilon = [0, 0.005, 0.01, 0.02, 0.05, 0.1]; % fraction of mean labor income
@@ -103,11 +103,6 @@ function params = parameters()
     % annual baseline
     params(1)       = baseline;
     params(1).name  = 'Baseline_A';
-    
-    % annual baseline with continuous yT
-    params(end+1) = baseline;
-    params(end).name = 'Baseline_A_Cont_yT';
-    params(end).yTContinuous = 1;
 
     % quarterly baseline
     params(end+1) = baseline;
@@ -116,16 +111,7 @@ function params = parameters()
     params(end).sd_logyP = sqrt(0.0108);
     params(end).sd_logyT = sqrt(0.2087);
     params(end).rho_logyP = 0.9881;
-    
-    % quarterly baseline with continuous yT
-    params(end+1) = baseline;
-    params(end).name = 'Baseline_Q_Cont_yT';
-    params(end).freq = 4;
-    params(end).sd_logyP = sqrt(0.0108);
-    params(end).sd_logyT = sqrt(0.2087);
-    params(end).rho_logyP = 0.9881;
-    params(end).yTContinuous = 1;
-    
+
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
     %----------------------------------------------------------------------
@@ -133,44 +119,44 @@ function params = parameters()
     % different mean wealth targets
     for mw = [0.25, 0.5, 1, 2.5, 5]
         params(end+1) = baseline;
-        params(end).name = ['AYtarget' num2str(mw)];
+        params(end).name = ['2 AYtarget' num2str(mw)];
         params(end).targetAY = mw;
     end
     
     % different interest rates
     for ii = [0, 1, 3, 5]
         params(end+1) = baseline;
-        params(end).name = ['IntRate' num2str(ii)];
+        params(end).name = ['2 IntRate' num2str(ii)];
         params(end).r = ii/100;
     end
     
     % different risk aversion coeffs
     for ira = [0.5, 1.5, 2, 4, 6]
         params(end+1) = baseline;
-        params(end).name = ['RiskAver' num2str(ira)];
+        params(end).name = ['2 RiskAver' num2str(ira)];
         params(end).risk_aver = ira;
     end
     
     % different tax rates
     for itax = [0.05, 0.1, 0.15, 0.25]
         params(end+1) = baseline;
-        params(end).name = ['LabTax' num2str(itax)];
+        params(end).name = ['2 LabTax' num2str(itax)];
         params(end).labtaxlow = itax;
     end
     
     % no death
     params(end+1) = baseline;
-    params(end).name = 'NoDeath';
+    params(end).name = '2 NoDeath';
     params(end).dieprob = 0;
     
     % no bequests
     params(end+1) = baseline;
-    params(end).name = 'NoBequests';
+    params(end).name = '2 NoBequests';
     params(end).Bequests = 0;
     
     % perfect annuities
     params(end+1) = baseline;
-    params(end).name = 'Annuities';
+    params(end).name = '2 Annuities';
     params(end).Annuities = 1;
     
     % luxury motive...
@@ -178,7 +164,7 @@ function params = parameters()
     % fixed beta heterogeneity
     for ibw = [0.001, 0.005, 0.01]
         params(end+1) = baseline;
-        params(end).name = ['FixedBetaHet_Width' num2str(ibw)];
+        params(end).name = ['2 FixedBetaHet_Width' num2str(ibw)];
         params(end).nb = 5;
         params(end).betawidth = ibw;
     end
@@ -187,7 +173,7 @@ function params = parameters()
     for ibw = [0.001, 0.005, 0.01]
         for bs = [1/10, 1/50]
             params(end+1) = baseline;
-            params(end).name = ['RandomBetaHet_Width' num2str(ibw) '_SwitchP' num2str(bs)];
+            params(end).name = ['2 RandomBetaHet Width' num2str(ibw) ' SwitchProb' num2str(bs)];
             params(end).nb = 5;
             params(end).betawidth = ibw;
             params(end).betaswitch = bs;
@@ -200,18 +186,18 @@ function params = parameters()
     
     % i
     params(end+1) = baseline;
-    params(end).name = 'a_i_NoTransShocks';
+    params(end).name = '3a(i) NoTransShocks';
     params(end).nyT = 1;
     params(end).sd_logyT = 0;
     
     % ii
     params(end+1) = baseline;
-    params(end).name = 'a_ii_MeasError';
+    params(end).name = '3a(ii) MeasError';
     params(end).sd_logyT = sqrt(0.02);
     
     % iii
     params(end+1) = baseline;
-    params(end).name = 'a_iii_NoTrans_ReEst';
+    params(end).name = '3a(iii) NoTranReEst';
     params(end).rho_logyP = 0.8592;
     params(end).sd_logyP = sqrt(0.132);
     params(end).nyT = 1;
@@ -219,41 +205,63 @@ function params = parameters()
 
     % iv
     params(end+1) = baseline;
-    params(end).name = 'a_iv_HighPers_Carrol';
+    params(end).name = '3a(iv) HighPersistCarrol';
     params(end).rho_logyP = 0.9995;
     params(end).sd_logyP = sqrt(0.015);
     params(end).sd_logyT = sqrt(0.01);
     
     % v
     params(end+1) = baseline;
-    params(end).name = 'a_v_HighPers_NotReEst';
+    params(end).name = '3a(v) HighPersNotReEst';
     params(end).rho_logyP = 0.99;
     
     % vi
     params(end+1) = baseline;
-    params(end).name = 'a_vi_LowPers_NotReEst';
+    params(end).name = '3a(vi) LowPersNotReEst';
     params(end).rho_logyP = 0.9;
 
     % vii
     params(end+1) = baseline;
-    params(end).name = 'a_vii_HighPers_ReEst';
+    params(end).name = '3a(vii) HighPersReEst';
     params(end).rho_logyP = 0.99;
     params(end).sd_logyP = sqrt(0.0088);
     params(end).sd_logyT = sqrt(0.0667);
     
     % viii
     params(end+1) = baseline;
-    params(end).name = 'a_viii_EvenHigherPers_ReEst';
+    params(end).name = '3a(viii) EvenHigherPersReEst';
     params(end).rho_logyP = 0.995;
-    params(end).sd_logyP = 0.0043;
-    params(end).sd_logyT = 0.0688;
+    params(end).sd_logyP = sqrt(0.0043);
+    params(end).sd_logyT = sqrt(0.0688);
     
     % ix
     params(end+1) = baseline;
-    params(end).name = 'a_ix_HighPersNoTrans_ReEst';
+    params(end).name = '3a(ix) HighPersNoTransReEst';
     params(end).rho_logyP = 0.99;
-    params(end).sd_logyP = 0.0088;
+    params(end).sd_logyP = sqrt(0.0088);
     params(end).nyT = 1;
-    params(end).sd_logyT = 0;
+    params(end).sd_logyT = sqrt(0);
     
+    %----------------------------------------------------------------------
+    % PART 3b, QUARTERLY MODEL
+    %----------------------------------------------------------------------
+    
+    % i
+    params(end+1) = baseline;
+    params(end).name = '3b(i) KMPTransf';
+    params(end).freq = 4;
+    params(end).rho_logyP = 0.9879;
+    params(end).sd_logyP = sqrt(0.0109);
+    params(end).sd_logyT = sqrt(0.0494);
+    
+    %----------------------------------------------------------------------
+    % PART 4, Exotic Preferences
+    %----------------------------------------------------------------------
+    
+    % temptation
+    for itempt = [0.05 0.1 0.5]
+        params(end+1) = baseline;
+        params(end).name = ['4 Temptation' itempt];
+        params(end).temptation = itempt;
+    end
 end

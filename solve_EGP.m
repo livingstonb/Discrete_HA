@@ -71,7 +71,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
         % column vecs of length p.nx*p.nyP*p.nyF*p.nb
         muc_savtaxrate  = (1+p.savtax.*(repmat(sgrid.full(:),p.nb,1)>=p.savtaxthresh));
         muc_consumption = (1+p.r)*betastacked*Emat*(mucnext*income.yTdist);
-        muc_bequest     = p.dieprob*prefs.beq1(repmat(sgrid.full(:),p.nb,1));
+        muc_bequest     = prefs.beq1(repmat(sgrid.full(:),p.nb,1));
         
         % muc(s(x,yP,yF,beta))
         muc_s           = (1-p.dieprob) * muc_consumption ./ muc_savtaxrate...

@@ -179,6 +179,11 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     direct_results.mean_s = basemodel.mean_s;
     direct_results.mean_a = basemodel.mean_a;
     direct_results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist(:);
+    if p.Bequests == 1
+        direct_results.mean_bequests = p.dieprob * direct_results.mean_s;
+    else
+        direct_results.mean_bequests = 0;
+    end
     
     % One-period income statistics
     direct_results.mean_grossy1 = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist(:);
