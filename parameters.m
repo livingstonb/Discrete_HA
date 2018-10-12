@@ -261,9 +261,9 @@ function params = parameters()
     %----------------------------------------------------------------------
     
     % temptation
-    for itempt = [0.05 0.1 0.5]
+    for itempt = [0.005 0.01 0.05]
         params(end+1) = baseline;
-        params(end).name = ['4 Temptation' itempt];
+        params(end).name = ['4 Temptation' num2str(itempt)];
         params(end).temptation = itempt;
     end
 end

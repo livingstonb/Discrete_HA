@@ -4,15 +4,6 @@
 clear;
 close all;
 
-% path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
-% savetablepath = '/Users/brianlivingston/Documents/table.xls';
-% savematpath = '/Users/brianlivingston/Documents/variables.mat';
-path = '/home/livingstonb/GitHub/MPCrecode';
-savetablepath = '/home/livingstonb/output/table.xls';
-savematpath = '/home/livingstonb/output/variables.mat';
-addpath([path '/Auxiliary Functions']);
-cd(path);
-
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
@@ -109,6 +100,19 @@ params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 1;
 Batch = 1; % Run alternate parameterizations
 
+% Add paths
+if Batch == 0
+    path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+    savetablepath = '/Users/brianlivingston/Documents/table.xls';
+    savematpath = '/Users/brianlivingston/Documents/variables.mat';
+else
+    path = '/home/livingstonb/GitHub/MPCrecode';
+    savetablepath = '/home/livingstonb/output/table.xls';
+    savematpath = '/home/livingstonb/output/variables.mat';
+end
+addpath([path '/Auxiliary Functions']);
+cd(path);
+
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
 if Batch == 0
     params = params0;
@@ -157,7 +161,7 @@ T = create_table(params,direct_results,norisk_results,sim_results,decomps,checks
 %% SAVE
                                     
 if Batch == 1
-    writetable(T,savetablepath);
+    writetable(T,savetablepath,'WriteRowNames',true);
     save(savematpath,'sim_results','direct_results','norisk_results',...
                                                  'checks','exceptions');
     exit
