@@ -4,9 +4,12 @@
 clear;
 close all;
 
-path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
-savetablepath = '/Users/brianlivingston/Documents/output.xls';
-savematpath = '/Users/brianlivingston/Documents/variables.mat';
+% path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+% savetablepath = '/Users/brianlivingston/Documents/table.xls';
+% savematpath = '/Users/brianlivingston/Documents/variables.mat';
+path = '/home/livingstonb/GitHub/MPCrecode';
+savetablepath = '/home/livingstonb/output/table.xls';
+savematpath = '/home/livingstonb/output/variables.mat';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -126,7 +129,7 @@ decomps        = cell(1,Nparams);
 
 for ip = 1:Nparams
     if Batch == 0
-        [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
+        [SR,DR,NR,checks{ip},decomps{ip}] = m ain(params(ip));
         direct_results{ip}  = DR;
         norisk_results{ip}  = NR;
         sim_results{ip}     = SR;      
@@ -146,12 +149,13 @@ for ip = 1:Nparams
 end
 
 T = create_table(params,direct_results,norisk_results,sim_results,decomps,checks,exceptions);
-writetable(T,savetablepath);
+
     
 %% SAVE
-save(savematpath,'sim_results','direct_results','norisk_results',...
-                                                 'checks','exceptions');
-                                             
+                                    
 if Batch == 1
+    writetable(T,savetablepath);
+    save(savematpath,'sim_results','direct_results','norisk_results',...
+                                                 'checks','exceptions');
     exit
 end
