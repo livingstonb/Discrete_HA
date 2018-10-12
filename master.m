@@ -4,9 +4,9 @@
 clear;
 close all;
 
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
-savetablepath = '/Users/Brian/Documents/output.xls';
-savematpath = '/Users/Brian/Documents/variables.mat';
+path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+savetablepath = '/Users/brianlivingston/Documents/output.xls';
+savematpath = '/Users/brianlivingston/Documents/variables.mat';
 addpath([path '/Auxiliary Functions']);
 cd(path);
 
@@ -104,7 +104,7 @@ params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 1;
-Batch = 0; % Run alternate parameterizations
+Batch = 1; % Run alternate parameterizations
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
 if Batch == 0
@@ -151,3 +151,7 @@ writetable(T,savetablepath);
 %% SAVE
 save(savematpath,'sim_results','direct_results','norisk_results',...
                                                  'checks','exceptions');
+                                             
+if Batch == 1
+    exit
+end

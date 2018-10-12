@@ -166,6 +166,7 @@ function params = parameters()
         params(end+1) = baseline;
         params(end).name = ['2 FixedBetaHet_Width' num2str(ibw)];
         params(end).nb = 5;
+        params(end).nxlong = 500;
         params(end).betawidth = ibw;
     end
     
@@ -175,6 +176,7 @@ function params = parameters()
             params(end+1) = baseline;
             params(end).name = ['2 RandomBetaHet Width' num2str(ibw) ' SwitchProb' num2str(bs)];
             params(end).nb = 5;
+            params(end).nxlong = 500;
             params(end).betawidth = ibw;
             params(end).betaswitch = bs;
         end
