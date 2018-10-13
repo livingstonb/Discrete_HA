@@ -10,6 +10,10 @@ function [distribution,sav] = find_stationary(p,model,...
 
     gridsize = size(xgridinput,1);
     
+    if ndims(xgridinput)==2 & size(xgridinput,2)==1
+        xgridinput = repmat(xgridinput,[1 p.nyP p.nyF]);
+    end
+    
     % Interpolate policy functions onto xgridinput
     sav = zeros(gridsize,p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb

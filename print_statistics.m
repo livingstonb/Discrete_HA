@@ -104,7 +104,7 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p,dec
     % Average MPC, 1 period
     for i = 1:numel(p.mpcfrac)
         if p.ComputeDirectMPC == 1
-            direct = sprintf(' %2.3f (Direct)',direct_results.avg_mpc1(i));
+            direct = sprintf(' %2.3f (Direct)',direct_results.avg_mpc1_sim(i));
         else
             direct = ' --- (Direct) ';
         end
@@ -123,7 +123,7 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p,dec
         fprintf('  Annual (4-Period) MPCs\n')
         for i = 1:numel(p.mpcfrac)
             if p.ComputeDirectMPC == 1
-                direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4(i));
+                direct = sprintf(', %2.3f (Direct)',direct_results.avg_mpc4_sim(i));
             else
                 direct = ' --- (Direct) ';
             end
@@ -176,17 +176,7 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p,dec
     else
         disp([label betamsg ' set in parameters']);
     end
-    
-    % norisk MPC
-%     if p.freq == 1
-%         value = norisk_results.avg_mpc1;
-%         fprintf('    Mean annual MPC for model without risk (using dist of model with risk): %5.3f',value);
-%     else
-%         valueQ = norisk_results.avg_mpc1;
-%         valueY = norisk_results.avg_mpc4;
-%         fprintf('    Mean quarterly MPC for model without risk (using dist of model with risk): %5.3f\n',valueQ);
-%         fprintf('    Mean annual MPC for model without risk (using dist of model with risk): %5.3f\n',valueY);
-%     end
+
     
     %% ISSUES
     fprintf('\nERRORS: \n')

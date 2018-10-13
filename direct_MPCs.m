@@ -1,8 +1,7 @@
-function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]... 
+function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]... 
                                 = direct_MPCs(p,prefs,income,basemodel,xgrid)
     % This function draws from the stationary distribution of (x,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
-    % The initial x sample x1 is later passed to direct_MPCs_deterministic
     
     if p.Display == 1
         disp([' Simulating ' num2str(p.freq) ' period(s) to get MPCs'])
@@ -34,7 +33,7 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]...
     partitionsize = 1e5;
     Npartition = Nsim/partitionsize;
     cumdist = cumsum(basemodel.SSdist(:));
-    xsim = zeros(Nsim,p.freq);
+    x1 = zeros(Nsim,1);
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
@@ -46,7 +45,7 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]...
         betaindsim(partition,1)	= betaind_trans(ind);
         
         % Initial assets from stationary distribution
-        xsim(partition,1) = xgrid.longgrid(ind);
+        x1(partition) = xgrid.longgrid(ind);
     end
     
     %% SIMULATE INCOME AND BETA
@@ -54,13 +53,9 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]...
     % Only simulate 4 periods when using quarterly frequency
     for it = 1:p.freq
         live = (diesim(:,it)==0);
-        [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
         [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
         
-        if it == 1
-            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim0(live),:)),[],2); 
-            [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim0,:)),[],2);
-        else
+        if it > 1
             [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2); 
             [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
         end
@@ -79,15 +74,10 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]...
                         - p.labtaxhigh*max(ygrosssim-income.labtaxthresh,0);
                     
     % Find income variances
-    if p.freq == 4
-        stdev_loggrossy_A = std(log(sum(ygrosssim,2)));
-        stdev_lognety_A = std(log(sum(ynetsim,2)));
-        mean_grossy_A = mean(sum(ygrosssim,2));
-    else
-        stdev_loggrossy_A = [];
-        stdev_lognety_A = [];
-        mean_grossy_A = [];
-    end
+    stdev_loggrossy_A = std(log(sum(ygrosssim,2)));
+    stdev_lognety_A = std(log(sum(ynetsim,2)));
+    mean_grossy_A = mean(sum(ygrosssim,2));
+    
     
     % Loop over mpcfrac sizes, first running simulation as if there was no
     % shock
@@ -97,10 +87,11 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]...
         else
             mpcamount = p.mpcfrac(im) * income.meany1 * p.freq;
         end
-        
+
         ssim = zeros(Nsim,p.freq);
         asim = zeros(Nsim,p.freq);
-        
+        xsim = zeros(Nsim,p.freq);
+
         %% SIMULATE DECISION VARIABLES UPON MPC SHOCK
         
         % Location of households that get pushed below bottom of their grid
@@ -109,7 +100,9 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]...
         
         for it = 1:p.freq
             % Update cash-on-hand          
-            if it > 1
+            if it == 1
+                xsim(:,1) = x1 + mpcamount;
+            else
                 xsim(:,it) = asim(:,it) + ynetsim(:,it);
             end
             

@@ -116,11 +116,11 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     xgrid.longgrid = xgrid.longgrid + minyT;
     xgrid.longgrid = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
     
-    % Create uniform grid to compute mpcs along same xgrid for all
+    % Create common grid to compute mpcs along same xgrid for all
     % parameterizations. Dimension nxlong x 1
-    xgrid.uniform = linspace(0,1,p.nxlong);
-    xgrid.uniform = xgrid.uniform.^(1/p.xgrid_par);
-    xgrid.uniform = p.borrow_lim + (p.xmax - p.borrow_lim) * xgrid.uniform;
+    xgrid.shared = linspace(0,1,p.nxlong)';
+    xgrid.shared = xgrid.shared.^(1/p.xgrid_par);
+    xgrid.shared = p.borrow_lim + (p.xmax - p.borrow_lim) * xgrid.shared;
     
     %% UTILITY FUNCTION, BEQUEST FUNCTION
     if p.risk_aver==1
@@ -274,22 +274,23 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     end
     
     %% DIRECTLY COMPUTED 1-PERIOD MPCs
-    % First get stationary distribution associated with xgrid.uniform
-    direct_results.SSdist_uniform = find_stationary(p,basemodel,income,prefs,xgrid.uniform);
+    % First get stationary distribution associated with xgrid.shared
+    SSdist_sharedgrid_full = find_stationary(p,basemodel,income,prefs,xgrid.shared);
     
     % Find P(yP,yF,beta|x) = P(x,yP,yF,beta)/P(x)
-    Px = sum(direct_results.SSdist_uniform,1);
-    Px = repmat(Px,[p.nxlong 1 1 1]);
-    Pcondl = direct_results.SSdist_uniform ./ Px;
+    Px = sum(sum(sum(SSdist_sharedgrid_full,2),3),4);
+    Px = repmat(Px,[1 p.nyP p.nyF p.nb]);
+    Pcondl = SSdist_sharedgrid_full ./ Px;
+    Pcondl(isnan(Pcondl)) = 0;
     
     for im = 0:numel(p.mpcfrac)
         if im == 0
             mpcamount = 0;
         else
-            mpcamount = p.mpcfrac(im)*income.meany*p.freq;
+            mpcamount = p.mpcfrac(im)*income.meany1*p.freq;
         end
         
-        x_mpc = xgrid.uniform + mpcamount;
+        x_mpc = xgrid.shared + mpcamount;
         con = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
         for ib = 1:p.nb
         for iyF = 1:p.nyF
@@ -304,24 +305,25 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         else
             % Compute m(x,yP,yF,beta)
             mpcs1_x_yP_yF_beta = (con - con_baseline) / mpcamount;
-            direct_results.avg_mpc1_uniform(im) = direct_results.SSdist_uniform(:)' * mpcs1_x_yP_yF_beta(:);
+            direct_results.avg_mpc1_shared(im) = SSdist_sharedgrid_full(:)' * mpcs1_x_yP_yF_beta(:);
             
             % Compute m(x) = E(m(x,yP,yF,beta)|x)
             %       = sum of P(yP,yF,beta|x) * m(x,yP,yF,beta) over all
             %         (yP,yF,beta)
-            direct_results.mpcs1_x{im} = sum(sum(sum(Pcondl .* mpcs1_x_yP_yF_beta,4),3),2);
+            direct_results.mpcs1_x_direct{im} = sum(sum(sum(Pcondl .* mpcs1_x_yP_yF_beta,4),3),2);
         end
     end
     
-    %% MPCs FROM DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
+    % Distribution over xgrid.shared
+    direct_results.SSdist_sharedgrid = sum(sum(sum(SSdist_sharedgrid_full,4),3),2);
+    
+    %% MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
     if p.ComputeDirectMPC == 1          
-        [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A] ...
-                        = direct_MPCs(p,prefs,income,basemodel,xgrid);
-        basemodel.a1 = a1;
-        basemodel.betaindsim0 = betaindsim0;
-        basemodel.mpcs1 = mpcs1;
-        basemodel.mpcs4 = mpcs4;
+        [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A] ...
+                            = direct_MPCs(p,prefs,income,basemodel,xgrid);
+        basemodel.mpcs1_sim = mpcs1;
+        basemodel.mpcs4_sim = mpcs4;
         
         % Find annual mean and standard deviations of income
         if p.freq == 4
@@ -338,45 +340,25 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         end
         
         for im = 1:numel(p.mpcfrac)
-            direct_results.avg_mpc1(im) = mean(basemodel.mpcs1{im});
-            direct_results.var_mpc1(im) = var(basemodel.mpcs1{im});
+            direct_results.avg_mpc1_sim(im) = mean(basemodel.mpcs1_sim{im});
+            direct_results.var_mpc1_sim(im) = var(basemodel.mpcs1_sim{im});
             if p.freq == 4
-                direct_results.avg_mpc4(im) = mean(basemodel.mpcs4{im});
-                direct_results.var_mpc4(im) = var(basemodel.mpcs4{im});
+                direct_results.avg_mpc4_sim(im) = mean(basemodel.mpcs4_sim{im});
+                direct_results.var_mpc4(im) = var(basemodel.mpcs4_sim{im});
             end
         end
     end
-
-    % norisk model
-    % Initial assets distributed as in basemodel.a1, so the mpc
-    % distribution here will not match that of norisk_mpcs1, which is based
-    % off stationary distribution of cash-on-hand from risky model, not
-    % assets
-    [norisk.mpcs1,norisk.mpcs4] = ...
-                direct_MPCs_deterministic(p,prefs,income,norisk,basemodel);
-    norisk_results.avg_mpc1 = mean(norisk.mpcs1);
-    norisk_results.avg_mpc4 = mean(norisk.mpcs4);
     
     %% DECOMPOSITION
-    decomp = struct([]);
+	decomp = struct([]);
     if p.nb == 1
         m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
-        for ia = 1:numel(p.abars)
-            % Use the initial distribution of assets from direct_MPCs(), a1
-            cind  = basemodel.a1 <= p.abars(ia); % constrained households
-            Ntotal = numel(basemodel.a1);
-            decomp(ia).term1 = m_ra;
-            decomp(ia).term2 = sum( (basemodel.mpcs1{5} - m_ra) .* cind/Ntotal);
-            decomp(ia).term3 = sum( (norisk.mpcs1 - m_ra) .* (~cind)/Ntotal);
-            decomp(ia).term4 = sum( (basemodel.mpcs1{5} - norisk.mpcs1) .* (~cind)/Ntotal);
-        end
-    else
-        for ia = 1:numel(p.abars)
-            decomp(ia).term1 = NaN;
-            decomp(ia).term2 = NaN;
-            decomp(ia).term3 = NaN;
-            decomp(ia).term4 = NaN;
-        end
+    end
+    for ia = 1:numel(p.abars)
+        decomp(ia).term1 = m_ra;
+        decomp(ia).term2 = NaN;
+        decomp(ia).term3 = NaN;
+        decomp(ia).term4 = NaN;
     end
     
     %% GINI
