@@ -42,8 +42,8 @@ params0.lambdaT      = 1; % arrival rate of shocks;
 params0.nyP          = 11; %11 persistent component
 params0.sd_logyP     = sqrt(.0422); % 0.1950;
 params0.rho_logyP    = 0.9525;
-params0.nyF          = 1;
-params0.sd_logyF     = 0;
+params0.nyF          = 3;
+params0.sd_logyF     = sqrt(0.1801);
 
 % cash on hand / savings grid
 params0.nx          = 150;
@@ -68,7 +68,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
-params0.nxlong      = 1500; % Grid size for final computations
+params0.nxlong      = 1000; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;

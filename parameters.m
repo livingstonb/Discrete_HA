@@ -119,7 +119,7 @@ function params = parameters()
     % different mean wealth targets
     for mw = [0.25, 0.5, 1, 2.5, 5]
         params(end+1) = baseline;
-        params(end).name = ['2 AYtarget' num2str(mw)];
+        params(end).name = ['2 AYtarget' num2str(mw) ];
         params(end).targetAY = mw;
     end
     
@@ -244,6 +244,15 @@ function params = parameters()
     params(end).nyT = 1;
     params(end).sd_logyT = sqrt(0);
     
+    % x
+    params(end+1) = baseline;
+    params(end).name = 'WithFE nyF 3';
+    params(end).rho_logyP = 0.9158;
+    params(end).sd_logyP = sqrt(0.0445);
+    params(end).sd_logyT = sqrt(0.0479);
+    params(end).sd_logyF = sqrt(0.1801);
+    params(end).nyF = 3;
+
     % xi
     params(end+1) = baseline;
     params(end).name = '3a(xi) MatchSS';
