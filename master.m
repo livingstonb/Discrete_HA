@@ -173,13 +173,13 @@ for ip = 1:Nparams
         end
 
         try
-            m1 = direct_results{ip}.mpcs1_x_direct{5};
-            m0 = direct_results{baseind}.mpcs1_x_direct{5};
-            g1 = direct_results{ip}.SSdist_sharedgrid;
-            g0 = direct_results{baseind}.SSdist_sharedgrid;
+            m1 = direct_results{ip}.mpcs1_a_direct{5};
+            m0 = direct_results{baseind}.mpcs1_a_direct{5};
+            g1 = direct_results{ip}.agrid_dist;
+            g0 = direct_results{baseind}.agrid_dist;
 
-            decomp2{ip}(ia).Em1_less_Em0 = direct_results{ip}.avg_mpc1_shared(5) ...
-                            - direct_results{baseind}.avg_mpc1_shared(5);
+            decomp2{ip}(ia).Em1_less_Em0 = direct_results{ip}.avg_mpc1_agrid(5) ...
+                            - direct_results{baseind}.avg_mpc1_agrid(5);
             decomp2{ip}(ia).Em1_less_Em0_check = g1'*m1 - g0'*m0;
             decomp2{ip}(ia).term1 = g0' * (m1 - m0);
             decomp2{ip}(ia).term2 = m0' * (g1 - g0);

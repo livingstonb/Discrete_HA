@@ -45,6 +45,8 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
         betaindsim(partition,1)	= betaind_trans(ind);
         
         % Initial assets from stationary distribution
+        ind = mod(ind,p.nxlong);
+        ind(ind==0) = p.nxlong;
         x1(partition) = xgrid.longgrid(ind);
     end
     
