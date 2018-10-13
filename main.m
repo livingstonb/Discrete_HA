@@ -1,5 +1,5 @@
 function [sim_results,direct_results,norisk_results,checks,decomp] ... 
-                                                = egp_AR1_IID_tax_recode(p)
+                                                = main(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity

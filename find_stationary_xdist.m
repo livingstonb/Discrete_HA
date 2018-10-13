@@ -1,4 +1,4 @@
-function [distribution,sav] = find_stationary(p,model,...
+function [distribution,sav] = find_stationary_xdist(p,model,...
                                  	income,prefs,xgridinput)
     % Finds the stationary distribution and transition matrix for a given
     % xgridinput. sav is the saving policy function
@@ -10,7 +10,7 @@ function [distribution,sav] = find_stationary(p,model,...
 
     gridsize = size(xgridinput,1);
     
-    if ismatrix(xgridinput)==1 & size(xgridinput,2)==1
+    if ismatrix(xgridinput)==1 && size(xgridinput,2)==1
         xgridinput = repmat(xgridinput,[1 p.nyP p.nyF]);
     end
     
