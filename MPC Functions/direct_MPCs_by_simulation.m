@@ -45,9 +45,8 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
         betaindsim(partition,1)	= betaind_trans(ind);
         
         % Initial assets from stationary distribution
-        ind = mod(ind,p.nxlong);
-        ind(ind==0) = p.nxlong;
-        x1(partition) = xgrid.longgrid(ind);
+        xlonggrid_extended = repmat(xgrid.longgrid(:),p.nb,1);
+        x1(partition) = xlonggrid_extended(ind);
     end
     
     %% SIMULATE INCOME AND BETA
@@ -58,7 +57,8 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
         [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
         
         if it > 1
-            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2); 
+            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
+            [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
             [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
         end
     end

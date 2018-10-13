@@ -6,7 +6,7 @@ function [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
     adist = find_stationary_adist(p,basemodel,income,prefs,agrid);
 
     % Find P(yP,yF,beta|a) = P(a,yP,yF,beta)/P(a)
-    Pa = sum(sum(sum(adist,2),3),4);
+    Pa = sum(sum(sum(adist,4),3),2);
     Pa = repmat(Pa,[1 p.nyP p.nyF p.nb]);
     Pcondl = adist ./ Pa;
     Pcondl(Pa == 0) = 0;

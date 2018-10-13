@@ -20,7 +20,6 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     yPindsim = zeros(p.Nsim,p.Tsim);
 
     [~,yFindsim] = max(bsxfun(@le,yFrand,income.yFcumdist'),[],2);
-    yFindsim = repmat(yFindsim,1,p.Tsim);
     
     % simulate yP upon death outside of time loop for speed
     idx = zeros(p.Nsim,p.Tsim);
@@ -103,7 +102,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
         for iyF = 1:p.nyF
         for ib = 1:p.nb
         for iyP = 1:p.nyP
-            idx = yPindsim(:,it)==iyP & betaindsim(:,it)==ib & yFindsim(:,it)==iyF;
+            idx = yPindsim(:,it)==iyP & betaindsim(:,it)==ib & yFindsim(:)==iyF;
             ssim(idx,it) = model.savinterp{iyP,iyF,ib}(xsim(idx,it));
         end
         end

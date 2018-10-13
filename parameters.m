@@ -45,7 +45,7 @@ function params = parameters()
     % cash on hand / savings grid
     baseline.nx          = 150;
     baseline.xmax        = 1000;  % need high if using high-variance income shocks
-    baseline.xgrid_par   = 0.3; %1 for linear, 0 for L-shaped
+    baseline.xgrid_par   = 1/3; %1 for linear, 0 for L-shaped
     baseline.borrow_lim  = 0;
 
     %government
@@ -244,6 +244,29 @@ function params = parameters()
     params(end).nyT = 1;
     params(end).sd_logyT = sqrt(0);
     
+    % xi
+    params(end+1) = baseline;
+    params(end).name = '3a(xi) MatchSS';
+    params(end).rho_logyP = 0.9468;
+    params(end).sd_logyP = sqrt(0.0641);
+    params(end).sd_logyT = sqrt(0.0479);
+    params(end).lambdaT  = 0.0821;
+    
+    % xii
+    params(end+1) = baseline;
+    params(end).name = '3a(xii) WithSCF m0';
+    params(end).rho_logyP = 0.9787;
+    params(end).sd_logyP = sqrt(0.0400);
+    params(end).sd_logyT = sqrt(0.0508);
+    
+    % xiv
+    params(end+1) = baseline;
+    params(end).name = '3a(xiv) MassPointTrans';
+    params(end).rho_logyP = sqrt(0.9516);
+    params(end).sd_logyP = sqrt(0.0434);
+    params(end).sd_logyT = sqrt(0.6431);
+    params(end).lambdaT = 0.0760;
+    
     %----------------------------------------------------------------------
     % PART 3b, QUARTERLY MODEL
     %----------------------------------------------------------------------
@@ -255,6 +278,15 @@ function params = parameters()
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
+    
+    % iv
+    params(end+1) = baseline;
+    params(end).name = '3b(iv) PersEveryPeriod';
+    params(end).freq = 4;
+    params(end).rho_logyP = 0.9884;
+    params(end).sd_logyP = sqrt(0.0105);
+    params(end).sd_logyT = sqrt(1.5298);
+    params(end).lambdaT = 0.0813;
     
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences

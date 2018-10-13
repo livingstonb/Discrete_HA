@@ -46,7 +46,7 @@ params0.nyF          = 1;
 params0.sd_logyF     = 0;
 
 % cash on hand / savings grid
-params0.nx          = 100;
+params0.nx          = 150;
 params0.xmax        = 1000;  % need high if using high-variance income shocks
 params0.xgrid_par   = 0.3; %1 for linear, 0 for L-shaped
 params0.borrow_lim  = 0;
@@ -59,7 +59,7 @@ params0.savtax          = 0; %0.0001;  %tax rate on savings
 params0.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
-params0.nb          = 5; % higher numbers dramatically increase computing load
+params0.nb          = 1; % higher numbers dramatically increase computing load
 params0.betawidth   = 0.015; % too large and eigs hangs while finding stat distribution
 params0.betaswitch  = 1/50; %0;
 
@@ -68,7 +68,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
-params0.nxlong      = 300; % Grid size for final computations
+params0.nxlong      = 1500; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
@@ -92,11 +92,11 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 0;
+params0.IterateBeta        = 1;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
-params0.Simulate           = 0;
+params0.Simulate           = 1;
 Batch = 0; % Run alternate parameterizations
 
 % Add paths
