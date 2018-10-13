@@ -90,7 +90,7 @@ function params = parameters()
 
     % OPTIONS
     baseline.IterateBeta        = 1;
-    baseline.Display            = 1;
+    baseline.Display            = 0;
     baseline.MakePlots          = 0;
     baseline.ComputeDirectMPC   = 1;
     baseline.Simulate           = 0;
@@ -105,12 +105,12 @@ function params = parameters()
     params(1).name  = 'Baseline_A';
 
     % quarterly baseline
-    params(end+1) = baseline;
-    params(end).name = 'Baseline_Q';
-    params(end).freq = 4;
-    params(end).sd_logyP = sqrt(0.0108);
-    params(end).sd_logyT = sqrt(0.2087);
-    params(end).rho_logyP = 0.9881;
+    params(2) = baseline;
+    params(2).name = 'Baseline_Q';
+    params(2).freq = 4;
+    params(2).sd_logyP = sqrt(0.0108);
+    params(2).sd_logyT = sqrt(0.2087);
+    params(2).rho_logyP = 0.9881;
 
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS

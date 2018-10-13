@@ -1,6 +1,6 @@
 
 %% HOUSEKEEPING
-
+tic
 clear;
 close all;
 
@@ -97,7 +97,7 @@ params0.IterateBeta        = 0;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
-params0.Simulate           = 1;
+params0.Simulate           = 0;
 Batch = 0; % Run alternate parameterizations
 
 % Add paths
@@ -131,33 +131,82 @@ exceptions     = cell(1,Nparams); % ME objects on any exceptions thrown
 checks         = cell(1,Nparams); % Information on failed sanity checks
 decomps        = cell(1,Nparams);
 
-for ip = 1:Nparams
+if Batch == 1
+    pc = parcluster('local');
+    parpool(pc, str2num(getenv('SLURM_CPUS_ON_NODE')));
+    M = 4;
+else
+    M = 0;
+end
+
+parfor (ip = 1:Nparams,M)
     if Batch == 0
         [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
         direct_results{ip}  = DR;
         norisk_results{ip}  = NR;
         sim_results{ip}     = SR;      
     else
-        disp(['Trying parameterization ' num2str(ip)])
+        disp(['Trying parameterization ' params(ip).name])
         try
             % Main function
             [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
             direct_results{ip}  = DR;
             norisk_results{ip}  = NR;
             sim_results{ip}     = SR;
+            exception{ip} = 0; % main function completed
         catch ME
             checks{ip} = 'EXCEPTION_THROWN';
             exceptions{ip} = ME;
         end
+        disp(['Finished parameterization ' params(ip).name])
     end
-    % Save variables after each specification in case code hangs
-    save(savematpath,'sim_results','direct_results','norisk_results',...
-                                                 'checks','exceptions');
 end
 
-T = create_table(params,direct_results,norisk_results,sim_results,decomps,checks,exceptions);
+%% DECOMPOSITIONS - COMPARISONS WITH BASELINE
+if Batch == 1
+    % Parameterization
+    for ip = 1:Nparams
+        decomp2{ip} = struct([]);
+        % Decomposition around a <= abar
+        for ia = 1:numel(params(ip).abars)
+            if params(ip).freq == 1
+                baseind = 1;
+            elseif params(ip).freq == 4
+                baseind = 2;
+            end
+            
+            try
+                m1 = direct_results{ip}.mpcs1_x_direct{5};
+                m0 = direct_results{baseind}.mpcs1_x_direct{5};
+                g1 = direct_results{ip}.SSdist_sharedgrid;
+                g0 = direct_results{baseind}.SSdist_sharedgrid;
+            
+                decomp2{ip}(ia).Em1_less_Em0 = direct_results{ip}.avg_mpc1_shared(5) ...
+                                - direct_results{baseind}.avg_mpc1_shared(5);
+                decomp2{ip}(ia).term1 = g0' * (m1 - m0);
+                decomp2{ip}(ia).term2 = m0' * (g1 - g0);
+                decomp2{ip}(ia).term3 = (m1 - m0)' * (g1 - g0)';
+            catch ME % decomp2 terms are not available for this param
+                decomp2{1}(ia).Em1_less_Em0 = NaN;
+                decomp2{1}(ia).term1 = NaN;
+                decomp2{1}(ia).term2 = NaN;
+                decomp2{1}(ia).term3 = NaN;
+            end
+        end
+    end
+else
+    for ia = 1:numel(params(1).abars)
+        decomp2{1}(ia).Em1_less_Em0 = NaN;
+        decomp2{1}(ia).term1 = NaN;
+        decomp2{1}(ia).term2 = NaN;
+        decomp2{1}(ia).term3 = NaN;
+    end
+end
+%% CREATE TABLE
 
-    
+T = create_table(params,direct_results,decomps,checks,exceptions,decomp2);
+
+toc
 %% SAVE
                                     
 if Batch == 1

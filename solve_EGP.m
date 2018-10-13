@@ -8,7 +8,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     %% CONSTRUCT EXPECTATIONS MATRIX                                     
     betagrid = beta + prefs.betagrid0;
     
-    if p.IterateBeta == 1
+    if p.IterateBeta == 1 && p.Display == 1
         msg = sprintf(' %3.3f',betagrid);
         disp([' Trying betagrid =' msg])
     end
