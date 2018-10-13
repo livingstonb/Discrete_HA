@@ -59,7 +59,7 @@ params0.savtax          = 0; %0.0001;  %tax rate on savings
 params0.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
-params0.nb          = 1; % higher numbers dramatically increase computing load
+params0.nb          = 5; % higher numbers dramatically increase computing load
 params0.betawidth   = 0.015; % too large and eigs hangs while finding stat distribution
 params0.betaswitch  = 1/50; %0;
 
@@ -68,7 +68,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
-params0.nxlong      = 1000; % Grid size for final computations
+params0.nxlong      = 300; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
@@ -110,6 +110,8 @@ else
     savematpath = '/home/livingstonb/output/variables.mat';
 end
 addpath([path '/Auxiliary Functions']);
+addpath([path '/MPC Functions']);
+addpath([path '/Output Functions']);
 cd(path);
 
 %% LOAD ALTERNATE PARAMETERIZATIONS, STRUCTURE ARRAY
@@ -130,20 +132,13 @@ exceptions     = cell(1,Nparams); % ME objects on any exceptions thrown
 checks         = cell(1,Nparams); % Information on failed sanity checks
 decomps        = cell(1,Nparams);
 
-if Batch == 1
-    pc = parcluster('local');
-    parpool(pc, str2num(getenv('SLURM_CPUS_ON_NODE')));
-    M = 2;
-end
-
-
 if Batch == 0
     [SR,DR,NR,checks{1},decomps{1}] = main(params(1));
     direct_results{1}  = DR;
     norisk_results{1}  = NR;
     sim_results{1}     = SR;      
 else
-    parfor (ip = 1:Nparams,M)
+    for ip = 1:Nparams
             disp(['Trying parameterization ' params(ip).name])
             try
                 % Main function
@@ -168,7 +163,7 @@ for ip = 1:Nparams
     for ia = 1:numel(params(ip).abars)
         if params(ip).freq == 1
             baseind = 1;
-        elseif params(ip).freq == 4
+        elseif params(ia).freq == 4
             baseind = 2;
         end
 
@@ -190,24 +185,24 @@ for ip = 1:Nparams
         
         if Batch==0 || numel(fieldnames(ME))>0
             % Either not running as batch, or error was thrown
-            decomp2{1}(ia).Em1_less_Em0 = NaN;
+            decomp2{ip}(ia).Em1_less_Em0 = NaN;
             decomp2{ip}(ia).Em1_less_Em0_check = NaN;
-            decomp2{1}(ia).term1 = NaN;
-            decomp2{1}(ia).term2 = NaN;
-            decomp2{1}(ia).term3 = NaN;
+            decomp2{ip}(ia).term1 = NaN;
+            decomp2{ip}(ia).term2 = NaN;
+            decomp2{ip}(ia).term3 = NaN;
         end
     end
 end
 
-%% CREATE TABLE
-
-T = create_table(params,direct_results,decomps,checks,exceptions,decomp2);
-
-%% SAVE
-                                    
+%% SAVE AND CREATE TABLE
 if Batch == 1
-    writetable(T,savetablepath,'WriteRowNames',true);
     save(savematpath,'sim_results','direct_results','norisk_results',...
                                                  'checks','exceptions');
+end
+                                             
+T = create_table(params,direct_results,decomps,checks,exceptions,decomp2);
+                            
+if Batch == 1
+    writetable(T,savetablepath,'WriteRowNames',true);
     exit
 end

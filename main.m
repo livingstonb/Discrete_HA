@@ -80,10 +80,6 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         case 5
             prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
     end
-    
-    if (max(p.beta0+prefs.betagrid0) >= p.betaH) && (p.IterateBeta == 0)
-        error('Max beta on betagrid too high, no stationary distribution')
-    end
 
     %% ASSET GRIDS
     
@@ -273,95 +269,19 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         assetmeans = [];
     end
     
-    %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITH INCOME RISK)
-    % First get stationary distribution associated with agrid
-    adist = find_stationary_adist(p,basemodel,income,prefs,agrid);
-    
-    % Find P(yP,yF,beta|a) = P(a,yP,yF,beta)/P(a)
-    Pa = sum(sum(sum(adist,2),3),4);
-    Pa = repmat(Pa,[1 p.nyP p.nyF p.nb]);
-    Pcondl = adist ./ Pa;
-    Pcondl(Pa == 0) = 0;
-    
-    % Each (a,yP,yF) is associated with nyT possible x values, create this
-    % grid here
-    netymat_reshape = reshape(income.netymat,[1 p.nyP p.nyF p.nyT]);
-    netymat_reshape = repmat(netymat_reshape,[p.nxlong 1 1 1]);
-    xgrid_yT = repmat(agrid,[1 p.nyP p.nyF p.nyT]) + netymat_reshape;
-    
-    for im = 0:numel(p.mpcfrac)
-        if im == 0
-            mpcamount = 0;
-        else
-            mpcamount = p.mpcfrac(im)*income.meany1*p.freq;
-        end
-        
-        x_mpc = xgrid_yT + mpcamount;
-        con = zeros(p.nxlong,p.nyP,p.nyF,p.nb,p.nyT);
-        for ib = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP
-            x_iyP_iyF_ib = x_mpc(:,iyP,iyF,:);
-            con_iyP_iyF_ib = basemodel.coninterp{iyP,iyF,ib}(x_iyP_iyF_ib(:));
-            con(:,iyP,iyF,ib,:) = reshape(con_iyP_iyF_ib,[p.nxlong 1 1 1 p.nyT]);
-        end
-        end
-        end
-        
-        % Take expectation over yT
-        % con becomes E[con(x,yP,yF,beta)|a,yP,yF,beta]
-        con = reshape(con,[],p.nyT) * income.yTdist;
-        con = reshape(con,[p.nxlong p.nyP p.nyF p.nb]);
-        
-        if im == 0
-            con_baseline = con;
-        else
-            % Compute m(a,yP,yF,beta) = E[m(x,yP,yF,beta)|a,yP,yF,beta]
-            mpcs1_a_yP_yF_beta = (con - con_baseline) / mpcamount;
-            direct_results.avg_mpc1_agrid(im) = adist(:)' * mpcs1_a_yP_yF_beta(:);
-            
-            % Compute m(a) = E(m(a,yP,yF,beta)|a)
-            %       = sum of P(yP,yF,beta|a) * m(a,yP,yF,beta) over all
-            %         (yP,yF,beta)
-            direct_results.mpcs1_a_direct{im} = sum(sum(sum(Pcondl .* mpcs1_a_yP_yF_beta,4),3),2);
-        end
-    end
-    
-    % Distribution over agrid, P(a)
-    direct_results.agrid_dist = sum(sum(sum(adist,4),3),2);
-    
-    %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITHOUT INCOME RISK)
-    for im = 0:numel(p.mpcfrac)
-        if im == 0
-            mpcamount = 0;
-        else
-            mpcamount = p.mpcfrac(im)*income.meany1*p.freq;
-        end
-        
-        x_mpc = agrid + income.meannety1 + mpcamount;
-        con = zeros(p.nxlong,p.nb);
-        for ib = 1:p.nb
-            con(:,ib) = norisk.coninterp{ib}(x_mpc);
-        end
-        
-        if im == 0
-            con_baseline = con;
-        else
-            % Compute m(a,beta)
-            mpcs1_a_beta = (con - con_baseline) / mpcamount;
-
-            % Compute m(x) = E(m(x,beta)|x)
-            %       = sum of P(beta|x) * m(x,beta) over all beta
-            % beta is exogenous so P(beta|x) = P(beta)
-            norisk_results.mpcs1_a_direct{im} = mpcs1_a_beta * prefs.betadist;
-        end
-    end
+    %% DIRECTLY COMPUTED 1-PERIOD MPCs
+    [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct] = ...
+            direct_MPCs_by_computation(p,basemodel,income,prefs,agrid,norisk);
+    direct_results.avg_mpc1_agrid = avg_mpc1_agrid;
+    direct_results.mpcs1_a_direct = mpcs1_a_direct;
+    direct_results.agrid_dist = agrid_dist;
+    norisk_results.mpcs1_a_direct = norisk_mpcs1_a_direct;
     
     %% MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
     if p.ComputeDirectMPC == 1          
         [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A] ...
-                            = direct_MPCs(p,prefs,income,basemodel,xgrid);
+                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid);
         basemodel.mpcs1_sim = mpcs1;
         basemodel.mpcs4_sim = mpcs4;
         
@@ -407,10 +327,12 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
             decomp(ia).term4 = (m0(~zidx) - mbc(~zidx))' * g0(~zidx);
         end
     else
-        decomp(ia).term1 = NaN;
-        decomp(ia).term2 = NaN;
-        decomp(ia).term3 = NaN;
-        decomp(ia).term4 = NaN;
+        for ia = 1:numel(p.abars)
+            decomp(ia).term1 = NaN;
+            decomp(ia).term2 = NaN;
+            decomp(ia).term3 = NaN;
+            decomp(ia).term4 = NaN;
+        end
     end
     
     %% GINI

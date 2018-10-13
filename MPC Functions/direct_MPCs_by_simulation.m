@@ -1,5 +1,5 @@
 function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]... 
-                                = direct_MPCs(p,prefs,income,basemodel,xgrid)
+                                = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid)
     % This function draws from the stationary distribution of (x,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
     
