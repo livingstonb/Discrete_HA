@@ -273,7 +273,7 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         assetmeans = [];
     end
     
-    %% DIRECTLY COMPUTED 1-PERIOD MPCs
+    %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITH INCOME RISK)
     % First get stationary distribution associated with xgrid.shared
     SSdist_sharedgrid_full = find_stationary(p,basemodel,income,prefs,xgrid.shared);
     
@@ -317,6 +317,33 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     % Distribution over xgrid.shared
     direct_results.SSdist_sharedgrid = sum(sum(sum(SSdist_sharedgrid_full,4),3),2);
     
+    %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITHOUT INCOME RISK)
+    for im = 0:numel(p.mpcfrac)
+        if im == 0
+            mpcamount = 0;
+        else
+            mpcamount = p.mpcfrac(im)*income.meany1*p.freq;
+        end
+        
+        x_mpc = xgrid.shared + mpcamount;
+        con = zeros(p.nxlong,p.nb);
+        for ib = 1:p.nb
+            con(:,ib) = norisk.coninterp{ib}(x_mpc);
+        end
+        
+        if im == 0
+            con_baseline = con;
+        else
+            % Compute m(x,beta)
+            mpcs1_x_beta = (con - con_baseline) / mpcamount;
+
+            % Compute m(x) = E(m(x,beta)|x)
+            %       = sum of P(beta|x) * m(x,beta) over all beta
+            % beta is exogenous so P(beta|x) = P(beta)
+            norisk_results.mpcs1_x_direct{im} = mpcs1_x_beta * prefs.betadist;
+        end
+    end
+    
     %% MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
     if p.ComputeDirectMPC == 1          
@@ -349,13 +376,25 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         end
     end
     
+    
     %% DECOMPOSITION
 	decomp = struct([]);
     if p.nb == 1
         m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
-    end
-    for ia = 1:numel(p.abars)
-        decomp(ia).term1 = m_ra;
+ 
+        m0 = direct_results.mpcs1_x_direct{5};
+        g0 = direct_results.SSdist_sharedgrid;
+        mbc  = norisk_results.mpcs1_x_direct{5};
+        for ia = 1:numel(p.abars)
+            zidx = xgrid.shared < p.abars(ia);
+            
+            decomp(ia).term1 = m_ra;
+            decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
+            decomp(ia).term3 = (mbc(~zidx) - m_ra)' * g0(~zidx);
+            decomp(ia).term4 = (m0(~zidx) - mbc(~zidx))' * g0(~zidx);
+        end
+    else
+        decomp(ia).term1 = NaN;
         decomp(ia).term2 = NaN;
         decomp(ia).term3 = NaN;
         decomp(ia).term4 = NaN;

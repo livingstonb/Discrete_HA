@@ -92,12 +92,12 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 1;
-params0.Display            = 0;
+params0.IterateBeta        = 0;
+params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 0;
-Batch = 1; % Run alternate parameterizations
+Batch = 0; % Run alternate parameterizations
 
 % Add paths
 if Batch == 0
@@ -133,14 +133,12 @@ decomps        = cell(1,Nparams);
 if Batch == 1
     pc = parcluster('local');
     parpool(pc, str2num(getenv('SLURM_CPUS_ON_NODE')));
-    M = 4;
+    M = 2;
 else
     M = 0;
 end
 
-looporder = randsample(Nparams,Nparams);
-parfor (count = 1:Nparams,M)
-    ip = looporder(count);
+parfor (ip = 1:Nparams,M)
     if Batch == 0
         [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
         direct_results{ip}  = DR;
