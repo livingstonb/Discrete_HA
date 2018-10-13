@@ -1,6 +1,5 @@
 
 %% HOUSEKEEPING
-tic
 clear;
 close all;
 
@@ -134,12 +133,14 @@ decomps        = cell(1,Nparams);
 if Batch == 1
     pc = parcluster('local');
     parpool(pc, str2num(getenv('SLURM_CPUS_ON_NODE')));
-    M = 6;
+    M = 4;
 else
     M = 0;
 end
 
-parfor (ip = 1:Nparams,M)
+looporder = randsample(Nparams,Nparams);
+parfor (count = 1:Nparams,M)
+    ip = looporder(count);
     if Batch == 0
         [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
         direct_results{ip}  = DR;
@@ -163,50 +164,48 @@ parfor (ip = 1:Nparams,M)
 end
 
 %% DECOMPOSITIONS - COMPARISONS WITH BASELINE
-if Batch == 1
-    % Parameterization
-    for ip = 1:Nparams
-        decomp2{ip} = struct([]);
-        % Decomposition around a <= abar
-        for ia = 1:numel(params(ip).abars)
-            if params(ip).freq == 1
-                baseind = 1;
-            elseif params(ip).freq == 4
-                baseind = 2;
-            end
-            
-            try
-                m1 = direct_results{ip}.mpcs1_x_direct{5};
-                m0 = direct_results{baseind}.mpcs1_x_direct{5};
-                g1 = direct_results{ip}.SSdist_sharedgrid;
-                g0 = direct_results{baseind}.SSdist_sharedgrid;
-            
-                decomp2{ip}(ia).Em1_less_Em0 = direct_results{ip}.avg_mpc1_shared(5) ...
-                                - direct_results{baseind}.avg_mpc1_shared(5);
-                decomp2{ip}(ia).term1 = g0' * (m1 - m0);
-                decomp2{ip}(ia).term2 = m0' * (g1 - g0);
-                decomp2{ip}(ia).term3 = (m1 - m0)' * (g1 - g0)';
-            catch ME % decomp2 terms are not available for this param
-                decomp2{1}(ia).Em1_less_Em0 = NaN;
-                decomp2{1}(ia).term1 = NaN;
-                decomp2{1}(ia).term2 = NaN;
-                decomp2{1}(ia).term3 = NaN;
-            end
+% Parameterization
+for ip = 1:Nparams
+    decomp2{ip} = struct([]);
+    % Decomposition around a <= abar
+    for ia = 1:numel(params(ip).abars)
+        if params(ip).freq == 1
+            baseind = 1;
+        elseif params(ip).freq == 4
+            baseind = 2;
+        end
+
+        try
+            m1 = direct_results{ip}.mpcs1_x_direct{5};
+            m0 = direct_results{baseind}.mpcs1_x_direct{5};
+            g1 = direct_results{ip}.SSdist_sharedgrid;
+            g0 = direct_results{baseind}.SSdist_sharedgrid;
+
+            decomp2{ip}(ia).Em1_less_Em0 = direct_results{ip}.avg_mpc1_shared(5) ...
+                            - direct_results{baseind}.avg_mpc1_shared(5);
+            decomp2{ip}(ia).Em1_less_Em0_check = g1'*m1 - g0'*m0;
+            decomp2{ip}(ia).term1 = g0' * (m1 - m0);
+            decomp2{ip}(ia).term2 = m0' * (g1 - g0);
+            decomp2{ip}(ia).term3 = (m1 - m0)' * (g1 - g0);
+            ME = struct();
+        catch ME
+        end
+        
+        if Batch==0 || numel(fieldnames(ME))>0
+            % Either not running as batch, or error was thrown
+            decomp2{1}(ia).Em1_less_Em0 = NaN;
+            decomp2{ip}(ia).Em1_less_Em0_check = NaN;
+            decomp2{1}(ia).term1 = NaN;
+            decomp2{1}(ia).term2 = NaN;
+            decomp2{1}(ia).term3 = NaN;
         end
     end
-else
-    for ia = 1:numel(params(1).abars)
-        decomp2{1}(ia).Em1_less_Em0 = NaN;
-        decomp2{1}(ia).term1 = NaN;
-        decomp2{1}(ia).term2 = NaN;
-        decomp2{1}(ia).term3 = NaN;
-    end
 end
+
 %% CREATE TABLE
 
 T = create_table(params,direct_results,decomps,checks,exceptions,decomp2);
 
-toc
 %% SAVE
                                     
 if Batch == 1
