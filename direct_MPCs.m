@@ -1,9 +1,8 @@
 function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]... 
                                 = direct_MPCs(p,prefs,income,basemodel,xgrid)
-    % This function draws from the stationary distribution of assets and
-    % the previous period's (yP,yF,beta) and simulates 1-4 periods to find MPCs.
-    % The initial asset sample a1 is later passed to
-    % direct_MPCs_deterministic, as are the prior period's beta indices.
+    % This function draws from the stationary distribution of (x,yP,yF,beta) 
+    % and simulates 1-4 periods to find MPCs.
+    % The initial x sample x1 is later passed to direct_MPCs_deterministic
     
     if p.Display == 1
         disp([' Simulating ' num2str(p.freq) ' period(s) to get MPCs'])
@@ -28,27 +27,20 @@ function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_gros
     yTindsim    = ones(Nsim,p.freq);
     yFindsim    = ones(Nsim,1);
     
-    % Period 1 assets
-    a1          = zeros(Nsim,1);
-    
-    % Period 0 yP,beta
-    yPindsim0   = zeros(Nsim,1);
-    betaindsim0 = zeros(Nsim,1);
-
     diesim      = dierand < p.dieprob;
     
     % Find (yPgrid0,yFgrid0,betagrid0) indices of draws from stationary distribution
     % Done in partitions to economize on memory
     partitionsize = 1e5;
     Npartition = Nsim/partitionsize;
-    cumdist = cumsum(basemodel.asset_dist(:));
+    cumdist = cumsum(basemodel.SSdist(:));
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
         [~,ind] = max(bsxfun(@lt,state_rand(partition),cumdist'),[],2);
         
-        % (yPgrid,yFgrid,betagrid) indices
-        yPindsim0(partition)	= yPind_trans(ind);
+        % (yPgrid,yFgrid,betagrid) iindices
+        yPindsim0(partition,1)	= yPind_trans(ind);
         yFindsim(partition)     = yFind_trans(ind);
         betaindsim0(partition)	= betaind_trans(ind);
         

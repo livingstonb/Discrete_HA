@@ -109,12 +109,18 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     
     % create longer xgrid
     minyT = kron(min(income.netymat,[],2),ones(p.nxlong,1));
-    xgrid.longgrid      = linspace(0,1,p.nxlong)';
-    xgrid.longgrid      = xgrid.longgrid.^(1/p.xgrid_par);
-    xgrid.longgrid      = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid.longgrid;
-    xgrid.longgrid      = repmat(xgrid.longgrid,p.nyP*p.nyF,1);
-    xgrid.longgrid      = xgrid.longgrid + minyT;
-    xgrid.longgrid      = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
+    xgrid.longgrid = linspace(0,1,p.nxlong)';
+    xgrid.longgrid = xgrid.longgrid.^(1/p.xgrid_par);
+    xgrid.longgrid = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid.longgrid;
+    xgrid.longgrid = repmat(xgrid.longgrid,p.nyP*p.nyF,1);
+    xgrid.longgrid = xgrid.longgrid + minyT;
+    xgrid.longgrid = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
+    
+    % Create uniform grid to compute mpcs along same xgrid for all
+    % parameterizations. Dimension nxlong x 1
+    xgrid.uniform = linspace(0,1,p.nxlong);
+    xgrid.uniform = xgrid.uniform.^(1/p.xgrid_par);
+    xgrid.uniform = p.borrow_lim + (p.xmax - p.borrow_lim) * xgrid.uniform;
     
     %% UTILITY FUNCTION, BEQUEST FUNCTION
     if p.risk_aver==1
@@ -266,7 +272,47 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     else
         assetmeans = [];
     end
-
+    
+    %% DIRECTLY COMPUTED 1-PERIOD MPCs
+    % First get stationary distribution associated with xgrid.uniform
+    direct_results.SSdist_uniform = find_stationary(p,basemodel,income,prefs,xgrid.uniform);
+    
+    % Find P(yP,yF,beta|x) = P(x,yP,yF,beta)/P(x)
+    Px = sum(direct_results.SSdist_uniform,1);
+    Px = repmat(Px,[p.nxlong 1 1 1]);
+    Pcondl = direct_results.SSdist_uniform ./ Px;
+    
+    for im = 0:numel(p.mpcfrac)
+        if im == 0
+            mpcamount = 0;
+        else
+            mpcamount = p.mpcfrac(im)*income.meany*p.freq;
+        end
+        
+        x_mpc = xgrid.uniform + mpcamount;
+        con = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
+        for ib = 1:p.nb
+        for iyF = 1:p.nyF
+        for iyP = 1:p.nyP
+            con(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(x_mpc);
+        end
+        end
+        end
+        
+        if im == 0
+            con_baseline = con;
+        else
+            % Compute m(x,yP,yF,beta)
+            mpcs1_x_yP_yF_beta = (con - con_baseline) / mpcamount;
+            direct_results.avg_mpc1_uniform(im) = direct_results.SSdist_uniform(:)' * mpcs1_x_yP_yF_beta(:);
+            
+            % Compute m(x) = E(m(x,yP,yF,beta)|x)
+            %       = sum of P(yP,yF,beta|x) * m(x,yP,yF,beta) over all
+            %         (yP,yF,beta)
+            direct_results.mpcs1_x{im} = sum(sum(sum(Pcondl .* mpcs1_x_yP_yF_beta,4),3),2);
+        end
+    end
+    
     %% MPCs FROM DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
     if p.ComputeDirectMPC == 1          
