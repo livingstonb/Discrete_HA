@@ -86,7 +86,7 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     end
 
     %% ASSET GRIDS
-
+    
     % savings grids
     sgrid.orig = linspace(0,1,p.nx)';
     sgrid.orig = sgrid.orig.^(1./p.xgrid_par);
@@ -116,11 +116,11 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     xgrid.longgrid = xgrid.longgrid + minyT;
     xgrid.longgrid = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
     
-    % Create common grid to compute mpcs along same xgrid for all
+    % Create common agrid to compute mpcs along same agrid for all
     % parameterizations. Dimension nxlong x 1
-    xgrid.shared = linspace(0,1,p.nxlong)';
-    xgrid.shared = xgrid.shared.^(1/p.xgrid_par);
-    xgrid.shared = p.borrow_lim + (p.xmax - p.borrow_lim) * xgrid.shared;
+    agrid = linspace(0,1,p.nxlong)';
+    agrid = agrid.^(1/p.xgrid_par);
+    agrid = p.borrow_lim + (p.xmax - p.borrow_lim) * agrid;
     
     %% UTILITY FUNCTION, BEQUEST FUNCTION
     if p.risk_aver==1
@@ -274,14 +274,20 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     end
     
     %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITH INCOME RISK)
-    % First get stationary distribution associated with xgrid.shared
-    SSdist_sharedgrid_full = find_stationary(p,basemodel,income,prefs,xgrid.shared);
+    % First get stationary distribution associated with agrid
+    adist = find_stationary_adist(p,basemodel,income,prefs,agrid);
     
-    % Find P(yP,yF,beta|x) = P(x,yP,yF,beta)/P(x)
-    Px = sum(sum(sum(SSdist_sharedgrid_full,2),3),4);
-    Px = repmat(Px,[1 p.nyP p.nyF p.nb]);
-    Pcondl = SSdist_sharedgrid_full ./ Px;
-    Pcondl(isnan(Pcondl)) = 0;
+    % Find P(yP,yF,beta|a) = P(a,yP,yF,beta)/P(a)
+    Pa = sum(sum(sum(adist,2),3),4);
+    Pa = repmat(Pa,[1 p.nyP p.nyF p.nb]);
+    Pcondl = adist ./ Pa;
+    Pcondl(Pa == 0) = 0;
+    
+    % Each (a,yP,yF) is associated with nyT possible x values, create this
+    % grid here
+    netymat_reshape = reshape(income.netymat,[1 p.nyP p.nyF p.nyT]);
+    netymat_reshape = repmat(netymat_reshape,[p.nxlong 1 1 1]);
+    xgrid_yT = repmat(agrid,[1 p.nyP p.nyF p.nyT]) + netymat_reshape;
     
     for im = 0:numel(p.mpcfrac)
         if im == 0
@@ -290,32 +296,39 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
             mpcamount = p.mpcfrac(im)*income.meany1*p.freq;
         end
         
-        x_mpc = xgrid.shared + mpcamount;
-        con = zeros(p.nxlong,p.nyP,p.nyF,p.nb);
+        x_mpc = xgrid_yT + mpcamount;
+        con = zeros(p.nxlong,p.nyP,p.nyF,p.nb,p.nyT);
         for ib = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            con(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(x_mpc);
+            x_iyP_iyF_ib = x_mpc(:,iyP,iyF,:);
+            con_iyP_iyF_ib = basemodel.coninterp{iyP,iyF,ib}(x_iyP_iyF_ib(:));
+            con(:,iyP,iyF,ib,:) = reshape(con_iyP_iyF_ib,[p.nxlong 1 1 1 p.nyT]);
         end
         end
         end
         
+        % Take expectation over yT
+        % con becomes E[con(x,yP,yF,beta)|a,yP,yF,beta]
+        con = reshape(con,[],p.nyT) * income.yTdist;
+        con = reshape(con,[p.nxlong p.nyP p.nyF p.nb]);
+        
         if im == 0
             con_baseline = con;
         else
-            % Compute m(x,yP,yF,beta)
-            mpcs1_x_yP_yF_beta = (con - con_baseline) / mpcamount;
-            direct_results.avg_mpc1_shared(im) = SSdist_sharedgrid_full(:)' * mpcs1_x_yP_yF_beta(:);
+            % Compute m(a,yP,yF,beta) = E[m(x,yP,yF,beta)|a,yP,yF,beta]
+            mpcs1_a_yP_yF_beta = (con - con_baseline) / mpcamount;
+            direct_results.avg_mpc1_agrid(im) = adist(:)' * mpcs1_a_yP_yF_beta(:);
             
-            % Compute m(x) = E(m(x,yP,yF,beta)|x)
-            %       = sum of P(yP,yF,beta|x) * m(x,yP,yF,beta) over all
+            % Compute m(a) = E(m(a,yP,yF,beta)|a)
+            %       = sum of P(yP,yF,beta|a) * m(a,yP,yF,beta) over all
             %         (yP,yF,beta)
-            direct_results.mpcs1_x_direct{im} = sum(sum(sum(Pcondl .* mpcs1_x_yP_yF_beta,4),3),2);
+            direct_results.mpcs1_a_direct{im} = sum(sum(sum(Pcondl .* mpcs1_a_yP_yF_beta,4),3),2);
         end
     end
     
-    % Distribution over xgrid.shared
-    direct_results.SSdist_sharedgrid = sum(sum(sum(SSdist_sharedgrid_full,4),3),2);
+    % Distribution over agrid, P(a)
+    direct_results.agrid_dist = sum(sum(sum(adist,4),3),2);
     
     %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITHOUT INCOME RISK)
     for im = 0:numel(p.mpcfrac)
@@ -325,7 +338,7 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
             mpcamount = p.mpcfrac(im)*income.meany1*p.freq;
         end
         
-        x_mpc = xgrid.shared + mpcamount;
+        x_mpc = agrid + income.meannety1 + mpcamount;
         con = zeros(p.nxlong,p.nb);
         for ib = 1:p.nb
             con(:,ib) = norisk.coninterp{ib}(x_mpc);
@@ -334,13 +347,13 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         if im == 0
             con_baseline = con;
         else
-            % Compute m(x,beta)
-            mpcs1_x_beta = (con - con_baseline) / mpcamount;
+            % Compute m(a,beta)
+            mpcs1_a_beta = (con - con_baseline) / mpcamount;
 
             % Compute m(x) = E(m(x,beta)|x)
             %       = sum of P(beta|x) * m(x,beta) over all beta
             % beta is exogenous so P(beta|x) = P(beta)
-            norisk_results.mpcs1_x_direct{im} = mpcs1_x_beta * prefs.betadist;
+            norisk_results.mpcs1_a_direct{im} = mpcs1_a_beta * prefs.betadist;
         end
     end
     
@@ -382,11 +395,11 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     if p.nb == 1
         m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
  
-        m0 = direct_results.mpcs1_x_direct{5};
-        g0 = direct_results.SSdist_sharedgrid;
-        mbc  = norisk_results.mpcs1_x_direct{5};
+        m0 = direct_results.mpcs1_a_direct{5};
+        g0 = direct_results.agrid_dist;
+        mbc  = norisk_results.mpcs1_a_direct{5};
         for ia = 1:numel(p.abars)
-            zidx = xgrid.shared < p.abars(ia);
+            zidx = agrid < p.abars(ia);
             
             decomp(ia).term1 = m_ra;
             decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);

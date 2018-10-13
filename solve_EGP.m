@@ -142,7 +142,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     
     % Distribution over (x,yP,yF,beta)
     [model.SSdist,model.sav_longgrid]...
-            = find_stationary(p,model,income,prefs,xgrid.longgrid);
+            = find_stationary_xdist(p,model,income,prefs,xgrid.longgrid);
     
     % Cumulative distribution, sorted by saving
     temp = sortrows([model.sav_longgrid(:) model.SSdist(:)]);

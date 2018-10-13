@@ -134,30 +134,29 @@ if Batch == 1
     pc = parcluster('local');
     parpool(pc, str2num(getenv('SLURM_CPUS_ON_NODE')));
     M = 2;
-else
-    M = 0;
 end
 
-parfor (ip = 1:Nparams,M)
-    if Batch == 0
-        [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
-        direct_results{ip}  = DR;
-        norisk_results{ip}  = NR;
-        sim_results{ip}     = SR;      
-    else
-        disp(['Trying parameterization ' params(ip).name])
-        try
-            % Main function
-            [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
-            direct_results{ip}  = DR;
-            norisk_results{ip}  = NR;
-            sim_results{ip}     = SR;
-            exception{ip} = 0; % main function completed
-        catch ME
-            checks{ip} = 'EXCEPTION_THROWN';
-            exceptions{ip} = ME;
-        end
-        disp(['Finished parameterization ' params(ip).name])
+
+if Batch == 0
+    [SR,DR,NR,checks{1},decomps{1}] = main(params(1));
+    direct_results{1}  = DR;
+    norisk_results{1}  = NR;
+    sim_results{1}     = SR;      
+else
+    parfor (ip = 1:Nparams,M)
+            disp(['Trying parameterization ' params(ip).name])
+            try
+                % Main function
+                [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
+                direct_results{ip}  = DR;
+                norisk_results{ip}  = NR;
+                sim_results{ip}     = SR;
+                exception{ip} = 0; % main function completed
+            catch ME
+                checks{ip} = 'EXCEPTION_THROWN';
+                exceptions{ip} = ME;
+            end
+            disp(['Finished parameterization ' params(ip).name])
     end
 end
 
