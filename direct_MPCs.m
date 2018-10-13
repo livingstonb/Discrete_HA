@@ -1,4 +1,4 @@
-function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]... 
+function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_grossy_A]... 
                                 = direct_MPCs(p,prefs,income,basemodel,xgrid)
     % This function draws from the stationary distribution of (x,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
@@ -29,23 +29,24 @@ function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_gros
     
     diesim      = dierand < p.dieprob;
     
-    % Find (yPgrid0,yFgrid0,betagrid0) indices of draws from stationary distribution
+    % Find (x,yPgrid,yFgrid,betagrid) indices of draws from stationary distribution
     % Done in partitions to economize on memory
     partitionsize = 1e5;
     Npartition = Nsim/partitionsize;
     cumdist = cumsum(basemodel.SSdist(:));
+    xsim = zeros(Nsim,p.freq);
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
         [~,ind] = max(bsxfun(@lt,state_rand(partition),cumdist'),[],2);
         
         % (yPgrid,yFgrid,betagrid) iindices
-        yPindsim0(partition,1)	= yPind_trans(ind);
+        yPindsim(partition,1)	= yPind_trans(ind);
         yFindsim(partition)     = yFind_trans(ind);
-        betaindsim0(partition)	= betaind_trans(ind);
+        betaindsim(partition,1)	= betaind_trans(ind);
         
         % Initial assets from stationary distribution
-        a1(partition) = basemodel.asset_values(ind);
+        xsim(partition,1) = xgrid.longgrid(ind);
     end
     
     %% SIMULATE INCOME AND BETA
@@ -97,7 +98,6 @@ function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_gros
             mpcamount = p.mpcfrac(im) * income.meany1 * p.freq;
         end
         
-        xsim = zeros(Nsim,p.freq);
         ssim = zeros(Nsim,p.freq);
         asim = zeros(Nsim,p.freq);
         
@@ -109,10 +109,7 @@ function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_gros
         
         for it = 1:p.freq
             % Update cash-on-hand          
-            if it == 1
-                asim(:,1) = a1;
-                xsim(:,it) = asim(:,it) + ynetsim(:,it) + mpcamount;
-            else
+            if it > 1
                 xsim(:,it) = asim(:,it) + ynetsim(:,it);
             end
             
@@ -133,7 +130,7 @@ function [a1,betaindsim0,mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A,mean_gros
             end
             end
             
-            ssim(ssim(:,it) < p.borrow_lim,it) = p.borrow_lim;
+            ssim(:,it) = max(ssim(:,it),p.borrow_lim);
 
             if it < p.freq
                 asim(:,it+1) = p.R * ssim(:,it);
