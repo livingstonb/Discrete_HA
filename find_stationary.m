@@ -78,7 +78,9 @@ function [distribution,sav] = find_stationary(p,model,...
     end
 
     % stationary distribution over states
-    fprintf(' Finding ergodic distribution...\n');
+    if p.Display == 1
+        fprintf(' Finding ergodic distribution...\n');
+    end
     %distribution = full(ergodicdist(statetrans));
     opts.tol = 1e-8;
     [distribution,~] = eigs(statetrans',1,1,opts);

@@ -106,7 +106,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
                             - p.savtax * max(sav(:)-p.savtaxthresh,0);
 
         cdiff = max(abs(conupdate(:)-conlast(:)));
-        if mod(iter,50) ==0
+        if mod(iter,50) ==0 && p.Display == 1
             disp([' EGP Iteration ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
 
@@ -195,7 +195,9 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     % Mean consumption
     model.mean_c = model.con_longgrid(:)' * model.SSdist(:);
 
-    fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany1*p.freq));
+    if p.Display == 1
+        fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany1*p.freq));
+    end
     AYdiff = model.mean_a/(income.meany1*p.freq) -  p.targetAY;
 
 end
