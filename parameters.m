@@ -339,7 +339,10 @@ function params = parameters(SmallGrid)
     %----------------------------------------------------------------------
     
     if SmallGrid == 1
-        [params.nxlong] = deal(50);
-        [params.nx] = deal(30);
+        [params.nxlong] = deal(30);
+        [params.nx] = deal(20);
+        [params.nyT] = deal(3);
+        [params.nyP] = deal(3);
+        [params.Nmpcsim] = deal(1e3);
     end
 end

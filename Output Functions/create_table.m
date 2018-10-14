@@ -66,7 +66,7 @@ function [T_annual,T_quarter] = create_table(params,direct_results,decomps,check
 
     % Iterate over frequency
     for ifreq = [1 4]
-        this_freq = find([params.freq]==1 & ~cellfun('isempty', direct_results));
+        this_freq = find([params.freq]==ifreq & ~cellfun('isempty', direct_results));
         params_freq = params(this_freq);
         names = {params_freq.name};
         tablearray = zeros(Nrows,numel(params_freq));
@@ -93,7 +93,18 @@ function [T_annual,T_quarter] = create_table(params,direct_results,decomps,check
                     mpcs_A = direct_results{ip}.avg_mpc4_sim(:);
                     mpcs_Q = direct_results{ip}.avg_mpc1_sim(:);
                 end
-
+                
+                % decomposition1
+                dec1 = [[decomps{ip}.term1]
+                        [decomps{ip}.term2]
+                        [decomps{ip}.term3]
+                        [decomps{ip}.term4]];
+                
+                % decomposition2
+                dec2 = [[decomp2{ip}.term1]
+                        [decomp2{ip}.term2]
+                        [decomp2{ip}.term3]];
+                
                 column = [
                     direct_results{ip}.beta_annualized      % Annualized beta
                     direct_results{ip}.mean_grossy_A        % Mean annual gross labor income
@@ -110,28 +121,9 @@ function [T_annual,T_quarter] = create_table(params,direct_results,decomps,check
                     mpcs_A(:)                               % Annual MPCs
                     mpcs_Q(:)                               % Quarterly MPCs (if freq = 4)
                     NaN
-                    decomps{ip}(1).term1                    % Decomposition1
-                    decomps{ip}(1).term2 
-                    decomps{ip}(1).term3
-                    decomps{ip}(1).term4
-                    decomps{ip}(2).term1                    % Decomposition1
-                    decomps{ip}(2).term2 
-                    decomps{ip}(2).term3
-                    decomps{ip}(2).term4
-                    decomps{ip}(3).term1                    % Decomposition1
-                    decomps{ip}(3).term2 
-                    decomps{ip}(3).term3
-                    decomps{ip}(3).term4
-                    decomp2{ip}(1).Em1_less_Em0            % Decomposition2
-                    decomp2{ip}(1).term1
-                    decomp2{ip}(1).term2
-                    decomp2{ip}(1).term3
-                    decomp2{ip}(2).term1
-                    decomp2{ip}(2).term2
-                    decomp2{ip}(2).term3
-                    decomp2{ip}(3).term1
-                    decomp2{ip}(3).term2
-                    decomp2{ip}(3).term3
+                    dec1(:)                                 % Decomp1
+                    decomp2{ip}(1).Em1_less_Em0             % Decomposition2
+                    dec2(:)
                     numel(checks{ip})>0];                
             end
 
