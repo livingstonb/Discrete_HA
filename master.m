@@ -3,6 +3,10 @@
 clear;
 close all;
 
+% Grab parameters that may have been sent from sbatch script
+Batch = getenv('Batch');
+Server = getenv('Server');
+SmallGrid = getenv('SmallGrid');
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
@@ -46,7 +50,7 @@ params0.nyF          = 1;
 params0.sd_logyF     = sqrt(0);
 
 % cash on hand / savings grid
-params0.nx          = 150;
+params0.nx          = 100;
 params0.xmax        = 1000;  % need high if using high-variance income shocks
 params0.xgrid_par   = 1/3; %1 for linear, 0 for L-shaped
 params0.borrow_lim  = 0;
@@ -68,7 +72,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
-params0.nxlong      = 1000; % Grid size for final computations
+params0.nxlong      = 500; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
@@ -97,9 +101,17 @@ params0.Display            = 0;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 0;
-Batch = 0; % Run alternate parameterizations
-Server = 1;
-SmallGrid = 0; % Set small grid in parameters() for testing
+
+% Create these variables only if they were not passed via sbatch script
+if isempty(Batch) == 0
+    Batch = 0; % Run alternate parameterizations
+end
+if isempty(Server) == 0
+    Server = 0; % Keep this at 0
+end
+if isempty(SmallGrid) == 0
+    Smallgrid = 0; % Run with a much smaller grid for error checking
+end
 
 % Add paths
 if Server == 0
@@ -209,7 +221,11 @@ end
 [T_annual,T_quarter] = create_table(params,direct_results,decomps,checks,exceptions,decomp2);
                             
 if Server == 1
-    writetable(T_annual,savetablepath_annual,'WriteRowNames',true);
-    writetable(T_quarter,savetablepath_quarterly,'WriteRowNames',true);
+    if ~isempty(T_annual)
+        writetable(T_annual,savetablepath_annual,'WriteRowNames',true);
+    end
+    if ~isempty(T_quarter)
+        writetable(T_quarter,savetablepath_quarterly,'WriteRowNames',true);
+    end
     exit
 end
