@@ -146,6 +146,9 @@ function params = parameters(Server)
             params(end).name = ['2 RiskAver' num2str(ira)];
             params(end).risk_aver = ira;
             params(end).freq = ifreq;
+            if ira == 6
+                params(end).betaL = 0.7;
+            end
         end
 
         % different tax rates
@@ -188,7 +191,7 @@ function params = parameters(Server)
                 params(end+1) = baseline;
                 params(end).name = ['2 FixedBetaHet Width' num2str(ibw) deathind];
                 params(end).nb = 5;
-                params(end).nxlong = 500;
+                params(end).nxlong = 750;
                 params(end).betawidth = ibw;
                 params(end).dieprob = deathp;
                 params(end).freq = ifreq;
@@ -200,7 +203,7 @@ function params = parameters(Server)
                     params(end+1) = baseline;
                     params(end).name = ['2 RandomBetaHet Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
                     params(end).nb = 5;
-                    params(end).nxlong = 500;
+                    params(end).nxlong = 750;
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
                     params(end).dieprob = deathp;
@@ -283,7 +286,7 @@ function params = parameters(Server)
 
     % xi
     params(end+1) = baseline;
-    params(end).name = '3a(xi) MatchSS';
+    params(end).name = '3a(xi) MatchSSA';
     params(end).rho_logyP = 0.9468;
     params(end).sd_logyP = sqrt(0.0641);
     params(end).sd_logyT = sqrt(0.0479);

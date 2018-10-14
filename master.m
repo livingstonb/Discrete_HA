@@ -92,16 +92,16 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 0;
+params0.IterateBeta        = 1;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 0;
 Batch = 1; % Run alternate parameterizations
-Server = 0; % Use larger grids
+Server = 1; % Use larger grids
 
 % Add paths
-if Batch == 1
+if Server == 0
     path = '/Users/Brian/Documents/GitHub/MPCrecode';
     savetablepath = '/Users/Brian/Documents/table.xls';
     savematpath = '/Users/Brian/Documents/variables.mat';
@@ -140,6 +140,7 @@ if Batch == 0
     sim_results{1}     = SR;      
 else
     for ip = 1:Nparams
+            tic
             disp(['Trying parameterization ' params(ip).name])
             try
                 % Main function
@@ -153,6 +154,7 @@ else
                 exceptions{ip} = ME;
             end
             disp(['Finished parameterization ' params(ip).name])
+            toc
     end
 end
 
