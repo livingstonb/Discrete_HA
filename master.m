@@ -15,7 +15,7 @@ params0.freq        = 1; % 1 yearly, 4 quarterly
 params0.r           = 0.02;
 
 % demographics
-params0.dieprob     = 1/50;
+params0.dieprob     = 0;
 
 % preferences
 params0.risk_aver   = 1;
@@ -59,9 +59,9 @@ params0.savtax          = 0; %0.0001;  %tax rate on savings
 params0.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
-params0.nb          = 1; % higher numbers dramatically increase computing load
-params0.betawidth   = 0.015; % too large and eigs hangs while finding stat distribution
-params0.betaswitch  = 1/50; %0;
+params0.nb          = 5; % higher numbers dramatically increase computing load
+params0.betawidth   = 0.005; % too large and eigs hangs while finding stat distribution
+params0.betaswitch  = 0; %0;
 
 % computation
 params0.max_iter    = 1e5; % EGP
@@ -72,7 +72,7 @@ params0.nxlong      = 1000; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
-params0.maxiterAY   = 40;
+params0.maxiterAY   = 400;
 params0.tolAY       = 1e-5;
 
 % mpc options
@@ -92,23 +92,25 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 0;
-params0.Display            = 1;
+params0.IterateBeta        = 1;
+params0.Display            = 0;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 0;
 Batch = 0; % Run alternate parameterizations
-Server = 0;
+Server = 1;
 SmallGrid = 0; % Set small grid in parameters() for testing
 
 % Add paths
 if Server == 0
     path = '/Users/Brian/Documents/GitHub/MPCrecode';
-    savetablepath = '/Users/Brian/Documents/table.xls';
+    savetablepath_annual = '/Users/Brian/Documents/table_annual.xls';
+    savetablepath_quarterly = '/Users/Brian/Documents/table_quarterly.xls';
     savematpath = '/Users/Brian/Documents/variables.mat';
 else
     path = '/home/livingstonb/GitHub/MPCrecode';
-    savetablepath = '/home/livingstonb/output/table.xls';
+    savetablepath_annual = '/home/livingstonb/output/table_annual.xls';
+    savetablepath_quarterly = '/home/livingstonb/output/table_quarterly.xls';
     savematpath = '/home/livingstonb/output/variables.mat';
 end
 addpath([path '/Auxiliary Functions']);
@@ -207,7 +209,7 @@ end
 [T_annual,T_quarter] = create_table(params,direct_results,decomps,checks,exceptions,decomp2);
                             
 if Server == 1
-    writetable(T_annual,savetablepath,'WriteRowNames',true);
-    writetable(T_quarter,savetablepath,'WriteRowNames',true);
+    writetable(T_annual,savetablepath_annual,'WriteRowNames',true);
+    writetable(T_quarter,savetablepath_quarterly,'WriteRowNames',true);
     exit
 end
