@@ -1,4 +1,5 @@
-function [T_annual,T_quarter] = create_table(params,direct_results,decomps,checks,exceptions,decomp2)
+function [T_annual,T_quarter] = create_table(params,direct_results,...
+                decomps,checks,exceptions,decomp2)
     % Rownames
     rows = {'Specification'
             'Beta (Annualized)'

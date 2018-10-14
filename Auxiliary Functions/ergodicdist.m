@@ -23,7 +23,7 @@ switch alg
         q(1,1)=1;
         %q = q+1/h ; 
         dif=1; 
-        while dif>1e-10
+        while dif>1e-8
             z=q*Q;
             dif=norm(z-q);
             q=z;
