@@ -137,10 +137,10 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,prefs,income);
 
         if p.nb == 1
-            beta_ub = p.betaH - 1e-4;
+            beta_ub = p.betaH - 1e-5;
         else
             % Don't let highest beta be such that (1-dieprob)*R*beta >= 1
-            beta_ub = p.betaH - 1e-4 - max(prefs.betagrid0);
+            beta_ub = p.betaH - 1e-5 - max(prefs.betagrid0);
         end
         beta_lb = p.betaL;
 

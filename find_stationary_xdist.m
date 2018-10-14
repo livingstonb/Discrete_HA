@@ -82,12 +82,11 @@ function [distribution,sav] = find_stationary_xdist(p,model,...
     if p.Display == 1
         fprintf(' Finding ergodic distribution...\n');
     end
-    %distribution = full(ergodicdist(statetrans));
-    opts.tol = 1e-8;
-    [distribution,~] = eigs(statetrans',1,1,opts);
-    clear statetrans
+    distribution = full(ergodicdist(statetrans));
     
-    distribution = full(distribution/sum(distribution));
+    %opts.tol = 1e-8;
+    %[distribution,~] = eigs(statetrans',1,1);
+    %distribution = full(distribution/sum(distribution));
     
     distribution = reshape(distribution,[nn,p.nyP,p.nyF,p.nb]);
 end
