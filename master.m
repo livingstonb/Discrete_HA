@@ -20,7 +20,7 @@ params0.dieprob     = 1/50;
 % preferences
 params0.risk_aver   = 1;
 params0.beta0       = 0.98; % annualized
-params0.temptation  = 0;
+params0.temptation  = 0.1;
 params0.betaL       = 0.80;
 % betaH defined in main function file
 
@@ -42,13 +42,13 @@ params0.lambdaT      = 1; % arrival rate of shocks;
 params0.nyP          = 11; %11 persistent component
 params0.sd_logyP     = sqrt(.0422); % 0.1950;
 params0.rho_logyP    = 0.9525;
-params0.nyF          = 3;
-params0.sd_logyF     = sqrt(0.1801);
+params0.nyF          = 1;
+params0.sd_logyF     = sqrt(0);
 
 % cash on hand / savings grid
 params0.nx          = 150;
 params0.xmax        = 1000;  % need high if using high-variance income shocks
-params0.xgrid_par   = 0.3; %1 for linear, 0 for L-shaped
+params0.xgrid_par   = 1/3; %1 for linear, 0 for L-shaped
 params0.borrow_lim  = 0;
 
 %government

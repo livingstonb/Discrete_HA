@@ -115,73 +115,93 @@ function params = parameters()
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
     %----------------------------------------------------------------------
-    
-    % different mean wealth targets
-    for mw = [0.25, 0.5, 1, 2.5, 5]
-        params(end+1) = baseline;
-        params(end).name = ['2 AYtarget' num2str(mw) ];
-        params(end).targetAY = mw;
-    end
-    
-    % different interest rates
-    for ii = [0, 1, 3, 5]
-        params(end+1) = baseline;
-        params(end).name = ['2 IntRate' num2str(ii)];
-        params(end).r = ii/100;
-    end
-    
-    % different risk aversion coeffs
-    for ira = [0.5, 1.5, 2, 4, 6]
-        params(end+1) = baseline;
-        params(end).name = ['2 RiskAver' num2str(ira)];
-        params(end).risk_aver = ira;
-    end
-    
-    % different tax rates
-    for itax = [0.05, 0.1, 0.15, 0.25]
-        params(end+1) = baseline;
-        params(end).name = ['2 LabTax' num2str(itax)];
-        params(end).labtaxlow = itax;
-    end
-    
-    % no death
-    params(end+1) = baseline;
-    params(end).name = '2 NoDeath';
-    params(end).dieprob = 0;
-    
-    % no bequests
-    params(end+1) = baseline;
-    params(end).name = '2 NoBequests';
-    params(end).Bequests = 0;
-    
-    % perfect annuities
-    params(end+1) = baseline;
-    params(end).name = '2 Annuities';
-    params(end).Annuities = 1;
-    
-    % luxury motive...
-    
-    % fixed beta heterogeneity
-    for ibw = [0.001, 0.005, 0.01]
-        params(end+1) = baseline;
-        params(end).name = ['2 FixedBetaHet_Width' num2str(ibw)];
-        params(end).nb = 5;
-        params(end).nxlong = 500;
-        params(end).betawidth = ibw;
-    end
-    
-    % random beta heterogeneity
-    for ibw = [0.001, 0.005, 0.01]
-        for bs = [1/10, 1/50]
+    for ifreq = [1 4]
+        % different mean wealth targets
+        for mw = [0.25, 0.5, 1, 2.5, 5]
             params(end+1) = baseline;
-            params(end).name = ['2 RandomBetaHet Width' num2str(ibw) ' SwitchProb' num2str(bs)];
-            params(end).nb = 5;
-            params(end).nxlong = 500;
-            params(end).betawidth = ibw;
-            params(end).betaswitch = bs;
+            params(end).name = ['2 AYtarget' num2str(mw) ];
+            params(end).targetAY = mw;
+            params(end).freq = ifreq;
+        end
+
+        % different interest rates
+        for ii = [0, 1, 3, 5]
+            params(end+1) = baseline;
+            params(end).name = ['2 IntRate' num2str(ii)];
+            params(end).r = ii/100;
+            params(end).freq = ifreq;
+        end
+
+        % different risk aversion coeffs
+        for ira = [0.5, 1.5, 2, 4, 6]
+            params(end+1) = baseline;
+            params(end).name = ['2 RiskAver' num2str(ira)];
+            params(end).risk_aver = ira;
+            params(end).freq = ifreq;
+        end
+
+        % different tax rates
+        for itax = [0.05, 0.1, 0.15, 0.25]
+            params(end+1) = baseline;
+            params(end).name = ['2 LabTax' num2str(itax)];
+            params(end).labtaxlow = itax;
+            params(end).freq = ifreq;
+        end
+
+        % no death
+        params(end+1) = baseline;
+        params(end).name = '2 NoDeath';
+        params(end).dieprob = 0;
+        params(end).freq = ifreq;
+
+        % no bequests
+        params(end+1) = baseline;
+        params(end).name = '2 NoBequests';
+        params(end).Bequests = 0;
+        params(end).freq = ifreq;
+
+        % perfect annuities
+        params(end+1) = baseline;
+        params(end).name = '2 Annuities';
+        params(end).Annuities = 1;
+        params(end).freq = ifreq;
+
+        % luxury motive...
+
+        % fixed beta heterogeneity
+        for deathp = [0 1/50 1/10]
+            if deathp == 0
+                deathind = ' NoDeath';
+            else
+                deathind = ' Death';
+            end
+
+            for ibw = [0.001, 0.005, 0.01]
+                params(end+1) = baseline;
+                params(end).name = ['2 FixedBetaHet Width' num2str(ibw) deathind];
+                params(end).nb = 5;
+                params(end).nxlong = 500;
+                params(end).betawidth = ibw;
+                params(end).dieprob = deathp;
+                params(end).freq = ifreq;
+            end
+
+            % random beta heterogeneity
+            for ibw = [0.001, 0.005, 0.01]
+                for bs = [1/10, 1/50]
+                    params(end+1) = baseline;
+                    params(end).name = ['2 RandomBetaHet Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
+                    params(end).nb = 5;
+                    params(end).nxlong = 500;
+                    params(end).betawidth = ibw;
+                    params(end).betaswitch = bs;
+                    params(end).dieprob = deathp;
+                    params(end).freq = ifreq;
+                end
+            end
         end
     end
-    
+
     %----------------------------------------------------------------------
     % PART 3a, ANNUAL MODEL
     %----------------------------------------------------------------------
@@ -302,7 +322,7 @@ function params = parameters()
     %----------------------------------------------------------------------
     
     % temptation
-    for itempt = [0.005 0.01 0.05]
+    for itempt = [0.005 0.01 0.05 0.09]
         params(end+1) = baseline;
         params(end).name = ['4 Temptation' num2str(itempt)];
         params(end).temptation = itempt;
