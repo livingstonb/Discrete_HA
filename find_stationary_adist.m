@@ -60,17 +60,18 @@ function [distribution,sav] = find_stationary_adist(p,model,...
     for iyF2 = 1:p.nyF
     for iyP2 = 1:p.nyP
         transcol_live = kron(trans_live(:,col),ones(gridsize,1));
-        statetrans_live = bsxfun(@times,transcol_live,interp_live);
+        transcol_live = bsxfun(@times,transcol_live,interp_live);
         transcol_death = kron(trans_death(:,col),ones(gridsize,1));
-        statetrans_death = bsxfun(@times,transcol_death,interp_death);
+        transcol_death = bsxfun(@times,transcol_death,interp_death);
    
         % add new column to transition matrix
         statetrans(:,nn*(col-1)+1:nn*col) = ...
-            (1-p.dieprob)*statetrans_live + p.dieprob*statetrans_death;
+            (1-p.dieprob)*transcol_live + p.dieprob*transcol_death;
         col = col + 1;
     end
     end
     end
+    clear transcol_live transcol_death interp_live interp_death
 
     % stationary distribution over states
     if p.Display == 1
@@ -79,6 +80,8 @@ function [distribution,sav] = find_stationary_adist(p,model,...
     %distribution = full(ergodicdist(statetrans));
     opts.tol = 1e-8;
     [distribution,~] = eigs(statetrans',1,1,opts);
+    clear statetrans
+    
     distribution = full(distribution/sum(distribution));
     
     distribution = reshape(distribution,[nn,p.nyP,p.nyF,p.nb]);

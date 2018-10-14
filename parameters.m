@@ -189,9 +189,9 @@ function params = parameters(Server)
 
             for ibw = [0.001, 0.005, 0.01]
                 params(end+1) = baseline;
-                params(end).name = ['2 FixedBetaHet Width' num2str(ibw) deathind];
-                params(end).nb = 5;
-                params(end).nxlong = 750;
+                params(end).name = ['2 FixedBetaHet3 Width' num2str(ibw) deathind];
+                params(end).nb = 3;
+                params(end).nxlong = 500;
                 params(end).nx = 100;
                 params(end).betawidth = ibw;
                 params(end).dieprob = deathp;
@@ -202,9 +202,9 @@ function params = parameters(Server)
             for ibw = [0.001, 0.005, 0.01]
                 for bs = [1/10, 1/50]
                     params(end+1) = baseline;
-                    params(end).name = ['2 RandomBetaHet Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
-                    params(end).nb = 5;
-                    params(end).nxlong = 750;
+                    params(end).name = ['2 RandomBetaHet3 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
+                    params(end).nb = 3;
+                    params(end).nxlong = 500;
                     params(end).nx = 100;
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
@@ -284,7 +284,7 @@ function params = parameters(Server)
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
     params(end).sd_logyF = sqrt(0.1801);
-    params(end).nxlong = 1000;
+    params(end).nxlong = 500;
     params(end).nyF = 3;
 
     % xi

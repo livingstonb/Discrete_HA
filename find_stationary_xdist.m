@@ -76,6 +76,7 @@ function [distribution,sav] = find_stationary_xdist(p,model,...
     end
     end
     end
+    clear interp_live interp_death trans_live_expand trans_death_expand
 
     % stationary distribution over states
     if p.Display == 1
@@ -84,6 +85,8 @@ function [distribution,sav] = find_stationary_xdist(p,model,...
     %distribution = full(ergodicdist(statetrans));
     opts.tol = 1e-8;
     [distribution,~] = eigs(statetrans',1,1,opts);
+    clear statetrans
+    
     distribution = full(distribution/sum(distribution));
     
     distribution = reshape(distribution,[nn,p.nyP,p.nyF,p.nb]);
