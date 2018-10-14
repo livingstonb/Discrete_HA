@@ -92,15 +92,16 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 1;
+params0.IterateBeta        = 0;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
-params0.Simulate           = 1;
-Batch = 0; % Run alternate parameterizations
+params0.Simulate           = 0;
+Batch = 1; % Run alternate parameterizations
+Server = 0; % Use larger grids
 
 % Add paths
-if Batch == 0
+if Batch == 1
     path = '/Users/Brian/Documents/GitHub/MPCrecode';
     savetablepath = '/Users/Brian/Documents/table.xls';
     savematpath = '/Users/Brian/Documents/variables.mat';
@@ -119,7 +120,7 @@ if Batch == 0
     params = params0;
 else
     % Load parameters as defined in function
-    params = parameters();
+    params = parameters(Server);
 end
 
 %% CALL MAIN FUNCTION
@@ -184,7 +185,7 @@ for ip = 1:Nparams
         end
         
         if Batch==0 || numel(fieldnames(ME))>0
-            % Either not running as batch, or error was thrown
+            % Either not running more than one param, or error was thrown
             decomp2{ip}(ia).Em1_less_Em0 = NaN;
             decomp2{ip}(ia).Em1_less_Em0_check = NaN;
             decomp2{ip}(ia).term1 = NaN;
@@ -194,15 +195,16 @@ for ip = 1:Nparams
     end
 end
 
-%% SAVE AND CREATE TABLE
-if Batch == 1
+%% SAVE VARIABLES AND CREATE TABLE
+if Server == 1
     save(savematpath,'sim_results','direct_results','norisk_results',...
                                                  'checks','exceptions');
 end
                                              
-T = create_table(params,direct_results,decomps,checks,exceptions,decomp2);
+[T_annual,T_quarter] = create_table(params,direct_results,decomps,checks,exceptions,decomp2);
                             
-if Batch == 1
-    writetable(T,savetablepath,'WriteRowNames',true);
+if Server == 1
+    writetable(T_annual,savetablepath,'WriteRowNames',true);
+    writetable(T_quarter,savetablepath,'WriteRowNames',true);
     exit
 end

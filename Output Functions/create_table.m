@@ -1,4 +1,4 @@
-function T = create_table(params,direct_results,decomps,checks,exceptions,decomp2)
+function [T_annual,T_quarter] = create_table(params,direct_results,decomps,checks,exceptions,decomp2)
     % Rownames
     rows = {'Specification'
             'Beta (Annualized)'
@@ -63,77 +63,92 @@ function T = create_table(params,direct_results,decomps,checks,exceptions,decomp
             'Failed one or more checks'
             };
     Nrows = numel(rows) - 1;
-    
-    % Iterate over parameterizations
-    names = {params.name};
-    tablearray = zeros(Nrows,numel(params));
-    for ip = 1:numel(params)
-        p = params(ip);
 
-        if numel(exceptions{ip}) == 1
-            % Exception was thrown for this parameterization
-            column = NaN(Nrows,1);
-        elseif sum(ismember({'NoEGPConv','NoBetaConv'},checks{ip})) > 0
-            % Critical code failure
-            column = NaN(Nrows,1);
-        else
-            % Annual and quarterly MPCs
-            if p.freq == 1
-                mpcs_A = direct_results{ip}.avg_mpc1_sim(:);
-                mpcs_Q = NaN(numel(p.mpcfrac),1);
+    % Iterate over frequency
+    for ifreq = [1 4]
+        this_freq = find([params.freq]==1 & ~cellfun('isempty', direct_results));
+        params_freq = params(this_freq);
+        names = {params_freq.name};
+        tablearray = zeros(Nrows,numel(params_freq));
+        
+        % Iterate over frequency ifreq
+        ncolumn = 1;
+        for ip = this_freq
+            p = params(ip);
+
+            if numel(exceptions{ip}) == 1
+                % Exception was thrown for this parameterization
+                column = NaN(Nrows,1);
+            elseif numel(checks{ip}) > 0
+                if sum(ismember({'NoEGPConv','NoBetaConv'},checks{ip})) > 0
+                    % Critical code failure
+                    column = NaN(Nrows,1);
+                end
             else
-                mpcs_A = direct_results{ip}.avg_mpc4_sim(:);
-                mpcs_Q = direct_results{ip}.avg_mpc1_sim(:);
+                % Annual and quarterly MPCs
+                if p.freq == 1
+                    mpcs_A = direct_results{ip}.avg_mpc1_sim(:);
+                    mpcs_Q = NaN(numel(p.mpcfrac),1);
+                else
+                    mpcs_A = direct_results{ip}.avg_mpc4_sim(:);
+                    mpcs_Q = direct_results{ip}.avg_mpc1_sim(:);
+                end
+
+                column = [
+                    direct_results{ip}.beta_annualized      % Annualized beta
+                    direct_results{ip}.mean_grossy_A        % Mean annual gross labor income
+                    direct_results{ip}.stdev_loggrossy_A    % Stdev log annual gross income
+                    direct_results{ip}.stdev_lognety_A      % Stdev log annual net income
+                    NaN
+                    direct_results{ip}.mean_a               % Mean assets
+                    direct_results{ip}.constrained(:)       % Fraction with a < eps * mean ann gross inc
+                    direct_results{ip}.wpercentiles(:)      % Wealth percentiles
+                    direct_results{ip}.top10share           % Top 10% wealth share
+                    direct_results{ip}.top1share            % Top 1% wealth share
+                    direct_results{ip}.wealthgini           % Gini coefficient
+                    NaN
+                    mpcs_A(:)                               % Annual MPCs
+                    mpcs_Q(:)                               % Quarterly MPCs (if freq = 4)
+                    NaN
+                    decomps{ip}(1).term1                    % Decomposition1
+                    decomps{ip}(1).term2 
+                    decomps{ip}(1).term3
+                    decomps{ip}(1).term4
+                    decomps{ip}(2).term1                    % Decomposition1
+                    decomps{ip}(2).term2 
+                    decomps{ip}(2).term3
+                    decomps{ip}(2).term4
+                    decomps{ip}(3).term1                    % Decomposition1
+                    decomps{ip}(3).term2 
+                    decomps{ip}(3).term3
+                    decomps{ip}(3).term4
+                    decomp2{ip}(1).Em1_less_Em0            % Decomposition2
+                    decomp2{ip}(1).term1
+                    decomp2{ip}(1).term2
+                    decomp2{ip}(1).term3
+                    decomp2{ip}(2).term1
+                    decomp2{ip}(2).term2
+                    decomp2{ip}(2).term3
+                    decomp2{ip}(3).term1
+                    decomp2{ip}(3).term2
+                    decomp2{ip}(3).term3
+                    numel(checks{ip})>0];                
             end
 
-            column = [
-                direct_results{ip}.beta_annualized      % Annualized beta
-                direct_results{ip}.mean_grossy_A        % Mean annual gross labor income
-                direct_results{ip}.stdev_loggrossy_A    % Stdev log annual gross income
-                direct_results{ip}.stdev_lognety_A      % Stdev log annual net income
-                NaN
-                direct_results{ip}.mean_a               % Mean assets
-                direct_results{ip}.constrained(:)       % Fraction with a < eps * mean ann gross inc
-                direct_results{ip}.wpercentiles(:)      % Wealth percentiles
-                direct_results{ip}.top10share           % Top 10% wealth share
-                direct_results{ip}.top1share            % Top 1% wealth share
-                direct_results{ip}.wealthgini           % Gini coefficient
-                NaN
-                mpcs_A(:)                               % Annual MPCs
-                mpcs_Q(:)                               % Quarterly MPCs (if freq = 4)
-                NaN
-                decomps{ip}(1).term1                    % Decomposition1
-                decomps{ip}(1).term2 
-                decomps{ip}(1).term3
-                decomps{ip}(1).term4
-                decomps{ip}(2).term1                    % Decomposition1
-                decomps{ip}(2).term2 
-                decomps{ip}(2).term3
-                decomps{ip}(2).term4
-                decomps{ip}(3).term1                    % Decomposition1
-                decomps{ip}(3).term2 
-                decomps{ip}(3).term3
-                decomps{ip}(3).term4
-                decomp2{ip}(1).Em1_less_Em0            % Decomposition2
-                decomp2{ip}(1).term1
-                decomp2{ip}(1).term2
-                decomp2{ip}(1).term3
-                decomp2{ip}(2).term1
-                decomp2{ip}(2).term2
-                decomp2{ip}(2).term3
-                decomp2{ip}(3).term1
-                decomp2{ip}(3).term2
-                decomp2{ip}(3).term3
-                numel(checks{ip})>0];                
+            % Add this column to table
+            tablearray(:,ncolumn) = column;
+            ncolumn = ncolumn + 1;
         end
-
-        % Add this column to table
-        tablearray(:,ip) = column;    
+        
+        tablearray = num2cell(tablearray);
+        tablearray = [names;tablearray];
+        T = array2table(tablearray);
+        T.Properties.RowNames = rows;
+        if ifreq == 1
+            T_annual = T;
+        else
+            T_quarter = T;
+        end
     end
-    
-    tablearray = num2cell(tablearray);
-    tablearray = [names;tablearray];
-    T = array2table(tablearray);
-    T.Properties.RowNames = rows;
-    
+
 end

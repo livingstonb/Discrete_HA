@@ -1,4 +1,4 @@
-function params = parameters()
+function params = parameters(Server)
 
     
     %% set baseline
@@ -94,6 +94,14 @@ function params = parameters()
     baseline.MakePlots          = 0;
     baseline.ComputeDirectMPC   = 1;
     baseline.Simulate           = 0;
+    
+    %% Set small grid if running locally to error-check
+    if Server == 0
+        baseline.nxlong = 300;
+        baseline.nx = 50;
+        baseline.nyT = 5;
+        baseline.nyP = 5;
+    end
     
     %% create params structure
     
