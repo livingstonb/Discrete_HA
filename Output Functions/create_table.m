@@ -67,6 +67,14 @@ function [T_annual,T_quarter] = create_table(params,direct_results,decomps,check
     % Iterate over frequency
     for ifreq = [1 4]
         this_freq = find([params.freq]==ifreq & ~cellfun('isempty', direct_results));
+        if isempty(this_freq)
+            if ifreq == 1
+                T_annual = [];
+            else
+                T_quarter = [];
+            end
+            continue
+        end
         params_freq = params(this_freq);
         names = {params_freq.name};
         tablearray = zeros(Nrows,numel(params_freq));
@@ -75,15 +83,22 @@ function [T_annual,T_quarter] = create_table(params,direct_results,decomps,check
         ncolumn = 1;
         for ip = this_freq
             p = params(ip);
-
-            if numel(exceptions{ip}) == 1
-                % Exception was thrown for this parameterization
-                column = NaN(Nrows,1);
-            elseif numel(checks{ip}) > 0
+            
+            % Check if column of NaNs must be used
+            NaNcol = false;
+            if numel(checks{ip}) > 0
                 if sum(ismember({'NoEGPConv','NoBetaConv'},checks{ip})) > 0
                     % Critical code failure
-                    column = NaN(Nrows,1);
+                    NaNcol = true;
                 end
+            end
+            if numel(exceptions{ip}) == 1
+                % Exception was thrown for this parameterization
+                NaNcol = true;
+            end
+
+            if NaNcol == true
+                    column = NaN(Nrows,1);
             else
                 % Annual and quarterly MPCs
                 if p.freq == 1

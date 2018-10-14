@@ -25,7 +25,7 @@ params0.betaL       = 0.80;
 % betaH defined in main function file
 
 % bequests/annuities. bequest weight = 0 is accidental
-params0.bequest_weight  = 0.09; %0.07;
+params0.bequest_weight  = 0; %0.07;
 params0.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
 params0.Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
 params0.Annuities = 0; % Automatically turns off bequests if set to 1
@@ -92,14 +92,14 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 1;
+params0.IterateBeta        = 0;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 0;
-Batch = 1; % Run alternate parameterizations
+Batch = 0; % Run alternate parameterizations
 Server = 0;
-SmallGrid = 1; % Set small grid in parameters() for testing
+SmallGrid = 0; % Set small grid in parameters() for testing
 
 % Add paths
 if Server == 0
