@@ -98,7 +98,8 @@ params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 0;
 Batch = 1; % Run alternate parameterizations
-Server = 1; % Use larger grids
+Server = 1;
+SmallGrid = 1; % Set small grid in parameters() for testing
 
 % Add paths
 if Server == 0

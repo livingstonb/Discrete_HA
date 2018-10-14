@@ -1,4 +1,4 @@
-function params = parameters(Server)
+function params = parameters(SmallGrid)
 
     
     %% set baseline
@@ -94,14 +94,6 @@ function params = parameters(Server)
     baseline.MakePlots          = 0;
     baseline.ComputeDirectMPC   = 1;
     baseline.Simulate           = 0;
-    
-    %% Set small grid if running locally to error-check
-    if Server == 0
-        baseline.nxlong = 300;
-        baseline.nx = 50;
-        baseline.nyT = 5;
-        baseline.nyP = 5;
-    end
     
     %% create params structure
     
@@ -340,5 +332,14 @@ function params = parameters(Server)
         params(end+1) = baseline;
         params(end).name = ['4 Temptation' num2str(itempt)];
         params(end).temptation = itempt;
+    end
+    
+    %----------------------------------------------------------------------
+    % SET SMALL GRID FOR TESTING
+    %----------------------------------------------------------------------
+    
+    if SmallGrid == 1
+        [params.nxlong] = deal(50);
+        [params.nx] = deal(30);
     end
 end
