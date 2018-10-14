@@ -180,7 +180,7 @@ function params = parameters(Server)
         % luxury motive...
 
         % fixed beta heterogeneity
-        for deathp = [0 1/50 1/10]
+        for deathp = [0 1/50]
             if deathp == 0
                 deathind = ' NoDeath';
             else
@@ -192,6 +192,7 @@ function params = parameters(Server)
                 params(end).name = ['2 FixedBetaHet Width' num2str(ibw) deathind];
                 params(end).nb = 5;
                 params(end).nxlong = 750;
+                params(end).nx = 100;
                 params(end).betawidth = ibw;
                 params(end).dieprob = deathp;
                 params(end).freq = ifreq;
@@ -204,6 +205,7 @@ function params = parameters(Server)
                     params(end).name = ['2 RandomBetaHet Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
                     params(end).nb = 5;
                     params(end).nxlong = 750;
+                    params(end).nx = 100;
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
                     params(end).dieprob = deathp;
@@ -282,6 +284,7 @@ function params = parameters(Server)
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
     params(end).sd_logyF = sqrt(0.1801);
+    params(end).nxlong = 1000;
     params(end).nyF = 3;
 
     % xi

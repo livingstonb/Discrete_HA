@@ -20,12 +20,12 @@ params0.dieprob     = 1/50;
 % preferences
 params0.risk_aver   = 1;
 params0.beta0       = 0.98; % annualized
-params0.temptation  = 0.1;
+params0.temptation  = 0;
 params0.betaL       = 0.80;
 % betaH defined in main function file
 
 % bequests/annuities. bequest weight = 0 is accidental
-params0.bequest_weight  = 0; %0.07;
+params0.bequest_weight  = 0.09; %0.07;
 params0.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
 params0.Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
 params0.Annuities = 0; % Automatically turns off bequests if set to 1
