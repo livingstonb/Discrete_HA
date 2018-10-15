@@ -21,6 +21,7 @@ end
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
 params0.name = 'params0';
+params0.index = 1;
 
 % data frequency 
 params0.freq        = 1; % 1 yearly, 4 quarterly

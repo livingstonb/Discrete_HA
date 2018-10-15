@@ -2,6 +2,7 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
                                     decomps,checks,exceptions,decomp2)
     % Rownames
     rows = {'Specification'
+            'Lookup Index'
             'Beta (Annualized)'
             'Mean gross annual income'
             'Stdev log annual gross income'
@@ -122,6 +123,7 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
                         [decomp2{ip}.term3]];
                 
                 column = [
+                    p.index
                     direct_results{ip}.beta_annualized      % Annualized beta
                     direct_results{ip}.mean_grossy_A        % Mean annual gross labor income
                     direct_results{ip}.stdev_loggrossy_A    % Stdev log annual gross income
