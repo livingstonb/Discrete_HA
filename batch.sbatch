@@ -8,11 +8,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=3
 #SBATCH --mem-per-cpu=4000
-
-# set variables for use in master.m
-setenv Batch 1
-setenv Server 1
-setenv SmallGrid 0
+#SBATCH --export=Batch=1,Server=1,SmallGrid=0
 
 module load matlab
 
