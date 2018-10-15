@@ -43,7 +43,7 @@ function params = parameters(SmallGrid)
     baseline.sd_logyF     = 0;
 
     % cash on hand / savings grid
-    baseline.nx          = 150;
+    baseline.nx          = 100;
     baseline.xmax        = 1000;  % need high if using high-variance income shocks
     baseline.xgrid_par   = 1/3; %1 for linear, 0 for L-shaped
     baseline.borrow_lim  = 0;
@@ -65,7 +65,7 @@ function params = parameters(SmallGrid)
     baseline.tol_iter    = 1.0e-6; % EGP
     baseline.Nsim        = 100000; % 100000
     baseline.Tsim        = 200;
-    baseline.nxlong      = 1500; % Grid size for final computations
+    baseline.nxlong      = 750; % Grid size for final computations
 
     % beta iteration
     baseline.targetAY    = 3.5;
@@ -186,7 +186,7 @@ function params = parameters(SmallGrid)
                 params(end+1) = baseline;
                 params(end).name = ['2 FixedBetaHet5 Width' num2str(ibw) deathind];
                 params(end).nb = 5;
-                params(end).nxlong = 500;
+                params(end).nxlong = 400;
                 params(end).nx = 100;
                 params(end).betawidth = ibw;
                 params(end).dieprob = deathp;
@@ -199,7 +199,7 @@ function params = parameters(SmallGrid)
                     params(end+1) = baseline;
                     params(end).name = ['2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
                     params(end).nb = 5;
-                    params(end).nxlong = 500;
+                    params(end).nxlong = 400;
                     params(end).nx = 100;
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
