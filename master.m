@@ -2,21 +2,11 @@
 clear;
 close all;
 
-%% SBATCH PARAMETERS
-Batch = getenv('Batch');
-Server = getenv('Server');
-SmallGrid = getenv('SmallGrid');
+%% RUN PARAMETERS
+Batch = 1;
+Server = 1;
+SmallGrid = 0;
 
-% Create these variables if they were not passed via sbatch script
-if isempty(Batch)
-    Batch = 0; % Run alternate parameterizations
-end
-if isempty(Server)
-    Server = 0; % Keep this at 0
-end
-if isempty(SmallGrid)
-    SmallGrid = 0; % Run with a much smaller grid for error checking
-end
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
