@@ -9,13 +9,13 @@ SmallGrid = getenv('SmallGrid');
 
 % Create these variables if they were not passed via sbatch script
 if isempty(Batch)
-    Batch = 1; % Run alternate parameterizations
+    Batch = 0; % Run alternate parameterizations
 end
 if isempty(Server)
     Server = 0; % Keep this at 0
 end
 if isempty(SmallGrid)
-    SmallGrid = 1; % Run with a much smaller grid for error checking
+    SmallGrid = 0; % Run with a much smaller grid for error checking
 end
 
 %% PARAMETERS IF NOT RUNNING IN BATCH

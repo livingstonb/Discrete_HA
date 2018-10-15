@@ -104,11 +104,11 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
             else
                 % Annual and quarterly MPCs
                 if p.freq == 1
-                    mpcs_A = direct_results{ip}.avg_mpc1_sim(:);
+                    mpcs_A = direct_results{ip}.avg_mpc1_agrid(:);
                     mpcs_Q = NaN(numel(p.mpcfrac),1);
                 else
                     mpcs_A = direct_results{ip}.avg_mpc4_sim(:);
-                    mpcs_Q = direct_results{ip}.avg_mpc1_sim(:);
+                    mpcs_Q = direct_results{ip}.avg_mpc1_agrid(:);
                 end
                 
                 % decomposition1
