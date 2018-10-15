@@ -1,5 +1,5 @@
-function [sim_results,direct_results,norisk_results,checks,decomp] ... 
-                                                = main(p)
+function [income,sim_results,direct_results,norisk_results,checks,decomp] ... 
+                                                            = main(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -28,12 +28,16 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     p.betaswitch    = 1 - (1-p.betaswitch)^(1/p.freq);
     p.betaL         = p.betaL^(1/p.freq);
     p.betaH         = 1/((p.R)*(1-p.dieprob));
+    if p.nyF > 1
+        p.betaH = p.betaH - 1e-3;
+    end
     
     if p.Annuities == 1
         % Turn off bequests
         p.Bequests = 0;
         p.bequest_weight = 0;
         p.r = p.r + p.dieprob;
+        p.R = 1 + p.r;
     end
 
     p.N = p.nx*p.nyF*p.nyP*p.nb;
@@ -197,10 +201,12 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     
     direct_results.mean_x_check = direct_results.mean_a + direct_results.mean_nety1;
    
-    % Reconstruct yPdist from computed stationary distribution for sanity
-    % check
+    % Reconstruct yPdist and yFdist from computed stationary distribution 
+    % for sanity check
     yPdist_check = reshape(basemodel.SSdist,[p.nxlong p.nyP p.nyF*p.nb]);
     yPdist_check = sum(sum(yPdist_check,3),1)';
+    yFdist_check = reshape(basemodel.SSdist,[p.nxlong*p.nyP p.nyF p.nb]);
+    yFdist_check = sum(sum(yFdist_check,3),1)';
     
 
     %% RECORD PROBLEMS
@@ -216,9 +222,14 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
     if norm(yPdist_check-income.yPdist) > 1e-3
         checks{end+1} = 'Bad_yP_Dist';
     end
+    if norm(yFdist_check-income.yFdist) > 1e-3
+        checks{end+1} = 'Bad_yF_Dist';
+    end
     if min(basemodel.SSdist(:)) < - 1e-3
         checks{end+1} = 'LargeNegativeStateProbability';
-    elseif min(basemodel.SSdist(:)) < 0
+    elseif min(basemodel.SSdist(:)) < -1e-8
+        checks{end+1} = 'MedNegativeStateProbability';
+    elseif min(basemodel.SSdist(:)) < -1e-13
         checks{end+1} = 'SmallNegativeStateProbability';
     end
 
@@ -321,7 +332,7 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         g0 = direct_results.agrid_dist;
         mbc  = norisk_results.mpcs1_a_direct{5};
         for ia = 1:numel(p.abars)
-            zidx = agrid < p.abars(ia);
+            zidx = agrid <= p.abars(ia);
             
             decomp(ia).term1 = m_ra;
             decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);

@@ -100,7 +100,7 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
             end
 
             if NaNcol == true
-                    column = NaN(Nrows,1);
+                    column = [p.index;NaN(Nrows-1,1)];
             else
                 % Annual and quarterly MPCs
                 if p.freq == 1

@@ -83,9 +83,30 @@ function [distribution,sav] = find_stationary_xdist(p,model,...
         fprintf(' Finding ergodic distribution...\n');
     end
 
-    opts.v0 = [1;sparse(NN-1,1)];
-    [distribution,~] = eigs(statetrans',1,1,opts);
-    distribution = distribution/sum(distribution);
+    if p.nyF == 1
+        opts.v0 = sparse(NN,1);
+        opts.v0(1) = 1;
+        [distribution,~] = eigs(statetrans',1,1,opts);
+        distribution = distribution/sum(distribution);
+    else
+        % Need iterative procedure
+        q=sparse(1,NN);
+        q(1,1:nn*p.nyP:end)=repmat(income.yFdist,p.nb,1);
+        %q = q+1/h ; 
+        diff=1; 
+        iter = 1;
+        while diff>1e-8 && iter < 1e5;
+            z=q*statetrans;
+            diff=norm(z-q);
+            q=z;
+            iter = iter + 1;
+        end
+        if iter >= 1e4
+            error('No convergence to stationary distribution')
+        end
+        distribution=full(q');
+    end
     
-    distribution = reshape(distribution,[nn,p.nyP,p.nyF,p.nb]);
+    distribution = reshape(distribution,[nn p.nyP p.nyF p.nb]);
+
 end

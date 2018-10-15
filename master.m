@@ -3,8 +3,8 @@ clear;
 close all;
 
 %% RUN PARAMETERS
-Batch = 1;
-Server = 1;
+Batch = 0;
+Server = 0;
 SmallGrid = 0;
 
 
@@ -47,8 +47,8 @@ params0.lambdaT      = 1; % arrival rate of shocks;
 params0.nyP          = 11; %11 persistent component
 params0.sd_logyP     = sqrt(.0422); % 0.1950;
 params0.rho_logyP    = 0.9525;
-params0.nyF          = 1;
-params0.sd_logyF     = sqrt(0);
+params0.nyF          = 3;
+params0.sd_logyF     = sqrt(0.1801);
 
 % cash on hand / savings grid
 params0.nx          = 150;
@@ -66,14 +66,14 @@ params0.savtaxthresh    = 0; %multiple of mean gross labor income
 %discount factor shocks
 params0.nb          = 1; % higher numbers dramatically increase computing load
 params0.betawidth   = 0.001; % too large and eigs hangs while finding stat distribution
-params0.betaswitch  = 0; %0;
+params0.betaswitch  = 0.01; %0;
 
 % computation
 params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
-params0.Tsim        = 200;
-params0.nxlong      = 1000; % Grid size for final computations
+params0.Tsim        = 1000;
+params0.nxlong      = 200; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
@@ -152,10 +152,11 @@ sim_results    = cell(1,Nparams); % Results from simulations
 exceptions     = cell(1,Nparams); % ME objects on any exceptions thrown
 checks         = cell(1,Nparams); % Information on failed sanity checks
 decomps        = cell(1,Nparams); 
+income         = cell(1,Nparams);
 
 if Batch == 0
     tic
-    [SR,DR,NR,checks{1},decomps{1}] = main(params(1));
+    [income{1},SR,DR,NR,checks{1},decomps{1}] = main(params(1));
     toc
     direct_results{1}  = DR;
     norisk_results{1}  = NR;
@@ -166,7 +167,7 @@ else
             disp(['Trying parameterization ' params(ip).name])
             try
                 % Main function
-                [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
+                [income{ip},SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
                 direct_results{ip}  = DR;
                 norisk_results{ip}  = NR;
                 sim_results{ip}     = SR;
