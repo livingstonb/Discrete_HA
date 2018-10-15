@@ -217,7 +217,9 @@ function [sim_results,direct_results,norisk_results,checks,decomp] ...
         checks{end+1} = 'Bad_yP_Dist';
     end
     if min(basemodel.SSdist(:)) < - 1e-3
-        checks{end+1} = 'NegativeStateProbability';
+        checks{end+1} = 'LargeNegativeStateProbability';
+    elseif min(basemodel.SSdist(:)) < 0
+        checks{end+1} = 'SmallNegativeStateProbability';
     end
 
     %% WEALTH DISTRIBUTION

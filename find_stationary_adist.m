@@ -78,13 +78,9 @@ function [distribution,sav] = find_stationary_adist(p,model,...
         fprintf(' Finding ergodic distribution...\n');
     end
     
-    distribution = full(ergodicdist(statetrans,2));
-    [~,warnID] = lastwarn;
-    if isequal(warnID,'MATLAB:nearlySingularMatrix')
-        % Try slower iterative procedure
-        distribution = full(ergodicdist(statetrans,1));
-        lastwarn('')
-    end
+    opts.v0 = [1;sparse(NN-1,1)];
+    [distribution,~] = eigs(statetrans',1,1,opts);
+    distribution = distribution/sum(distribution);
     
     distribution = reshape(distribution,[nn,p.nyP,p.nyF,p.nb]);
 end

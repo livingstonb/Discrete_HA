@@ -73,7 +73,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
-params0.nxlong      = 500; % Grid size for final computations
+params0.nxlong      = 1000; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
@@ -101,7 +101,7 @@ params0.IterateBeta        = 1;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
-params0.Simulate           = 1;
+params0.Simulate           = 0;
 
 % Add paths
 if Server == 0
@@ -154,7 +154,9 @@ checks         = cell(1,Nparams); % Information on failed sanity checks
 decomps        = cell(1,Nparams); 
 
 if Batch == 0
+    tic
     [SR,DR,NR,checks{1},decomps{1}] = main(params(1));
+    toc
     direct_results{1}  = DR;
     norisk_results{1}  = NR;
     sim_results{1}     = SR;      
