@@ -1,14 +1,21 @@
 
-if exist('ExternalCall') == 1
-    % Calling this from batch.m, external variables have been set
-else
-    clear
-    close all;
-    
-    % Need to set external variables
+clear;
+close all;
+
+%% SBATCH PARAMETERS
+Batch = getenv('Batch');
+Server = getenv('Server');
+SmallGrid = getenv('SmallGrid');
+
+% Create these variables if they were not passed via sbatch script
+if isempty(Batch)
     Batch = 0; % Run alternate parameterizations
-    Server = 0; % Keep at 0
-    SmallGrid = 0; % Run at high speed
+end
+if isempty(Server)
+    Server = 0; % Keep this at 0
+end
+if isempty(SmallGrid)
+    SmallGrid = 0; % Run with a much smaller grid for error checking
 end
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
@@ -105,12 +112,6 @@ params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 1;
-
-if SmallGrid == 1
-    params0.nxlong = 30;
-    params0.nx = 20;
-    params0.Nmpcsim = 1e3;
-end
 
 % Add paths
 if Server == 0
