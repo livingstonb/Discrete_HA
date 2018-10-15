@@ -122,6 +122,9 @@ function params = parameters(SmallGrid)
             params(end).name = ['2 AYtarget' num2str(mw) ];
             params(end).targetAY = mw;
             params(end).freq = ifreq;
+            if ifreq == 4
+                params(end).betaL = 0.5;
+            end
         end
 
         % different interest rates
@@ -138,8 +141,8 @@ function params = parameters(SmallGrid)
             params(end).name = ['2 RiskAver' num2str(ira)];
             params(end).risk_aver = ira;
             params(end).freq = ifreq;
-            if ira == 6
-                params(end).betaL = 0.7;
+            if (ifreq==4 & ira==4) || ira==6
+                params(end).betaL = 0.5;
             end
         end
 
@@ -181,7 +184,7 @@ function params = parameters(SmallGrid)
 
             for ibw = [0.001, 0.005, 0.01]
                 params(end+1) = baseline;
-                params(end).name = ['2 FixedBetaHet3 Width' num2str(ibw) deathind];
+                params(end).name = ['2 FixedBetaHet5 Width' num2str(ibw) deathind];
                 params(end).nb = 5;
                 params(end).nxlong = 500;
                 params(end).nx = 100;
@@ -194,8 +197,8 @@ function params = parameters(SmallGrid)
             for ibw = [0.001, 0.005, 0.01]
                 for bs = [1/10, 1/50]
                     params(end+1) = baseline;
-                    params(end).name = ['2 RandomBetaHet3 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
-                    params(end).nb = 3;
+                    params(end).name = ['2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
+                    params(end).nb = 5;
                     params(end).nxlong = 500;
                     params(end).nx = 100;
                     params(end).betawidth = ibw;
@@ -343,6 +346,6 @@ function params = parameters(SmallGrid)
         [params.nx] = deal(20);
         [params.nyT] = deal(3);
         [params.nyP] = deal(3);
-        [params.Nmpcsim] = deal(1e3);
+        [params.Nmpcsim] = deal(1e2);
     end
 end

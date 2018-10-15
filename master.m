@@ -9,13 +9,13 @@ SmallGrid = getenv('SmallGrid');
 
 % Create these variables if they were not passed via sbatch script
 if isempty(Batch)
-    Batch = 0; % Run alternate parameterizations
+    Batch = 1; % Run alternate parameterizations
 end
 if isempty(Server)
     Server = 0; % Keep this at 0
 end
 if isempty(SmallGrid)
-    Smallgrid = 0; % Run with a much smaller grid for error checking
+    SmallGrid = 1; % Run with a much smaller grid for error checking
 end
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
@@ -106,12 +106,11 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 0;
+params0.IterateBeta        = 1;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 1;
-IterateBequests            = 0;
 
 % Add paths
 if Server == 0
@@ -130,15 +129,6 @@ addpath([path '/MPC Functions']);
 addpath([path '/Output Functions']);
 cd(path);
 
-%% ITERATING OVER BEQUESTS
-% Find which bequest weight results in bequests/mean income = X
-X = 1;
-if IterateBequests == 1
-    [beqweight_opt,fval,exitflag] = fzero(@(x)iterate_bequests(x,params0,X),[0 0.01]);
-    fprintf('Optimal bequest weight = %6.4f, Error = %6.4f',beqweight_opt,fval)
-    return
-end
-
 %% LOAD ALTERNATE PARAMETERIZATIONS
 if Batch == 0
     params = params0;
@@ -146,12 +136,12 @@ else
     params = parameters(SmallGrid);
 end
 
-%% CHOOSE WHICH SPECIFICATIONS TO RUN
+%% CHOOSE WHICH SPECIFICATIONS TO RUN (ONLY RELEVANT FOR BATCH)
 if Batch == 1
     names_to_run = {}; % leave empty to run all
     
     if isempty(names_to_run)
-        params_to_run = 1:Nparams;
+        params_to_run = 1:numel(params);
     else
         % Indices of selected names within params
         params_to_run = find(ismember({params.name},names_to_run));
@@ -161,9 +151,9 @@ else
 end
 
 params = params(params_to_run);
+Nparams = numel(params);
 
 %% CALL MAIN FUNCTION
-Nparams = numel(params);
 
 direct_results = cell(1,Nparams); % Results from direct computations
 norisk_results = cell(1,Nparams); % Results from norisk model
@@ -180,19 +170,19 @@ if Batch == 0
 else
     for ip = 1:Nparams
             tic
-            disp(['Trying parameterization ' params(ipa).name])
+            disp(['Trying parameterization ' params(ip).name])
             try
                 % Main function
                 [SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
                 direct_results{ip}  = DR;
                 norisk_results{ip}  = NR;
                 sim_results{ip}     = SR;
-                exceptions{ip} = 0; % main function completed
+                exceptions{ip} = []; % main function completed
             catch ME
                 checks{ip} = 'EXCEPTION_THROWN';
                 exceptions{ip} = ME;
             end
-            disp(['Finished parameterization ' params(pindex).name])
+            disp(['Finished parameterization ' params(ip).name])
             toc
     end
 end

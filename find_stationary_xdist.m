@@ -82,11 +82,16 @@ function [distribution,sav] = find_stationary_xdist(p,model,...
     if p.Display == 1
         fprintf(' Finding ergodic distribution...\n');
     end
-    distribution = full(ergodicdist(statetrans,2));
+
     
-    %opts.tol = 1e-8;
-    %[distribution,~] = eigs(statetrans',1,1);
-    %distribution = full(distribution/sum(distribution));
+    distribution = full(ergodicdist(statetrans,2));
+    [~,warnID] = lastwarn;
+    if isequal(warnID,'MATLAB:nearlySingularMatrix')
+        % Try slower iterative procedure
+        distribution = full(ergodicdist(statetrans,1));
+        lastwarn('')
+    end
+    
     
     distribution = reshape(distribution,[nn,p.nyP,p.nyF,p.nb]);
 end

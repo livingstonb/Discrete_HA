@@ -1,5 +1,5 @@
 function [T_annual,T_quarter] = create_table(params,direct_results,...
-                decomps,checks,exceptions,decomp2)
+                                    decomps,checks,exceptions,decomp2)
     % Rownames
     rows = {'Specification'
             'Beta (Annualized)'
@@ -67,7 +67,7 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
 
     % Iterate over frequency
     for ifreq = [1 4]
-        this_freq = find([params.freq]==ifreq & ~cellfun('isempty', direct_results));
+        this_freq = find([params.freq]==ifreq);
         if isempty(this_freq)
             if ifreq == 1
                 T_annual = [];
