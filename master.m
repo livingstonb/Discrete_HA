@@ -182,7 +182,7 @@ else
 end
 
 %% DECOMPOSITIONS - COMPARISONS WITH BASELINE
-decomp2 = decomposition2(params,direct_results);
+decomp2 = decomposition2(params,direct_results,exceptions);
 
 %% SAVE VARIABLES AND CREATE TABLE
 if Server == 1

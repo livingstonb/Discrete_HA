@@ -83,7 +83,8 @@ function [distribution,sav] = find_stationary_xdist(p,model,...
         fprintf(' Finding ergodic distribution...\n');
     end
 
-    if p.nyF == 1 && p.nb == 1
+    if p.nyF == 1 && (p.nb==1 ||( p.nb>1 && p.betaswitch>0))
+        % No fixed heterogeneity
         opts.v0 = sparse(NN,1);
         opts.v0(1) = 1;
         [distribution,~] = eigs(statetrans',1,1,opts);

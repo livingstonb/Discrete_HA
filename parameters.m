@@ -195,7 +195,7 @@ function params = parameters(SmallGrid)
 
             % random beta heterogeneity
             for ibw = [0.001, 0.005, 0.01]
-                for bs = [1/10, 1/50]
+                for bs = [1/50, 1/10]
                     params(end+1) = baseline;
                     params(end).name = ['2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
                     params(end).nb = 5;
