@@ -12,7 +12,7 @@ function decomp2 = decomposition2(params,direct_results,exceptions)
     decomp2 = cell(1,Nparams);
     
     for ip = 1:Nparams
-        decomp2{ip} = struct([]);
+        decomp2{ip} = struct();
         
         if Nparams>1 && isempty(exceptions{ip}) && params(ip).nxlong==params(1).nxlong
             if params(ip).freq == 1

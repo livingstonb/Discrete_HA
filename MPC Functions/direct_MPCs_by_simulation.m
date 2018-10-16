@@ -37,7 +37,11 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
-        [~,ind] = max(bsxfun(@lt,state_rand(partition),cumdist'),[],2);
+        if p.bsxOff == 1
+            [~,ind] = max(state_rand(partition) < cumdist',[],2);
+        else
+            [~,ind] = max(bsxfun(@lt,state_rand(partition),cumdist'),[],2);
+        end
         
         % (yPgrid,yFgrid,betagrid) iindices
         yPindsim(partition,1)	= yPind_trans(ind);

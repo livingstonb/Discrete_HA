@@ -1,9 +1,10 @@
-function params = parameters(SmallGrid)
+function params = parameters(SmallGrid,bsxOff)
 
     
     %% set baseline
     
     baseline.name = '';
+    baseline.bsxOff = bsxOff;
     
     % data frequency 
     baseline.freq        = 1; % 1 yearly, 4 quarterly

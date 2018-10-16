@@ -2,15 +2,16 @@
 clear;
 close all;
 
-%% RUN PARAMETERS
+%% RUN OPTIONS
 Batch = 0;
 Server = 0;
 SmallGrid = 0;
-
+bsxOff = 0; % use faster implicit expansion
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
 params0.name = 'params0';
+params0.bsxOff = bsxOff;
 params0.index = 1;
 
 % data frequency 
@@ -73,7 +74,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 1000;
-params0.nxlong      = 200; % Grid size for final computations
+params0.nxlong      = 400; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
@@ -97,7 +98,7 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 1;
+params0.IterateBeta        = 0;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.ComputeDirectMPC   = 1;
@@ -124,7 +125,7 @@ cd(path);
 if Batch == 0
     params = params0;
 else
-    params = parameters(SmallGrid);
+    params = parameters(SmallGrid,bsxOff);
 end
 
 %% CHOOSE WHICH SPECIFICATIONS TO RUN (ONLY RELEVANT FOR BATCH)
@@ -167,7 +168,7 @@ else
             disp(['Trying parameterization ' params(ip).name])
             try
                 % Main function
-                [income{ip},SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
+                [income{ip},SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip),Server);
                 direct_results{ip}  = DR;
                 norisk_results{ip}  = NR;
                 sim_results{ip}     = SR;
