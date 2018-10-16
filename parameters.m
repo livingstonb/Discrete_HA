@@ -65,7 +65,7 @@ function params = parameters(SmallGrid)
     baseline.tol_iter    = 1.0e-6; % EGP
     baseline.Nsim        = 100000; % 100000
     baseline.Tsim        = 200;
-    baseline.nxlong      = 750; % Grid size for final computations
+    baseline.nxlong      = 750; % MUST BE THE SAME VALUE FOR EVERY nb == 1 CASE
 
     % beta iteration
     baseline.targetAY    = 3.5;
@@ -274,13 +274,12 @@ function params = parameters(SmallGrid)
     
     % x
     params(end+1) = baseline;
-    params(end).name = 'WithFE nyF 5';
+    params(end).name = 'WithFE nyF 3';
     params(end).rho_logyP = 0.9158;
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
     params(end).sd_logyF = sqrt(0.1801);
-    params(end).nxlong = 500;
-    params(end).nyF = 5;
+    params(end).nyF = 3;
 
     % xi
     params(end+1) = baseline;
@@ -344,6 +343,15 @@ function params = parameters(SmallGrid)
     for ip = 1:numel(params)
         params(ip).index = ip;
     end
+    
+    % Check that all nxlong are equal except for nb > 1 cases, so we can do
+    % decomposition
+    nxlongs = [params(:).nxlong]';
+    nbs     = [params(:).nb]';
+    badnxlongs = find(nxlongs~=nxlongs(1) && nbs==1);
+    disp('nxlong is not equal to baseline nxlong for the following parameterizations:')
+    {params(badnxlongs).name}'
+    error('All nxlong parameters must be equal to baseline unless nb > 1')
     
     %----------------------------------------------------------------------
     % SET SMALL GRID FOR TESTING

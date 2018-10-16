@@ -53,15 +53,15 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
             'Decomp of Em0 around 0.05, Non-HtM, constraint'
             'Decomp of Em0 around 0.05, Non-HtM, inc risk'
             'Em1 - Em0'
-            'Decomp of Em1-Em0, around 0, effect of MPC fcn'
-            'Decomp of Em1-Em0, around 0, effect of distr'
-            'Decomp of Em1-Em0, around 0, interaction'
-            'Decomp of Em1-Em0, around 0.01, effect of MPC fcn'
-            'Decomp of Em1-Em0, around 0.01, effect of distr'
-            'Decomp of Em1-Em0, around 0.01, interaction'
-            'Decomp of Em1-Em0, around 0.05, effect of MPC fcn'
-            'Decomp of Em1-Em0, around 0.05, effect of distr'
-            'Decomp of Em1-Em0, around 0.05, interaction'
+            'Decomp of Em1-Em0, effect of MPC fcn'
+            'Decomp of Em1-Em0, effect of distr'
+            'Decomp of Em1-Em0, interaction'
+            'Decomp of the distr effect around 0, HtM households'
+            'Decomp of the distr effect around 0, non-HtM households'
+            'Decomp of the distr effect around 0.01, HtM households'
+            'Decomp of the distr effect around 0.01, non-HtM households'
+            'Decomp of the distr effect around 0.05, HtM households'
+            'Decomp of the distr effect around 0.05, non-HtM households'
             'Failed one or more checks'
             };
     Nrows = numel(rows) - 1;
@@ -117,11 +117,6 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
                         [decomps{ip}.term3]
                         [decomps{ip}.term4]];
                 
-                % decomposition2
-                dec2 = [[decomp2{ip}.term1]
-                        [decomp2{ip}.term2]
-                        [decomp2{ip}.term3]];
-                
                 column = [
                     p.index
                     direct_results{ip}.beta_annualized      % Annualized beta
@@ -140,8 +135,16 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
                     mpcs_Q(:)                               % Quarterly MPCs (if freq = 4)
                     NaN
                     dec1(:)                                 % Decomp1
-                    decomp2{ip}(1).Em1_less_Em0             % Decomposition2
-                    dec2(:)
+                    decomp2{ip}.Em1_less_Em0                % Decomposition2
+                    decomp2{ip}.term1                       
+                    decomp2{ip}.term2
+                    decomp2{ip}.term3
+                    decomp2{ip}.term3a(1)   
+                    decomp2{ip}.term3b(1)
+                    decomp2{ip}.term3a(2)   
+                    decomp2{ip}.term3b(2)
+                    decomp2{ip}.term3a(3)   
+                    decomp2{ip}.term3b(3)
                     numel(checks{ip})>0];                
             end
 

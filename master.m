@@ -47,7 +47,7 @@ params0.lambdaT      = 1; % arrival rate of shocks;
 params0.nyP          = 11; %11 persistent component
 params0.sd_logyP     = sqrt(.0422); % 0.1950;
 params0.rho_logyP    = 0.9525;
-params0.nyF          = 3;
+params0.nyF          = 1;
 params0.sd_logyF     = sqrt(0.1801);
 
 % cash on hand / savings grid
@@ -64,7 +64,7 @@ params0.savtax          = 0; %0.0001;  %tax rate on savings
 params0.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
-params0.nb          = 1; % higher numbers dramatically increase computing load
+params0.nb          = 3; % higher numbers dramatically increase computing load
 params0.betawidth   = 0.001; % too large and eigs hangs while finding stat distribution
 params0.betaswitch  = 0.01; %0;
 

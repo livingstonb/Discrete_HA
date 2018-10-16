@@ -41,8 +41,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     end
 
     p.N = p.nx*p.nyF*p.nyP*p.nb;
-   
-
+    
     %% LOAD INCOME VARIABLES
     % Create income structure
     income = gen_income_variables(p);
