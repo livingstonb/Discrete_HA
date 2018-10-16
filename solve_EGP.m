@@ -1,9 +1,11 @@
-function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
+function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
     % via direct methods (rather than simulations) and stores the results 
     % in the 'model' structure.
+
+    agrid = repmat(agrid_short,p.nyP*p.nyF*p.nb,1);
     
     %% CONSTRUCT EXPECTATIONS MATRIX                                     
     betagrid = beta + prefs.betagrid0;
@@ -128,8 +130,11 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
     model.sav = sav;
     model.con = reshape(conupdate,[p.nx p.nyP p.nyF p.nb]);
     model.EGP_cdiff = cdiff;
+
+    %% DISTRIBUTION
     
     % create interpolants from optimal policy functions
+    % and find saving values associated with xvals
     model.savinterp = cell(p.nyP,p.nyF,p.nb);
     model.coninterp = cell(p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
@@ -138,68 +143,43 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,prefs,income)
         model.savinterp{iyP,iyF,ib} = ...
             griddedInterpolant(xgrid.full(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
         model.coninterp{iyP,iyF,ib} = ...
-            griddedInterpolant(xgrid.full(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');
+            griddedInterpolant(xgrid.full(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');    
     end
     end
     end
-
-
-    %% DISTRIBUTION
     
-    % Distribution over (x,yP,yF,beta)
-    [model.SSdist,model.sav_longgrid]...
-            = find_stationary_xdist(p,model,income,prefs,xgrid.longgrid);
-    
-    % Cumulative distribution, sorted by saving
-    temp = sortrows([model.sav_longgrid(:) model.SSdist(:)]);
-    model.sav_longgrid_sort = temp(:,1);
-    model.SSdist_sort = temp(:,2);
-    model.SScumdist = cumsum(model.SSdist_sort);
-    % unique values on cumdist and their indices (needed for interpolants)
-    [model.SScumdist_unique,model.SScumdist_uniqueind] = unique(model.SScumdist,'last');
-    
-    % Distribution over (assets,yP_lag,yF_lag,beta_lag)
-    model.asset_values = p.R * model.sav_longgrid;
-    if p.Bequests == 1
-        model.asset_dist = model.SSdist;
-    else
-        % Shift fraction of distribution to zero
-        model.asset_dist = (1-p.dieprob) * model.SSdist;
-        model.asset_dist(1,:,:,:) = p.dieprob * sum(model.SSdist,1);
+    [model.adist,model.xdist,model.xvals,model.y_x,model.nety_x]...
+            = find_stationary_adist(p,model,income,prefs,agrid_short);
+    for ib = 1:p.nb
+    for iyF = 1:p.nyF
+    for iyP = 1:p.nyP 
+        model.sav_x(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(model.xvals(:,iyP,iyF,ib));
     end
-    asset_temp = sortrows([model.asset_values(:) model.asset_dist(:)]);
-    model.asset_sortvalues = asset_temp(:,1);
-    model.asset_dist_sort  = asset_temp(:,2);
-    model.asset_cumdist    = cumsum(model.asset_dist_sort);
-    % Get unique values from cumdist for interpolant
-    [model.asset_cumdist_unique,model.asset_uniqueind] = unique(model.asset_cumdist,'last');
-    
+    end
+    end
+   
+    model.sav_x = max(model.sav_x,p.borrow_lim);
+            
     % mean saving, mean assets
-    model.mean_s = model.sav_longgrid(:)' * model.SSdist(:);
-    model.mean_a = model.asset_values(:)' * model.asset_dist(:);
+    model.mean_a = model.adist(:)' * agrid(:);
  
     % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
     % model, and from (x,yP,yF,beta) to (x,beta)
     if p.nyP>1 && p.nyF>1
         % a
-        model.assetdist_noincrisk =  sum(sum(model.asset_dist,3),2);
+        model.adist_noincrisk =  sum(sum(model.adist,3),2);
         % x
-        model.SSdist_noincrisk    = sum(sum(model.SSdist,3),2);
+        model.xdist_noincrisk    = sum(sum(model.xdist,3),2);
     elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
-        model.assetdist_noincrisk =  sum(model.asset_dist,2);
-        model.SSdist_noincrisk    = sum(model.SSdist,2);
+        model.adist_noincrisk =  sum(model.adist,2);
+        model.xdist_noincrisk    = sum(model.xdist,2);
     elseif p.nyP==1 && p.nyF==1
-        model.assetdist_noincrisk = model.asset_dist;
-        model.SSdist_noincrisk    = model.SSdist;
+        model.adist_noincrisk = model.adist;
+        model.xdist_noincrisk    = model.xdist;
     end
     
-    % Policy functions on longgrid
-    model.con_longgrid = repmat(xgrid.longgrid(:),p.nb,1)...
-        - model.sav_longgrid(:) - p.savtax*max(model.sav_longgrid(:)-p.savtaxthresh,0);
-    model.con_longgrid = reshape(model.con_longgrid,[p.nxlong,p.nyP,p.nyF,p.nb]);
-    
-    % Mean consumption
-    model.mean_c = model.con_longgrid(:)' * model.SSdist(:);
+    % Policy functions associated with xdist
+    model.con_x= model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
 
     if p.Display == 1
         fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany1*p.freq));

@@ -1,6 +1,6 @@
 function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]... 
-                                = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid)
-    % This function draws from the stationary distribution of (x,yP,yF,beta) 
+                                = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid)
+    % This function draws from the stationary distribution of (a,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
     
     if p.Display == 1
@@ -32,8 +32,8 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
     % Done in partitions to economize on memory
     partitionsize = 1e5;
     Npartition = Nsim/partitionsize;
-    cumdist = cumsum(basemodel.SSdist(:));
-    x1 = zeros(Nsim,1);
+    cumdist = cumsum(basemodel.adist(:));
+    a1 = zeros(Nsim,1);
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
@@ -49,8 +49,7 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
         betaindsim(partition,1)	= betaind_trans(ind);
         
         % Initial assets from stationary distribution
-        xlonggrid_extended = repmat(xgrid.longgrid(:),p.nb,1);
-        x1(partition) = xlonggrid_extended(ind);
+        a1(partition) = agrid(ind);
     end
     
     %% SIMULATE INCOME AND BETA
@@ -107,7 +106,7 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
         for it = 1:p.freq
             % Update cash-on-hand          
             if it == 1
-                xsim(:,1) = x1 + mpcamount;
+                xsim(:,1) = a1 + + ynetsim(:,1) + mpcamount;
             else
                 xsim(:,it) = asim(:,it) + ynetsim(:,it);
             end

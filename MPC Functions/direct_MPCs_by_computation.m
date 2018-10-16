@@ -1,21 +1,19 @@
 function [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
-            = direct_MPCs_by_computation(p,basemodel,income,prefs,agrid,norisk)
+            = direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk)
 
     %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITH INCOME RISK)
-    % First get stationary distribution associated with agrid
-    adist = find_stationary_adist(p,basemodel,income,prefs,agrid);
 
     % Find P(yP,yF,beta|a) = P(a,yP,yF,beta)/P(a)
-    Pa = sum(sum(sum(adist,4),3),2);
+    Pa = sum(sum(sum(basemodel.adist,4),3),2);
     Pa = repmat(Pa,[1 p.nyP p.nyF p.nb]);
-    Pcondl = adist ./ Pa;
+    Pcondl = basemodel.adist ./ Pa;
     Pcondl(Pa == 0) = 0;
 
     % Each (a,yP,yF) is associated with nyT possible x values, create this
     % grid here
     netymat_reshape = reshape(income.netymat,[1 p.nyP p.nyF p.nyT]);
     netymat_reshape = repmat(netymat_reshape,[p.nxlong 1 1 1]);
-    xgrid_yT = repmat(agrid,[1 p.nyP p.nyF p.nyT]) + netymat_reshape;
+    xgrid_yT = repmat(agrid_short,[1 p.nyP p.nyF p.nyT]) + netymat_reshape;
 
     for im = 0:numel(p.mpcfrac)
         if im == 0
@@ -46,7 +44,7 @@ function [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
         else
             % Compute m(a,yP,yF,beta) = E[m(x,yP,yF,beta)|a,yP,yF,beta]
             mpcs1_a_yP_yF_beta = (con - con_baseline) / mpcamount;
-            avg_mpc1_agrid(im) = adist(:)' * mpcs1_a_yP_yF_beta(:);
+            avg_mpc1_agrid(im) = basemodel.adist(:)' * mpcs1_a_yP_yF_beta(:);
 
             % Compute m(a) = E(m(a,yP,yF,beta)|a)
             %       = sum of P(yP,yF,beta|a) * m(a,yP,yF,beta) over all
@@ -56,7 +54,7 @@ function [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
     end
 
     % Distribution over agrid, P(a)
-    agrid_dist = sum(sum(sum(adist,4),3),2);
+    agrid_dist = sum(sum(sum(basemodel.adist,4),3),2);
     
     %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITHOUT INCOME RISK)
     for im = 0:numel(p.mpcfrac)
@@ -66,7 +64,7 @@ function [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
             mpcamount = p.mpcfrac(im)*income.meany1*p.freq;
         end
         
-        x_mpc = agrid + income.meannety1 + mpcamount;
+        x_mpc = agrid_short + income.meannety1 + mpcamount;
         con = zeros(p.nxlong,p.nb);
         for ib = 1:p.nb
             con(:,ib) = norisk.coninterp{ib}(x_mpc);

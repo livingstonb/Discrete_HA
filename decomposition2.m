@@ -23,8 +23,8 @@ function decomp2 = decomposition2(params,direct_results,exceptions)
         
             m1 = direct_results{ip}.mpcs1_a_direct{5};
             m0 = direct_results{baseind}.mpcs1_a_direct{5};
-            g1 = direct_results{ip}.agrid_dist;
-            g0 = direct_results{baseind}.agrid_dist;
+            g1 = direct_results{ip}.adist;
+            g0 = direct_results{baseind}.adist;
 
             decomp2{ip}.Em1_less_Em0 = direct_results{ip}.avg_mpc1_agrid(5) ...
                             - direct_results{baseind}.avg_mpc1_agrid(5);

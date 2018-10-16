@@ -120,6 +120,8 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     agrid = linspace(0,1,p.nxlong)';
     agrid = agrid.^(1/p.xgrid_par);
     agrid = p.borrow_lim + (p.xmax - p.borrow_lim) * agrid;
+    agrid_short = agrid;
+    agrid = repmat(agrid,p.nyP*p.nyF*p.nb,1);
     
     %% UTILITY FUNCTION, BEQUEST FUNCTION
     if p.risk_aver==1
@@ -137,7 +139,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     %% MODEL SOLUTION
     if p.IterateBeta == 1
         
-        iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,prefs,income);
+        iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income);
 
         if p.nb == 1
             beta_ub = p.betaH - 1e-5;
@@ -161,7 +163,8 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
-    [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,prefs,income);
+    [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income);
+    direct_results.adist = basemodel.adist;
 
     % Report beta and annualized beta
     direct_results.beta_annualized = beta_final^p.freq;
@@ -177,34 +180,26 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     end
     
     %% IMPORTANT MOMENTS
-    % Create income grid associated with longgrid
-    ymat_onlonggrid = repmat(kron(income.ymat,ones(p.nxlong,1)),p.nb,1);
-    netymat_onlonggrid = repmat(kron(income.netymat,ones(p.nxlong,1)),p.nb,1);
-    
-    direct_results.mean_s = basemodel.mean_s;
+    direct_results.mean_s = basemodel.xdist(:)' * basemodel.sav_x(:);
     direct_results.mean_a = basemodel.mean_a;
-    direct_results.mean_x = repmat(xgrid.longgrid(:)',1,p.nb) * basemodel.SSdist(:);
-    if p.Bequests == 1
-        direct_results.mean_bequests = direct_results.mean_s;
-    else
-        direct_results.mean_bequests = 0;
-    end
+    direct_results.mean_x = basemodel.xdist(:)' * basemodel.xvals(:);
+    direct_results.mean_c = basemodel.xdist(:)' * basemodel.con_x(:);
     
     % One-period income statistics
-    direct_results.mean_grossy1 = (ymat_onlonggrid*income.yTdist)' * basemodel.SSdist(:);
-    direct_results.mean_loggrossy1 = (log(ymat_onlonggrid)*income.yTdist)' * basemodel.SSdist(:);
-    direct_results.mean_nety1 = (netymat_onlonggrid*income.yTdist)' * basemodel.SSdist(:);
-    direct_results.mean_lognety1 = (log(netymat_onlonggrid)*income.yTdist)' * basemodel.SSdist(:);
-    direct_results.var_loggrossy1 = basemodel.SSdist(:)' * (log(ymat_onlonggrid) - direct_results.mean_loggrossy1).^2 * income.yTdist;
-    direct_results.var_lognety1 = basemodel.SSdist(:)' * (log(netymat_onlonggrid)- direct_results.mean_lognety1).^2 * income.yTdist;
+    direct_results.mean_grossy1 = basemodel.xdist(:)' * basemodel.y_x(:);
+    direct_results.mean_loggrossy1 = basemodel.xdist(:)' * log(basemodel.y_x(:));
+    direct_results.mean_nety1 = basemodel.xdist(:)' * basemodel.nety_x(:);
+    direct_results.mean_lognety1 = basemodel.xdist(:)' * log(basemodel.nety_x(:));
+    direct_results.var_loggrossy1 = basemodel.xdist(:)' * (log(basemodel.y_x(:)) - direct_results.mean_loggrossy1).^2;
+    direct_results.var_lognety1 = basemodel.xdist(:)' * (log(basemodel.nety_x(:)) - direct_results.mean_lognety1).^2;
     
     direct_results.mean_x_check = direct_results.mean_a + direct_results.mean_nety1;
    
     % Reconstruct yPdist and yFdist from computed stationary distribution 
     % for sanity check
-    yPdist_check = reshape(basemodel.SSdist,[p.nxlong p.nyP p.nyF*p.nb]);
+    yPdist_check = reshape(basemodel.adist,[p.nxlong p.nyP p.nyF*p.nb]);
     yPdist_check = sum(sum(yPdist_check,3),1)';
-    yFdist_check = reshape(basemodel.SSdist,[p.nxlong*p.nyP p.nyF p.nb]);
+    yFdist_check = reshape(basemodel.adist,[p.nxlong*p.nyP p.nyF p.nb]);
     yFdist_check = sum(sum(yFdist_check,3),1)';
     
 
@@ -224,11 +219,11 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     if norm(yFdist_check-income.yFdist) > 1e-3
         checks{end+1} = 'Bad_yF_Dist';
     end
-    if min(basemodel.SSdist(:)) < - 1e-3
+    if min(basemodel.adist(:)) < - 1e-3
         checks{end+1} = 'LargeNegativeStateProbability';
-    elseif min(basemodel.SSdist(:)) < -1e-8
+    elseif min(basemodel.adist(:)) < -1e-8
         checks{end+1} = 'MedNegativeStateProbability';
-    elseif min(basemodel.SSdist(:)) < -1e-13
+    elseif min(basemodel.adist(:)) < -1e-13
         checks{end+1} = 'SmallNegativeStateProbability';
     end
 
@@ -237,31 +232,37 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     % Create values for fraction constrained at every pt in asset space,
     % defining constrained as s <= epsilon * mean annual gross labor income 
     % + borrowing limit
-    [uniquevals, iu] = unique(basemodel.asset_sortvalues,'last');
-    wpinterp = griddedInterpolant(uniquevals,basemodel.asset_cumdist(iu),'linear');
+    sort_aspace = sortrows([agrid basemodel.adist(:)]);
+    sort_agrid = sort_aspace(:,1);
+    sort_adist = sort_aspace(:,2);
+
+    sort_acumdist = cumsum(sort_aspace(:,1));
+
+    [aunique,uind] = unique(agrid,'last');
+    wpinterp = griddedInterpolant(aunique,sort_acumdist(uind),'linear');
     for i = 1:numel(p.epsilon)        
         % create interpolant to find fraction of constrained households
         if p.epsilon(i) == 0
             % Get exact figure
-            direct_results.constrained(i) = basemodel.asset_dist(:)' * (basemodel.asset_values(:) == 0);
+            direct_results.constrained(i) = basemodel.adist(:)' * (agrid==0);
         else
             direct_results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany1*p.freq);
         end
     end
     
     % Wealth percentiles
-    wpinterp_inverse = griddedInterpolant(basemodel.asset_cumdist_unique,basemodel.asset_sortvalues(basemodel.asset_uniqueind),'linear');
+    [acumdist_unique,uniqueind] = unique(sort_acumdist,'last');
+    wpinterp_inverse = griddedInterpolant(acumdist_unique,agrid(uniqueind),'linear');
     direct_results.wpercentiles = wpinterp_inverse(p.percentiles/100);
     
     % Top shares
-    % Amount of total assets that reside in each pt on asset space
-    totassets = basemodel.asset_dist_sort .* basemodel.asset_sortvalues;
+    % Amount of total assets that reside in each pt on sorted asset space
+    totassets = sort_adist .* sort_agrid;
     % Fraction of total assets in each pt on asset space
     cumassets = cumsum(totassets) / direct_results.mean_a;
-    cumassets = cumassets(basemodel.asset_uniqueind);
     
     % create interpolant from wealth percentile to cumulative wealth share
-    cumwealthshare = griddedInterpolant(basemodel.asset_cumdist_unique,cumassets,'linear');
+    cumwealthshare = griddedInterpolant(acumdist_unique,cumassets(uniqueind),'linear');
     direct_results.top10share  = 1 - cumwealthshare(0.9);
     direct_results.top1share   = 1 - cumwealthshare(0.99);
     
@@ -276,14 +277,14 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     %% SIMULATIONS
     if p.Simulate == 1
-        [sim_results,assetmeans] = simulate(p,income,basemodel,xgrid,prefs);
+        [sim_results,assetmeans] = simulate(p,income,basemodel,xgrid,prefs,agrid);
     else
         assetmeans = [];
     end
     
     %% DIRECTLY COMPUTED 1-PERIOD MPCs
     [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct] = ...
-            direct_MPCs_by_computation(p,basemodel,income,prefs,agrid,norisk);
+            direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk);
     direct_results.avg_mpc1_agrid = avg_mpc1_agrid;
     direct_results.mpcs1_a_direct = mpcs1_a_direct;
     direct_results.agrid_dist = agrid_dist;
@@ -293,7 +294,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     % Model with income risk
     if p.ComputeDirectMPC == 1          
         [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A] ...
-                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid);
+                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid);
         basemodel.mpcs1_sim = mpcs1;
         basemodel.mpcs4_sim = mpcs4;
         
@@ -331,7 +332,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
         g0 = direct_results.agrid_dist;
         mbc  = norisk_results.mpcs1_a_direct{5};
         for ia = 1:numel(p.abars)
-            zidx = agrid <= p.abars(ia);
+            zidx = agrid_short <= p.abars(ia);
             
             decomp(ia).term1 = m_ra;
             decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
@@ -349,7 +350,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     %% GINI
     % Wealth
-    direct_results.wealthgini = direct_gini(basemodel.asset_values,basemodel.asset_dist);
+    direct_results.wealthgini = direct_gini(agrid,basemodel.adist);
     
     % Gross income
     direct_results.grossincgini = direct_gini(income.ysort,income.ysortdist);

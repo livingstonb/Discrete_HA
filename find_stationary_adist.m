@@ -1,4 +1,4 @@
-function [distribution,sav] = find_stationary_adist(p,model,...
+function [adist,xdist,xvals,incvals,netincvals] = find_stationary_adist(p,model,...
                                  	income,prefs,agridinput)
     % Finds the stationary distribution and transition matrix for a given
     % agridinput
@@ -11,7 +11,6 @@ function [distribution,sav] = find_stationary_adist(p,model,...
  
     NN = gridsize * p.nyP * p.nyF * p.nb;
     nn = gridsize;
-    netymat_fulldim = reshape(income.netymat,[p.nyP p.nyF p.nyT]);
     
     % transition matrix between (yP,yF,beta) states, cond'l on living
     trans_live = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
@@ -82,8 +81,8 @@ function [distribution,sav] = find_stationary_adist(p,model,...
         % No fixed heterogeneity
         opts.v0 = sparse(NN,1);
         opts.v0(1) = 1;
-        [distribution,~] = eigs(statetrans',1,1,opts);
-        distribution = distribution/sum(distribution);
+        [adist,~] = eigs(statetrans',1,1,opts);
+        adist = adist/sum(adist);
     else
         % Need iterative procedure
         q=sparse(1,NN);
@@ -101,8 +100,21 @@ function [distribution,sav] = find_stationary_adist(p,model,...
         if iter >= 1e6
             error('No convergence to stationary distribution')
         end
-        distribution=full(q');
+        adist=full(q');
     end
     
-    distribution = reshape(distribution,[nn,p.nyP,p.nyF,p.nb]);
+    adist = reshape(adist,[nn,p.nyP,p.nyF,p.nb]);
+    
+    % get distribution over (x,yP,yF,beta)
+    xdist = kron(income.yTdist,reshape(adist,nn,[]));
+    xdist = reshape(xdist,[nn*p.nyT p.nyP p.nyF p.nb]);
+    
+    % Extend xvals to (p.nxlong*p.nyT,p.nyP,p.nyF,p.nyT)
+    incvals = reshape(income.ymat,[p.nyP*p.nyF p.nyT]);
+    incvals = permute(incvals,[2 1]);
+    incvals = kron(incvals,ones(nn,1));
+    incvals = reshape(incvals,[nn*p.nyT p.nyP p.nyF]);
+    incvals = repmat(incvals,[1 1 1 p.nb]);
+    netincvals = income.lumptransfer + (1-p.labtaxlow)*incvals - p.labtaxhigh*max(incvals-income.labtaxthresh,0);
+    xvals = repmat(agridinput,[p.nyT p.nyP p.nyF p.nb]) + netincvals;
 end
