@@ -25,7 +25,7 @@ params0.dieprob     = 1/50;
 
 % preferences
 params0.risk_aver   = 1;
-params0.beta0       = 0.98; % annualized
+params0.beta0       = 0.97; % annualized
 params0.temptation  = 0;
 params0.betaL       = 0.80;
 % betaH defined in main function file
@@ -65,9 +65,9 @@ params0.savtax          = 0; %0.0001;  %tax rate on savings
 params0.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
-params0.nb          = 1; % higher numbers dramatically increase computing load
-params0.betawidth   = 0.001; % too large and eigs hangs while finding stat distribution
-params0.betaswitch  = 0.01; %0;
+params0.nb          = 5; % higher numbers dramatically increase computing load
+params0.betawidth   = 0.001;
+params0.betaswitch  = 0.1; %0;
 
 % computation
 params0.max_iter    = 1e5; % EGP

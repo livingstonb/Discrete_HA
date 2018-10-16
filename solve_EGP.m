@@ -82,17 +82,17 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income)
         muc_bequest     = prefs.beq1(repmat(sgrid.full(:),p.nb,1));
         
         % muc(s(x,yP,yF,beta))
-        muc_s           = (1-p.dieprob) * muc_consumption ./ muc_savtaxrate...
+        muc_s = (1-p.dieprob) * muc_consumption ./ muc_savtaxrate...
                                                 + p.dieprob * muc_bequest;
                 
         % c(s)
-        con_s       = prefs.u1inv(muc_s);
+        con_s = prefs.u1inv(muc_s);
         
         % x(s) = s + stax + c(s)
-        x_s         = repmat(sgrid.full(:),p.nb,1)...
+        x_s = repmat(sgrid.full(:),p.nb,1)...
                         + p.savtax * max(repmat(sgrid.full(:),p.nb,1)-p.savtaxthresh,0)...
                         + con_s;
-        x_s         = reshape(x_s,[p.ns p.nyP p.nyF p.nb]);
+        x_s = reshape(x_s,[p.ns p.nyP p.nyF p.nb]);
 
         % interpolate from x(s) to get s(x)
         sav = zeros(p.ns,p.nyP,p.nyF,p.nb);

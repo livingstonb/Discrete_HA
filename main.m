@@ -236,9 +236,9 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     sort_agrid = sort_aspace(:,1);
     sort_adist = sort_aspace(:,2);
 
-    sort_acumdist = cumsum(sort_aspace(:,1));
+    sort_acumdist = cumsum(sort_adist);
 
-    [aunique,uind] = unique(agrid,'last');
+    [aunique,uind] = unique(sort_agrid,'last');
     wpinterp = griddedInterpolant(aunique,sort_acumdist(uind),'linear');
     for i = 1:numel(p.epsilon)        
         % create interpolant to find fraction of constrained households
@@ -252,7 +252,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     % Wealth percentiles
     [acumdist_unique,uniqueind] = unique(sort_acumdist,'last');
-    wpinterp_inverse = griddedInterpolant(acumdist_unique,agrid(uniqueind),'linear');
+    wpinterp_inverse = griddedInterpolant(acumdist_unique,sort_agrid(uniqueind),'linear');
     direct_results.wpercentiles = wpinterp_inverse(p.percentiles/100);
     
     % Top shares

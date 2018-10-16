@@ -59,10 +59,16 @@ function [adist,xdist,xvals,incvals,netincvals] = find_stationary_adist(p,model,
     for iyF2 = 1:p.nyF
     for iyP2 = 1:p.nyP
         transcol_live = kron(trans_live(:,col),ones(gridsize,1));
-        transcol_live = bsxfun(@times,transcol_live,interp_live);
         transcol_death = kron(trans_death(:,col),ones(gridsize,1));
-        transcol_death = bsxfun(@times,transcol_death,interp_death);
-   
+        
+        if p.bsxOff == 1
+            transcol_live = transcol_live .* interp_live;
+            transcol_death = transcol_death .* interp_death;
+        else
+            transcol_live = bsxfun(@times,transcol_live,interp_live);
+            transcol_death = bsxfun(@times,transcol_death,interp_death);
+        end
+
         % add new column to transition matrix
         statetrans(:,nn*(col-1)+1:nn*col) = ...
             (1-p.dieprob)*transcol_live + p.dieprob*transcol_death;

@@ -60,9 +60,15 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
         [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
         
         if it > 1
-            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
-            [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
-            [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
+            if p.bsxOff == 1
+                [~,yPindsim(live,it)]   = max(yPrand(live,it) < income.yPcumtrans(yPindsim(live,it-1),:),[],2);
+                [~,yPindsim(~live,it)]  = max(yPrand(~live,it)< income.yPcumdist',[],2);
+                [~,betaindsim(:,it)]    = max(betarand(:,it) < prefs.betacumtrans(betaindsim(:,it-1),:),[],2);
+            else
+                [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
+                [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
+                [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
+            end
         end
     end
     
