@@ -61,13 +61,8 @@ function [adist,xdist,xvals,incvals,netincvals] = find_stationary_adist(p,model,
         transcol_live = kron(trans_live(:,col),ones(gridsize,1));
         transcol_death = kron(trans_death(:,col),ones(gridsize,1));
         
-        if p.bsxOff == 1
-            transcol_live = transcol_live .* interp_live;
-            transcol_death = transcol_death .* interp_death;
-        else
-            transcol_live = bsxfun(@times,transcol_live,interp_live);
-            transcol_death = bsxfun(@times,transcol_death,interp_death);
-        end
+        transcol_live = bsxfun(@times,transcol_live,interp_live);
+        transcol_death = bsxfun(@times,transcol_death,interp_death);
 
         % add new column to transition matrix
         statetrans(:,nn*(col-1)+1:nn*col) = ...
@@ -82,34 +77,30 @@ function [adist,xdist,xvals,incvals,netincvals] = find_stationary_adist(p,model,
     if p.Display == 1
         fprintf(' Finding ergodic distribution...\n');
     end
-    
-    if p.nyF == 1 && (p.nb==1 ||( p.nb>1 && p.betaswitch>0))
-        % No fixed heterogeneity
-        opts.v0 = sparse(NN,1);
-        opts.v0(1) = 1;
-        [adist,~] = eigs(statetrans',1,1,opts);
-        adist = adist/sum(adist);
-    else
-        % Need iterative procedure
-        q=sparse(1,NN);
-        % Create valid initial distribution for both yF & beta
-        % Repmat automatically puts equal weight on each beta
-        q(1,1:nn*p.nyP:end)=repmat(income.yFdist,p.nb,1);
-        diff=1; 
-        iter = 1;
-        while diff>1e-8 && iter < 1e6;
-            z=q*statetrans;
-            diff=norm(z-q);
-            q=z;
-            iter = iter + 1;
-        end
-        if iter >= 1e6
-            error('No convergence to stationary distribution')
-        end
-        adist=full(q');
+
+%     % No fixed heterogeneity
+%     opts.v0 = zeros(NN,1);
+%     opts.v0(1) = 1;
+%     [adist,~] = eigs(statetrans',1,1,opts);
+%     adist = adist/sum(adist);
+
+    q=zeros(1,NN);
+    % Create valid initial distribution for both yF & beta
+    % Repmat automatically puts equal weight on each beta
+    q(1,1:nn*p.nyP:end)=repmat(income.yFdist,p.nb,1) / p.nb;
+    diff=1; 
+    iter = 1;
+    while diff>1e-12 && iter < 1e5
+        z=q*statetrans;
+        diff=norm(z-q);
+        q=z;
+        iter = iter + 1;
     end
-    
-    adist = reshape(adist,[nn,p.nyP,p.nyF,p.nb]);
+    if iter >= 1e5
+        error('No convergence to stationary distribution')
+    end
+
+    adist = reshape(full(q'),[nn,p.nyP,p.nyF,p.nb]);
     
     % get distribution over (x,yP,yF,beta)
     xdist = kron(income.yTdist,reshape(adist,nn,[]));

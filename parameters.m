@@ -1,10 +1,9 @@
-function params = parameters(SmallGrid,bsxOff)
+function params = parameters(SmallGrid)
 
     
     %% set baseline
     
     baseline.name = '';
-    baseline.bsxOff = bsxOff;
     
     % data frequency 
     baseline.freq        = 1; % 1 yearly, 4 quarterly
@@ -93,7 +92,6 @@ function params = parameters(SmallGrid,bsxOff)
     baseline.IterateBeta        = 1;
     baseline.Display            = 0;
     baseline.MakePlots          = 0;
-    baseline.ComputeDirectMPC   = 1;
     baseline.Simulate           = 0;
     
     %% create params structure
@@ -350,9 +348,11 @@ function params = parameters(SmallGrid,bsxOff)
     nxlongs = [params(:).nxlong]';
     nbs     = [params(:).nb]';
     badnxlongs = find(nxlongs~=nxlongs(1) && nbs==1);
-    disp('nxlong is not equal to baseline nxlong for the following parameterizations:')
-    {params(badnxlongs).name}'
-    error('All nxlong parameters must be equal to baseline unless nb > 1')
+    if sum(badnxlongs) > 0
+        disp('nxlong is not equal to baseline nxlong for the following parameterizations:')
+        {params(badnxlongs).name}'
+        error('All nxlong parameters must be equal to baseline unless nb > 1')
+    end
     
     %----------------------------------------------------------------------
     % SET SMALL GRID FOR TESTING

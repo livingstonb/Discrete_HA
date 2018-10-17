@@ -33,15 +33,12 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
     partitionsize = 1e5;
     Npartition = Nsim/partitionsize;
     cumdist = cumsum(basemodel.adist(:));
+   
     a1 = zeros(Nsim,1);
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
-        if p.bsxOff == 1
-            [~,ind] = max(state_rand(partition) < cumdist',[],2);
-        else
-            [~,ind] = max(bsxfun(@lt,state_rand(partition),cumdist'),[],2);
-        end
+        [~,ind] = max(bsxfun(@lt,state_rand(partition),cumdist'),[],2);
         
         % (yPgrid,yFgrid,betagrid) iindices
         yPindsim(partition,1)	= yPind_trans(ind);
@@ -60,15 +57,9 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
         [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
         
         if it > 1
-            if p.bsxOff == 1
-                [~,yPindsim(live,it)]   = max(yPrand(live,it) < income.yPcumtrans(yPindsim(live,it-1),:),[],2);
-                [~,yPindsim(~live,it)]  = max(yPrand(~live,it)< income.yPcumdist',[],2);
-                [~,betaindsim(:,it)]    = max(betarand(:,it) < prefs.betacumtrans(betaindsim(:,it-1),:),[],2);
-            else
-                [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
-                [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
-                [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
-            end
+            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
+            [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
+            [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
         end
     end
     

@@ -292,35 +292,39 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     %% MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
-    if p.ComputeDirectMPC == 1          
+    if p.freq == 4
         [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A] ...
                             = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid);
         basemodel.mpcs1_sim = mpcs1;
         basemodel.mpcs4_sim = mpcs4;
-        
-        % Find annual mean and standard deviations of income
+    else
+        basemodel.mpcs1_sim = cell(1,numel(p.mpcfrac));
+        basemodel.mpcs4_sim = cell(1,numel(p.mpcfrac));
+    end
+
+    % Find annual mean and standard deviations of income
+    if p.freq == 4
+        % Direct computations
+        direct_results.mean_grossy_A = direct_results.mean_grossy1 * 4;
+        % Simulations
+        direct_results.stdev_loggrossy_A = stdev_loggrossy_A;
+        direct_results.stdev_lognety_A = stdev_lognety_A;     
+    else
+        % Use direct computations
+        direct_results.mean_grossy_A = direct_results.mean_grossy1;
+        direct_results.stdev_loggrossy_A = sqrt(direct_results.var_loggrossy1);
+        direct_results.stdev_lognety_A = sqrt(direct_results.var_lognety1);
+    end
+
+    for im = 1:numel(p.mpcfrac)
+        direct_results.avg_mpc1_sim(im) = mean(basemodel.mpcs1_sim{im});
+        direct_results.var_mpc1_sim(im) = var(basemodel.mpcs1_sim{im});
         if p.freq == 4
-            % Direct computations
-            direct_results.mean_grossy_A = direct_results.mean_grossy1 * 4;
-            % Simulations
-            direct_results.stdev_loggrossy_A = stdev_loggrossy_A;
-            direct_results.stdev_lognety_A = stdev_lognety_A;     
-        else
-            % Use direct computations
-            direct_results.mean_grossy_A = direct_results.mean_grossy1;
-            direct_results.stdev_loggrossy_A = sqrt(direct_results.var_loggrossy1);
-            direct_results.stdev_lognety_A = sqrt(direct_results.var_lognety1);
-        end
-        
-        for im = 1:numel(p.mpcfrac)
-            direct_results.avg_mpc1_sim(im) = mean(basemodel.mpcs1_sim{im});
-            direct_results.var_mpc1_sim(im) = var(basemodel.mpcs1_sim{im});
-            if p.freq == 4
-                direct_results.avg_mpc4_sim(im) = mean(basemodel.mpcs4_sim{im});
-                direct_results.var_mpc4(im) = var(basemodel.mpcs4_sim{im});
-            end
+            direct_results.avg_mpc4_sim(im) = mean(basemodel.mpcs4_sim{im});
+            direct_results.var_mpc4(im) = var(basemodel.mpcs4_sim{im});
         end
     end
+    
     
     
     %% DECOMPOSITION

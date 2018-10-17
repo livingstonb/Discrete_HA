@@ -6,12 +6,10 @@ close all;
 Batch = 0;
 Server = 0;
 SmallGrid = 0;
-bsxOff = 0; % use faster implicit expansion
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
 params0.name = 'params0';
-params0.bsxOff = bsxOff;
 params0.index = 1;
 
 % data frequency 
@@ -82,7 +80,7 @@ params0.maxiterAY   = 50;
 params0.tolAY       = 1e-5;
 
 % mpc options
-params0.Nmpcsim     = 1e5;
+params0.Nmpcsim     = 1e6;
 params0.mpcfrac(1)  = -1e-5; %approximate thoeretical mpc
 params0.mpcfrac(2)  = -0.01;
 params0.mpcfrac(3)  = -0.1;
@@ -101,15 +99,14 @@ params0.abars = [0 0.01 0.05];
 params0.IterateBeta        = 0;
 params0.Display            = 1;
 params0.MakePlots          = 0;
-params0.ComputeDirectMPC   = 1;
 params0.Simulate           = 1;
 
 % Add paths
 if Server == 0
-    path = '/Users/Brian/Documents/GitHub/MPCrecode';
-    savetablepath_annual = '/Users/Brian/Documents/table_annual.xls';
-    savetablepath_quarterly = '/Users/Brian/Documents/table_quarterly.xls';
-    savematpath = '/Users/Brian/Documents/variables.mat';
+    path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+    savetablepath_annual = '/Users/brianlivingston/Documents/table_annual.xls';
+    savetablepath_quarterly = '/Users/brianlivingston/Documents/table_quarterly.xls';
+    savematpath = '/Users/brianlivingston/Documents/variables.mat';
 else
     path = '/home/livingstonb/GitHub/MPCrecode';
     savetablepath_annual = '/home/livingstonb/output/table_annual.xls';
@@ -125,7 +122,7 @@ cd(path);
 if Batch == 0
     params = params0;
 else
-    params = parameters(SmallGrid,bsxOff);
+    params = parameters(SmallGrid);
 end
 
 %% CHOOSE WHICH SPECIFICATIONS TO RUN (ONLY RELEVANT FOR BATCH)

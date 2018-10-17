@@ -15,14 +15,14 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     dierand = rand(p.Nsim,p.Tsim);
     
     diesim = dierand<p.dieprob;
+    diesim = uint8(diesim);
     
-    yTindsim = zeros(p.Nsim,p.Tsim);
-    yPindsim = zeros(p.Nsim,p.Tsim);
+    yTindsim = zeros(p.Nsim,p.Tsim,'int8');
+    yPindsim = zeros(p.Nsim,p.Tsim,'int8');
 
     [~,yFindsim] = max(bsxfun(@le,yFrand,income.yFcumdist'),[],2);
     
     % simulate yP upon death outside of time loop for speed
-    idx = zeros(p.Nsim,p.Tsim);
     for iyP = 1:p.nyP
         if iyP == 1
             idx = yPrand<income.yPcumdist(iyP);
@@ -75,7 +75,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     
     %% Simulate beta
     betarand = rand(p.Nsim,p.Tsim);
-    betaindsim = zeros(p.Nsim,p.Tsim);
+    betaindsim = zeros(p.Nsim,p.Tsim,'int8');
     [~,betaindsim(:,1)] = max(bsxfun(@le,betarand(:,1),prefs.betacumdist'),[],2);
     
     for it = 2:p.Tsim
