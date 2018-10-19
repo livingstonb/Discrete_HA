@@ -144,6 +144,9 @@ Nparams = numel(params);
 
 %% CALL MAIN FUNCTION
 
+% Nparams = round(Nparams/15);
+% params = params(1:Nparams);
+
 direct_results = cell(1,Nparams); % Results from direct computations
 norisk_results = cell(1,Nparams); % Results from norisk model
 sim_results    = cell(1,Nparams); % Results from simulations
@@ -160,7 +163,7 @@ if Batch == 0
     norisk_results{1}  = NR;
     sim_results{1}     = SR;      
 else
-    for ip = 1:round(Nparams/10)
+    for ip = 1:Nparams
             tic
             disp(['Trying parameterization ' params(ip).name])
             try

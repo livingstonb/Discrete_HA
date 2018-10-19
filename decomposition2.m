@@ -22,8 +22,8 @@ function decomp2 = decomposition2(params,direct_results,exceptions)
                 baseind = 2;
             end
             
-            g1 = direct_results{ip}.adist;
-            g0 = direct_results{baseind}.adist;
+            g1 = direct_results{ip}.agrid_dist;
+            g0 = direct_results{baseind}.agrid_dist;
         
             % 1-Period MPC decomp
             m1 = direct_results{ip}.mpcs1_a_direct{5};
@@ -55,6 +55,13 @@ function decomp2 = decomposition2(params,direct_results,exceptions)
                 decomp2{ip}.mpc4_term1 = g0' * (m1 - m0);
                 decomp2{ip}.mpc4_term2 = m0' * (g1 - g0);
                 decomp2{ip}.mpc4_term3 = (m1 - m0)' * (g1 - g0);
+                
+                for ia = 1:numel(params(ip).abars)
+                    abar = params(ip).abars(ia);
+                    idx = agrid <= abar;
+                    decomp2{ip}.mpc4_term3a(ia) = m0(idx)' * (g1(idx) - g0(idx));
+                    decomp2{ip}.mpc4_term3b(ia) = m0(~idx)' * (g1(~idx) - g0(~idx));
+                end
             else
                 NoMPC4 = 1;
             end
