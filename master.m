@@ -13,7 +13,7 @@ params0.name = 'params0';
 params0.index = 1;
 
 % data frequency 
-params0.freq        = 1; % 1 yearly, 4 quarterly
+params0.freq        = 4; % 1 yearly, 4 quarterly
 
 % returns
 params0.r           = 0.02;
@@ -99,14 +99,14 @@ params0.abars = [0 0.01 0.05];
 params0.IterateBeta        = 0;
 params0.Display            = 1;
 params0.MakePlots          = 0;
-params0.Simulate           = 0;
+params0.Simulate           = 1;
 
 % Add paths
 if Server == 0
-    path = '/Users/Brian/Documents/GitHub/MPCrecode';
-    savetablepath_annual = '/Users/Brian/Documents/table_annual.xls';
-    savetablepath_quarterly = '/Users/Brian/Documents/table_quarterly.xls';
-    savematpath = '/Users/Brian/Documents/variables.mat';
+    path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
+    savetablepath_annual = '/Users/brianlivingston/Documents/table_annual.xls';
+    savetablepath_quarterly = '/Users/brianlivingston/Documents/table_quarterly.xls';
+    savematpath = '/Users/brianlivingston/Documents/variables.mat';
 else
     path = '/home/livingstonb/GitHub/MPCrecode';
     savetablepath_annual = '/home/livingstonb/output/table_annual.xls';

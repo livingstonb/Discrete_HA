@@ -1,5 +1,5 @@
-function [adist,xdist,xvals,incvals,netincvals] = find_stationary_adist(p,model,...
-                                 	income,prefs,agridinput)
+function [adist,xdist,xvals,incvals,netincvals,statetrans] = find_stationary_adist(p,model,...
+                                        income,prefs,agridinput)
     % Finds the stationary distribution and transition matrix for a given
     % agridinput
 

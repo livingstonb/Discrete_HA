@@ -1,5 +1,5 @@
-function [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
-            = direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk)
+function [avg_mpc1_agrid,mpcs1_a_direct,avg_mpc4_agrid,mpcs4_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
+                = direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk)
 
     %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITH INCOME RISK)
 
@@ -66,7 +66,7 @@ function [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
         % 4-PERIOD MPCS
         % Construct transition matrix from period 1 to period 2
         NN = p.nxlong*p.nyP*p.nyF*p.nb;
-        if im > 0
+        if im>0 && p.freq==4
 
             aprime_live = p.R * sav;
             interp = funbas(fspace,aprime_live(:));
@@ -85,7 +85,15 @@ function [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
                 T12(:,p.nxlong*(col-1)+1:p.nxlong*col) = (1-p.dieprob)*newblock_live + p.dieprob*newblock_death;
             end
 
-            mpcs2_a_direct{im} = (basemodel.adist(:)'*T12-basemodel.adist(:)')*con_baseline(:)/mpcamount;
+            mpcs2_a_yP_yF_beta = mpcs1_a_yP_yF_beta(:) + (T12-speye(NN))*con_baseline(:)/mpcamount;
+            mpcs3_a_yP_yF_beta = mpcs2_a_yP_yF_beta + (T12*basemodel.statetrans-speye(NN))*con_baseline(:)/mpcamount;
+            mpcs4_a_yP_yF_beta = mpcs3_a_yP_yF_beta + (T12*basemodel.statetrans^2-speye(NN))*con_baseline(:)/mpcamount;
+            mpcs4_a_yP_yF_beta = reshape(mpcs4_a_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
+            avg_mpc4_agrid(im) = basemodel.adist(:)' * mpcs4_a_yP_yF_beta(:);
+            mpcs4_a_direct{im} = sum(sum(sum(Pcondl .* mpcs4_a_yP_yF_beta,4),3),2);
+        elseif im>0 && p.freq==1
+            avg_mpc4_agrid(im) = NaN;
+            mpcs4_a_direct{im} = [];
         end
     end
 

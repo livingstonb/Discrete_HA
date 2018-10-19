@@ -1,4 +1,4 @@
-function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income)
+function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,Iterating)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
@@ -133,54 +133,60 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income)
 
     %% DISTRIBUTION
     
-    % create interpolants from optimal policy functions
-    % and find saving values associated with xvals
-    model.savinterp = cell(p.nyP,p.nyF,p.nb);
-    model.coninterp = cell(p.nyP,p.nyF,p.nb);
-    for ib = 1:p.nb
-    for iyF = 1:p.nyF
-    for iyP = 1:p.nyP
-        model.savinterp{iyP,iyF,ib} = ...
-            griddedInterpolant(xgrid.full(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
-        model.coninterp{iyP,iyF,ib} = ...
-            griddedInterpolant(xgrid.full(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');    
-    end
-    end
-    end
     
-    [model.adist,model.xdist,model.xvals,model.y_x,model.nety_x]...
-            = find_stationary_adist(p,model,income,prefs,agrid_short);
-    for ib = 1:p.nb
-    for iyF = 1:p.nyF
-    for iyP = 1:p.nyP 
-        model.sav_x(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(model.xvals(:,iyP,iyF,ib));
+    if Iterating == 1
+        % only get distribution over assets
+        model.adist = find_stationary_adist(p,model,income,prefs,agrid_short);
+    else
+        % create interpolants from optimal policy functions
+        % and find saving values associated with xvals
+        model.savinterp = cell(p.nyP,p.nyF,p.nb);
+        model.coninterp = cell(p.nyP,p.nyF,p.nb);
+        for ib = 1:p.nb
+        for iyF = 1:p.nyF
+        for iyP = 1:p.nyP
+            model.savinterp{iyP,iyF,ib} = ...
+                griddedInterpolant(xgrid.full(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
+            model.coninterp{iyP,iyF,ib} = ...
+                griddedInterpolant(xgrid.full(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');    
+        end
+        end
+        end
+        
+        [model.adist,model.xdist,model.xvals,model.y_x,model.nety_x,model.statetrans]...
+                    = find_stationary_adist(p,model,income,prefs,agrid_short);
+        for ib = 1:p.nb
+        for iyF = 1:p.nyF
+        for iyP = 1:p.nyP 
+            model.sav_x(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(model.xvals(:,iyP,iyF,ib));
+        end
+        end
+        end
+        model.sav_x = max(model.sav_x,p.borrow_lim);
+        
+        % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
+        % model, and from (x,yP,yF,beta) to (x,beta)
+        if p.nyP>1 && p.nyF>1
+            % a
+            model.adist_noincrisk =  sum(sum(model.adist,3),2);
+            % x
+            model.xdist_noincrisk    = sum(sum(model.xdist,3),2);
+        elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
+            model.adist_noincrisk =  sum(model.adist,2);
+            model.xdist_noincrisk    = sum(model.xdist,2);
+        elseif p.nyP==1 && p.nyF==1
+            model.adist_noincrisk = model.adist;
+            model.xdist_noincrisk    = model.xdist;
+        end
+    
+        % Policy functions associated with xdist
+        model.con_x= model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
     end
-    end
-    end
-   
-    model.sav_x = max(model.sav_x,p.borrow_lim);
-            
+           
     % mean saving, mean assets
     model.mean_a = model.adist(:)' * agrid(:);
  
-    % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
-    % model, and from (x,yP,yF,beta) to (x,beta)
-    if p.nyP>1 && p.nyF>1
-        % a
-        model.adist_noincrisk =  sum(sum(model.adist,3),2);
-        % x
-        model.xdist_noincrisk    = sum(sum(model.xdist,3),2);
-    elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
-        model.adist_noincrisk =  sum(model.adist,2);
-        model.xdist_noincrisk    = sum(model.xdist,2);
-    elseif p.nyP==1 && p.nyF==1
-        model.adist_noincrisk = model.adist;
-        model.xdist_noincrisk    = model.xdist;
-    end
     
-    % Policy functions associated with xdist
-    model.con_x= model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
-
     if p.Display == 1
         fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany1*p.freq));
     end

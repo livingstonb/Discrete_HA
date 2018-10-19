@@ -139,7 +139,8 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     %% MODEL SOLUTION
     if p.IterateBeta == 1
         
-        iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income);
+        Iterating = 1;
+        iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
 
         if p.nb == 1
             beta_ub = p.betaH - 1e-5;
@@ -163,7 +164,8 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
-    [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income);
+    Iterating = 0;
+    [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
     direct_results.adist = basemodel.adist;
 
     % Report beta and annualized beta
@@ -283,10 +285,12 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     end
     
     %% DIRECTLY COMPUTED 1-PERIOD MPCs
-    [avg_mpc1_agrid,mpcs1_a_direct,agrid_dist,norisk_mpcs1_a_direct] = ...
-            direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk);
+    [avg_mpc1_agrid,mpcs1_a_direct,avg_mpc4_agrid,mpcs4_a_direct,agrid_dist,norisk_mpcs1_a_direct] = ...
+                                direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk);
     direct_results.avg_mpc1_agrid = avg_mpc1_agrid;
+    direct_results.avg_mpc4_agrid = avg_mpc4_agrid;
     direct_results.mpcs1_a_direct = mpcs1_a_direct;
+    direct_results.mpcs4_a_direct = mpcs4_a_direct;
     direct_results.agrid_dist = agrid_dist;
     norisk_results.mpcs1_a_direct = norisk_mpcs1_a_direct;
     
