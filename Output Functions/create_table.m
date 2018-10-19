@@ -26,7 +26,7 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
             'Wealth, top 10% share'
             'Wealth, top 1% share'
             'Gini coefficient'
-            '    MPCS OUT OF 0.01 MEAN ANN INC)'
+            '    MPCS OUT OF 0.01 MEAN ANN INC'
             'Mean annual MPC (size = -1e-5)'
             'Mean annual MPC (size = -0.01)'
             'Mean annual MPC (size = -0.1)'
@@ -39,7 +39,7 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
             'Mean quarterly MPC (size = 1e-5)'
             'Mean quarterly MPC (size = 0.01)'
             'Mean quarterly MPC (size = 0.1)'
-            '    DECOMPS (MPC OUT OF 0.01 MEAN ANN INC)'
+            '    DECOMP OF EM0 (MPC OUT OF 0.01 MEAN ANN INC)'
             'Decomp of Em0 around 0, RA MPC'
             'Decomp of Em0 around 0, HtM Effect'
             'Decomp of Em0 around 0, Non-HtM, constraint'
@@ -52,16 +52,28 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
             'Decomp of Em0 around 0.05, HtM Effect'
             'Decomp of Em0 around 0.05, Non-HtM, constraint'
             'Decomp of Em0 around 0.05, Non-HtM, inc risk'
-            'Em1 - Em0'
-            'Decomp of Em1-Em0, effect of MPC fcn'
-            'Decomp of Em1-Em0, effect of distr'
-            'Decomp of Em1-Em0, interaction'
-            'Decomp of the distr effect around 0, HtM households'
-            'Decomp of the distr effect around 0, non-HtM households'
-            'Decomp of the distr effect around 0.01, HtM households'
-            'Decomp of the distr effect around 0.01, non-HtM households'
-            'Decomp of the distr effect around 0.05, HtM households'
-            'Decomp of the distr effect around 0.05, non-HtM households'
+            '    DECOMP OF ANNUAL EM1-EM0 (MPC OUT OF 0.01 MEAN ANN INC)'
+            '(Annual) Em1 - Em0'
+            '(Annual) Decomp of Em1-Em0, effect of MPC fcn'
+            '(Annual) Decomp of Em1-Em0, effect of distr'
+            '(Annual) Decomp of Em1-Em0, interaction'
+            '(Annual) Decomp of the distr effect around 0, HtM households'
+            '(Annual) Decomp of the distr effect around 0, non-HtM households'
+            '(Annual) Decomp of the distr effect around 0.01, HtM households'
+            '(Annual) Decomp of the distr effect around 0.01, non-HtM households'
+            '(Annual) Decomp of the distr effect around 0.05, HtM households'
+            '(Annual) Decomp of the distr effect around 0.05, non-HtM households'
+            '    DECOMP OF QUARTERLY EM1-EM0 (MPC OUT OF 0.01 MEAN ANN INC)'
+            '(QUARTERLY) Em1 - Em0'
+            '(QUARTERLY) Decomp of Em1-Em0, effect of MPC fcn'
+            '(QUARTERLY) Decomp of Em1-Em0, effect of distr'
+            '(QUARTERLY) Decomp of Em1-Em0, interaction'
+            '(QUARTERLY) Decomp of the distr effect around 0, HtM households'
+            '(QUARTERLY) Decomp of the distr effect around 0, non-HtM households'
+            '(QUARTERLY) Decomp of the distr effect around 0.01, HtM households'
+            '(QUARTERLY) Decomp of the distr effect around 0.01, non-HtM households'
+            '(QUARTERLY) Decomp of the distr effect around 0.05, HtM households'
+            '(QUARTERLY) Decomp of the distr effect around 0.05, non-HtM households'
             'Failed one or more checks'
             };
     Nrows = numel(rows) - 1;
@@ -107,7 +119,7 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
                     mpcs_A = direct_results{ip}.avg_mpc1_agrid(:);
                     mpcs_Q = NaN(numel(p.mpcfrac),1);
                 else
-                    mpcs_A = direct_results{ip}.avg_mpc4_sim(:);
+                    mpcs_A = direct_results{ip}.avg_mpc4_agrid(:);
                     mpcs_Q = direct_results{ip}.avg_mpc1_agrid(:);
                 end
                 
@@ -116,6 +128,35 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
                         [decomps{ip}.term2]
                         [decomps{ip}.term3]
                         [decomps{ip}.term4]];
+                    
+                % decomposition2
+                dec2_mpc1 = [decomp2{ip}.mpc1_Em1_less_Em0
+                                decomp2{ip}.mpc1_term1                       
+                                decomp2{ip}.mpc1_term2
+                                decomp2{ip}.mpc1_term3
+                                decomp2{ip}.mpc1_term3a(1)   
+                                decomp2{ip}.mpc1_term3b(1)
+                                decomp2{ip}.mpc1_term3a(2)   
+                                decomp2{ip}.mpc1_term3b(2)
+                                decomp2{ip}.mpc1_term3a(3)   
+                                decomp2{ip}.mpc1_term3b(3)];
+                dec2_mpc4 = [decomp2{ip}.mpc4_Em1_less_Em0
+                                decomp2{ip}.mpc4_term1                       
+                                decomp2{ip}.mpc4_term2
+                                decomp2{ip}.mpc4_term3
+                                decomp2{ip}.mpc4_term3a(1)   
+                                decomp2{ip}.mpc4_term3b(1)
+                                decomp2{ip}.mpc4_term3a(2)   
+                                decomp2{ip}.mpc4_term3b(2)
+                                decomp2{ip}.mpc4_term3a(3)   
+                                decomp2{ip}.mpc4_term3b(3)];
+                if p.freq == 1
+                    dec2_A = dec2_mpc1;
+                    dec2_Q = NaN(10,1);
+                else
+                    dec2_A = dec2_mpc4;
+                    dec2_Q = dec2_mpc1;
+                end
                 
                 column = [
                     p.index
@@ -135,16 +176,10 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
                     mpcs_Q(:)                               % Quarterly MPCs (if freq = 4)
                     NaN
                     dec1(:)                                 % Decomp1
-                    decomp2{ip}.Em1_less_Em0                % Decomposition2
-                    decomp2{ip}.term1                       
-                    decomp2{ip}.term2
-                    decomp2{ip}.term3
-                    decomp2{ip}.term3a(1)   
-                    decomp2{ip}.term3b(1)
-                    decomp2{ip}.term3a(2)   
-                    decomp2{ip}.term3b(2)
-                    decomp2{ip}.term3a(3)   
-                    decomp2{ip}.term3b(3)
+                    NaN
+                    dec2_A                                  % Decomposition2
+                    NaN
+                    dec2_Q
                     numel(checks{ip})>0];                
             end
 

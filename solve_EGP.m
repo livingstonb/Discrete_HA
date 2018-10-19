@@ -130,6 +130,21 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,
     model.sav = sav;
     model.con = reshape(conupdate,[p.nx p.nyP p.nyF p.nb]);
     model.EGP_cdiff = cdiff;
+    
+    % create interpolants from optimal policy functions
+    % and find saving values associated with xvals
+    model.savinterp = cell(p.nyP,p.nyF,p.nb);
+    model.coninterp = cell(p.nyP,p.nyF,p.nb);
+    for ib = 1:p.nb
+    for iyF = 1:p.nyF
+    for iyP = 1:p.nyP
+        model.savinterp{iyP,iyF,ib} = ...
+            griddedInterpolant(xgrid.full(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
+        model.coninterp{iyP,iyF,ib} = ...
+            griddedInterpolant(xgrid.full(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');    
+    end
+    end
+    end
 
     %% DISTRIBUTION
     
@@ -138,20 +153,6 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,
         % only get distribution over assets
         model.adist = find_stationary_adist(p,model,income,prefs,agrid_short);
     else
-        % create interpolants from optimal policy functions
-        % and find saving values associated with xvals
-        model.savinterp = cell(p.nyP,p.nyF,p.nb);
-        model.coninterp = cell(p.nyP,p.nyF,p.nb);
-        for ib = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP
-            model.savinterp{iyP,iyF,ib} = ...
-                griddedInterpolant(xgrid.full(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
-            model.coninterp{iyP,iyF,ib} = ...
-                griddedInterpolant(xgrid.full(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');    
-        end
-        end
-        end
         
         [model.adist,model.xdist,model.xvals,model.y_x,model.nety_x,model.statetrans]...
                     = find_stationary_adist(p,model,income,prefs,agrid_short);

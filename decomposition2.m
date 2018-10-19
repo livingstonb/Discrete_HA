@@ -15,40 +15,75 @@ function decomp2 = decomposition2(params,direct_results,exceptions)
         decomp2{ip} = struct();
         
         if Nparams>1 && isempty(exceptions{ip}) && params(ip).nxlong==params(1).nxlong
+            NoMPC1 = 0;
             if params(ip).freq == 1
                 baseind = 1;
             elseif params(ip).freq == 4
                 baseind = 2;
             end
-        
-            m1 = direct_results{ip}.mpcs1_a_direct{5};
-            m0 = direct_results{baseind}.mpcs1_a_direct{5};
+            
             g1 = direct_results{ip}.adist;
             g0 = direct_results{baseind}.adist;
+        
+            % 1-Period MPC decomp
+            m1 = direct_results{ip}.mpcs1_a_direct{5};
+            m0 = direct_results{baseind}.mpcs1_a_direct{5};
 
-            decomp2{ip}.Em1_less_Em0 = direct_results{ip}.avg_mpc1_agrid(5) ...
+            decomp2{ip}.mpc1_Em1_less_Em0 = direct_results{ip}.avg_mpc1_agrid(5) ...
                             - direct_results{baseind}.avg_mpc1_agrid(5);
-            decomp2{ip}.Em1_less_Em0_check = g1'*m1 - g0'*m0;
-            decomp2{ip}.term1 = g0' * (m1 - m0);
-            decomp2{ip}.term2 = m0' * (g1 - g0);
-            decomp2{ip}.term3 = (m1 - m0)' * (g1 - g0);
+            decomp2{ip}.mpc1_Em1_less_Em0_check = g1'*m1 - g0'*m0;
+            decomp2{ip}.mpc1_term1 = g0' * (m1 - m0);
+            decomp2{ip}.mpc1_term2 = m0' * (g1 - g0);
+            decomp2{ip}.mpc1_term3 = (m1 - m0)' * (g1 - g0);
             
             for ia = 1:numel(params(ip).abars)
                 abar = params(ip).abars(ia);
                 idx = agrid <= abar;
-                decomp2{ip}.term3a(ia) = m0(idx)' * (g1(idx) - g0(idx));
-                decomp2{ip}.term3b(ia) = m0(~idx)' * (g1(~idx) - g0(~idx));
+                decomp2{ip}.mpc1_term3a(ia) = m0(idx)' * (g1(idx) - g0(idx));
+                decomp2{ip}.mpc1_term3b(ia) = m0(~idx)' * (g1(~idx) - g0(~idx));
             end
+            
+            % 4-Period MPC decomp
+            if params(ip).freq == 4
+                NoMPC4 = 0;
+                m1 = direct_results{ip}.mpcs4_a_direct{5};
+                m0 = direct_results{baseind}.mpcs4_a_direct{5};
+                
+                decomp2{ip}.mpc4_Em1_less_Em0 = direct_results{ip}.avg_mpc4_agrid(5) ...
+                            - direct_results{baseind}.avg_mpc4_agrid(5);
+                decomp2{ip}.mpc4_Em1_less_Em0_check = g1'*m1 - g0'*m0;
+                decomp2{ip}.mpc4_term1 = g0' * (m1 - m0);
+                decomp2{ip}.mpc4_term2 = m0' * (g1 - g0);
+                decomp2{ip}.mpc4_term3 = (m1 - m0)' * (g1 - g0);
+            else
+                NoMPC4 = 1;
+            end
+
         else
             % Either not running more than one param, an exception was
             % thrown, or this specification uses the wrong nxlong
-            decomp2{ip}.Em1_less_Em0 = NaN;
-            decomp2{ip}.Em1_less_Em0_check = NaN;
-            decomp2{ip}.term1 = NaN;
-            decomp2{ip}.term2 = NaN;
-            decomp2{ip}.term3 = NaN;
-            decomp2{ip}.term3a = NaN(numel(params(ip).abars),1);
-            decomp2{ip}.term3b = NaN(numel(params(ip).abars),1);
+            NoMPC1 = 1;
+            NoMPC4 = 1;
+        end
+        
+        if NoMPC1 == 1
+            decomp2{ip}.mpc1_Em1_less_Em0 = NaN;
+            decomp2{ip}.mpc1_Em1_less_Em0_check = NaN;
+            decomp2{ip}.mpc1_term1 = NaN;
+            decomp2{ip}.mpc1_term2 = NaN;
+            decomp2{ip}.mpc1_term3 = NaN;
+            decomp2{ip}.mpc1_term3a = NaN(numel(params(ip).abars),1);
+            decomp2{ip}.mpc1_term3b = NaN(numel(params(ip).abars),1);
+        end
+        
+        if NoMPC4 == 1
+            decomp2{ip}.mpc4_Em1_less_Em0 = NaN;
+            decomp2{ip}.mpc4_Em1_less_Em0_check = NaN;
+            decomp2{ip}.mpc4_term1 = NaN;
+            decomp2{ip}.mpc4_term2 = NaN;
+            decomp2{ip}.mpc4_term3 = NaN;
+            decomp2{ip}.mpc4_term3a = NaN(numel(params(ip).abars),1);
+            decomp2{ip}.mpc4_term3b = NaN(numel(params(ip).abars),1);
         end
         
     end

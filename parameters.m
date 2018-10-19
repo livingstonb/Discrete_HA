@@ -347,7 +347,7 @@ function params = parameters(SmallGrid)
     % decomposition
     nxlongs = [params(:).nxlong]';
     nbs     = [params(:).nb]';
-    badnxlongs = find(nxlongs~=nxlongs(1) && nbs==1);
+    badnxlongs = find((nxlongs~=nxlongs(1)) & (nbs==1));
     if sum(badnxlongs) > 0
         disp('nxlong is not equal to baseline nxlong for the following parameterizations:')
         {params(badnxlongs).name}'

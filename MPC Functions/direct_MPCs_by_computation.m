@@ -1,6 +1,10 @@
 function [avg_mpc1_agrid,mpcs1_a_direct,avg_mpc4_agrid,mpcs4_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
                 = direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk)
 
+    if p.Display == 1
+        disp('Computing MPCs')
+    end
+    
     %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITH INCOME RISK)
 
     % Find P(yP,yF,beta|a) = P(a,yP,yF,beta)/P(a)

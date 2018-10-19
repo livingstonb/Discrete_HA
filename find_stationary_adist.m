@@ -90,13 +90,13 @@ function [adist,xdist,xvals,incvals,netincvals,statetrans] = find_stationary_adi
     q(1,1:nn*p.nyP:end)=repmat(income.yFdist,p.nb,1) / p.nb;
     diff=1; 
     iter = 1;
-    while diff>1e-12 && iter < 1e5
+    while diff>1e-8 && iter < 2e6
         z=q*statetrans;
         diff=norm(z-q);
         q=z;
         iter = iter + 1;
     end
-    if iter >= 1e5
+    if iter >= 2e6
         error('No convergence to stationary distribution')
     end
 

@@ -3,9 +3,9 @@ clear;
 close all;
 
 %% RUN OPTIONS
-Batch = 0;
+Batch = 1;
 Server = 0;
-SmallGrid = 0;
+SmallGrid = 1;
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
@@ -72,7 +72,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
-params0.nxlong      = 500; % Grid size for final computations
+params0.nxlong      = 400; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
@@ -96,10 +96,10 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 0;
+params0.IterateBeta        = 1;
 params0.Display            = 1;
 params0.MakePlots          = 0;
-params0.Simulate           = 1;
+params0.Simulate           = 0;
 
 % Add paths
 if Server == 0
@@ -160,12 +160,12 @@ if Batch == 0
     norisk_results{1}  = NR;
     sim_results{1}     = SR;      
 else
-    for ip = 1:Nparams
+    for ip = 1:round(Nparams/10)
             tic
             disp(['Trying parameterization ' params(ip).name])
             try
                 % Main function
-                [income{ip},SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip),Server);
+                [income{ip},SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
                 direct_results{ip}  = DR;
                 norisk_results{ip}  = NR;
                 sim_results{ip}     = SR;
