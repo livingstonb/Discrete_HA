@@ -63,7 +63,7 @@ params0.savtax          = 0; %0.0001;  %tax rate on savings
 params0.savtaxthresh    = 0; %multiple of mean gross labor income
 
 %discount factor shocks
-params0.nb          = 5; % higher numbers dramatically increase computing load
+params0.nb          = 1; % higher numbers dramatically increase computing load
 params0.betawidth   = 0.001;
 params0.betaswitch  = 0.1; %0;
 
@@ -72,7 +72,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 200;
-params0.nxlong      = 400; % Grid size for final computations
+params0.nxlong      = 500; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
@@ -99,14 +99,14 @@ params0.abars = [0 0.01 0.05];
 params0.IterateBeta        = 0;
 params0.Display            = 1;
 params0.MakePlots          = 0;
-params0.Simulate           = 1;
+params0.Simulate           = 0;
 
 % Add paths
 if Server == 0
-    path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
-    savetablepath_annual = '/Users/brianlivingston/Documents/table_annual.xls';
-    savetablepath_quarterly = '/Users/brianlivingston/Documents/table_quarterly.xls';
-    savematpath = '/Users/brianlivingston/Documents/variables.mat';
+    path = '/Users/Brian/Documents/GitHub/MPCrecode';
+    savetablepath_annual = '/Users/Brian/Documents/table_annual.xls';
+    savetablepath_quarterly = '/Users/Brian/Documents/table_quarterly.xls';
+    savematpath = '/Users/Brian/Documents/variables.mat';
 else
     path = '/home/livingstonb/GitHub/MPCrecode';
     savetablepath_annual = '/home/livingstonb/output/table_annual.xls';
