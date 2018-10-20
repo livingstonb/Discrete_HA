@@ -22,7 +22,7 @@ params0.r           = 0.02;
 params0.dieprob     = 1/50;
 
 % preferences
-params0.EpsteinZin  = 0;
+params0.EpsteinZin  = 0; % no bequest utility or temptation allowed
 params0.invies      = 2.5; % only relevant if doing Epstein-Zin
 params0.risk_aver   = 1;
 params0.beta0       = 0.97; % annualized

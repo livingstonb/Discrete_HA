@@ -78,13 +78,13 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,
         % now find muc this period as a function of s:
         % variables defined for each (x,yP,yF,beta) in state space,
         % column vecs of length p.nx*p.nyP*p.nyF*p.nb
-        muc_savtaxrate  = (1+p.savtax.*(repmat(sgrid.full(:),p.nb,1)>=p.savtaxthresh));
-        muc_consumption = (1+p.r)*betastacked*Emat*(mucnext*income.yTdist);
-        muc_bequest     = prefs.beq1(repmat(sgrid.full(:),p.nb,1));
+        savtaxrate  = (1+p.savtax.*(repmat(sgrid.full(:),p.nb,1)>=p.savtaxthresh));
+        mu_consumption = (1+p.r)*betastacked*Emat*(mucnext*income.yTdist);
+        mu_bequest     = prefs.beq1(repmat(sgrid.full(:),p.nb,1));
         
         % muc(s(x,yP,yF,beta))
-        muc_s = (1-p.dieprob) * muc_consumption ./ muc_savtaxrate...
-                                                + p.dieprob * muc_bequest;
+        muc_s = (1-p.dieprob) * mu_consumption ./ savtaxrate...
+                                                + p.dieprob * mu_bequest;
                 
         % c(s)
         con_s = prefs.u1inv(muc_s);
