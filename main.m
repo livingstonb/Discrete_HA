@@ -140,7 +140,11 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     if p.IterateBeta == 1
         
         Iterating = 1;
-        iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+        if p.EpsteinZin == 1
+            iterate_EGP = @(x) solve_EGP_EZ(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+        else
+            iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+        end
 
         if p.nb == 1
             beta_ub = p.betaH - 1e-5;
@@ -165,7 +169,11 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
     Iterating = 0;
-    [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+    if p.EpsteinZin == 1
+        [~,basemodel] = solve_EGP_EZ(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+    else
+        [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+    end
     direct_results.adist = basemodel.adist;
 
     % Report beta and annualized beta

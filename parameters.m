@@ -15,6 +15,8 @@ function params = parameters(SmallGrid)
     baseline.dieprob     = 1/50;
 
     % preferences
+    baseline.EpsteinZin  = 0;
+    baseline.invies      = 2.5;
     baseline.risk_aver   = 1;
     baseline.beta0       = 0.98; % annualized
     baseline.temptation  = 0;

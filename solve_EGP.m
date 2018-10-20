@@ -46,6 +46,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,
         iter = iter + 1;
 
         % interpolate to get c(x') using c(x)
+        
         % c(x)
         conlast = reshape(conlast,[p.ns p.nyP p.nyF p.nb]);
         % c(x')

@@ -5,7 +5,7 @@ close all;
 %% RUN OPTIONS
 Batch = 1;
 Server = 0;
-SmallGrid = 1;
+SmallGrid = 0;
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
@@ -13,7 +13,7 @@ params0.name = 'params0';
 params0.index = 1;
 
 % data frequency 
-params0.freq        = 4; % 1 yearly, 4 quarterly
+params0.freq        = 1; % 1 yearly, 4 quarterly
 
 % returns
 params0.r           = 0.02;
@@ -22,6 +22,8 @@ params0.r           = 0.02;
 params0.dieprob     = 1/50;
 
 % preferences
+params0.EpsteinZin  = 0;
+params0.invies      = 2.5; % only relevant if doing Epstein-Zin
 params0.risk_aver   = 1;
 params0.beta0       = 0.97; % annualized
 params0.temptation  = 0;
@@ -103,10 +105,10 @@ params0.Simulate           = 0;
 
 % Add paths
 if Server == 0
-    path = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
-    savetablepath_annual = '/Users/brianlivingston/Documents/table_annual.xls';
-    savetablepath_quarterly = '/Users/brianlivingston/Documents/table_quarterly.xls';
-    savematpath = '/Users/brianlivingston/Documents/variables.mat';
+    path = '/Users/Brian/Documents/GitHub/MPCrecode';
+    savetablepath_annual = '/Users/Brian/Documents/table_annual.xls';
+    savetablepath_quarterly = '/Users/Brian/Documents/table_quarterly.xls';
+    savematpath = '/Users/Brian/Documents/variables.mat';
 else
     path = '/home/livingstonb/GitHub/MPCrecode';
     savetablepath_annual = '/home/livingstonb/output/table_annual.xls';
@@ -127,7 +129,7 @@ end
 
 %% CHOOSE WHICH SPECIFICATIONS TO RUN (ONLY RELEVANT FOR BATCH)
 if Batch == 1
-    names_to_run = {}; % leave empty to run all
+    names_to_run = {'Baseline_Q'}; % leave empty to run all
     
     if isempty(names_to_run)
         params_to_run = 1:numel(params);
