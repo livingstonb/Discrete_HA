@@ -3,14 +3,17 @@ clear;
 close all;
 
 %% RUN OPTIONS
-Batch = 1;
+Batch = 0;
 Server = 0;
 SmallGrid = 0;
+LoadIncomeProcess = 0;
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
+% Do not change
 params0.name = 'params0';
 params0.index = 1;
+params0.LoadIncomeProcess = LoadIncomeProcess;
 
 % data frequency 
 params0.freq        = 1; % 1 yearly, 4 quarterly
@@ -22,7 +25,7 @@ params0.r           = 0.02;
 params0.dieprob     = 1/50;
 
 % preferences
-params0.EpsteinZin  = 0; % no bequest utility or temptation allowed
+params0.EpsteinZin  = 1; % no bequest utility or temptation allowed
 params0.invies      = 2.5; % only relevant if doing Epstein-Zin
 params0.risk_aver   = 1;
 params0.beta0       = 0.97; % annualized
@@ -37,7 +40,6 @@ params0.Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
 params0.Annuities = 0; % Automatically turns off bequests if set to 1
 
 % income risk: AR(1) + IID in logs
-params0.LoadIncomeProcess = 0;
 params0.nyT               = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 % yT,yP (only relevant if LoadIncomeProcess==0)
@@ -98,7 +100,7 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 1;
+params0.IterateBeta        = 0;
 params0.Display            = 1;
 params0.MakePlots          = 0;
 params0.Simulate           = 0;
@@ -118,19 +120,20 @@ end
 addpath([path '/Auxiliary Functions']);
 addpath([path '/MPC Functions']);
 addpath([path '/Output Functions']);
+addpath([path '/EGP']);
 cd(path);
 
 %% LOAD ALTERNATE PARAMETERIZATIONS
 if Batch == 0
     params = params0;
 else
-    params = parameters(SmallGrid);
+    params = parameters(SmallGrid,LoadIncomeProcess);
 end
 
-%% CHOOSE WHICH SPECIFICATIONS TO RUN (ONLY RELEVANT FOR BATCH)
+%% SELECT SUBSET OF SPECIFICATIONS (ONLY RELEVANT FOR BATCH)
+names_to_run = {'Baseline_Q'}; % leave empty to run all
+
 if Batch == 1
-    names_to_run = {'Baseline_Q'}; % leave empty to run all
-    
     if isempty(names_to_run)
         params_to_run = 1:numel(params);
     else
@@ -145,9 +148,6 @@ params = params(params_to_run);
 Nparams = numel(params);
 
 %% CALL MAIN FUNCTION
-
-% Nparams = round(Nparams/15);
-% params = params(1:Nparams);
 
 direct_results = cell(1,Nparams); % Results from direct computations
 norisk_results = cell(1,Nparams); % Results from norisk model

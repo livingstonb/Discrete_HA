@@ -61,7 +61,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
             coninterp = griddedInterpolant(xgrid.full(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
             c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
             Vinterp{iyP,iyF,ib} = griddedInterpolant(xgrid.full(:,iyP,iyF),Vlast(:,iyP,iyF,ib),'linear');
-            V_xp(:,iyP,iyF,ib,:) = reshape(Vinterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+            V_xp(:,iyP,iyF,ib,:) = reshape(Vinterp{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
         end
         end
         end
@@ -71,7 +71,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         V_xp = reshape(V_xp,[],p.nyT);
 
         % matrix of next period muc, muc(x',yP',yF)
-        mucnext = c_xp^(-p.invies) .* V_xp^(p.invies-p.risk_aver);
+        mucnext = c_xp.^(-p.invies) .* V_xp.^(p.invies-p.risk_aver);
         
         % expected muc
         savtaxrate  = (1+p.savtax.*(repmat(sgrid.full(:),p.nb,1)>=p.savtaxthresh));
@@ -98,17 +98,19 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         end
         end
         sav = max(sav,p.borrow_lim);
-        x = p.R * repmat(sav(:),p.nb,p.nyT) ... 
+        xp = p.R * repmat(sav(:),p.nb,p.nyT) ... 
                     + repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
-        x = reshape(x,[p.ns p.nyP p.nyF p.nb p.nyT]);
+        xp = reshape(xp,[p.ns p.nyP p.nyF p.nb p.nyT]);
+        
+        conupdate = repmat(xgrid.full,[1 1 1 p.nb]) - sav - p.savtax * max(sav-p.savtaxthresh,0);
         
         % interpolate adjusted expected value function on x grid
         ezval_integrand = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
         for ib = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            x_iyP_iyF_ib = x(:,iyP,iyF,ib,:);
-            temp_iyP_iyF_ib = Vinterp{iyP,iyF,ib}(x_iyP_iyF_ib(:)) .^ (1-p.risk_aver);
+            xp_iyP_iyF_ib = xp(:,iyP,iyF,ib,:);
+            temp_iyP_iyF_ib = Vinterp{iyP,iyF,ib}(xp_iyP_iyF_ib(:)) .^ (1-p.risk_aver);
             ezval_integrand(:,iyP,iyF,ib,:) = reshape(temp_iyP_iyF_ib,[p.nx 1 1 1 p.nyT]);
         end
         end
@@ -124,18 +126,19 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         end
 
         % update value function
-        ezval = reshape(ezval,[],p.nb);
+        ezval = reshape(ezval,p.nx,p.nyP,p.nyF,p.nb);
+        Vupdate = zeros(p.nx,p.nyP,p.nyF,p.nb);
         for ib = 1:p.nb
             if p.invies==1
-                V = con(:,:,:,ib) .^ (1-betagrid(ib)) .* ezval(:,ib) .^ betagrid(ib);
+                Vupdate(:,:,:,ib) = conupdate(:,:,:,ib) .^ (1-betagrid(ib)) .* ezval(:,:,:,ib) .^ betagrid(ib);
             else
-            	V = (1-betagrid(ib)) * con(:,:,:,ib) .^ (1-p.invies) ...
-                    + betagrid(ib) * ezval(:,ib) .^ (1-p.invies);
-                V = V .^ (1/(1-p.invies));
+            	Vupdate(:,:,:,ib) = (1-betagrid(ib)) * conupdate(:,:,:,ib) .^ (1-p.invies) ...
+                                + betagrid(ib) * ezval(:,:,:,ib) .^ (1-p.invies);
+                Vupdate(:,:,:,ib) = Vupdate(:,:,:,ib) .^ (1/(1-p.invies));
             end
         end
         
-        cdiff = max(abs(con(:)-conlast(:)));
+        cdiff = max(abs(conupdate(:)-conlast(:)));
         if p.Display >=1 && mod(iter,50) ==0
             disp([' EGP Iteration ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end

@@ -15,7 +15,6 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     dierand = rand(p.Nsim,p.Tsim);
     
     diesim = dierand<p.dieprob;
-    diesim = uint8(diesim);
     
     yTindsim = zeros(p.Nsim,p.Tsim,'int8');
     yPindsim = zeros(p.Nsim,p.Tsim,'int8');

@@ -1,4 +1,4 @@
-function params = parameters(SmallGrid)
+function params = parameters(SmallGrid,LoadIncomeProcess)
 
     
     %% set baseline
@@ -30,7 +30,7 @@ function params = parameters(SmallGrid)
     baseline.Annuities = 0; % Automatically turns off bequests if set to 1
 
     % income risk: AR(1) + IID in logs
-    baseline.LoadIncomeProcess = 0;
+    baseline.LoadIncomeProcess = LoadIncomeProcess;
     baseline.nyT               = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
     % yT,yP (only relevant if LoadIncomeProcess==0)
