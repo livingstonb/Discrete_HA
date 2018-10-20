@@ -329,12 +329,14 @@ function params = parameters(SmallGrid,LoadIncomeProcess)
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences
     %----------------------------------------------------------------------
-    
-    % temptation
-    for itempt = [0.005 0.01 0.05 0.09]
-        params(end+1) = baseline;
-        params(end).name = ['4 Temptation' num2str(itempt)];
-        params(end).temptation = itempt;
+    for ifreq = [1 4]
+        % temptation
+        for itempt = [0.005 0.01 0.05 0.09]
+            params(end+1) = baseline;
+            params(end).name = ['4 Temptation' num2str(itempt)];
+            params(end).freq = ifreq;
+            params(end).temptation = itempt;
+        end
     end
     
     %----------------------------------------------------------------------
