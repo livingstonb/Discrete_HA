@@ -3,9 +3,9 @@ clear;
 close all;
 
 %% RUN OPTIONS
-Batch = 0;
+Batch = 1;
 Server = 0;
-SmallGrid = 0;
+SmallGrid = 1;
 LoadIncomeProcess = 'NO';
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
@@ -34,8 +34,9 @@ params0.betaL       = 0.80;
 % betaH defined in main function file
 
 % bequests/annuities. bequest weight = 0 is accidental
-params0.bequest_weight  = 0; %0.07;
-params0.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
+params0.bequest_weight  = 0.02; %0.07;
+params0.bequest_curv        = 6;
+params0.bequest_luxury  = 1; %0.01, must be >0 to avoid NaN error;
 params0.Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
 params0.Annuities = 0; % Automatically turns off bequests if set to 1
 
@@ -75,7 +76,7 @@ params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 100;
-params0.nxlong      = 400; % Grid size for final computations
+params0.nxlong      = 500; % Grid size for final computations
 
 % beta iteration
 params0.targetAY    = 3.5;
@@ -101,8 +102,8 @@ params0.abars = [0 0.01 0.05];
 % OPTIONS
 params0.IterateBeta        = 1;
 params0.Display            = 1;
-params0.MakePlots          = 1;
-params0.Simulate           = 1;
+params0.MakePlots          = 0;
+params0.Simulate           = 0;
 
 % Add paths
 if Server == 0
@@ -130,7 +131,7 @@ else
 end
 
 %% SELECT SUBSET OF SPECIFICATIONS (ONLY RELEVANT FOR BATCH)
-names_to_run = {'Baseline_Q'}; % leave empty to run all
+names_to_run = {}; % leave empty to run all
 
 if Batch == 1
     if isempty(names_to_run)

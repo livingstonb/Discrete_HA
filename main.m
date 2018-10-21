@@ -126,15 +126,20 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     %% UTILITY FUNCTION, BEQUEST FUNCTION
     if p.risk_aver==1
         prefs.u = @(c)log(c);
-        prefs.beq = @(a) p.bequest_weight.* log(a+ p.bequest_luxury);
     else    
         prefs.u = @(c)(c.^(1-p.risk_aver)-1)./(1-p.risk_aver);
-        prefs.beq = @(a) p.bequest_weight.*((a+p.bequest_luxury).^(1-p.risk_aver)-1)./(1-p.risk_aver);
+        
     end    
+    
+    if p.bequest_curv == 1
+        prefs.beq = @(a) p.bequest_weight.* log(a+ p.bequest_luxury);
+    else
+        prefs.beq = @(a) p.bequest_weight.*((a+p.bequest_luxury).^(1-p.bequest_curv)-1)./(1-p.bequest_curv);
+    end
 
     prefs.u1 = @(c) c.^(-p.risk_aver);
     prefs.u1inv = @(u) u.^(-1./p.risk_aver);
-    prefs.beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.risk_aver);
+    prefs.beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.bequest_curv);
 
     %% MODEL SOLUTION
     if p.IterateBeta == 1

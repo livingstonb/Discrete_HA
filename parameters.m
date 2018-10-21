@@ -25,7 +25,8 @@ function params = parameters(SmallGrid,LoadIncomeProcess)
 
     % warm glow bequests: bequest weight = 0 is accidental
     baseline.bequest_weight  = 0;
-    baseline.bequest_luxury  = 0.01; %0.01, must be >0 to avoid NaN error;
+    baseline.bequest_curv    = 1;
+    baseline.bequest_luxury  = 1; % must be >0 to avoid NaN error;
     baseline.Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
     baseline.Annuities = 0; % Automatically turns off bequests if set to 1
 
@@ -172,7 +173,15 @@ function params = parameters(SmallGrid,LoadIncomeProcess)
         params(end).Annuities = 1;
         params(end).freq = ifreq;
 
-        % luxury motive...
+        % bequest curvature
+        for bcurv = [0.5 1 2 5]
+            params(end+1) = baseline;
+            params(end).name = ['2 BeqWt0.02 BeqLux1 BeqCurv' num2str(bcurv)];
+            params(end).bequest_weight = 0.02;
+            params(end).bequest_luxury = 1;
+            params(end).bequest_curv   = bcurv;
+            params(end).freq = ifreq;
+        end
 
         % fixed beta heterogeneity
         for deathp = [0 1/50]
@@ -362,8 +371,8 @@ function params = parameters(SmallGrid,LoadIncomeProcess)
     %----------------------------------------------------------------------
     
     if SmallGrid == 1
-        [params.nxlong] = deal(30);
-        [params.nx] = deal(20);
+        [params.nxlong] = deal(20);
+        [params.nx] = deal(15);
         [params.nyT] = deal(3);
         [params.nyP] = deal(3);
         [params.Nmpcsim] = deal(1e2);
