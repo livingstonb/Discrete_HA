@@ -1,4 +1,4 @@
-function params = parameters(SmallGrid,LoadIncomeProcess)
+function params = parameters(SmallGrid,IncomeProcess)
 
     
     %% set baseline
@@ -31,10 +31,10 @@ function params = parameters(SmallGrid,LoadIncomeProcess)
     baseline.Annuities = 0; % Automatically turns off bequests if set to 1
 
     % income risk: AR(1) + IID in logs
-    baseline.LoadIncomeProcess = LoadIncomeProcess;
+    baseline.IncomeProcess = IncomeProcess;
     baseline.nyT               = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
-    % yT,yP (only relevant if LoadIncomeProcess==0)
+    % yT,yP (only relevant if LoadIncomeProcess=='NO')
     baseline.yTContinuous = 0;
     baseline.sd_logyT     = sqrt(0.0497);  % 0.20, relevant if nyT>1
     baseline.lambdaT      = 1; % arrival rate of shocks;
@@ -373,8 +373,6 @@ function params = parameters(SmallGrid,LoadIncomeProcess)
     if SmallGrid == 1
         [params.nxlong] = deal(20);
         [params.nx] = deal(15);
-        [params.nyT] = deal(3);
-        [params.nyP] = deal(3);
         [params.Nmpcsim] = deal(1e2);
     end
 end

@@ -2,15 +2,22 @@ function income = gen_income_variables(p)
     % Given a structure of parameters, p, this function generates a
     % structure variable called 'income' with fields associated with the
     % specified income distribution
+    
+    LoadIncome = ~isempty(p.IncomeProcess); % 1 if load from file
+    
+    if LoadIncome==1 && p.freq==4
+        Import = load('IncomeVariables/quarterly_a.mat');
+    end
 
     %% PERSISTENT INCOME
     % rowenhurst
-    if p.LoadIncomeProcess == 1
-        logyPgrid = load('QuarterlyIncomeDynamics/TransitoryContinuous/logyPgrid.txt');
-        yPdist = load('QuarterlyIncomeDynamics/TransitoryContinuous/yPdist.txt');
-        yPtrans = load('QuarterlyIncomeDynamics/TransitoryContinuous/yPtrans.txt');
+    if LoadIncome==1 && p.freq==4
+        logyPgrid = Import.discmodel1.logyPgrid;
+        yPdist = Import.discmodel1.yPdist;
+        yPtrans = Import.discmodel1.yPtrans;
         p.nyP = length(logyPgrid);
-        logyPgrid = logyPgrid';
+        logyPgrid = reshape(logyPgrid,[],1);
+        yPdist = reshape(yPdist,[],1);
     elseif p.nyP>1
         [logyPgrid, yPtrans, yPdist] = rouwenhorst(p.nyP, -0.5*p.sd_logyP^2, p.sd_logyP, p.rho_logyP);
     else
@@ -27,9 +34,9 @@ function income = gen_income_variables(p)
     
     %% TRANSITORY INCOME
     % disretize normal distribution
-    if p.LoadIncomeProcess == 1
-        p.sig2T = load('QuarterlyIncomeDynamics/TransitoryContinuous/sig2T.txt');
-        p.lambdaT = load('QuarterlyIncomeDynamics/TransitoryContinuous/lambdaT.txt');
+    if LoadIncome==1 && p.freq==4
+        p.sig_logyT = Import.sig2Tvec;
+        p.lambdaT = Import.lambdaTvec;
     end
 
     if p.nyT>1
@@ -60,6 +67,8 @@ function income = gen_income_variables(p)
     if p.nyF>1
         width = fzero(@(x)discrete_normal(p.nyF,-0.5*p.sd_logyF^2 ,p.sd_logyF ,x),2);
         [~,logyFgrid,yFdist] = discrete_normal(p.nyF,-0.5*p.sd_logyF^2 ,p.sd_logyF ,width);
+        logyFgrid = reshape(logyFgrid,[],1);
+        yFdist = reshape(yFdist,[],1);
     elseif p.nyF==1
         logyFgrid = 0;
         yFdist = 1;

@@ -4,16 +4,22 @@ close all;
 
 %% RUN OPTIONS
 Batch = 1;
-Server = 0;
-SmallGrid = 1;
-LoadIncomeProcess = 'NO';
+Server = 1;
+SmallGrid = 0;
+
+% empty string if not loading from file
+IncomeProcess = 'IncomeVariables/quarterly_a.mat'; 
+
+% select only a subset of experiments
+names_to_run = {}; % empty cell array to run all names
+Frequencies = 4; % [1 4], 1, or 4
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
 % Do not change
 params0.name = 'params0';
 params0.index = 1;
-params0.LoadIncomeProcess = LoadIncomeProcess;
+params0.LoadIncomeProcess = IncomeProcess;
 
 % data frequency 
 params0.freq        = 4; % 1 yearly, 4 quarterly
@@ -127,11 +133,10 @@ cd(path);
 if Batch == 0
     params = params0;
 else
-    params = parameters(SmallGrid,LoadIncomeProcess);
+    params = parameters(SmallGrid,IncomeProcess);
 end
 
 %% SELECT SUBSET OF SPECIFICATIONS (ONLY RELEVANT FOR BATCH)
-names_to_run = {}; % leave empty to run all
 
 if Batch == 1
     if isempty(names_to_run)
@@ -145,6 +150,13 @@ else
 end
 
 params = params(params_to_run);
+
+if all(ismember(Frequencies,[1 4]))
+    params = params(ismember([params.freq],Frequencies));
+else
+    error('Frequencies must be [1 4], 1, or 4')
+end
+
 Nparams = numel(params);
 
 %% CALL MAIN FUNCTION
