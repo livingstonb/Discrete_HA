@@ -34,7 +34,6 @@ function params = parameters(SmallGrid,LoadIncomeProcess)
     baseline.nyT               = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
     % yT,yP (only relevant if LoadIncomeProcess==0)
-    baseline.NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
     baseline.yTContinuous = 0;
     baseline.sd_logyT     = sqrt(0.0497);  % 0.20, relevant if nyT>1
     baseline.lambdaT      = 1; % arrival rate of shocks;

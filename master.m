@@ -6,7 +6,7 @@ close all;
 Batch = 0;
 Server = 0;
 SmallGrid = 0;
-LoadIncomeProcess = 0;
+LoadIncomeProcess = 'NO';
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
@@ -16,7 +16,7 @@ params0.index = 1;
 params0.LoadIncomeProcess = LoadIncomeProcess;
 
 % data frequency 
-params0.freq        = 1; % 1 yearly, 4 quarterly
+params0.freq        = 4; % 1 yearly, 4 quarterly
 
 % returns
 params0.r           = 0.02;
@@ -25,10 +25,10 @@ params0.r           = 0.02;
 params0.dieprob     = 1/50;
 
 % preferences
-params0.EpsteinZin  = 1; % no bequest utility or temptation allowed
+params0.EpsteinZin  = 0; % no bequest utility or temptation allowed
 params0.invies      = 2.5; % only relevant if doing Epstein-Zin
 params0.risk_aver   = 1;
-params0.beta0       = 0.97; % annualized
+params0.beta0       = 0.95; % annualized
 params0.temptation  = 0;
 params0.betaL       = 0.80;
 % betaH defined in main function file
@@ -43,8 +43,7 @@ params0.Annuities = 0; % Automatically turns off bequests if set to 1
 params0.nyT               = 11; %transitory component (not a state variable) (set to 1 for no Transitory Shocks)
 
 % yT,yP (only relevant if LoadIncomeProcess==0)
-params0.NormalizeY   = 1; % 1 to normalize gross income, 0 otherwise
-params0.yTContinuous = 0; % doesn't seem to work properly
+params0.yTContinuous = 0;
 params0.sd_logyT     = sqrt(0.0497);  % 0.20, relevant if nyT>1
 params0.lambdaT      = 1; % arrival rate of shocks;
 params0.nyP          = 11; %11 persistent component
@@ -75,7 +74,7 @@ params0.betaswitch  = 0.1; %0;
 params0.max_iter    = 1e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
-params0.Tsim        = 200;
+params0.Tsim        = 100;
 params0.nxlong      = 400; % Grid size for final computations
 
 % beta iteration
@@ -100,10 +99,10 @@ params0.percentiles = [10 25 50 75 90 95 99 99.9]; % in percent
 params0.abars = [0 0.01 0.05];
 
 % OPTIONS
-params0.IterateBeta        = 0;
+params0.IterateBeta        = 1;
 params0.Display            = 1;
-params0.MakePlots          = 0;
-params0.Simulate           = 0;
+params0.MakePlots          = 1;
+params0.Simulate           = 1;
 
 % Add paths
 if Server == 0

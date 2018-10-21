@@ -20,15 +20,10 @@ function income = gen_income_variables(p)
     end  
 
     yPgrid = exp(logyPgrid);
+    yPgrid = yPgrid/(yPdist'*yPgrid);
+    logyPgrid = log(yPgrid);
     yPcumdist = cumsum(yPdist,1);
     yPcumtrans = cumsum(yPtrans,2);
-    
-    if size(yPgrid,2)>1
-        error('yPgrid is a row vector, must be column vector')
-    end
-    if size(yPdist,2)>1
-        error('yPdist is a row vector, must be column vector')
-    end
     
     %% TRANSITORY INCOME
     % disretize normal distribution
@@ -58,13 +53,8 @@ function income = gen_income_variables(p)
     end
     
     yTgrid = exp(logyTgrid);
-    
-    if size(yTgrid,2)>1
-        error('yTgrid is a row vector, must be column vector')
-    end
-    if size(yTdist,2)>1
-        error('yTdist is a row vector, must be column vector')
-    end
+    yTgrid = yTgrid/(yTdist'*yTgrid);
+    logyTgrid = log(yTgrid);
 
     %% FIXED EFFECT
     if p.nyF>1
@@ -75,13 +65,16 @@ function income = gen_income_variables(p)
         yFdist = 1;
     end
     yFgrid = exp(logyFgrid);
+    % normalize fixed effect such that mean = 1 if annual, 1/4 if quarterly
+    yFgrid = yFgrid/(yFdist'*yFgrid*p.freq);
+    logyFgrid = log(yFgrid);
     yFcumdist = cumsum(yFdist,1);
-
-    if size(yFgrid,2)>1
-        error('yFgrid is a row vector, must be column vector')
+    
+    if size(yTgrid,2)>1 || size(yFgrid,2)>1 || size(yPgrid,2)>1
+        error('All income grids must be column vectors')
     end
-    if size(yFdist,2)>1
-        error('yFdist is a row vector, must be column vector')
+    if size(yTdist,2)>1 || size(yFdist,2)>1 || size(yPdist,2)>1
+        error('All income distributions must be colUMN VECTORS')
     end
 
     %% OTHER INCOME VARIABLES
@@ -103,14 +96,6 @@ function income = gen_income_variables(p)
     
     % 1-period statistics
     meany1 = ymat(:)'*ymatdist(:);
-    original_meany1 = meany1;
-
-    % normalize so that mean annual gross income is 1
-    if p.NormalizeY == 1
-        ymat = ymat/(meany1*p.freq);
-        ysort = ysort/(meany1*p.freq);
-        meany1 = 1/p.freq;
-    end
     totgrossy1 = meany1;
 
     % find tax threshold on labor income
@@ -128,7 +113,7 @@ function income = gen_income_variables(p)
     meannety1 = netymat(:)'*ymatdist(:);
     
         % Store income variables in a structure
-    newfields = {'ymat','netymat','meany1','original_meany1','yPgrid',...
+    newfields = {'ymat','netymat','meany1','yPgrid',...
         'yTgrid','yFgrid','yPdist','yTdist','yFdist','yPcumtrans',...
         'yPtrans','yPcumdist','yFcumdist','yTcumdist','ytrans',...
         'meannety1','labtaxthresh','lumptransfer','ysortdist','ysort',...

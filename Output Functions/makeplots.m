@@ -1,4 +1,4 @@
-function makeplots(p,xgrid,sgrid,basemodel,income,assetmeans)
+function makeplots(p,xgrid,sgrid,basemodel,income,assetmeans,agrid)
     % This function makes plots based on fields from 'direct_results'
     % and 'simulation_results' and 'income' as well as plotting MPCs
 
@@ -67,18 +67,19 @@ function makeplots(p,xgrid,sgrid,basemodel,income,assetmeans)
     ylim([0 max(income_values)]);
     title('Gross Income Histogram');
 
-    % plot asset histogram
-    [asset_bins,asset_values] = create_bins(p,20,20,...
-                            basemodel.sav_longgrid_sort,basemodel.SSdist_sort);
-    subplot(2,4,6);
-    b = bar(asset_bins,asset_values);
-    b.FaceColor = 'blue';
-    b.EdgeColor = 'blue';
-    grid;
-    xlim([-0.4 10]);
-    % ylim([0 1]);
-    ylim([0 max(asset_values)]);
-    title('Asset Histogram');
+%     % plot asset histogram
+%     sorted = [basemodel.
+%     [asset_bins,asset_values] = create_bins(p,20,20,...
+%                             basemodel.sav_longgrid_sort,basemodel.SSdist_sort);
+%     subplot(2,4,6);
+%     b = bar(asset_bins,asset_values);
+%     b.FaceColor = 'blue';
+%     b.EdgeColor = 'blue';
+%     grid;
+%     xlim([-0.4 10]);
+%     % ylim([0 1]);
+%     ylim([0 max(asset_values)]);
+%     title('Asset Histogram');
 
      % simulation convergence
     if p.Simulate == 1

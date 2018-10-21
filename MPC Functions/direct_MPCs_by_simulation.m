@@ -65,12 +65,7 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
     
     ygrosssim = income.yPgrid(yPindsim) .*...
             repmat(income.yFgrid(yFindsim),1,p.freq) .* income.yTgrid(yTindsim);
-        
-    % Normalize so mean annual income == 1
-    if p.NormalizeY == 1
-        ygrosssim = ygrosssim / (income.original_meany1 * p.freq);
-    end
-    
+
     % Net income
     ynetsim = income.lumptransfer + (1-p.labtaxlow)*ygrosssim...
                         - p.labtaxhigh*max(ygrosssim-income.labtaxthresh,0);

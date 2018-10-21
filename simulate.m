@@ -65,10 +65,6 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
         ygrosssim = bsxfun(@times,income.yPgrid(yPindsim).*income.yTgrid(yTindsim),income.yFgrid(yFindsim));
     end
     
-    if p.NormalizeY == 1
-        ygrosssim = ygrosssim / (income.original_meany1 * p.freq);
-    end
-    
     % net income
     ynetsim = income.lumptransfer + (1-p.labtaxlow)*ygrosssim - p.labtaxhigh*max(ygrosssim-income.labtaxthresh,0);
     
