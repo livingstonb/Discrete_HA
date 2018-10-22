@@ -17,9 +17,9 @@ function decomp2 = decomposition2(params,direct_results,exceptions)
         if Nparams>1 && isempty(exceptions{ip}) && params(ip).nxlong==params(1).nxlong
             NoMPC1 = 0;
             if params(ip).freq == 1
-                baseind = 1;
+                baseind = find(ismember({params.name},{'Baseline_A'}));
             elseif params(ip).freq == 4
-                baseind = 2;
+                baseind = find(ismember({params.name},{'Baseline_Q'}));;
             end
             
             g1 = direct_results{ip}.agrid_dist;

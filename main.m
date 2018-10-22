@@ -30,6 +30,8 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     p.betaH         = 1/((p.R)*(1-p.dieprob));
     if p.nyF > 1
         p.betaH = p.betaH - 1e-3;
+    elseif p.betaswitch > 0
+        p.betaH = p.betaH + 1e-2;
     end
     
     if p.Annuities == 1
@@ -152,10 +154,10 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
         end
 
         if p.nb == 1
-            beta_ub = p.betaH - 1e-4;
+            beta_ub = p.betaH;
         else
             % Don't let highest beta be such that (1-dieprob)*R*beta >= 1
-            beta_ub = p.betaH - 1e-4 - max(prefs.betagrid0);
+            beta_ub = p.betaH  - max(prefs.betagrid0);
         end
         beta_lb = p.betaL;
 

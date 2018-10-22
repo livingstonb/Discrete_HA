@@ -92,7 +92,7 @@ function params = parameters(SmallGrid,IncomeProcess)
 
     % OPTIONS
     baseline.IterateBeta        = 1;
-    baseline.Display            = 0;
+    baseline.Display            = 1;
     baseline.MakePlots          = 0;
     baseline.Simulate           = 0;
     
@@ -142,7 +142,7 @@ function params = parameters(SmallGrid,IncomeProcess)
             params(end).name = ['2 RiskAver' num2str(ira)];
             params(end).risk_aver = ira;
             params(end).freq = ifreq;
-            if (ifreq==4 & ira==4) || ira==6
+            if (ifreq==4 && ira==4) || ira==6
                 params(end).betaL = 0.5;
             end
         end
@@ -339,7 +339,7 @@ function params = parameters(SmallGrid,IncomeProcess)
     %----------------------------------------------------------------------
     for ifreq = [1 4]
         % temptation
-        for itempt = [0.005 0.01 0.05 0.09]
+        for itempt = [0.005 0.01 0.05]
             params(end+1) = baseline;
             params(end).name = ['4 Temptation' num2str(itempt)];
             params(end).freq = ifreq;

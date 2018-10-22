@@ -8,21 +8,21 @@ Server = 1;
 SmallGrid = 0;
 
 % empty string if not loading from file
-IncomeProcess = 'IncomeVariables/quarterly_a.mat'; 
+IncomeProcess = ''; 
 
 % select only a subset of experiments
 names_to_run = {}; % empty cell array to run all names
-Frequencies = 4; % [1 4], 1, or 4
+Frequencies = [1 4]; % [1 4], 1, or 4
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
 % Do not change
 params0.name = 'params0';
 params0.index = 1;
-params0.LoadIncomeProcess = IncomeProcess;
+params0.IncomeProcess = IncomeProcess;
 
 % data frequency 
-params0.freq        = 4; % 1 yearly, 4 quarterly
+params0.freq        = 1; % 1 yearly, 4 quarterly
 
 % returns
 params0.r           = 0.02;
@@ -40,8 +40,8 @@ params0.betaL       = 0.80;
 % betaH defined in main function file
 
 % bequests/annuities. bequest weight = 0 is accidental
-params0.bequest_weight  = 0.02; %0.07;
-params0.bequest_curv        = 6;
+params0.bequest_weight  = 0; %0.07;
+params0.bequest_curv        = 1;
 params0.bequest_luxury  = 1; %0.01, must be >0 to avoid NaN error;
 params0.Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
 params0.Annuities = 0; % Automatically turns off bequests if set to 1
@@ -78,7 +78,7 @@ params0.betawidth   = 0.001;
 params0.betaswitch  = 0.1; %0;
 
 % computation
-params0.max_iter    = 1e5; % EGP
+params0.max_iter    = 2e5; % EGP
 params0.tol_iter    = 1.0e-6; % EGP
 params0.Nsim        = 100000; % 100000
 params0.Tsim        = 100;
