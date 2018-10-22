@@ -134,7 +134,7 @@ cd(path);
 if Batch == 0
     params = params0;
 else
-    params = parameters(SmallGrid,IncomeProcess);
+    params = parameters(SmallGrid,IncomeProcess,Server);
 end
 
 %% SELECT SUBSET OF SPECIFICATIONS (ONLY RELEVANT FOR BATCH)
