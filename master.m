@@ -4,7 +4,7 @@ close all;
 
 %% RUN OPTIONS
 Batch = 1;
-Server = 1;
+Server = 0;
 SmallGrid = 0;
 
 % empty string if not loading from file
@@ -134,7 +134,7 @@ cd(path);
 if Batch == 0
     params = params0;
 else
-    params = parameters(SmallGrid,IncomeProcess);
+    params = parameters(SmallGrid,IncomeProcess,Server);
 end
 
 %% SELECT SUBSET OF SPECIFICATIONS (ONLY RELEVANT FOR BATCH)

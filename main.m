@@ -28,12 +28,11 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     p.betaswitch    = 1 - (1-p.betaswitch)^(1/p.freq);
     p.betaL         = p.betaL^(1/p.freq);
     p.betaH         = 1/((p.R)*(1-p.dieprob));
-    if p.nyF > 1
-        p.betaH = p.betaH - 1e-3;
-    elseif p.betaswitch > 0
+
+    if p.betaswitch > 0
         p.betaH = p.betaH + 1e-2;
     else
-        p.betaH = p.betaH - 1e-5;
+        p.betaH = p.betaH - 1e-3;
     end
     
     if p.Annuities == 1

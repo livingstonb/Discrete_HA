@@ -1,4 +1,4 @@
-function params = parameters(SmallGrid,IncomeProcess)
+function params = parameters(SmallGrid,IncomeProcess,Server)
 
     
     %% set baseline
@@ -92,7 +92,11 @@ function params = parameters(SmallGrid,IncomeProcess)
 
     % OPTIONS
     baseline.IterateBeta        = 1;
-    baseline.Display            = 1;
+    if Server == 1
+        baseline.Display        = 0;
+    else
+        baseline.Display        = 1;
+    end
     baseline.MakePlots          = 0;
     baseline.Simulate           = 0;
     
