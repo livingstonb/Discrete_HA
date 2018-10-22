@@ -30,20 +30,37 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     p.betaH         = 1/((p.R)*(1-p.dieprob));
 
     % Deal with special cases
-    tol1eneg3 = {'2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath'};
-    tol5eneg3 = {'2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath'
-                    '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath'};
-    tol125eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'};
-    if p.nb==5 && p.betawidth==0.01 && p.betaswitch==0.1 && p.freq==1
-        p.betaH = p.betaH + 1e-2;
-    elseif p.freq==4 && ismember(p.name,tol1eneg3);
-        p.betaH = p.betaH + 1e-3;
-    elseif p.freq==4 && ismember(p.name,tol5eneg3);
-        p.betaH = p.betaH + 5e-3;
-    elseif p.freq==4 && ismember(p.name,tol125eneg2);
-        p.betaH = p.betaH + 1.25e-2;
-    else
-        p.betaH = p.betaH - 1e-3;
+    if p.freq == 1
+        add_1eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'
+                        '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
+        sub_1eneg2 = {'2 BeqWt0.02 BeqLux0.01 BeqCurv0.1'};
+        if ismember(p.name,add_1eneg2)
+            p.betaH = p.betaH + 1e-2;
+        elseif ismember(p.name,sub_1eneg2);
+            p.betaH = p.betaH - 1e-2;
+        else
+            p.betaH = p.betaH - 1e-3;
+        end
+    elseif p.freq == 4
+        add_1eneg3 = {'2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath'};
+        add_5eneg3 = {'2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath'
+                        '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death'
+                        '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath'
+                        '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death'};
+        add_125eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'
+                        '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
+        sub_1eneg5 = {'4 Temptation0.05'};
+        if ismember(p.name,add_1eneg3);
+            p.betaH = p.betaH + 1e-3;
+        elseif ismember(p.name,add_5eneg3);
+            p.betaH = p.betaH + 5e-3;
+        elseif ismember(p.name,add_125eneg2);
+            p.betaH = p.betaH + 1.25e-2;
+        elseif ismember(p.name,sub_1eneg5);
+            p.betaH = p.betaH - 1e-5;
+        else
+            p.betaH = p.betaH - 1e-3;
+        end
     end
     
     if p.Annuities == 1

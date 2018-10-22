@@ -3,17 +3,17 @@ clear;
 close all;
 
 %% RUN OPTIONS
-Batch = 0;
+Batch = 1;
 Server = 0;
 SmallGrid = 0;
 
 % empty string if not loading from file
-IncomeProcess = ''; 
+IncomeProcess = 'IncomeVariables/quarterly_a.mat'; 
 
 % select only a subset of experiments
-names_to_run = {}; % empty cell array to run all names
+names_to_run = {'4 Temptation0.05'}; % empty cell array to run all names
 suffix = '';
-Frequencies = [1 4]; % [1 4], 1, or 4
+Frequencies = [4]; % [1 4], 1, or 4
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
 
