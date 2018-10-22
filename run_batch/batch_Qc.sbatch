@@ -11,4 +11,4 @@
 
 module load matlab
 
-matlab -nodisplay < master.m
+matlab -nodisplay < /home/livingstonb/GitHub/MPCrecode/run_batch/temp_master/master_Qc.m
