@@ -12,6 +12,7 @@ IncomeProcess = '/home/livingstonb/GitHub/MPCrecode/IncomeVariables/quarterly_c.
 
 % select only a subset of experiments
 names_to_run = {}; % empty cell array to run all names
+suffix = '_Qc';
 Frequencies = [4]; % [1 4], 1, or 4
 
 %% PARAMETERS IF NOT RUNNING IN BATCH
@@ -119,9 +120,9 @@ if Server == 0
     savematpath = '/Users/Brian/Documents/variables.mat';
 else
     path = '/home/livingstonb/GitHub/MPCrecode';
-    savetablepath_annual = '/home/livingstonb/output/table_annual.xls';
-    savetablepath_quarterly = '/home/livingstonb/output/table_quarterly.xls';
-    savematpath = '/home/livingstonb/output/variables.mat';
+    savetablepath_annual = ['/home/livingstonb/output/table_annual' suffix '.xls'];
+    savetablepath_quarterly = ['/home/livingstonb/output/table_quarterly' suffix '.xls'];
+    savematpath = ['/home/livingstonb/output/variables' suffix '.mat'];
 end
 addpath([path '/Auxiliary Functions']);
 addpath([path '/MPC Functions']);
@@ -178,21 +179,26 @@ if Batch == 0
     sim_results{1}     = SR;      
 else
     for ip = 1:Nparams
-            tic
-            disp(['Trying parameterization ' params(ip).name])
-            try
-                % Main function
-                [income{ip},SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
-                direct_results{ip}  = DR;
-                norisk_results{ip}  = NR;
-                sim_results{ip}     = SR;
-                exceptions{ip} = []; % main function completed
-            catch ME
-                checks{ip} = 'EXCEPTION_THROWN';
-                exceptions{ip} = ME;
-            end
-            disp(['Finished parameterization ' params(ip).name])
+        tic
+        disp(['Trying parameterization ' params(ip).name])
+        try
+            % Main function
+            [income{ip},SR,DR,NR,checks{ip},decomps{ip}] = main(params(ip));
+            direct_results{ip}  = DR;
+            norisk_results{ip}  = NR;
+            sim_results{ip}     = SR;
+            exceptions{ip} = []; % main function completed
+        catch ME
+            checks{ip} = 'EXCEPTION_THROWN';
+            exceptions{ip} = ME;
+        end
+        disp(['Finished parameterization ' params(ip).name])
             toc
+            
+        if Server == 1
+        save(savematpath,'sim_results','direct_results','norisk_results',...
+                            'checks','exceptions','params','decomps');
+        end
     end
 end
 
@@ -200,10 +206,6 @@ end
 decomp2 = decomposition2(params,direct_results,exceptions);
 
 %% SAVE VARIABLES AND CREATE TABLE
-if Server == 1
-    save(savematpath,'sim_results','direct_results','norisk_results',...
-                        'checks','exceptions','params','decomps','decomp2');
-end
                                              
 [T_annual,T_quarter] = create_table(params,direct_results,decomps,checks,exceptions,decomp2);
                             

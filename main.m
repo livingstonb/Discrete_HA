@@ -32,6 +32,8 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
         p.betaH = p.betaH - 1e-3;
     elseif p.betaswitch > 0
         p.betaH = p.betaH + 1e-2;
+    else
+        p.betaH = p.betaH - 1e-5;
     end
     
     if p.Annuities == 1
