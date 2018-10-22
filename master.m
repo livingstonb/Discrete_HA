@@ -3,8 +3,8 @@ clear;
 close all;
 
 %% RUN OPTIONS
-Batch = 1;
-Server = 1;
+Batch = 0;
+Server = 0;
 SmallGrid = 0;
 
 % empty string if not loading from file
@@ -23,7 +23,7 @@ params0.index = 1;
 params0.IncomeProcess = IncomeProcess;
 
 % data frequency 
-params0.freq        = 1; % 1 yearly, 4 quarterly
+params0.freq        = 4; % 1 yearly, 4 quarterly
 
 % returns
 params0.r           = 0.02;

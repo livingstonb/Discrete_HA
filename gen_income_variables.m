@@ -6,7 +6,7 @@ function income = gen_income_variables(p)
     LoadIncome = ~isempty(p.IncomeProcess); % 1 if load from file
     
     if LoadIncome==1 && p.freq==4
-        Import = load('IncomeVariables/quarterly_a.mat');
+        Import = load(p.IncomeProcess);
     end
 
     %% PERSISTENT INCOME
