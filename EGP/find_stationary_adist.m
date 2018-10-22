@@ -94,6 +94,9 @@ function [adist,xdist,xvals,incvals,netincvals,statetrans] = find_stationary_adi
         z=q*statetrans;
         diff=norm(z-q);
         q=z;
+        if p.Display==1 && mod(iter,100)==0
+            fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
+        end
         iter = iter + 1;
     end
     if iter >= 5e6

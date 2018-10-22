@@ -4,7 +4,7 @@ close all;
 
 %% RUN OPTIONS
 Batch = 1;
-Server = 0;
+Server = 1;
 SmallGrid = 0;
 
 % empty string if not loading from file
