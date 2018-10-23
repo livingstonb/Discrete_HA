@@ -1,0 +1,1 @@
+function params = parameters_new(Fast,IncomeProcess,Server)

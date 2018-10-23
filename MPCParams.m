@@ -1,8 +1,10 @@
 classdef MPCParams
-    % usage: params = MPCParams(frequency,Fast)
+    % usage: params = MPCParams(frequency)
     
     properties % default properties
+        filesuffix;
         name;
+        index;
         
         % data frequency
         freq;
@@ -94,16 +96,7 @@ classdef MPCParams
     end
 
     methods
-        function obj = MPCParams(frequency,Fast)
-            % Optionally use smaller grid
-            if Fast == 1
-                obj.nyT = 3;
-                obj.nyP = 3;
-                obj.nxlong = 20;
-                obj.nx = 15;
-                obj.Nmpcsim = 1e2;
-            end
-            
+        function obj = MPCParams(frequency)
             % Adjust for frequency
             if frequency == 1
                 obj.freq = 1;
@@ -133,7 +126,53 @@ classdef MPCParams
                 error('Frequency must be 1 or 4')
             end
         end
-
+      
+    end
+    
+    methods (Static)   
+        function obj_array = run_fast(obj_array)
+            % Set up to run quickly for testing
+            [obj_array.nxlong] = deal(20);
+            [obj_array.nx] = deal(15);
+            [obj_array.Nmpcsim] = deal(1e2);
+            [obj_array.nyT] = deal(3);
+            [obj_array.nyP] = deal(3);
+        end
+        
+        function obj_array = select_by_names(obj_array,names_to_run)
+            % Choose parameterizations based on name
+            if isequal(class(names_to_run),'cell')
+                if isempty(names_to_run)
+                    return 
+                else
+                    % Indices of selected names within params
+                    params_to_run = ismember({obj_array.name},names_to_run);
+                    obj_array = obj_array(params_to_run);
+                end
+            else
+                error('names_to_run must be a cell array')
+            end
+        end
+        
+        function obj_array = select_by_freq(obj_array,freq)
+            % Choose parameterizations based on frequency
+            if freq==1 || freq==4
+                obj_array = obj_array([obj_array.freq]==freq);
+            else
+                error('Must select freq = 1 or freq = 4')
+            end
+        end
+        
+        function obj_array = set_index(obj_array)
+            % Should be called only after selecting which runs to drop
+            index = num2cell(1:numel(obj_array));
+            [obj_array.index] = deal(index{:});
+        end
+        
+        function obj_array = set_filesuffix(obj_array,filesuffix)
+            % filesuffix should be of the form '_quarterlyA'
+            [obj_array.filepath] = deal(filesuffix);
+        end
     end
 
 end
