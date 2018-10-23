@@ -31,7 +31,7 @@ function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runo
             end
             
             if runopts.Server == 1
-                save(savematpath,'results','checks','exceptions','params','decomps');    
+                save(runopts.savematpath,'results','checks','exceptions','params','decomps');    
             end
         else
             [results(ip),checks{ip},decomps{ip}] = main(params(ip));
@@ -54,10 +54,10 @@ function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runo
 
     if runopts.Server == 1
         if ~isempty(T_annual)
-            writetable(T_annual,savetablepath_annual,'WriteRowNames',true);
+            writetable(T_annual,runopts.savetablepath_annual,'WriteRowNames',true);
         end
         if ~isempty(T_quarter)
-            writetable(T_quarter,savetablepath_quarterly,'WriteRowNames',true);
+            writetable(T_quarter,runopts.savetablepath_quarterly,'WriteRowNames',true);
         end
     end
 end
