@@ -1,5 +1,5 @@
-function decomp2 = decomposition2(params,direct_results,exceptions)
-    % Based on direct_results, this function decomposes the difference in
+function decomp2 = decomposition2(params,results,exceptions)
+    % Based on results.direct, this function decomposes the difference in
     % expected MPC from the baseline, Em1 - Em0
     
     % All parameterizations with nb == 1 share nxlong
@@ -14,23 +14,23 @@ function decomp2 = decomposition2(params,direct_results,exceptions)
     for ip = 1:Nparams
         decomp2{ip} = struct();
         
-        if Nparams>1 && isempty(exceptions{ip}) && params(ip).nxlong==params(1).nxlong
+        if (numel([params.freq]==1)>2 && numel([params.freq]==4)>2) && isempty(exceptions{ip}) && params(ip).nxlong==params(1).nxlong
             NoMPC1 = 0;
             if params(ip).freq == 1
                 baseind = find(ismember({params.name},{'Baseline_A'}));
             elseif params(ip).freq == 4
-                baseind = find(ismember({params.name},{'Baseline_Q'}));;
+                baseind = find(ismember({params.name},{'Baseline_Q'}));
             end
             
-            g1 = direct_results{ip}.agrid_dist;
-            g0 = direct_results{baseind}.agrid_dist;
+            g1 = results(ip).direct.agrid_dist;
+            g0 = results(baseind).direct.agrid_dist;
         
             % 1-Period MPC decomp
-            m1 = direct_results{ip}.mpcs1_a_direct{5};
-            m0 = direct_results{baseind}.mpcs1_a_direct{5};
+            m1 = results(ip).direct.mpcs1_a_direct{5};
+            m0 = results(baseind).direct.mpcs1_a_direct{5};
 
-            decomp2{ip}.mpc1_Em1_less_Em0 = direct_results{ip}.avg_mpc1_agrid(5) ...
-                            - direct_results{baseind}.avg_mpc1_agrid(5);
+            decomp2{ip}.mpc1_Em1_less_Em0 = results(ip).direct.avg_mpc1_agrid(5) ...
+                            - results(baseind).direct.avg_mpc1_agrid(5);
             decomp2{ip}.mpc1_Em1_less_Em0_check = g1'*m1 - g0'*m0;
             decomp2{ip}.mpc1_term1 = g0' * (m1 - m0);
             decomp2{ip}.mpc1_term2 = m0' * (g1 - g0);
@@ -46,11 +46,11 @@ function decomp2 = decomposition2(params,direct_results,exceptions)
             % 4-Period MPC decomp
             if params(ip).freq == 4
                 NoMPC4 = 0;
-                m1 = direct_results{ip}.mpcs4_a_direct{5};
-                m0 = direct_results{baseind}.mpcs4_a_direct{5};
+                m1 = results(ip).direct.mpcs4_a_direct{5};
+                m0 = results(baseind).direct.mpcs4_a_direct{5};
                 
-                decomp2{ip}.mpc4_Em1_less_Em0 = direct_results{ip}.avg_mpc4_agrid(5) ...
-                            - direct_results{baseind}.avg_mpc4_agrid(5);
+                decomp2{ip}.mpc4_Em1_less_Em0 = results(ip).direct.avg_mpc4_agrid(5) ...
+                            - results(baseind).direct.avg_mpc4_agrid(5);
                 decomp2{ip}.mpc4_Em1_less_Em0_check = g1'*m1 - g0'*m0;
                 decomp2{ip}.mpc4_term1 = g0' * (m1 - m0);
                 decomp2{ip}.mpc4_term2 = m0' * (g1 - g0);

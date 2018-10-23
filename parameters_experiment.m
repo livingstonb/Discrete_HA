@@ -1,6 +1,6 @@
 function params = parameters_experiment(runopts)
 
-    freq = 1;
+    freq = 4;
     
     params = MPCParams(freq,'test');
     params.nxlong = 500;

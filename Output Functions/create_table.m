@@ -1,4 +1,4 @@
-function [T_annual,T_quarter] = create_table(params,direct_results,...
+function [T_annual,T_quarter] = create_table(params,results,...
                                     decomps,checks,exceptions,decomp2)
     % Rownames
     rows = {'Specification'
@@ -116,11 +116,11 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
             else
                 % Annual and quarterly MPCs
                 if p.freq == 1
-                    mpcs_A = direct_results{ip}.avg_mpc1_agrid(:);
+                    mpcs_A = results(ip).direct.avg_mpc1_agrid(:);
                     mpcs_Q = NaN(numel(p.mpcfrac),1);
                 else
-                    mpcs_A = direct_results{ip}.avg_mpc4_agrid(:);
-                    mpcs_Q = direct_results{ip}.avg_mpc1_agrid(:);
+                    mpcs_A = results(ip).direct.avg_mpc4_agrid(:);
+                    mpcs_Q = results(ip).direct.avg_mpc1_agrid(:);
                 end
                 
                 % decomposition1
@@ -160,17 +160,17 @@ function [T_annual,T_quarter] = create_table(params,direct_results,...
                 
                 column = [
                     p.index
-                    direct_results{ip}.beta_annualized      % Annualized beta
-                    direct_results{ip}.mean_grossy_A        % Mean annual gross labor income
-                    direct_results{ip}.stdev_loggrossy_A    % Stdev log annual gross income
-                    direct_results{ip}.stdev_lognety_A      % Stdev log annual net income
+                    results(ip).direct.beta_annualized      % Annualized beta
+                    results(ip).direct.mean_grossy_A        % Mean annual gross labor income
+                    results(ip).direct.stdev_loggrossy_A    % Stdev log annual gross income
+                    results(ip).direct.stdev_lognety_A      % Stdev log annual net income
                     NaN
-                    direct_results{ip}.mean_a               % Mean assets
-                    direct_results{ip}.constrained(:)       % Fraction with a < eps * mean ann gross inc
-                    direct_results{ip}.wpercentiles(:)      % Wealth percentiles
-                    direct_results{ip}.top10share           % Top 10% wealth share
-                    direct_results{ip}.top1share            % Top 1% wealth share
-                    direct_results{ip}.wealthgini           % Gini coefficient
+                    results(ip).direct.mean_a               % Mean assets
+                    results(ip).direct.constrained(:)       % Fraction with a < eps * mean ann gross inc
+                    results(ip).direct.wpercentiles(:)      % Wealth percentiles
+                    results(ip).direct.top10share           % Top 10% wealth share
+                    results(ip).direct.top1share            % Top 1% wealth share
+                    results(ip).direct.wealthgini           % Gini coefficient
                     NaN
                     mpcs_A(:)                               % Annual MPCs
                     mpcs_Q(:)                               % Quarterly MPCs (if freq = 4)

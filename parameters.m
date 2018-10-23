@@ -215,7 +215,9 @@ function params = parameters(runopts,selection)
         % epstein-zin
     end
     
-    %% SET BETA UPPER BOUND FOR SPECIAL CASES
+    %----------------------------------------------------------------------
+    % SET BETA UPPER BOUND FOR SPECIAL CASES
+    %----------------------------------------------------------------------
     
     % annual
     freq = 1;
@@ -243,8 +245,12 @@ function params = parameters(runopts,selection)
     params.set_betaH_distance(sub_1eneg5,-1e-5,freq);
 
     %----------------------------------------------------------------------
-    % CALL METHODS
+    % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------
+    
+    if runopts.Server == 0
+        [params.Display] = deal(1);
+    end
     
     if runopts.fast == 1
         params.set_fast();
@@ -252,7 +258,7 @@ function params = parameters(runopts,selection)
     
     params = MPCParams.select_by_names(params,selection.names_to_run);
     
-    if numel(Frequencies) == 1
+    if numel(selection.frequencies) == 1
         params = MPCParams.select_by_freq(params,selection.frequencies);
     end
     

@@ -1,5 +1,4 @@
-function [income,sim_results,direct_results,norisk_results,checks,decomp] ... 
-                                                            = main(p)
+function [results,checks,decomp] = main(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -10,9 +9,6 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     % compute policy functions via the method of endogenous grip points, 
     % and to find the implied stationary distribution over the state space.
 
-    direct_results  = struct();
-    norisk_results  = struct();
-    sim_results     = struct();
     checks          = {};
     
     %% LOAD INCOME VARIABLES
@@ -151,11 +147,11 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     else
         [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
     end
-    direct_results.adist = basemodel.adist;
+    results.direct.adist = basemodel.adist;
 
     % Report beta and annualized beta
-    direct_results.beta_annualized = beta_final^p.freq;
-    direct_results.beta = beta_final;
+    results.direct.beta_annualized = beta_final^p.freq;
+    results.direct.beta = beta_final;
     
     % Set parameter equal to this beta
 
@@ -166,20 +162,20 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     end
     
     %% IMPORTANT MOMENTS
-    direct_results.mean_s = basemodel.xdist(:)' * basemodel.sav_x(:);
-    direct_results.mean_a = basemodel.mean_a;
-    direct_results.mean_x = basemodel.xdist(:)' * basemodel.xvals(:);
-    direct_results.mean_c = basemodel.xdist(:)' * basemodel.con_x(:);
+    results.direct.mean_s = basemodel.xdist(:)' * basemodel.sav_x(:);
+    results.direct.mean_a = basemodel.mean_a;
+    results.direct.mean_x = basemodel.xdist(:)' * basemodel.xvals(:);
+    results.direct.mean_c = basemodel.xdist(:)' * basemodel.con_x(:);
     
     % One-period income statistics
-    direct_results.mean_grossy1 = basemodel.xdist(:)' * basemodel.y_x(:);
-    direct_results.mean_loggrossy1 = basemodel.xdist(:)' * log(basemodel.y_x(:));
-    direct_results.mean_nety1 = basemodel.xdist(:)' * basemodel.nety_x(:);
-    direct_results.mean_lognety1 = basemodel.xdist(:)' * log(basemodel.nety_x(:));
-    direct_results.var_loggrossy1 = basemodel.xdist(:)' * (log(basemodel.y_x(:)) - direct_results.mean_loggrossy1).^2;
-    direct_results.var_lognety1 = basemodel.xdist(:)' * (log(basemodel.nety_x(:)) - direct_results.mean_lognety1).^2;
+    results.direct.mean_grossy1 = basemodel.xdist(:)' * basemodel.y_x(:);
+    results.direct.mean_loggrossy1 = basemodel.xdist(:)' * log(basemodel.y_x(:));
+    results.direct.mean_nety1 = basemodel.xdist(:)' * basemodel.nety_x(:);
+    results.direct.mean_lognety1 = basemodel.xdist(:)' * log(basemodel.nety_x(:));
+    results.direct.var_loggrossy1 = basemodel.xdist(:)' * (log(basemodel.y_x(:)) - results.direct.mean_loggrossy1).^2;
+    results.direct.var_lognety1 = basemodel.xdist(:)' * (log(basemodel.nety_x(:)) - results.direct.mean_lognety1).^2;
     
-    direct_results.mean_x_check = direct_results.mean_a + direct_results.mean_nety1;
+    results.direct.mean_x_check = results.direct.mean_a + results.direct.mean_nety1;
    
     % Reconstruct yPdist and yFdist from computed stationary distribution 
     % for sanity check
@@ -190,13 +186,13 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
 
     %% RECORD PROBLEMS
-    if  abs((p.targetAY - direct_results.mean_a/(income.meany1*p.freq))/p.targetAY) > 1e-3
+    if  abs((p.targetAY - results.direct.mean_a/(income.meany1*p.freq))/p.targetAY) > 1e-3
         checks{end+1} = 'BadAY';
     end
-    if abs((direct_results.mean_x-direct_results.mean_x_check)/direct_results.mean_x)> 1e-3
+    if abs((results.direct.mean_x-results.direct.mean_x_check)/results.direct.mean_x)> 1e-3
         checks{end+1} = 'DistNotStationary';
     end
-    if abs((income.meannety1-direct_results.mean_nety1)/income.meannety1) > 1e-3
+    if abs((income.meannety1-results.direct.mean_nety1)/income.meannety1) > 1e-3
         checks{end+1} = 'BadNetIncomeMean';
     end
     if norm(yPdist_check-income.yPdist) > 1e-3
@@ -230,31 +226,31 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
         % create interpolant to find fraction of constrained households
         if p.epsilon(i) == 0
             % Get exact figure
-            direct_results.constrained(i) = basemodel.adist(:)' * (agrid==0);
+            results.direct.constrained(i) = basemodel.adist(:)' * (agrid==0);
         else
-            direct_results.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany1*p.freq);
+            results.direct.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany1*p.freq);
         end
     end
     
     % Wealth percentiles
     [acumdist_unique,uniqueind] = unique(sort_acumdist,'last');
     wpinterp_inverse = griddedInterpolant(acumdist_unique,sort_agrid(uniqueind),'linear');
-    direct_results.wpercentiles = wpinterp_inverse(p.percentiles/100);
+    results.direct.wpercentiles = wpinterp_inverse(p.percentiles/100);
     
     % Top shares
     % Amount of total assets that reside in each pt on sorted asset space
     totassets = sort_adist .* sort_agrid;
     % Fraction of total assets in each pt on asset space
-    cumassets = cumsum(totassets) / direct_results.mean_a;
+    cumassets = cumsum(totassets) / results.direct.mean_a;
     
     % create interpolant from wealth percentile to cumulative wealth share
     cumwealthshare = griddedInterpolant(acumdist_unique,cumassets(uniqueind),'linear');
-    direct_results.top10share  = 1 - cumwealthshare(0.9);
-    direct_results.top1share   = 1 - cumwealthshare(0.99);
+    results.direct.top10share  = 1 - cumwealthshare(0.9);
+    results.direct.top1share   = 1 - cumwealthshare(0.99);
     
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model
-    norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,direct_results);
+    norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,results.direct);
     if norisk.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         checks{end+1} = 'NoRiskNoEGPConv';
@@ -263,7 +259,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     %% SIMULATIONS
     if p.Simulate == 1
-        [sim_results,assetmeans] = simulate(p,income,basemodel,xgrid,prefs,agrid);
+        [results.sim,assetmeans] = simulate(p,income,basemodel,xgrid,prefs,agrid);
     else
         assetmeans = [];
     end
@@ -271,12 +267,12 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     %% DIRECTLY COMPUTED 1-PERIOD MPCs
     [avg_mpc1_agrid,mpcs1_a_direct,avg_mpc4_agrid,mpcs4_a_direct,agrid_dist,norisk_mpcs1_a_direct] = ...
                                 direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk);
-    direct_results.avg_mpc1_agrid = avg_mpc1_agrid;
-    direct_results.avg_mpc4_agrid = avg_mpc4_agrid;
-    direct_results.mpcs1_a_direct = mpcs1_a_direct;
-    direct_results.mpcs4_a_direct = mpcs4_a_direct;
-    direct_results.agrid_dist = agrid_dist;
-    norisk_results.mpcs1_a_direct = norisk_mpcs1_a_direct;
+    results.direct.avg_mpc1_agrid = avg_mpc1_agrid;
+    results.direct.avg_mpc4_agrid = avg_mpc4_agrid;
+    results.direct.mpcs1_a_direct = mpcs1_a_direct;
+    results.direct.mpcs4_a_direct = mpcs4_a_direct;
+    results.direct.agrid_dist = agrid_dist;
+    results.norisk.mpcs1_a_direct = norisk_mpcs1_a_direct;
     
     %% MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
@@ -293,23 +289,23 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     % Find annual mean and standard deviations of income
     if p.freq == 4
         % Direct computations
-        direct_results.mean_grossy_A = direct_results.mean_grossy1 * 4;
+        results.direct.mean_grossy_A = results.direct.mean_grossy1 * 4;
         % Simulations
-        direct_results.stdev_loggrossy_A = stdev_loggrossy_A;
-        direct_results.stdev_lognety_A = stdev_lognety_A;     
+        results.direct.stdev_loggrossy_A = stdev_loggrossy_A;
+        results.direct.stdev_lognety_A = stdev_lognety_A;     
     else
         % Use direct computations
-        direct_results.mean_grossy_A = direct_results.mean_grossy1;
-        direct_results.stdev_loggrossy_A = sqrt(direct_results.var_loggrossy1);
-        direct_results.stdev_lognety_A = sqrt(direct_results.var_lognety1);
+        results.direct.mean_grossy_A = results.direct.mean_grossy1;
+        results.direct.stdev_loggrossy_A = sqrt(results.direct.var_loggrossy1);
+        results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
     end
 
     for im = 1:numel(p.mpcfrac)
-        direct_results.avg_mpc1_sim(im) = mean(basemodel.mpcs1_sim{im});
-        direct_results.var_mpc1_sim(im) = var(basemodel.mpcs1_sim{im});
+        results.direct.avg_mpc1_sim(im) = mean(basemodel.mpcs1_sim{im});
+        results.direct.var_mpc1_sim(im) = var(basemodel.mpcs1_sim{im});
         if p.freq == 4
-            direct_results.avg_mpc4_sim(im) = mean(basemodel.mpcs4_sim{im});
-            direct_results.var_mpc4(im) = var(basemodel.mpcs4_sim{im});
+            results.direct.avg_mpc4_sim(im) = mean(basemodel.mpcs4_sim{im});
+            results.direct.var_mpc4(im) = var(basemodel.mpcs4_sim{im});
         end
     end
     
@@ -318,11 +314,11 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     %% DECOMPOSITION
 	decomp = struct([]);
     if p.nb == 1
-        m_ra = p.R * (direct_results.beta*p.R)^(-1/p.risk_aver) - 1;
+        m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
  
-        m0 = direct_results.mpcs1_a_direct{5};
-        g0 = direct_results.agrid_dist;
-        mbc  = norisk_results.mpcs1_a_direct{5};
+        m0 = results.direct.mpcs1_a_direct{5};
+        g0 = results.direct.agrid_dist;
+        mbc  = results.norisk.mpcs1_a_direct{5};
         for ia = 1:numel(p.abars)
             zidx = agrid_short <= p.abars(ia);
             
@@ -342,13 +338,13 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     %% GINI
     % Wealth
-    direct_results.wealthgini = direct_gini(agrid,basemodel.adist);
+    results.direct.wealthgini = direct_gini(agrid,basemodel.adist);
     
     % Gross income
-    direct_results.grossincgini = direct_gini(income.ysort,income.ysortdist);
+    results.direct.grossincgini = direct_gini(income.ysort,income.ysortdist);
     
     % Net income
-    direct_results.netincgini = direct_gini(income.netymat,income.ymatdist);   
+    results.direct.netincgini = direct_gini(income.netymat,income.ymatdist);   
 
     function gini = direct_gini(level,distr)
         % Sort distribution and levels by levels
@@ -367,7 +363,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     %% Print Results
     if p.Display == 1 && 0
-        print_statistics(direct_results,sim_results,norisk_results,checks,p,decomp);
+        print_statistics(results.direct,results.sim,results.norisk,checks,p,decomp);
     end
     
 end

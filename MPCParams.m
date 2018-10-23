@@ -131,7 +131,7 @@ classdef MPCParams < handle
         function obj = set_betaH_distance(obj,names,val,freq)
             % set beta =  val + betaH0 when param.name is in names cell
             % array
-            change = find(ismember({obj.name},names) && [obj.freq==freq]);
+            change = find(ismember({obj.name},names) & [obj.freq]==freq);
             if isempty(change)
                 return
             else
