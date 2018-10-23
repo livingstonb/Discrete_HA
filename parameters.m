@@ -212,7 +212,21 @@ function params = parameters(runopts,selection)
             params(end).temptation = itempt;
         end
         
-        % epstein-zin
+        % epstein-zin: vary risk_aver
+        for ra = [0.5 0.75 1.5 2 4 8]
+            params(end+1) = MPCParams(ifreq,['EZ ra' num2str(ra) ' invies1']);
+            params(end).risk_aver = ra;
+            params(end).invies = 1;
+            params(end).EpsteinZin = 1;
+        end
+        
+        % epstein-zin: vary invies
+        for ies = [1/4 1/2 3/4 1.5 2 5]
+            params(end+1) = MPCParams(ifreq,['EZ ra1 ies' num2str(ies)]);
+            params(end).risk_aver = 1;
+            params(end).invies = 1/ies;
+            params(end).EpsteinZin = 1;
+        end
     end
     
     %----------------------------------------------------------------------
@@ -224,9 +238,16 @@ function params = parameters(runopts,selection)
     add_1eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'
                     '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
     sub_1eneg2 = {'2 BeqWt0.02 BeqLux0.01 BeqCurv0.1'};
+    sub_2_5eneg2 = {'EZ ra0.5 invies1'
+                    'EZ ra0.75 invies1'
+                    'EZ ra1.5 invies1'
+                    'EZ ra2 invies1'
+                    'EZ ra4 invies1'
+                    'EZ ra8 invies1'};
 
     params.set_betaH_distance(add_1eneg2,1e-2,freq);
     params.set_betaH_distance(sub_1eneg2,-1e-2,freq);
+    params.set_betaH_distance(sub_2_5eneg2,-2.5e-2,freq);
         
     % quarterly
     freq = 4;
@@ -243,6 +264,7 @@ function params = parameters(runopts,selection)
     params.set_betaH_distance(add_5eneg3,5e-3,freq);
     params.set_betaH_distance(add_1_25eneg2,1.25e-2,freq);
     params.set_betaH_distance(sub_1eneg5,-1e-5,freq);
+    
 
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS
@@ -263,4 +285,7 @@ function params = parameters(runopts,selection)
     end
     
     params.set_index();
+    
+%     warning('BETA ITERATION IS SET OFF')
+%     [params.IterateBeta] = deal(0);
 end

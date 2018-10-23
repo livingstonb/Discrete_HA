@@ -1,7 +1,7 @@
 classdef MPCParams < handle
     % usage: params = MPCParams(frequency)
     
-    properties % default properties
+    properties
         % identifiers
         name;
         index;
@@ -108,15 +108,15 @@ classdef MPCParams < handle
                 obj.sd_logyP = sqrt(0.0422);
                 obj.rho_logyP =0.9525;
             elseif frequency == 4;
-                obj.R = (1+obj.r)^(1/obj.freq);
+                obj.R = (1+obj.r)^(1/4);
                 obj.r = obj.R - 1;
 
-                obj.savtax        = obj.savtax/obj.freq;
-                obj.Tsim          = obj.Tsim * obj.freq; % Increase simulation time if quarterly
-                obj.beta0         = obj.beta0^(1/obj.freq);
-                obj.dieprob       = 1 - (1-obj.dieprob)^(1/obj.freq);
-                obj.betaswitch    = 1 - (1-obj.betaswitch)^(1/obj.freq);
-                obj.betaL         = obj.betaL^(1/obj.freq);
+                obj.savtax        = obj.savtax/4;
+                obj.Tsim          = obj.Tsim * 4; % Increase simulation time if quarterly
+                obj.beta0         = obj.beta0^(1/4);
+                obj.dieprob       = 1 - (1-obj.dieprob)^(1/4);
+                obj.betaswitch    = 1 - (1-obj.betaswitch)^(1/4);
+                obj.betaL         = obj.betaL^(1/4);
                 
                 obj.sd_logyT = sqrt(0.02087);
                 obj.sd_logyP = sqrt(0.0108);
@@ -124,6 +124,7 @@ classdef MPCParams < handle
             else
                 error('Frequency must be 1 or 4')
             end
+            
             obj.betaH0 = 1/((obj.R)*(1-obj.dieprob));
             obj.betaH = obj.betaH0 - 1e-3;
         end
@@ -144,10 +145,9 @@ classdef MPCParams < handle
         function obj = annuities_on(obj)
             % Turn off bequests
             if numel(obj) > 1
-                error('This method only adjusts one param at a time')
+                error('This method only adjusts one parameterization at a time')
             else
                 obj.Bequests = 0;
-                obj.bequest_weight = 0;
                 obj.r = obj.r + obj.dieprob;
                 obj.R = 1 + obj.r;
             end
@@ -179,7 +179,14 @@ classdef MPCParams < handle
                 else
                     % Indices of selected names within params
                     params_to_run = ismember({objs.name},names_to_run);
-                    objs = objs(params_to_run);
+                    if sum(ismember(names_to_run,{objs.name})) < numel(names_to_run)
+                        disp('Valid specification names include:')
+                        % valid_names = {objs.name};
+                        fprintf('%s \n',valid_names{:})
+                        error('Some of the entries in names_to_run are invalid')
+                    else
+                        objs = objs(params_to_run);
+                    end
                 end
             else
                 error('names_to_run must be a cell array')

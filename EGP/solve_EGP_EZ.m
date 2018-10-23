@@ -79,7 +79,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         if p.risk_aver == 1
             ezvalnext = exp(Emat * log(V_xp) * income.yTdist);
         else
-            ezvalnext = (Emat * V_xp^(1-p.risk_aver) * income.yTdist)^(1/(1-p.risk_aver));
+            ezvalnext = (Emat * V_xp.^(1-p.risk_aver) * income.yTdist).^(1/(1-p.risk_aver));
         end
         muc_s = emuc .* ezvalnext .^(p.risk_aver-p.invies);
         con_s = muc_s .^ (-1/p.invies);

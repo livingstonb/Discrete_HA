@@ -1,4 +1,4 @@
-function [T_annual,T_quarter,results] = loop_through_main(runopts,IncomeProcess,selection)
+function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runopts,IncomeProcess,selection)
     %% Add paths
     if runopts.Server == 0
         path = '/Users/Brian/Documents/GitHub/MPCrecode';
@@ -29,14 +29,13 @@ function [T_annual,T_quarter,results] = loop_through_main(runopts,IncomeProcess,
     checks     = cell(1,Nparams); % Information on failed sanity checks
     decomps    = cell(1,Nparams); 
 
-    if runopts.Batch == 0
+    for ip = 1:Nparams
         tic
-        [results,checks{1},decomps{1}] = main(params);
-        toc    
-    else
-        for ip = 1:Nparams
-            tic
-            disp(['Trying parameterization ' params(ip).name])
+        disp(['Trying parameterization ' params(ip).name])
+        if runopts.Server == 0
+            [results(ip),checks{ip},decomps{ip}] = main(params(ip));
+            exceptions{ip} = [];
+        else
             try
                 % Main function
                 [results(ip),checks{ip},decomps{ip}] = main(params(ip));
@@ -45,13 +44,10 @@ function [T_annual,T_quarter,results] = loop_through_main(runopts,IncomeProcess,
                 checks{ip} = 'EXCEPTION_THROWN';
                 exceptions{ip} = ME;
             end
-            disp(['Finished parameterization ' params(ip).name])
-                toc
-
-            if runopts.Server == 1
-            save(savematpath,'results','checks','exceptions','params','decomps');
-            end
+            save(savematpath,'results','checks','exceptions','params','decomps');         
         end
+        disp(['Finished parameterization ' params(ip).name])
+        toc
     end
 
     %% DECOMPOSITIONS - COMPARISONS WITH BASELINE

@@ -35,7 +35,7 @@ function income = gen_income_variables(p)
     %% TRANSITORY INCOME
     % disretize normal distribution
     if LoadIncome==1 && p.freq==4
-        p.sig_logyT = Import.sig2Tvec;
+        p.sd_logyT = Import.sig2Tvec;
         p.lambdaT = Import.lambdaTvec;
     end
 
