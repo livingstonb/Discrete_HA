@@ -183,9 +183,6 @@ classdef MPCParams < handle
                 % Indices of selected names within params
                 params_to_run = ismember({objs.name},names_to_run);
                 if sum(ismember(names_to_run,{objs.name})) < numel(names_to_run)
-                    disp('Valid specification names include:')
-                    % valid_names = {objs.name};
-                    fprintf('%s \n',valid_names{:})
                     error('Some of the entries in names_to_run are invalid')
                 else
                     objs = objs(params_to_run);
