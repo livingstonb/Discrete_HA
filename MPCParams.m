@@ -99,34 +99,19 @@ classdef MPCParams < handle
         function obj = MPCParams(frequency,name)
             obj.name = name;
             obj.freq = frequency;
+            obj.R = 1 + obj.r;
             
-            % Adjust for frequency
             if frequency == 1
-                obj.R = 1 + obj.r;
-                
                 obj.sd_logyT = sqrt(0.0497);
                 obj.sd_logyP = sqrt(0.0422);
                 obj.rho_logyP =0.9525;
-            elseif frequency == 4;
-                obj.R = (1+obj.r)^(1/4);
-                obj.r = obj.R - 1;
-
-                obj.savtax        = obj.savtax/4;
-                obj.Tsim          = obj.Tsim * 4; % Increase simulation time if quarterly
-                obj.beta0         = obj.beta0^(1/4);
-                obj.dieprob       = 1 - (1-obj.dieprob)^(1/4);
-                obj.betaswitch    = 1 - (1-obj.betaswitch)^(1/4);
-                obj.betaL         = obj.betaL^(1/4);
-                
+            elseif frequency == 4
                 obj.sd_logyT = sqrt(0.02087);
                 obj.sd_logyP = sqrt(0.0108);
                 obj.rho_logyP = 0.9881;
             else
                 error('Frequency must be 1 or 4')
-            end
-            
-            obj.betaH0 = 1/((obj.R)*(1-obj.dieprob));
-            obj.betaH = obj.betaH0 - 1e-3;
+            end             
         end
         
         function obj = set_betaH_distance(obj,val,name,freq)
@@ -171,7 +156,24 @@ classdef MPCParams < handle
       
     end
     
-    methods (Static)  
+    methods (Static)
+        
+        function objs = adjust_if_quarterly(objs)
+            for io = 1:numel(objs)
+                objs(io).R = (1+objs(io).r)^(1/objs(io).freq);
+                objs(io).r = objs(io).R - 1;
+
+                objs(io).savtax = objs(io).savtax/objs(io).freq;
+                objs(io).Tsim = objs(io).Tsim * objs(io).freq; % Increase simulation time if quarterly
+                objs(io).beta0 = objs(io).beta0^(1/objs(io).freq);
+                objs(io).dieprob = 1 - (1-objs(io).dieprob)^(1/objs(io).freq);
+                objs(io).betaswitch = 1 - (1-objs(io).betaswitch)^(1/objs(io).freq);
+                objs(io).betaL = objs(io).betaL^(1/objs(io).freq);
+                
+                objs(io).betaH0 = 1/((objs(io).R)*(1-objs(io).dieprob));
+                objs(io).betaH = objs(io).betaH0 - 1e-3;
+            end
+        end
         
         function objs = select_by_names(objs,names_to_run)
             % Choose parameterizations based on name

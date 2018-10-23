@@ -84,6 +84,7 @@ function params = parameters(runopts,selection)
                 params(end).nxlong = 400;
                 params(end).nx = 100;
                 params(end).betawidth = ibw;
+                params(end).betaswitch = 0;
                 params(end).dieprob = deathp;
             end
 
@@ -249,55 +250,115 @@ function params = parameters(runopts,selection)
     end
     
     %----------------------------------------------------------------------
-    % SET BETA UPPER BOUND FOR SELECT BETA HETEROGENEITY CASES
+    % ADJUST PARAMETERS FOR FREQUENCY
     %----------------------------------------------------------------------
     
-    % annual
+    params = MPCParams.adjust_if_quarterly(params);
+   
+    %----------------------------------------------------------------------
+    % SET BETA UPPER BOUND FOR BETA HETEROGENEITY CASES
+    %----------------------------------------------------------------------
+    
+    % --------- annual, fixed -----------
     freq = 1;
     
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(-1e-4,change_betaH,freq);
-        
-    % quarterly
+    % no death (death specifications converge ok)
+    change_betaH = '2 FixedBetaHet5 Width0.001 NoDeath';
+    params.set_betaH_distance(-2.5e-2,change_betaH,freq);
+    
+    change_betaH = '2 FixedBetaHet5 Width0.005 NoDeath';
+    params.set_betaH_distance(-2.5e-2,change_betaH,freq);
+    
+    change_betaH = '2 FixedBetaHet5 Width0.01 NoDeath';
+    params.set_betaH_distance(-2.2e-2,change_betaH,freq);
+    
+    % --------- quarterly, fixed -----------
     freq = 4;
     
-    % nodeath
+%     change_betaH = '2 FixedBetaHet5 Width0.001 Death';
+%     params.set_betaH_distance(0,change_betaH,freq);
+    
+    % --------- annual, random ----------
+    freq = 1;
+    
+    % no death
     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(-5e-3,change_betaH,freq);
+    params.set_betaH_distance(-3e-2,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(-5e-3,change_betaH,freq);
+    params.set_betaH_distance(-3e-2,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(0,change_betaH,freq);
+    params.set_betaH_distance(-2e-2,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(1e-3,change_betaH,freq);
-                    
+    params.set_betaH_distance(-2e-2,change_betaH,freq);
+    
     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(7e-3,change_betaH,freq);
+    params.set_betaH_distance(-1.5e-2,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(1e-2,change_betaH,freq);
+    params.set_betaH_distance(-1.5e-2,change_betaH,freq);
+        
+    % death
+    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
+    params.set_betaH_distance(-1.3e-2,change_betaH,freq);
+    
+    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 Death';
+    params.set_betaH_distance(-9e-3,change_betaH,freq);
+    
+    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 Death';
+    params.set_betaH_distance(-7e-3,change_betaH,freq);
+    
+    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death';
+    params.set_betaH_distance(-4e-3,change_betaH,freq);
+    
+    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death';
+    params.set_betaH_distance(-1e-3,change_betaH,freq);
+    
+    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death';
+    params.set_betaH_distance(3e-3,change_betaH,freq);
+
+    % --------- quarterly, random -----------
+    freq = 4;
+    
+    % no death
+    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
+    params.set_betaH_distance(-1e-3,change_betaH,freq);
+    
+    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 NoDeath';
+    params.set_betaH_distance(-1e-3,change_betaH,freq);
+    
+    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath';
+    params.set_betaH_distance(3e-3,change_betaH,freq);
+    
+    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath';
+    params.set_betaH_distance(5e-3,change_betaH,freq);
+                    
+    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath';
+    params.set_betaH_distance(4e-3,change_betaH,freq);
+    
+    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
+    params.set_betaH_distance(1.5e-2,change_betaH,freq);
     
     % death
     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
-    params.set_betaH_distance(1.5e-2,change_betaH,freq);
+    params.set_betaH_distance(-1e-4,change_betaH,freq);
     
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
-    params.set_betaH_distance(1.5e-2,change_betaH,freq);
+    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 Death';
+    params.set_betaH_distance(-1e-4,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 Death';
-    params.set_betaH_distance(2e-2,change_betaH,freq);
+    params.set_betaH_distance(2e-3,change_betaH,freq);
 
     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death';
-    params.set_betaH_distance(2.11e-2,change_betaH,freq);
+    params.set_betaH_distance(5.1e-3,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death';
-    params.set_betaH_distance(2.61e-2,change_betaH,freq);
+    params.set_betaH_distance(4.7e-3,change_betaH,freq);
     
-    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(3e-2,change_betaH,freq);
+    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death';
+    params.set_betaH_distance(1.2e-2,change_betaH,freq);
 
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS
