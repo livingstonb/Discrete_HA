@@ -42,17 +42,17 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         % interpolate to get c(x') using c(x)
         
         % c(x) and V(x)
-        conlast = reshape(conlast,[p.ns p.nyP p.nyF p.nb]);
-        Vlast   = reshape(Vlast,[p.ns p.nyP p.nyF p.nb]);
+        conlast = reshape(conlast,[p.nx p.nyP p.nyF p.nb]);
+        Vlast   = reshape(Vlast,[p.nx p.nyP p.nyF p.nb]);
         % c(x') and V(x')
-        c_xp = zeros(p.ns,p.nyP,p.nyF,p.nb,p.nyT);
-        V_xp = zeros(p.ns,p.nyP,p.nyF,p.nb,p.nyT);
+        c_xp = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
+        V_xp = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
         
         % x'(s)
         temp_sav = repmat(sgrid.full(:),p.nb,p.nyT);
-        temp_inc = repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
+        temp_inc = repmat(kron(income.netymat,ones(p.nx,1)),p.nb,1);
         xp_s = (1+p.r)*temp_sav + temp_inc;
-        xp_s = reshape(xp_s,[p.ns p.nyP p.nyF p.nb p.nyT]);
+        xp_s = reshape(xp_s,[p.nx p.nyP p.nyF p.nb p.nyT]);
         
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
@@ -85,10 +85,10 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         con_s = muc_s .^ (-1/p.invies);
         x_s = con_s + repmat(sgrid.full(:),p.nb,1)...
                         + p.savtax * max(repmat(sgrid.full(:),p.nb,1)-p.savtaxthresh,0);
-        x_s = reshape(x_s,[p.ns p.nyP p.nyF p.nb]);
+        x_s = reshape(x_s,[p.nx p.nyP p.nyF p.nb]);
         
         % interpolate from x(s) to get s(x)
-        sav = zeros(p.ns,p.nyP,p.nyF,p.nb);
+        sav = zeros(p.nx,p.nyP,p.nyF,p.nb);
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
@@ -99,8 +99,8 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         end
         sav = max(sav,p.borrow_lim);
         xp = p.R * repmat(sav(:),p.nb,p.nyT) ... 
-                    + repmat(kron(income.netymat,ones(p.ns,1)),p.nb,1);
-        xp = reshape(xp,[p.ns p.nyP p.nyF p.nb p.nyT]);
+                    + repmat(kron(income.netymat,ones(p.nx,1)),p.nb,1);
+        xp = reshape(xp,[p.nx p.nyP p.nyF p.nb p.nyT]);
         
         conupdate = repmat(xgrid.full,[1 1 1 p.nb]) - sav - p.savtax * max(sav-p.savtaxthresh,0);
         

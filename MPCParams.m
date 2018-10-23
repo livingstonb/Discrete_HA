@@ -2,12 +2,6 @@ classdef MPCParams < handle
     % usage: params = MPCParams(frequency)
     
     properties % default properties
-        
-        % common properties
-        filesuffix;
-        Fast;
-        Server;
-        
         % identifiers
         name;
         index;
@@ -29,6 +23,7 @@ classdef MPCParams < handle
     	beta0       = 0.98;
     	temptation  = 0;
     	betaL       = 0.80;
+        betaH0;
         betaH;
         
         % warm glow bequests: bequest weight = 0 is accidental
@@ -104,18 +99,16 @@ classdef MPCParams < handle
     methods
         function obj = MPCParams(frequency,name)
             obj.name = name;
+            obj.freq = frequency;
             
             % Adjust for frequency
             if frequency == 1
-                obj.freq = 1;
                 obj.R = 1 + obj.r;
                 
-                obj.sd_logyT = 0.0497;
-                obj.sd_logyP = 0.0422;
+                obj.sd_logyT = sqrt(0.0497);
+                obj.sd_logyP = sqrt(0.0422);
                 obj.rho_logyP =0.9525;
             elseif frequency == 4;
-                obj.freq = 4;
-            
                 obj.R = (1+obj.r)^(1/obj.freq);
                 obj.r = obj.R - 1;
 
@@ -125,14 +118,15 @@ classdef MPCParams < handle
                 obj.dieprob       = 1 - (1-obj.dieprob)^(1/obj.freq);
                 obj.betaswitch    = 1 - (1-obj.betaswitch)^(1/obj.freq);
                 obj.betaL         = obj.betaL^(1/obj.freq);
-                obj.betaH         = 1/((obj.R)*(1-obj.dieprob));
                 
-                obj.sd_logyT = 0.02087;
-                obj.sd_logyP = 0.0108;
-                obj.rho_logyP =0.9881;
+                obj.sd_logyT = sqrt(0.02087);
+                obj.sd_logyP = sqrt(0.0108);
+                obj.rho_logyP = 0.9881;
             else
                 error('Frequency must be 1 or 4')
             end
+            obj.betaH0 = 1/((obj.R)*(1-obj.dieprob));
+            obj.betaH = obj.betaH0 - 1e-3;
         end
         
         function obj = set_fast(obj)
@@ -147,11 +141,6 @@ classdef MPCParams < handle
             % Should be called only after selecting which runs to drop
             ind = num2cell(1:numel(obj));
             [obj.index] = deal(ind{:});
-        end
-        
-        function obj = set_filesuffix(obj,filesuffix)
-            % filesuffix should be of the form '_quarterlyA'
-            [obj.filesuffix] = deal(filesuffix);
         end
       
     end
@@ -181,10 +170,6 @@ classdef MPCParams < handle
                 error('Must select freq = 1 or freq = 4')
             end
         end 
-        
-        function objs = add(objs,newparams)
-            objs(end+1) = [];
-        end
         
     end
 

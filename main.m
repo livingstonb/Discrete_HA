@@ -15,19 +15,9 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     sim_results     = struct();
     checks          = {};
     
-    %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER FACTORS
-
-    p.R = 1 + p.r;
-    p.R = p.R^(1/p.freq);
-    p.r = p.R - 1;
     
-    p.savtax        = p.savtax/p.freq;
-    p.Tsim          = p.Tsim * p.freq; % Increase simulation time if quarterly
-    p.beta0         = p.beta0^(1/p.freq);
-    p.dieprob       = 1 - (1-p.dieprob)^(1/p.freq);
-    p.betaswitch    = 1 - (1-p.betaswitch)^(1/p.freq);
-    p.betaL         = p.betaL^(1/p.freq);
-    p.betaH         = 1/((p.R)*(1-p.dieprob));
+    
+    %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER FACTORS
 
     % Deal with special cases
     if p.freq == 1
@@ -71,8 +61,6 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
         p.R = 1 + p.r;
     end
 
-    p.N = p.nx*p.nyF*p.nyP*p.nb;
-    
     %% LOAD INCOME VARIABLES
     % Create income structure
     income = gen_income_variables(p);
@@ -123,7 +111,6 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     sgrid.orig = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid.orig;
     sgrid.short = sgrid.orig;
     sgrid.full = repmat(sgrid.short,[1 p.nyP p.nyF]);
-    p.ns = p.nx;
 
     % xgrids (cash on hand), different min points for each value of (iyP,iyF)
     minyT               = kron(min(income.netymat,[],2),ones(p.nx,1));
@@ -217,7 +204,6 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     direct_results.beta = beta_final;
     
     % Set parameter equal to this beta
-    p.beta = beta_final;
 
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
