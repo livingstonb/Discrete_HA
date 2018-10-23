@@ -9,6 +9,7 @@ function [results,checks,decomp] = main(p)
     % compute policy functions via the method of endogenous grip points, 
     % and to find the implied stationary distribution over the state space.
 
+    results = struct('direct',[],'norisk',[],'sim',[]);
     checks          = {};
     
     %% LOAD INCOME VARIABLES

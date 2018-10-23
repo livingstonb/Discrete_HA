@@ -89,7 +89,7 @@ classdef MPCParams < handle
         
         % OPTIONS
     	IterateBeta = 1;
-        Display = 0;
+        Display;
         MakePlots = 0;
         Simulate = 0;
         
@@ -130,12 +130,19 @@ classdef MPCParams < handle
         end
         
         function obj = set_betaH_distance(obj,names,val,freq)
-            % set beta =  val + betaH0 when param.name is in names cell
-            % array
+            % when a cell array is passed w/valid names, use names
             change = find(ismember({obj.name},names) & [obj.freq]==freq);
             if isempty(change)
-                return
+                % Change for the object passed
+                if numel(obj) == 1
+                    obj.betaH = obj.betaH0 + val;
+                else
+                    msg1 = 'Must pass a names cell array or apply this method ';
+                    msg2 = 'to only one object';
+                    error([msg1 msg2])
+                end
             else
+                % Use names
                 for ip = change
                     obj(ip).betaH = obj(ip).betaH0 + val;
                 end
@@ -173,23 +180,19 @@ classdef MPCParams < handle
         
         function objs = select_by_names(objs,names_to_run)
             % Choose parameterizations based on name
-            if isequal(class(names_to_run),'cell')
-                if isempty(names_to_run)
-                    return 
+            if ~isempty(names_to_run)
+                % Indices of selected names within params
+                params_to_run = ismember({objs.name},names_to_run);
+                if sum(ismember(names_to_run,{objs.name})) < numel(names_to_run)
+                    disp('Valid specification names include:')
+                    % valid_names = {objs.name};
+                    fprintf('%s \n',valid_names{:})
+                    error('Some of the entries in names_to_run are invalid')
                 else
-                    % Indices of selected names within params
-                    params_to_run = ismember({objs.name},names_to_run);
-                    if sum(ismember(names_to_run,{objs.name})) < numel(names_to_run)
-                        disp('Valid specification names include:')
-                        % valid_names = {objs.name};
-                        fprintf('%s \n',valid_names{:})
-                        error('Some of the entries in names_to_run are invalid')
-                    else
-                        objs = objs(params_to_run);
-                    end
+                    objs = objs(params_to_run);
                 end
             else
-                error('names_to_run must be a cell array')
+                return
             end
         end
         

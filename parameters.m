@@ -210,6 +210,9 @@ function params = parameters(runopts,selection)
         for itempt = [0.005 0.01 0.05]
             params(end+1) = MPCParams(ifreq,['4 Temptation' num2str(itempt)]);
             params(end).temptation = itempt;
+            if itempt == 0.05 && ifreq == 4
+                params(end).set_betaH_distance({},-1e-5,ifreq);
+            end    
         end
         
         % epstein-zin: vary risk_aver
@@ -218,6 +221,11 @@ function params = parameters(runopts,selection)
             params(end).risk_aver = ra;
             params(end).invies = 1;
             params(end).EpsteinZin = 1;
+            if ifreq == 1
+                params(end).set_betaH_distance({},-2.5e-2,ifreq);
+            else
+                params(end).set_betaH_distance({},-6e-3,ifreq);
+            end
         end
         
         % epstein-zin: vary invies
@@ -226,11 +234,22 @@ function params = parameters(runopts,selection)
             params(end).risk_aver = 1;
             params(end).invies = 1/ies;
             params(end).EpsteinZin = 1;
+            if ies<=2 && ifreq==1
+                params(end).set_betaH_distance({},-2.5e-2,ifreq);
+            elseif ifreq==1
+                params(end).set_betaH_distance({},-2.2e-2,ifreq);
+            elseif ies<=1/2 && ifreq==4
+                params(end).set_betaH_distance({},-1.3e-2,ifreq);
+            elseif ies<=1.5 && ifreq==4
+                params(end).set_betaH_distance({},-7e-3,ifreq);
+            else
+                params(end).set_betaH_distance({},-5.5e-3,ifreq);
+            end
         end
     end
     
     %----------------------------------------------------------------------
-    % SET BETA UPPER BOUND FOR SPECIAL CASES
+    % SET BETA UPPER BOUND FOR SELECT BETA HETEROGENEITY CASES
     %----------------------------------------------------------------------
     
     % annual
@@ -238,16 +257,9 @@ function params = parameters(runopts,selection)
     add_1eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'
                     '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
     sub_1eneg2 = {'2 BeqWt0.02 BeqLux0.01 BeqCurv0.1'};
-    sub_2_5eneg2 = {'EZ ra0.5 invies1'
-                    'EZ ra0.75 invies1'
-                    'EZ ra1.5 invies1'
-                    'EZ ra2 invies1'
-                    'EZ ra4 invies1'
-                    'EZ ra8 invies1'};
 
     params.set_betaH_distance(add_1eneg2,1e-2,freq);
     params.set_betaH_distance(sub_1eneg2,-1e-2,freq);
-    params.set_betaH_distance(sub_2_5eneg2,-2.5e-2,freq);
         
     % quarterly
     freq = 4;
@@ -258,19 +270,19 @@ function params = parameters(runopts,selection)
                     '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death'};
     add_1_25eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'
                     '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
-    sub_1eneg5 = {'4 Temptation0.05'};
     
     params.set_betaH_distance(add_1eneg3,1e-3,freq);
     params.set_betaH_distance(add_5eneg3,5e-3,freq);
     params.set_betaH_distance(add_1_25eneg2,1.25e-2,freq);
-    params.set_betaH_distance(sub_1eneg5,-1e-5,freq);
     
 
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------
     
-    if runopts.Server == 0
+    if runopts.Server==1 || runopts.Display==0
+        [params.Display] = deal(0);
+    else
         [params.Display] = deal(1);
     end
     

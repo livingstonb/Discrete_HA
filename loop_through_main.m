@@ -1,7 +1,7 @@
 function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runopts,IncomeProcess,selection)
     %% Add paths
     if runopts.Server == 0
-        path = '/Users/Brian/Documents/GitHub/MPCrecode';
+        path = runopts.localdir;
     else
         path = '/home/livingstonb/GitHub/MPCrecode';
         savetablepath_annual = ['/home/livingstonb/output/table_annual' selection.suffix '.xls'];
@@ -43,6 +43,7 @@ function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runo
             catch ME
                 checks{ip} = 'EXCEPTION_THROWN';
                 exceptions{ip} = ME;
+                results(ip) = struct('direct',[],'norisk',[],'sim',[]);
             end
             save(savematpath,'results','checks','exceptions','params','decomps');         
         end
