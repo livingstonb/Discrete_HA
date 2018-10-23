@@ -259,24 +259,7 @@ function params = parameters(runopts,selection)
     % SET BETA UPPER BOUND FOR BETA HETEROGENEITY CASES
     %----------------------------------------------------------------------
     
-    % --------- annual, fixed -----------
-    freq = 1;
-    
-    % no death (death specifications converge ok)
-    change_betaH = '2 FixedBetaHet5 Width0.001 NoDeath';
-    params.set_betaH_distance(-2.5e-2,change_betaH,freq);
-    
-    change_betaH = '2 FixedBetaHet5 Width0.005 NoDeath';
-    params.set_betaH_distance(-2.5e-2,change_betaH,freq);
-    
-    change_betaH = '2 FixedBetaHet5 Width0.01 NoDeath';
-    params.set_betaH_distance(-2.2e-2,change_betaH,freq);
-    
-    % --------- quarterly, fixed -----------
-    freq = 4;
-    
-%     change_betaH = '2 FixedBetaHet5 Width0.001 Death';
-%     params.set_betaH_distance(0,change_betaH,freq);
+    % fixed beta heterogeneity cases converge ok
     
     % --------- annual, random ----------
     freq = 1;

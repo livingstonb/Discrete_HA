@@ -14,7 +14,7 @@ runopts.localdir = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 IncomeProcess = '';
 
 % select only a subset of experiments
-selection.names_to_run = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'}; % empty cell array to run all names
+selection.names_to_run = {'2 FixedBetaHet5 Width0.01 NoDeath'}; % empty cell array to run all names
 selection.suffix = '';
 selection.frequencies = [4]; % [1 4], 1, or 4
 
