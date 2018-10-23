@@ -349,6 +349,8 @@ function params = parameters(SmallGrid,IncomeProcess,Server)
             params(end).freq = ifreq;
             params(end).temptation = itempt;
         end
+        
+        % epstein-zin
     end
     
     %----------------------------------------------------------------------
