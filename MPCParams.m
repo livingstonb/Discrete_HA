@@ -12,6 +12,7 @@ classdef MPCParams < handle
         % returns
         r = 0.02; % default annual, adjusted if frequency = 4;
         R;
+        annuities = false;
         
         % demographics
         dieprob = 1/50; % default annual, adjusted if frequency = 4;
@@ -130,14 +131,9 @@ classdef MPCParams < handle
         end
         
         function obj = annuities_on(obj)
-            % Turn off bequests
-            if numel(obj) > 1
-                error('This method only adjusts one parameterization at a time')
-            else
-                obj.Bequests = 0;
-                obj.r = obj.r + obj.dieprob;
-                obj.R = 1 + obj.r;
-            end
+            % Wait until after frequency adjustments to change other
+            % variables
+            obj.annuities = 1;
         end
         
         function obj = set_fast(obj)
@@ -172,6 +168,12 @@ classdef MPCParams < handle
                 
                 objs(io).betaH0 = 1/((objs(io).R)*(1-objs(io).dieprob));
                 objs(io).betaH = objs(io).betaH0 - 1e-3;
+                
+                if objs(io).annuities == true
+                    obj.Bequests = 0;
+                    obj.r = obj.r + obj.dieprob;
+                    obj.R = 1 + obj.r;
+                end
             end
         end
         
