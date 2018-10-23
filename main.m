@@ -15,52 +15,6 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     sim_results     = struct();
     checks          = {};
     
-    
-    
-    %% ADJUST PARAMETERS FOR DATA FREQUENCY, OTHER FACTORS
-
-    % Deal with special cases
-    if p.freq == 1
-        add_1eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'
-                        '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
-        sub_1eneg2 = {'2 BeqWt0.02 BeqLux0.01 BeqCurv0.1'};
-        if ismember(p.name,add_1eneg2)
-            p.betaH = p.betaH + 1e-2;
-        elseif ismember(p.name,sub_1eneg2);
-            p.betaH = p.betaH - 1e-2;
-        else
-            p.betaH = p.betaH - 1e-3;
-        end
-    elseif p.freq == 4
-        add_1eneg3 = {'2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath'};
-        add_5eneg3 = {'2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath'
-                        '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death'
-                        '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath'
-                        '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death'};
-        add_125eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'
-                        '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
-        sub_1eneg5 = {'4 Temptation0.05'};
-        if ismember(p.name,add_1eneg3);
-            p.betaH = p.betaH + 1e-3;
-        elseif ismember(p.name,add_5eneg3);
-            p.betaH = p.betaH + 5e-3;
-        elseif ismember(p.name,add_125eneg2);
-            p.betaH = p.betaH + 1.25e-2;
-        elseif ismember(p.name,sub_1eneg5);
-            p.betaH = p.betaH - 1e-5;
-        else
-            p.betaH = p.betaH - 1e-3;
-        end
-    end
-    
-    if p.Annuities == 1
-        % Turn off bequests
-        p.Bequests = 0;
-        p.bequest_weight = 0;
-        p.r = p.r + p.dieprob;
-        p.R = 1 + p.r;
-    end
-
     %% LOAD INCOME VARIABLES
     % Create income structure
     income = gen_income_variables(p);
@@ -300,7 +254,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     
     %% EGP FOR MODEL WITHOUT INCOME RISK
     % Deterministic model
-    norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income);
+    norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,direct_results);
     if norisk.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         checks{end+1} = 'NoRiskNoEGPConv';
@@ -364,7 +318,7 @@ function [income,sim_results,direct_results,norisk_results,checks,decomp] ...
     %% DECOMPOSITION
 	decomp = struct([]);
     if p.nb == 1
-        m_ra = p.R * (p.beta*p.R)^(-1/p.risk_aver) - 1;
+        m_ra = p.R * (direct_results.beta*p.R)^(-1/p.risk_aver) - 1;
  
         m0 = direct_results.mpcs1_a_direct{5};
         g0 = direct_results.agrid_dist;

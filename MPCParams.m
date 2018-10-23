@@ -31,7 +31,6 @@ classdef MPCParams < handle
         bequest_curv    = 1;
         bequest_luxury  = 0.01;
         Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
-        Annuities = 0; % Automatically turns off bequests if set to 1
         
         % source for income process (file, or empty string for gen in code)
         IncomeProcess ='';
@@ -127,6 +126,31 @@ classdef MPCParams < handle
             end
             obj.betaH0 = 1/((obj.R)*(1-obj.dieprob));
             obj.betaH = obj.betaH0 - 1e-3;
+        end
+        
+        function obj = set_betaH_distance(obj,names,val,freq)
+            % set beta =  val + betaH0 when param.name is in names cell
+            % array
+            change = find(ismember({obj.name},names) && [obj.freq==freq]);
+            if isempty(change)
+                return
+            else
+                for ip = change
+                    obj(ip).betaH = obj(ip).betaH0 + val;
+                end
+            end
+        end
+        
+        function obj = annuities_on(obj)
+            % Turn off bequests
+            if numel(obj) > 1
+                error('This method only adjusts one param at a time')
+            else
+                obj.Bequests = 0;
+                obj.bequest_weight = 0;
+                obj.r = obj.r + obj.dieprob;
+                obj.R = 1 + obj.r;
+            end
         end
         
         function obj = set_fast(obj)

@@ -1,4 +1,4 @@
-function params = parameters(Fast)
+function params = parameters(runopts,selection)
     
     %----------------------------------------------------------------------
     % BASELINES
@@ -58,7 +58,7 @@ function params = parameters(Fast)
 
         % perfect annuities
         params(end+1) = MPCParams(ifreq,'2 Annuities');
-        params(end).Annuities = 1;
+        params(end).annuities_on();
 
         % bequest curvature
         for bcurv = [0.1 0.5 1 2 5]
@@ -214,12 +214,47 @@ function params = parameters(Fast)
         
         % epstein-zin
     end
+    
+    %% SET BETA UPPER BOUND FOR SPECIAL CASES
+    
+    % annual
+    freq = 1;
+    add_1eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'
+                    '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
+    sub_1eneg2 = {'2 BeqWt0.02 BeqLux0.01 BeqCurv0.1'};
+
+    params.set_betaH_distance(add_1eneg2,1e-2,freq);
+    params.set_betaH_distance(sub_1eneg2,-1e-2,freq);
+        
+    % quarterly
+    freq = 4;
+    add_1eneg3 = {'2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath'};
+    add_5eneg3 = {'2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath'
+                    '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death'
+                    '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath'
+                    '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death'};
+    add_1_25eneg2 = {'2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath'
+                    '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
+    sub_1eneg5 = {'4 Temptation0.05'};
+    
+    params.set_betaH_distance(add_1eneg3,1e-3,freq);
+    params.set_betaH_distance(add_5eneg3,5e-3,freq);
+    params.set_betaH_distance(add_1_25eneg2,1.25e-2,freq);
+    params.set_betaH_distance(sub_1eneg5,-1e-5,freq);
 
     %----------------------------------------------------------------------
     % CALL METHODS
     %----------------------------------------------------------------------
     
-    if Fast == 1
+    if runopts.fast == 1
         params.set_fast();
     end
+    
+    params = MPCParams.select_by_names(params,selection.names_to_run);
+    
+    if numel(Frequencies) == 1
+        params = MPCParams.select_by_freq(params,selection.frequencies);
+    end
+    
+    params.set_index();
 end

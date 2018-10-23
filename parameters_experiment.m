@@ -1,4 +1,4 @@
-function params = parameters_experiment(Fast)
+function params = parameters_experiment(runopts)
 
     freq = 1;
     
@@ -6,8 +6,9 @@ function params = parameters_experiment(Fast)
     params.nxlong = 500;
     params.Display = 1;
     
-    if Fast == 1
+    if runopts.fast == 1
         params.set_fast();
     end
-
+    
+    params.index = 1;
 end

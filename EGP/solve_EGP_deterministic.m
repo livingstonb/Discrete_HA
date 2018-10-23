@@ -1,4 +1,4 @@
-function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
+function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,direct_results)
     % This function uses the method of endogenous grid points to find the
     % policy functions of the deterministic model. Output is in the
     % 'norisk' structure.
@@ -11,7 +11,7 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income)
     con1= zeros(p.nx,p.nb);
     cash1= zeros(p.nx,p.nb);
     
-    betagrid = p.beta + prefs.betagrid0;
+    betagrid = direct_results.beta + prefs.betagrid0;
 
     con = p.r * repmat(sgrid.short,1,p.nb) + income.meannety1;
 
