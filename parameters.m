@@ -222,11 +222,6 @@ function params = parameters(runopts,selection)
             params(end).risk_aver = ra;
             params(end).invies = 1;
             params(end).EpsteinZin = 1;
-            if ifreq == 1
-                params(end).set_betaH_distance(-2.5e-2);
-            else
-                params(end).set_betaH_distance(-6e-3);
-            end
         end
         
         % epstein-zin: vary invies
@@ -235,17 +230,6 @@ function params = parameters(runopts,selection)
             params(end).risk_aver = 1;
             params(end).invies = 1/ies;
             params(end).EpsteinZin = 1;
-            if ies<=2 && ifreq==1
-                params(end).set_betaH_distance(-2.5e-2);
-            elseif ifreq==1
-                params(end).set_betaH_distance(-2.2e-2);
-            elseif ies<=1/2 && ifreq==4
-                params(end).set_betaH_distance(-1.3e-2);
-            elseif ies<=1.5 && ifreq==4
-                params(end).set_betaH_distance(-7e-3);
-            else
-                params(end).set_betaH_distance(-5.5e-3);
-            end
         end
     end
     
@@ -254,7 +238,64 @@ function params = parameters(runopts,selection)
     %----------------------------------------------------------------------
     
     params = MPCParams.adjust_if_quarterly(params);
-   
+    
+    %----------------------------------------------------------------------
+    % SET BETA UPPER BOUND FOR EZ CASES
+    %----------------------------------------------------------------------
+    % varying risk_aver
+    EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==1);
+    for iz = EZ
+        params(iz).set_betaH_distance(-3e-2);
+    end
+    EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==4);
+    for iz = EZ
+        params(iz).set_betaH_distance(-6e-3);
+    end
+    
+    
+    % --------- annual, varying invies -------------
+    freq = 1;
+    
+    change_betaH = ['EZ ra1 ies' num2str(1/4)];
+    params.set_betaH_distance(-3e-2,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(1/2)];
+    params.set_betaH_distance(-3e-2,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(3/4)];
+    params.set_betaH_distance(-3e-2,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(1.5)];
+    params.set_betaH_distance(-2.1e-2,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(2)];
+    params.set_betaH_distance(-2.1e-2,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(5)];
+    params.set_betaH_distance(-2.1e-2,change_betaH,freq);
+    
+    % --------- quarterly, varying invies -------------
+    freq = 4;
+    
+    change_betaH = ['EZ ra1 ies' num2str(1/4)];
+    params.set_betaH_distance(-1.5e-2,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(1/2)];
+    params.set_betaH_distance(-1.5e-2,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(3/4)];
+    params.set_betaH_distance(-1e-2,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(1.5)];
+    params.set_betaH_distance(-5.5e-3,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(2)];
+    params.set_betaH_distance(-5.5e-3,change_betaH,freq);
+    
+    change_betaH = ['EZ ra1 ies' num2str(5)];
+    params.set_betaH_distance(-5.4e-3,change_betaH,freq);
+    
+    
     %----------------------------------------------------------------------
     % SET BETA UPPER BOUND FOR BETA HETEROGENEITY CASES
     %----------------------------------------------------------------------

@@ -3,8 +3,8 @@ close all;
 
 %% RUN OPTIONS
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
-runopts.Display = 1;
-runopts.Server = 0; % use server paths and limit display
+runopts.Display = 0;
+runopts.Server = 1; % use server paths and limit display
 runopts.TryCatch = 1; % use try-catch block in main loop (auto-on if Server=1)
 runopts.fast = 0; % specify very small asset and income grids for speed
 runopts.localdir = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
@@ -14,9 +14,9 @@ runopts.localdir = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 IncomeProcess = '';
 
 % select only a subset of experiments
-selection.names_to_run = {'2 FixedBetaHet5 Width0.01 NoDeath'}; % empty cell array to run all names
+selection.names_to_run = {}; % empty cell array to run all names
 selection.suffix = '';
-selection.frequencies = [4]; % [1 4], 1, or 4
+selection.frequencies = [1 4]; % [1 4], 1, or 4
 
 %% FUNCTION CALL
 
