@@ -18,6 +18,21 @@ selection.names_to_run = {}; % empty cell array to run all names
 selection.suffix = '';
 selection.frequencies = [1 4]; % [1 4], 1, or 4
 
+%% Add paths
+    if runopts.Server == 0
+        path = runopts.localdir;
+    else
+        path = '/home/livingstonb/GitHub/MPCrecode';
+        savetablepath_annual = ['/home/livingstonb/output/table_annual' selection.suffix '.xls'];
+        savetablepath_quarterly = ['/home/livingstonb/output/table_quarterly' selection.suffix '.xls'];
+        savematpath = ['/home/livingstonb/output/variables' selection.suffix '.mat'];
+    end
+    addpath([path '/Auxiliary Functions']);
+    addpath([path '/MPC Functions']);
+    addpath([path '/Output Functions']);
+    addpath([path '/EGP']);
+    cd(path);
+
 %% FUNCTION CALL
 
 [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runopts,IncomeProcess,selection);

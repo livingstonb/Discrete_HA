@@ -1,18 +1,5 @@
 function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runopts,IncomeProcess,selection)
-    %% Add paths
-    if runopts.Server == 0
-        path = runopts.localdir;
-    else
-        path = '/home/livingstonb/GitHub/MPCrecode';
-        savetablepath_annual = ['/home/livingstonb/output/table_annual' selection.suffix '.xls'];
-        savetablepath_quarterly = ['/home/livingstonb/output/table_quarterly' selection.suffix '.xls'];
-        savematpath = ['/home/livingstonb/output/variables' selection.suffix '.mat'];
-    end
-    addpath([path '/Auxiliary Functions']);
-    addpath([path '/MPC Functions']);
-    addpath([path '/Output Functions']);
-    addpath([path '/EGP']);
-    cd(path);
+    
 
     %% PARAMETERIZATIONS
     if runopts.Batch == 0
