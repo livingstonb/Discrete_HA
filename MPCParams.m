@@ -129,23 +129,18 @@ classdef MPCParams < handle
             obj.betaH = obj.betaH0 - 1e-3;
         end
         
-        function obj = set_betaH_distance(obj,names,val,freq)
-            % when a cell array is passed w/valid names, use names
-            change = find(ismember({obj.name},names) & [obj.freq]==freq);
-            if isempty(change)
-                % Change for the object passed
+        function obj = set_betaH_distance(obj,val,name,freq)
+            if nargin == 4
+                change_ind = find(ismember({obj.name},name) & [obj.freq]==freq);
+                obj(change_ind).betaH = obj(change_ind).betaH0 + val;
+            elseif nargin == 2
                 if numel(obj) == 1
                     obj.betaH = obj.betaH0 + val;
                 else
-                    msg1 = 'Must pass a names cell array or apply this method ';
-                    msg2 = 'to only one object';
-                    error([msg1 msg2])
+                    error('cannot pass array to method unless passing name,freq')
                 end
-            else
-                % Use names
-                for ip = change
-                    obj(ip).betaH = obj(ip).betaH0 + val;
-                end
+            else 
+                error('must pass 1 or 3 arguments')
             end
         end
         

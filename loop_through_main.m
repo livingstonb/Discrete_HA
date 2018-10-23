@@ -32,10 +32,7 @@ function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runo
     for ip = 1:Nparams
         tic
         disp(['Trying parameterization ' params(ip).name])
-        if runopts.Server == 0
-            [results(ip),checks{ip},decomps{ip}] = main(params(ip));
-            exceptions{ip} = [];
-        else
+        if runopts.TryCatch == 1 || runopts.Server == 1
             try
                 % Main function
                 [results(ip),checks{ip},decomps{ip}] = main(params(ip));
@@ -45,14 +42,23 @@ function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runo
                 exceptions{ip} = ME;
                 results(ip) = struct('direct',[],'norisk',[],'sim',[]);
             end
-            save(savematpath,'results','checks','exceptions','params','decomps');         
+            
+            if runopts.Server == 1
+                save(savematpath,'results','checks','exceptions','params','decomps');    
+            end
+        else
+            [results(ip),checks{ip},decomps{ip}] = main(params(ip));
+            exceptions{ip} = [];
         end
         disp(['Finished parameterization ' params(ip).name])
         toc
     end
 
     %% DECOMPOSITIONS - COMPARISONS WITH BASELINE
-    decomp2 = decomposition2(params,results,exceptions);
+    for ip = 1:numel(params)
+        decomp2(ip) = DecompTwo(params(ip));
+    end
+    decomp2 = DecompTwo.decompose(decomp2,params,results);
 
     %% CREATE TABLE
 

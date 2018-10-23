@@ -130,26 +130,26 @@ function [T_annual,T_quarter] = create_table(params,results,...
                         [decomps{ip}.term4]];
                     
                 % decomposition2
-                dec2_mpc1 = [decomp2{ip}.mpc1_Em1_less_Em0
-                                decomp2{ip}.mpc1_term1                       
-                                decomp2{ip}.mpc1_term2
-                                decomp2{ip}.mpc1_term3
-                                decomp2{ip}.mpc1_term3a(1)   
-                                decomp2{ip}.mpc1_term3b(1)
-                                decomp2{ip}.mpc1_term3a(2)   
-                                decomp2{ip}.mpc1_term3b(2)
-                                decomp2{ip}.mpc1_term3a(3)   
-                                decomp2{ip}.mpc1_term3b(3)];
-                dec2_mpc4 = [decomp2{ip}.mpc4_Em1_less_Em0
-                                decomp2{ip}.mpc4_term1                       
-                                decomp2{ip}.mpc4_term2
-                                decomp2{ip}.mpc4_term3
-                                decomp2{ip}.mpc4_term3a(1)   
-                                decomp2{ip}.mpc4_term3b(1)
-                                decomp2{ip}.mpc4_term3a(2)   
-                                decomp2{ip}.mpc4_term3b(2)
-                                decomp2{ip}.mpc4_term3a(3)   
-                                decomp2{ip}.mpc4_term3b(3)];
+                dec2_mpc1 = [decomp2(ip).mpc1_Em1_less_Em0
+                                decomp2(ip).mpc1_term1                       
+                                decomp2(ip).mpc1_term2
+                                decomp2(ip).mpc1_term3
+                                decomp2(ip).mpc1_term3a(1)   
+                                decomp2(ip).mpc1_term3b(1)
+                                decomp2(ip).mpc1_term3a(2)   
+                                decomp2(ip).mpc1_term3b(2)
+                                decomp2(ip).mpc1_term3a(3)   
+                                decomp2(ip).mpc1_term3b(3)];
+                dec2_mpc4 = [decomp2(ip).mpc4_Em1_less_Em0
+                                decomp2(ip).mpc4_term1                       
+                                decomp2(ip).mpc4_term2
+                                decomp2(ip).mpc4_term3
+                                decomp2(ip).mpc4_term3a(1)   
+                                decomp2(ip).mpc4_term3b(1)
+                                decomp2(ip).mpc4_term3a(2)   
+                                decomp2(ip).mpc4_term3b(2)
+                                decomp2(ip).mpc4_term3a(3)   
+                                decomp2(ip).mpc4_term3b(3)];
                 if p.freq == 1
                     dec2_A = dec2_mpc1;
                     dec2_Q = NaN(10,1);
