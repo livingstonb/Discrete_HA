@@ -307,22 +307,22 @@ function params = parameters(runopts,selection)
     
     % no death
     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(-3e-2,change_betaH,freq);
+    params.set_betaH_distance(-3e-3,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(-3e-2,change_betaH,freq);
+    params.set_betaH_distance(-3e-3,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(-2e-2,change_betaH,freq);
+    params.set_betaH_distance(-3e-3,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(-2e-2,change_betaH,freq);
+    params.set_betaH_distance(-1e-3,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(-1.5e-2,change_betaH,freq);
+    params.set_betaH_distance(-8e-4,change_betaH,freq);
     
     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(-1.5e-2,change_betaH,freq);
+    params.set_betaH_distance(5e-3,change_betaH,freq);
         
     % death
     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
@@ -383,7 +383,14 @@ function params = parameters(runopts,selection)
     
     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death';
     params.set_betaH_distance(1.2e-2,change_betaH,freq);
-
+    
+    %----------------------------------------------------------------------
+    % SET BETA UPPER BOUND FOR OTHER CASES
+    %----------------------------------------------------------------------
+    
+    change_betaH = '2 BeqWt0.02 BeqLux0.01 BeqCurv0.1';
+    params.set_betaH_distance(-5e-3,change_betaH,1);
+    
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------

@@ -170,9 +170,9 @@ classdef MPCParams < handle
                 objs(io).betaH = objs(io).betaH0 - 1e-3;
                 
                 if objs(io).annuities == true
-                    obj.Bequests = 0;
-                    obj.r = obj.r + obj.dieprob;
-                    obj.R = 1 + obj.r;
+                    objs(io).Bequests = 0;
+                    objs(io).r = objs(io).r + objs(io).dieprob;
+                    objs(io).R = 1 + objs(io).r;
                 end
             end
         end
