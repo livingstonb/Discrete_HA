@@ -1,4 +1,5 @@
 
+import os
 
 def gen_mfiles(mfile,incvars,filebase,suffix,frequencies):
     for i in range(len(incvars)):
@@ -21,7 +22,7 @@ def gen_sbatch(mfile,incvars,filebase,suffix,frequencies,sbatch):
                      '#SBATCH --job-name=' + sbatch['jname'][i],
                      '#SBATCH --output=' + sbatch['output'][i],
                      '#SBATCH --error=' + sbatch['error'][i],
-                     '#SBATCH --partition==broadwl',
+                     '#SBATCH --partition=broadwl',
                      '#SBATCH --time=02:00:00',
                      '#SBATCH --nodes=1',
                      '#SBATCH --ntasks-per-node=1',
@@ -44,6 +45,10 @@ incvars = ["''",
             "'IncomeVariables/quarterly_c.mat'"]
             
 filebase = '/Users/Brian/Documents/GitHub/MPCrecode/batch/'
+if not os.path.exists(filebase+'sbatch'):
+    os.mkdir(filebase+'sbatch')
+if not os.path.exists(filebase+'mfiles'):
+    os.mkdir(filebase+'mfiles')
 suffix = ['_A','_Q','_Qa','_Qb','_Qc']
 frequencies = [1,4,4,4,4]
 
@@ -51,9 +56,9 @@ frequencies = [1,4,4,4,4]
 sbatch = {'jname':[],'output':[],'error':[],'mfile':[]}
 for i in range(len(incvars)):
     sbatch['jname'].append('MPCs' + suffix[i])
-    sbatch['output'].append('home/livingstonb/output/matlab' + suffix[i] + '.out')
-    sbatch['error'].append('home/livingstonb/output/matlab' + suffix[i] + '.err')
-    sbatch['mfile'].append('/home/livingstonb/GitHub/MPCrecode/master' + suffix[i] + '.m')
+    sbatch['output'].append('/home/livingstonb/output/matlab' + suffix[i] + '.out')
+    sbatch['error'].append('/home/livingstonb/output/matlab' + suffix[i] + '.err')
+    sbatch['mfile'].append('/home/livingstonb/GitHub/MPCrecode/batch/mfiles/master' + suffix[i] + '.m')
 
 # ---------------------------------------------------------------------
 # Function calls
