@@ -83,6 +83,7 @@ classdef DecompTwo < handle
                         end
                     end
                 catch ME
+                    objs(ip).decomp_error = ME;
                 end
             end  
         end

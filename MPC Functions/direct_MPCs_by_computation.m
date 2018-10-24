@@ -112,7 +112,7 @@ function [avg_mpc1_agrid,mpcs1_a_direct,avg_mpc4_agrid,mpcs4_a_direct,agrid_dist
             mpcamount = p.mpcfrac(im)*income.meany1*p.freq;
         end
         
-        x_mpc = agrid_short + income.meannety1 + mpcamount;
+        x_mpc = agrid_short + income.meany1 + mpcamount;
         con = zeros(p.nxlong,p.nb);
         for ib = 1:p.nb
             con(:,ib) = norisk.coninterp{ib}(x_mpc);

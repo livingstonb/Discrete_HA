@@ -35,11 +35,13 @@ function income = gen_income_variables(p)
     %% TRANSITORY INCOME
     % disretize normal distribution
     if LoadIncome==1 && p.freq==4
-        p.sd_logyT = Import.sig2Tvec;
-        p.lambdaT = Import.lambdaTvec;
-    end
-
-    if p.nyT>1
+        logyTgrid = Import.discmodel1.logyTgrid;
+        yTdist = Import.discmodel1.yTdist;
+        p.nyT = length(logyTgrid);
+        logyTgrid = reshape(logyTgrid,[],1);
+        yTdist = reshape(yTdist,[],1);
+        yTcumdist = cumsum(yTdist,1);
+    elseif p.nyT>1
 
         %moments of mixture distribution
         lmu2 = p.lambdaT.*p.sd_logyT^2;
@@ -83,7 +85,7 @@ function income = gen_income_variables(p)
         error('All income grids must be column vectors')
     end
     if size(yTdist,2)>1 || size(yFdist,2)>1 || size(yPdist,2)>1
-        error('All income distributions must be colUMN VECTORS')
+        error('All income distributions must be column vectors')
     end
 
     %% OTHER INCOME VARIABLES
@@ -101,7 +103,7 @@ function income = gen_income_variables(p)
     temp = sortrows([ymat(:) ymatdist(:)],1);
     ysort = temp(:,1);
     ysortdist = temp(:,2);
-    ycumdist = cumsum(ysortdist);
+    ycumdist_sort = cumsum(ysortdist);
     
     % 1-period statistics
     meany1 = ymat(:)'*ymatdist(:);
@@ -109,7 +111,7 @@ function income = gen_income_variables(p)
 
     % find tax threshold on labor income
     if numel(ysort)>1
-        labtaxthresh = lininterp1(ycumdist,ysort,p.labtaxthreshpc);
+        labtaxthresh = lininterp1(ycumdist_sort,ysort,p.labtaxthreshpc);
     else
         labtaxthresh = 0;
     end    

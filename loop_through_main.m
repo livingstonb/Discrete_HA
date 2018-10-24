@@ -18,7 +18,12 @@ function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runo
 
     for ip = 1:Nparams
         tic
-        disp(['Trying parameterization ' params(ip).name])
+        if params(ip).freq == 1
+            msgfreq = 'annual';
+        else
+            msgfreq = 'quarterly';
+        end
+        fprintf('\n Trying %s parameterization "%s"\n',msgfreq,params(ip).name)
         if runopts.TryCatch == 1 || runopts.Server == 1
             try
                 % Main function

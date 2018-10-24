@@ -83,7 +83,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     %% Simulate savings decisions
     xsim = zeros(p.Nsim,p.Tsim); 
     ssim = zeros(p.Nsim,p.Tsim);
-    asim = zeros(p.Nsim,p.Tsim); 
+    asim = zeros(p.Nsim,p.Tsim);
     
     for it = 1:p.Tsim
         if mod(it,50) == 0
@@ -168,7 +168,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     
     [sim_results.avg_mpc1,sim_results.avg_mpc4,sim_results.var_mpc1,sim_results.var_mpc4]...
         = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
-                                            betaindsim,income,model,xgrid,agrid);
+                                         	betaindsim,income,model,xgrid);
 
 
 end

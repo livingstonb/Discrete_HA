@@ -69,11 +69,11 @@ function [results,checks,decomp] = main(p)
     xgrid.full          = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
     
     % xgrid for model without income risk
-    xgrid.norisk_short  = sgrid.short + income.meannety1;
+    xgrid.norisk_short  = sgrid.short + income.meany1;
     xgrid.norisk_longgrid = linspace(0,1,p.nxlong);
     xgrid.norisk_longgrid = xgrid.norisk_longgrid.^(1/p.xgrid_par);
     xgrid.norisk_longgrid = p.borrow_lim + (p.xmax-p.borrow_lim).*xgrid.norisk_longgrid;
-    xgrid.norisk_longgrid = xgrid.norisk_longgrid + income.meannety1;
+    xgrid.norisk_longgrid = xgrid.norisk_longgrid + income.meany1;
     
     % create longer xgrid
     minyT = kron(min(income.netymat,[],2),ones(p.nxlong,1));
@@ -86,6 +86,8 @@ function [results,checks,decomp] = main(p)
     
     % Create common agrid to compute mpcs along same agrid for all
     % parameterizations. Dimension nxlong x 1
+    % Decomp2 only valid between specs with same nxlong, xgrid_par,
+    % borrow_lim, and xmax
     agrid = linspace(0,1,p.nxlong)';
     agrid = agrid.^(1/p.xgrid_par);
     agrid = p.borrow_lim + (p.xmax - p.borrow_lim) * agrid;
@@ -128,7 +130,9 @@ function [results,checks,decomp] = main(p)
         end
         beta_lb = p.betaL;
 
+        % output function that limits number of fzero iterations
         check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
+        
         options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
         [beta_final,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
         if exitflag ~= 1
@@ -154,8 +158,6 @@ function [results,checks,decomp] = main(p)
     results.direct.beta_annualized = beta_final^p.freq;
     results.direct.beta = beta_final;
     
-    % Set parameter equal to this beta
-
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         checks{end+1} = 'NoEGPConv';
@@ -314,7 +316,7 @@ function [results,checks,decomp] = main(p)
     
     %% DECOMPOSITION
 	decomp = struct([]);
-    if p.nb == 1
+    if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
  
         m0 = results.direct.mpcs1_a_direct{5};

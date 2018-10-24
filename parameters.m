@@ -159,12 +159,13 @@ function params = parameters(runopts,selection)
     params(end).sd_logyT = sqrt(0);
     
     % x
-    params(end+1) = MPCParams(1,'WithFE nyF 3');
+    params(end+1) = MPCParams(1,'WithFE nyF 5');
     params(end).rho_logyP = 0.9158;
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
     params(end).sd_logyF = sqrt(0.1801);
-    params(end).nyF = 3;
+    params(end).nxlong = 400;
+    params(end).nyF = 5;
 
     % xi
     params(end+1) = MPCParams(1,'3a(xi) MatchSSA');
