@@ -81,8 +81,6 @@ function params = parameters(runopts,selection)
                 name = ['2 FixedBetaHet5 Width' num2str(ibw) deathind];
                 params(end+1) = MPCParams(ifreq,name);
                 params(end).nb = 5;
-                params(end).nxlong = 400;
-                params(end).nx = 100;
                 params(end).betawidth = ibw;
                 params(end).betaswitch = 0;
                 params(end).dieprob = deathp;
@@ -94,8 +92,6 @@ function params = parameters(runopts,selection)
                     name = ['2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
                     params(end+1) = MPCParams(ifreq,name);
                     params(end).nb = 5;
-                    params(end).nxlong = 400;
-                    params(end).nx = 100;
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
                     params(end).dieprob = deathp;
@@ -164,7 +160,6 @@ function params = parameters(runopts,selection)
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
     params(end).sd_logyF = sqrt(0.1801);
-    params(end).nxlong = 400;
     params(end).nyF = 5;
 
     % xi

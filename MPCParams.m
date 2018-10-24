@@ -70,7 +70,7 @@ classdef MPCParams < handle
     	tol_iter    = 1.0e-6; % EGP
     	Nsim        = 100000; % For optional simulation
     	Tsim        = 200; % Simulaation
-    	nxlong      = 1000;
+    	nxlong      = 400;
 
         % beta iteration
     	targetAY    = 3.5;
