@@ -1,4 +1,5 @@
-function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runopts,IncomeProcess,selection)
+function [params,results,decomps,checks,exceptions,...
+                decomp2] = loop_through_main(runopts,IncomeProcess,selection)
     
 
     %% PARAMETERIZATIONS
@@ -54,15 +55,16 @@ function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runo
 
     %% CREATE TABLE
 
-    [T_annual,T_quarter] = create_table(params,results,...
-                                    decomps,checks,exceptions,decomp2);
-
-    if runopts.Server == 1
-        if ~isempty(T_annual)
-            writetable(T_annual,runopts.savetablepath_annual,'WriteRowNames',true);
-        end
-        if ~isempty(T_quarter)
-            writetable(T_quarter,runopts.savetablepath_quarterly,'WriteRowNames',true);
-        end
+    if runopts.Server == 0
+        [T_annual,T_quarter] = create_table(params,results,...
+                                        decomps,checks,exceptions,decomp2);
     end
+%     if runopts.Server == 1
+%         if ~isempty(T_annual)
+%             writetable(T_annual,runopts.savetablepath_annual,'WriteRowNames',true);
+%         end
+%         if ~isempty(T_quarter)
+%             writetable(T_quarter,runopts.savetablepath_quarterly,'WriteRowNames',true);
+%         end
+%     end
 end

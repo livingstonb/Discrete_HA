@@ -14,7 +14,11 @@ def gen_mfiles(mfile,incvars,filebase,suffix,frequencies):
                 suffix = incsuffix[i]+'_spec'+str(count)
                 with open(filebase+'mfiles/master'+suffix+'.m','w') as newmfile:
                     for line in mfile.readlines():
-                        if line.startswith('IncomeProcess'):
+                        if line.startswith('runopts.Batch ='):
+                            newmfile.write("runopts.Batch = 1")
+                        elif line.startswith('runopts.Server ='):
+                            newmfile.write('runopts.Server = 1')
+                        elif line.startswith('IncomeProcess'):
                             newmfile.write("IncomeProcess = "+incvars[i]+';\n')
                         elif line.startswith('selection.names_to_run'):
                             newmfile.write('selection.names_to_run = '+name+';\n')
@@ -28,26 +32,41 @@ def gen_mfiles(mfile,incvars,filebase,suffix,frequencies):
                             newmfile.write(line)
                     mfile.seek(0)
             
-def gen_sbatch(mfile,incvars,filebase,incsuffix,frequencies,sbatch):
+def gen_sbatch(mfile,incvars,filebase,incsuffix,frequencies):
+    deletepath = os.path.join(filebase,'sbatch')
+    for dirpath, dirs, files in os.walk(deletepath):
+        for nfile in files:
+            os.remove(os.path.join(dirpath,nfile))
     for i in range(len(incvars)):
         count = 0
-        for nb in [1,5]
-            count += 1
-            suffix = incsuffix[i]+'_spec'+str(count)
-            with open(filebase+'sbatch/batch'+suffix+'.sbatch','w') as newmfile:
-                lines = ['#!/bin/bash',
-                         '#SBATCH --job-name=' + suffix,
-                         '#SBATCH --output=' + sbatch['output'][i],
-                         '#SBATCH --error=' + sbatch['error'][i],
-                         '#SBATCH --partition=broadwl',
-                         '#SBATCH --time=04:00:00',
-                         '#SBATCH --nodes=1',
-                         '#SBATCH --ntasks-per-node=1',
-                         '#SBATCH --mem-per-cpu=4000',
-                         '\n module load matlab',
-                         '\n matlab -nodisplay < ' + sbatch['mfile'][i]]
-                newmfile.write('\n'.join(lines))
-                mfile.seek(0)
+        for nb in [1,5]:
+            for name in names[nb]:
+                if nb == 1:
+                    time = '00:05:00'
+                else:
+                    time = '00:45:00'
+                    
+                if (frequencies[i]==4) and (nb==5):
+                    mem = str(4000)
+                else:
+                    mem = str(2000)
+                
+                count += 1
+                suffix = incsuffix[i]+'_spec'+str(count)
+                with open(filebase+'sbatch/batch'+suffix+'.sbatch','w') as newmfile:
+                    lines = ['#!/bin/bash',
+                             '#SBATCH --job-name=' + suffix,
+                             '#SBATCH --output='+'/home/livingstonb/output/matlab'+suffix+'.out',
+                             '#SBATCH --error=' +'/home/livingstonb/output/matlab'+suffix+'.err',
+                             '#SBATCH --partition=broadwl',
+                             '#SBATCH --' + time,
+                             '#SBATCH --nodes=1',
+                             '#SBATCH --ntasks-per-node=1',
+                             '#SBATCH --mem-per-cpu=' + mem,
+                             '\n module load matlab',
+                             '\n matlab -nodisplay < '+'/home/livingstonb/GitHub/MPCrecode/batch/mfiles/master'+suffix+'.m']
+                    newmfile.write('\n'.join(lines))
+                    mfile.seek(0)
             
 
 # ---------------------------------------------------------------------
@@ -79,17 +98,10 @@ for d in ['NoDeath','Death']:
         for bs in list(map(str,[0.02,0.1])):
             names[5].append("{{'2 RandomBetaHet5 Width{0:s} SwitchProb{1:s} {2:s}'}}".format(ibw,bs,d))
 
-# sbatch variables
-sbatch = {'output':[],'error':[],'mfile':[]}
-for i in range(len(incvars)):
-    sbatch['output'].append('/home/livingstonb/output/matlab' + incsuffix[i] + '.out')
-    sbatch['error'].append('/home/livingstonb/output/matlab' + incsuffix[i] + '.err')
-    sbatch['mfile'].append('/home/livingstonb/GitHub/MPCrecode/batch/mfiles/master' + incsuffix[i] + '.m')
-
 # ---------------------------------------------------------------------
 # Function calls
 # ---------------------------------------------------------------------
 gen_mfiles(mfile,incvars,filebase,incsuffix,frequencies)
-#gen_sbatch(mfile,incvars,filebase,suffix,frequencies,sbatch)
+gen_sbatch(mfile,incvars,filebase,incsuffix,frequencies)
     
 mfile.close()
