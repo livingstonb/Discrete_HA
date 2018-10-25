@@ -19,7 +19,8 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
     if p.r < 0.001
         % Add income so consumption guess is not all zeros
-        extracon = repmat(kron(min(income.netymat,[],2),ones(p.nx,1)),p.nb,1);
+        %extracon = repmat(kron(min(income.netymat,[],2),ones(p.nx,1)),p.nb,1);
+        extracon = 0.02 * repmat(xgrid.full(:),p.nb,1);
     else
         extracon = 0;
     end
@@ -155,7 +156,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,
         model.adist = find_stationary_adist(p,model,income,prefs,agrid_short);
     else
         
-        [model.adist,model.xdist,model.xvals,model.y_x,model.nety_x,model.statetrans]...
+        [model.adist,model.xdist,model.xvals,model.y_x,model.nety_x,model.statetrans,model.adiff]...
                     = find_stationary_adist(p,model,income,prefs,agrid_short);
         for ib = 1:p.nb
         for iyF = 1:p.nyF

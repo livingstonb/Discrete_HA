@@ -177,7 +177,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         model.adist = find_stationary_adist(p,model,income,prefs,agrid_short);
     else
         
-        [model.adist,model.xdist,model.xvals,model.y_x,model.nety_x,model.statetrans]...
+        [model.adist,model.xdist,model.xvals,model.y_x,model.nety_x,model.statetrans,model.adiff]...
                     = find_stationary_adist(p,model,income,prefs,agrid_short);
         for ib = 1:p.nb
         for iyF = 1:p.nyF

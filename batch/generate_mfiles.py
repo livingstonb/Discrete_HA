@@ -23,7 +23,7 @@ def gen_sbatch(mfile,incvars,filebase,suffix,frequencies,sbatch):
                      '#SBATCH --output=' + sbatch['output'][i],
                      '#SBATCH --error=' + sbatch['error'][i],
                      '#SBATCH --partition=broadwl',
-                     '#SBATCH --time=02:00:00',
+                     '#SBATCH --time=04:00:00',
                      '#SBATCH --nodes=1',
                      '#SBATCH --ntasks-per-node=1',
                      '#SBATCH --mem-per-cpu=4000',

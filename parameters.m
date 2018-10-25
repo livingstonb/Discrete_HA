@@ -386,6 +386,8 @@ function params = parameters(runopts,selection)
     
     change_betaH = '2 BeqWt0.02 BeqLux0.01 BeqCurv0.1';
     params.set_betaH_distance(-5e-3,change_betaH,1);
+    change_betaH = '4 Temptation0.05';
+    params.set_betaH_distance(-1e-4,change_betaH,4);
     
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS

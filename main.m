@@ -204,6 +204,9 @@ function [results,checks,decomp] = main(p)
     if norm(yFdist_check-income.yFdist) > 1e-3
         checks{end+1} = 'Bad_yF_Dist';
     end
+    if basemodel.adiff > 1e-8
+        checks{end+1} = sprintf('NoStatConv, adiff = %5.3e',basemodel.adiff);
+    end
     if min(basemodel.adist(:)) < - 1e-3
         checks{end+1} = 'LargeNegativeStateProbability';
     elseif min(basemodel.adist(:)) < -1e-8
@@ -316,7 +319,7 @@ function [results,checks,decomp] = main(p)
     
     %% DECOMPOSITION
 	decomp = struct([]);
-    if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0
+    if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0 && p.temptation == 0
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
  
         m0 = results.direct.mpcs1_a_direct{5};
