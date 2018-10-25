@@ -193,9 +193,11 @@ classdef MPCParams < handle
         
         function objs = select_by_freq(objs,freq)
             % Choose parameterizations based on frequency
-            if freq==1 || freq==4
-                objs = objs([objs.freq]==freq);
-                % else use all
+            if numel(freq) == 1
+                if freq==1 || freq==4
+                    objs = objs([objs.freq]==freq);
+                    % else use all
+                end
             end
         end 
         

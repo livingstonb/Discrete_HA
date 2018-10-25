@@ -3,12 +3,10 @@ function [T_annual,T_quarter,results,checks,exceptions] = loop_through_main(runo
 
     %% PARAMETERIZATIONS
     if runopts.Batch == 0
-        params = parameters_experiment(runopts); 
+        params = parameters_experiment(runopts,IncomeProcess); 
     else
-        params = parameters(runopts,selection);
+        params = parameters(runopts,selection,IncomeProcess);
     end
-
-    [params.IncomeProcess] = deal(IncomeProcess);
 
     %% CALL MAIN FUNCTION
     Nparams = size(params,2);

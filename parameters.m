@@ -1,4 +1,4 @@
-function params = parameters(runopts,selection)
+function params = parameters(runopts,selection,IncomeProcess)
     
     %----------------------------------------------------------------------
     % BASELINES
@@ -13,6 +13,11 @@ function params = parameters(runopts,selection)
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
     %----------------------------------------------------------------------
+    
+    % baseline for quarterly income grid 'c'
+    params(end+1) = MPCParams(4,'baseline_Qc');
+    params(end).IncomeProcess = 'IncomeVariables/quarterly_c.mat';
+    
     for ifreq = [1 4]
         % different mean wealth targets
         for mw = [0.25, 0.5, 1, 2.5, 5]
@@ -389,6 +394,14 @@ function params = parameters(runopts,selection)
     change_betaH = '4 Temptation0.05';
     params.set_betaH_distance(-1e-4,change_betaH,4);
     
+    if strcmp(IncomeProcess,'IncomeVariables/quarterly_b.mat')
+        change_betaH = '2 RiskAver6';
+        params.set_betaH_distance(-1e-2,change_betaH,4);
+        
+        change_betaH = '2 Annuities';
+        params.set_betaH_distance(-5e-3,change_betaH,4);
+    end
+    
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------
@@ -408,6 +421,11 @@ function params = parameters(runopts,selection)
     params = MPCParams.select_by_nb(params,selection.nb);
     
     params.set_index();
+    
+    for ip = 1:numel(params)
+        if isempty(params(ip).IncomeProcess)
+            params(ip).IncomeProcess = IncomeProcess;
+    end
     
 %     warning('BETA ITERATION IS SET OFF')
 %     [params.IterateBeta] = deal(0);

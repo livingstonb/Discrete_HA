@@ -1,4 +1,4 @@
-function params = parameters_experiment(runopts)
+function params = parameters_experiment(runopts,IncomeProcess)
 
     params = MPCParams(1,'test');
     params.nxlong = 2000;

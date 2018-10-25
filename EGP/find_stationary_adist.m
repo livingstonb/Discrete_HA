@@ -90,7 +90,7 @@ function [adist,xdist,xvals,incvals,netincvals,statetrans,diff] = find_stationar
     q(1,1:nn*p.nyP:end)=repmat(income.yFdist,p.nb,1) / p.nb;
     diff=1; 
     iter = 1;
-    while diff>1e-8 && iter < 1e4
+    while diff>1e-8 && iter < 5e4
         z=q*statetrans;
         diff=norm(z-q);
         q=z;
@@ -99,7 +99,7 @@ function [adist,xdist,xvals,incvals,netincvals,statetrans,diff] = find_stationar
         end
         iter = iter + 1;
     end
-    if iter >= 1e4
+    if iter >= 5e4
         error('No conv to statdist, diff = %5.3e',diff)
     end
 

@@ -10,8 +10,7 @@ runopts.fast = 0; % specify very small asset and income grids for speed
 runopts.localdir = '/Users/Brian/Documents/GitHub/MPCrecode';
 
 % empty string if not loading from file
-% IncomeProcess = 'IncomeVariables/quarterly_a.mat';
-IncomeProcess = '';
+IncomeProcess = 'IncomeVariables/quarterly_b.mat';
 
 % select only a subset of experiments
 selection.names_to_run = {}; % empty cell array to run all names
