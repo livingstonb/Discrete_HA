@@ -28,6 +28,7 @@ selection.nb = []; % 1,5,[]
         runopts.savetablepath_quarterly = ['/home/livingstonb/output/table_quarterly' selection.suffix '.xls'];
         runopts.savematpath = ['/home/livingstonb/output/variables' selection.suffix '.mat'];
     end
+    addpath([runopts.path '/Classes']);
     addpath([runopts.path '/Auxiliary Functions']);
     addpath([runopts.path '/MPC Functions']);
     addpath([runopts.path '/Output Functions']);

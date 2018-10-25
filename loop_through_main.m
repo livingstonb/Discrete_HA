@@ -59,12 +59,4 @@ function [params,results,decomps,checks,exceptions,...
         [T_annual,T_quarter] = create_table(params,results,...
                                         decomps,checks,exceptions,decomp2);
     end
-%     if runopts.Server == 1
-%         if ~isempty(T_annual)
-%             writetable(T_annual,runopts.savetablepath_annual,'WriteRowNames',true);
-%         end
-%         if ~isempty(T_quarter)
-%             writetable(T_quarter,runopts.savetablepath_quarterly,'WriteRowNames',true);
-%         end
-%     end
 end
