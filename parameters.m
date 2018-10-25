@@ -13,6 +13,11 @@ function params = parameters(runopts,selection)
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
     %----------------------------------------------------------------------
+    
+    % quarterly, income grid 'c'
+    params(end+1) = MPCParams(4,'baseline_Qc');
+    params(end).IncomeProcess = 'IncomeVariables/quarterly_c.mat';
+    
     for ifreq = [1 4]
         % different mean wealth targets
         for mw = [0.25, 0.5, 1, 2.5, 5]
