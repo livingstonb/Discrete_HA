@@ -67,18 +67,22 @@ def gen_sbatch(mfile,incvars,filebase,incsuffix,frequencies):
                              '\n matlab -nodisplay < '+'/home/livingstonb/GitHub/MPCrecode/batch/mfiles/master'+suffix+'.m']
                     newmfile.write('\n'.join(lines))
                     mfile.seek(0)
-            
+                    
+def gen_mfile_aggregator():
+    matdir = '/Documents/midway2temp'
+    matfiles = os.listdir(matdir)
+    matfiles = list(map(lambda x: os.path.join(matdir,x),matfiles))
+    matfiles = list(filter(lambda x: x.endswith('.mat'),matfiles))
+    for i,matfile in enumerate(matfiles):
+        loadtext.append('S({:i}) = load({:s});\n'.format(i,matfile))
+        
 
 # ---------------------------------------------------------------------
 # Startup
 # ---------------------------------------------------------------------
 mfile = open('/Users/brianlivingston/Documents/GitHub/MPCrecode/master.m')
 
-incvars = ["''",
-            "''",
-            "'IncomeVariables/quarterly_a.mat'",
-            "'IncomeVariables/quarterly_b.mat'",
-            "'IncomeVariables/quarterly_c.mat'"]
+incvars = ["'IncomeVariables/quarterly_b.mat'"]
             
 filebase = '/Users/brianlivingston/Documents/GitHub/MPCrecode/batch/'
 if not os.path.exists(filebase+'sbatch'):
@@ -86,8 +90,8 @@ if not os.path.exists(filebase+'sbatch'):
 if not os.path.exists(filebase+'mfiles'):
     os.mkdir(filebase+'mfiles')
     
-incsuffix = ['_A','_Q','_Qa','_Qb','_Qc']
-frequencies = [1,4,4,4,4]
+incsuffix = ['_Qb']
+frequencies = [4]
 # names for each nb
 names = {};
 names[1] = ['{}']
@@ -103,5 +107,6 @@ for d in ['NoDeath','Death']:
 # ---------------------------------------------------------------------
 gen_mfiles(mfile,incvars,filebase,incsuffix,frequencies)
 gen_sbatch(mfile,incvars,filebase,incsuffix,frequencies)
+# gen_mfile_aggregator()
     
 mfile.close()
