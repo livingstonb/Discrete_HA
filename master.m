@@ -15,8 +15,9 @@ IncomeProcess = '';
 
 % select only a subset of experiments
 selection.names_to_run = {}; % empty cell array to run all names
-selection.suffix = '';
-selection.frequencies = [1 4]; % [1 4], 1, or 4
+selection.suffix = ''; % added to filenames
+selection.frequencies = [1 4]; % 1,4,[] 
+selection.nb = []; % 1,5,[]
 
 %% Add paths
     if runopts.Server == 0

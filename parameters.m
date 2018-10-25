@@ -404,10 +404,8 @@ function params = parameters(runopts,selection)
     end
     
     params = MPCParams.select_by_names(params,selection.names_to_run);
-    
-    if numel(selection.frequencies) == 1
-        params = MPCParams.select_by_freq(params,selection.frequencies);
-    end
+    params = MPCParams.select_by_freq(params,selection.frequencies);
+    params = MPCParams.select_by_nb(params,selection.nb);
     
     params.set_index();
     

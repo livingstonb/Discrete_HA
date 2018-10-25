@@ -149,7 +149,6 @@ classdef MPCParams < handle
             ind = num2cell(1:numel(obj));
             [obj.index] = deal(ind{:});
         end
-      
     end
     
     methods (Static)
@@ -196,11 +195,27 @@ classdef MPCParams < handle
             % Choose parameterizations based on frequency
             if freq==1 || freq==4
                 objs = objs([objs.freq]==freq);
-            else
-                error('Must select freq = 1 or freq = 4')
+                % else use all
             end
         end 
         
+        function objs = select_by_nb(objs,nb)
+            % Choose parameterizations based on frequency
+            if numel(nb) == 1
+                objs = objs([objs.nb]==nb);
+                % else use all
+            end
+        end 
+        
+        function obj = pfind(objs,name,freq)
+            % Return single parameterization
+            ind = find(ismember({objs.name},{name}) & [objs.freq]==freq);
+            if numel(ind) ~= 1
+                error('pfind method failed to find unique name-freq combination')
+            else 
+                obj = objs(ind);
+            end
+        end
     end
 
 end
