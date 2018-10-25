@@ -15,9 +15,9 @@ def gen_mfiles(mfile,incvars,filebase,suffix,frequencies):
                 with open(filebase+'mfiles/master'+suffix+'.m','w') as newmfile:
                     for line in mfile.readlines():
                         if line.startswith('runopts.Batch ='):
-                            newmfile.write("runopts.Batch = 1")
+                            newmfile.write("runopts.Batch = 1;\n")
                         elif line.startswith('runopts.Server ='):
-                            newmfile.write('runopts.Server = 1')
+                            newmfile.write('runopts.Server = 1;\n')
                         elif line.startswith('IncomeProcess'):
                             newmfile.write("IncomeProcess = "+incvars[i]+';\n')
                         elif line.startswith('selection.names_to_run'):
@@ -55,7 +55,7 @@ def gen_sbatch(mfile,incvars,filebase,incsuffix,frequencies):
                 suffix = incsuffix[i]+'_spec'+str(count)
                 with open(filebase+'sbatch/batch'+suffix+'.sbatch','w') as newmfile:
                     lines = ['#!/bin/bash',
-                             '#SBATCH --job-name=' + suffix,
+                             '#SBATCH --job-name=discrete' + suffix,
                              '#SBATCH --output='+'/home/livingstonb/output/matlab'+suffix+'.out',
                              '#SBATCH --error=' +'/home/livingstonb/output/matlab'+suffix+'.err',
                              '#SBATCH --partition=broadwl',
@@ -72,7 +72,7 @@ def gen_sbatch(mfile,incvars,filebase,incsuffix,frequencies):
 # ---------------------------------------------------------------------
 # Startup
 # ---------------------------------------------------------------------
-mfile = open('/Users/Brian/Documents/GitHub/MPCrecode/master.m')
+mfile = open('/Users/brianlivingston/Documents/GitHub/MPCrecode/master.m')
 
 incvars = ["''",
             "''",
@@ -80,7 +80,7 @@ incvars = ["''",
             "'IncomeVariables/quarterly_b.mat'",
             "'IncomeVariables/quarterly_c.mat'"]
             
-filebase = '/Users/Brian/Documents/GitHub/MPCrecode/batch/'
+filebase = '/Users/brianlivingston/Documents/GitHub/MPCrecode/batch/'
 if not os.path.exists(filebase+'sbatch'):
     os.mkdir(filebase+'sbatch')
 if not os.path.exists(filebase+'mfiles'):
