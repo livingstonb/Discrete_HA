@@ -6,17 +6,17 @@ runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 0; % use server paths and limit display
 runopts.TryCatch = 0; % use try-catch block in main loop (auto-on if Server=1)
-runopts.fast = 0; % specify very small asset and income grids for speed
+runopts.fast = 1; % specify very small asset and income grids for speed
 runopts.localdir = '/Users/Brian/Documents/GitHub/MPCrecode';
 
 % empty string if not loading from file
 IncomeProcess = 'IncomeVariables/quarterly_b.mat';
 
 % select only a subset of experiments
-selection.names_to_run = {}; % empty cell array to run all names
-selection.suffix = ''; % added to filenames
-selection.frequencies = [1 4]; % 1,4,[] 
-selection.nb = []; % 1,5,[]
+selection.names_to_run = {}; % cell array of strings, {} to run all
+selection.suffix = ''; % string, added to filenames
+selection.frequencies = [4]; % 1,4 ([] to run all)
+selection.nb = [5]; % 1,5 ([] to run all)
 
 %% Add paths
 if runopts.Server == 0
@@ -87,7 +87,7 @@ for ip = 1:numel(params)
 end
 decomp2 = DecompTwo.decompose(decomp2,params,results);
 
-%% CREATE TABLE
+%% CREATE TABLE/SAVE
 
 if runopts.Server == 0
     [T_annual,T_quarter] = create_table(params,results,...

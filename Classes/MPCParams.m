@@ -137,8 +137,8 @@ classdef MPCParams < handle
         end
         
         function obj = set_fast(obj)
-            [obj.nxlong] = deal(20);
-            [obj.nx] = deal(15);
+            [obj.nxlong] = deal(10);
+            [obj.nx] = deal(10);
             [obj.Nmpcsim] = deal(1e2);
             [obj.nyT] = deal(3);
             [obj.nyP] = deal(3);

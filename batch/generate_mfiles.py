@@ -1,5 +1,6 @@
 
 import os
+import re
 
 def gen_mfiles(mfile,args):
     # delete any existing batch m-files
@@ -73,24 +74,25 @@ def gen_sbatch(mfile,args):
                     newmfile.write('\n'.join(lines))
                     mfile.seek(0)
                     
-def gen_mfile_aggregator():
+def gen_mfile_aggregator(args):
     # create m-file to aggregate .mat files
-    matdir = '/Documents/midway2temp'
+    matdir = args['MWout']
     matfiles = os.listdir(matdir)
+    pattern = re.compile('spec[0-9]*.mat')
+    matfiles = list(filter(lambda x: re.fullmatch(pattern,x),matfiles))
     matfiles = list(map(lambda x: os.path.join(matdir,x),matfiles))
-    matfiles = list(filter(lambda x: x.endswith('.mat'),matfiles))
     
-    with open('/Documents/midway2temp/aggregate.m','w') as newmfile:
-        newmfile.write('clear\n % Aggregate _spec##.mat into one\n\n')
+    with open(os.path.join(args['MWout'],'aggregate.m'),'w') as newmfile:
+        newmfile.write("clear\n% Aggregates spec##.mat's into one .mat file\n\n")
         for i,matfile in enumerate(matfiles):
-            newmfile.write('matfiles({0:d}) = {1:s}\n'.format(i,matfile))
+            newmfile.write("matfiles{{{0:d}}} = '{1:s}';\n".format(i+1,matfile))
         
-        lines = ['spec = 0',
-                 'for matfile = matfiles',
-                 '    S = load(matfile);',
+        lines = ['\nspec = 0;',
+                 'for im = 1:numel(matfiles)',
+                 '    S = load(matfiles{im});',
                  '    for is = 1:numel(S)',
-                 '        spec = spec + 1',
-                 '        S(spec) = S(is)',
+                 '        spec = spec + 1;',
+                 '        out(spec) = S(is);',
                  '    end',
                  'end']
         newmfile.write('\n'.join(lines))
@@ -108,6 +110,8 @@ args['masterpath'] = '/Users/Brian/Documents/GitHub/MPCrecode/master.m'
 args['batchpath'] = '/Users/Brian/Documents/GitHub/MPCrecode/batch'
 # relative path of income variable inside MPCrecode
 args['Qincvar'] = "'IncomeVariables/quarterly_b.mat'"
+# location of .mat output files
+args['MWout'] = '/Users/Brian/Documents/midway2temp'
 
 mfile = open(args['masterpath'])
 
@@ -132,6 +136,6 @@ args['names'] = names
 # ---------------------------------------------------------------------
 gen_mfiles(mfile,args)
 gen_sbatch(mfile,args)
-gen_mfile_aggregator()
+gen_mfile_aggregator(args)
     
 mfile.close()
