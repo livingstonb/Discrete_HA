@@ -78,8 +78,10 @@ def gen_mfile_aggregator(args):
     # create m-file to aggregate .mat files
     matdir = args['MWout']
     matfiles = os.listdir(matdir)
-    pattern = re.compile('spec[0-9]*.mat')
+    pattern = re.compile('spec[0-9]+.mat')
     matfiles = list(filter(lambda x: re.fullmatch(pattern,x),matfiles))
+    
+    matfiles = sorted(matfiles)
     matfiles = list(map(lambda x: os.path.join(matdir,x),matfiles))
     
     with open(os.path.join(args['MWout'],'aggregate.m'),'w') as newmfile:
