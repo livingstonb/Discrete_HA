@@ -9,14 +9,17 @@ def gen_mfiles(mfile,args):
         for nfile in files:
             os.remove(os.path.join(dirpath,nfile))
             
+ 
     # loop over specifications, identified by '_spec<#>' in files
-    count = 0
-    for freq in ['1','4']:
-        for nb in ['1','5']:
+    
+    for nb in ['1','5']:
+        count = 0
+        for freq in ['1','4']:
             for name in args['names'][nb]:
                 count += 1
-                suffix = '_spec'+str(count)
-                with open(os.path.join(args['batchpath'],'mfiles/master')+suffix+'.m','w') as newmfile:
+                label = '_nb' + nb + '_' + str(count)
+                newfpath = os.path.join(args['batchpath'],'mfiles/master'+label+'.m')
+                with open(newfpath,'w') as newmfile:
                     for line in mfile.readlines():
                         if line.startswith('runopts.Batch ='):
                             newmfile.write("runopts.Batch = 1;\n")
@@ -27,7 +30,7 @@ def gen_mfiles(mfile,args):
                         elif line.startswith('selection.names_to_run'):
                             newmfile.write('selection.names_to_run = '+name+';\n')
                         elif line.startswith('selection.suffix'):
-                            newmfile.write("selection.suffix = '"+suffix+"';\n")
+                            newmfile.write("selection.suffix = '"+label+"';\n")
                         elif line.startswith('selection.frequencies'):
                             newmfile.write('selection.frequencies = '+freq+';\n')
                         elif line.startswith('selection.nb'):
@@ -35,50 +38,50 @@ def gen_mfiles(mfile,args):
                         else:
                             newmfile.write(line)
                     mfile.seek(0)
+        if nb == '1':
+            nb1end = count
+        elif nb == '5':
+            nb5end = count
+    return (nb1end,nb5end)
             
-def gen_sbatch(mfile,args):
+def gen_sbatch(mfile,args,nb1end,nb5end):
+    # delete existing sbatch scripts
     deletepath = os.path.join(args['batchpath'],'sbatch')
     for dirpath, dirs, files in os.walk(deletepath):
         for nfile in files:
             os.remove(os.path.join(dirpath,nfile))
-            
-    # loop over specifications, identified by '_spec<#>' in files
-    count = 0
-    for freq in ['1','4']:
-        for nb in ['1','5']:
-            for name in args['names'][nb]:
-                count += 1
-                if nb == '5':
-                    time = '00:40:00'
-                else:
-                    time = '01:00:00'
-                    
-                if (freq=='4') and (nb=='5'):
-                    mem = '4000'
-                else:
-                    mem = '2000'
-                
-                suffix = 'spec'+str(count)
-                with open(os.path.join(args['batchpath'],'sbatch/')+suffix+'.sbatch','w') as newmfile:
-                    lines = ['#!/bin/bash',
-                             '#SBATCH --job-name=disc' + '_' +suffix,
-                             '#SBATCH --output='+'/home/livingstonb/output/matlab'+'_'+suffix+'.out',
-                             '#SBATCH --error=' +'/home/livingstonb/output/matlab'+'_'+suffix+'.err',
-                             '#SBATCH --partition=broadwl',
-                             '#SBATCH --' + time,
-                             '#SBATCH --nodes=1',
-                             '#SBATCH --ntasks-per-node=1',
-                             '#SBATCH --mem-per-cpu=' + mem,
-                             '\nmodule load matlab',
-                             '\nmatlab -nodisplay < '+'/home/livingstonb/GitHub/MPCrecode/batch/mfiles/master'+'_'+suffix+'.m']
-                    newmfile.write('\n'.join(lines))
-                    mfile.seek(0)
+
+    for nb in [1,5]: 
+        label = '_nb' + str(nb)
+        if nb == 5:
+            mem = '4000'
+            end = nb5end
+        elif nb == 1:
+            mem = '2000'
+            end = nb1end
+
+        with open(os.path.join(args['batchpath'],'sbatch','s'+label+'.sbatch'),'w') as newmfile:
+            lines = ['#!/bin/bash',
+                     '#SBATCH --job-name=disc' + label,
+                     '#SBATCH --output='+'/home/livingstonb/output/matlab'+label+'_%a.out',
+                     '#SBATCH --error=' +'/home/livingstonb/output/matlab'+label+'_%a.err',
+                     '#SBATCH --partition=broadwl',
+                     '#SBATCH --01:00:00',
+                     '#SBATCH --array=1-'+str(end),
+                     '#SBATCH --nodes=1',
+                     '#SBATCH --ntasks-per-node=1',
+                     '#SBATCH --mem-per-cpu=' + mem,
+                     '\nmodule load matlab',
+                     '\nmatlab -nodisplay < '+'/home/livingstonb/GitHub/MPCrecode/batch/mfiles/master'
+                         +label+'_${SLURM_ARRAY_TASK_ID}.m']
+            newmfile.write('\n'.join(lines))
+            mfile.seek(0)
                     
 def gen_mfile_aggregator(args):
     # create m-file to aggregate .mat files
     matdir = args['MWout']
     matfiles = os.listdir(matdir)
-    pattern = re.compile('spec[0-9]+.mat')
+    pattern = re.compile('variables_nb[1,5]_[0-9]+.mat')
     matfiles = list(filter(lambda x: re.fullmatch(pattern,x),matfiles))
     
     matfiles = sorted(matfiles)
@@ -136,8 +139,8 @@ args['names'] = names
 # ---------------------------------------------------------------------
 # Function calls
 # ---------------------------------------------------------------------
-gen_mfiles(mfile,args)
-gen_sbatch(mfile,args)
+(nb1end,nb5end) = gen_mfiles(mfile,args)
+gen_sbatch(mfile,args,nb1end,nb5end)
 gen_mfile_aggregator(args)
     
 mfile.close()
