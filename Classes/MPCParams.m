@@ -229,6 +229,16 @@ classdef MPCParams < handle
                 obj = objs(ind);
             end
         end
+
+        function S = to_struct(objs)
+            % save object as structure
+            ofields = fields(objs);
+            for is = 1:numel(objs)
+                for ifield = 1:numel(ofields)
+                    S(is).(ofields{ifield}) = objs(is).(ofields{ifield});
+                end
+            end
+        end
     end
 
 end

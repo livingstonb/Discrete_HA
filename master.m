@@ -40,6 +40,7 @@ else
     params = parameters(runopts,selection,IncomeProcess);
 end
 
+Sparams = MPCParams.to_struct(params);
 
 %% CALL MAIN FUNCTION
 Nparams = size(params,2);
@@ -67,7 +68,7 @@ for ip = 1:Nparams
         end
 
         if runopts.Server == 1
-            save(runopts.savematpath,'results','checks','exceptions','params','decomps');    
+            save(runopts.savematpath,'results','checks','exceptions','Sparams','decomps');    
         end
     else
         [results(ip),checks{ip},decomps{ip}] = main(params(ip));
@@ -86,6 +87,6 @@ if runopts.Server == 0
     [T_annual,T_quarter] = create_table(params,results,...
                                     decomps,checks,exceptions,decomp2);
 else
-    save(runopts.savematpath,'params','results','decomps','checks','exceptions','decomp2')
+    save(runopts.savematpath,'Sparams','results','decomps','checks','exceptions','decomp2')
     exit
 end
