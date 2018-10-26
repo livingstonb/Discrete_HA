@@ -1,8 +1,10 @@
 
+# filetypes
 .DS_Store
 *.*~
 *.mat
 
-IncomeVariables
+# directories
+IncomeGrids
 batch/sbatch
 batch/mfiles

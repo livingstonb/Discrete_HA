@@ -1,6 +1,6 @@
 classdef MPCParams < handle
     % usage: params = MPCParams(frequency)
-    
+
     properties
         % identifiers
         name;
@@ -97,9 +97,10 @@ classdef MPCParams < handle
     end
 
     methods
-        function obj = MPCParams(frequency,name)
+        function obj = MPCParams(frequency,name,IncomeProcess)
             obj.name = name;
             obj.freq = frequency;
+            obj.IncomeProcess = IncomeProcess;
             obj.R = 1 + obj.r;
             
             if frequency == 1
@@ -133,6 +134,9 @@ classdef MPCParams < handle
         function obj = annuities_on(obj)
             % Wait until after frequency adjustments to change other
             % variables
+            if numel(obj) > 1
+                error('Turn on annuities for single specification at a time only')
+            end
             obj.annuities = 1;
         end
         

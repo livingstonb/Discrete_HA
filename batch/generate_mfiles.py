@@ -49,9 +49,9 @@ def gen_sbatch(mfile,args):
             for name in args['names'][nb]:
                 count += 1
                 if nb == '5':
-                    time = '01:00:00'
+                    time = '00:40:00'
                 else:
-                    time = '00:25:00'
+                    time = '01:00:00'
                     
                 if (freq=='4') and (nb=='5'):
                     mem = '4000'
@@ -111,7 +111,7 @@ args['masterpath'] = '/Users/Brian/Documents/GitHub/MPCrecode/master.m'
 # path of 'batch' folder
 args['batchpath'] = '/Users/Brian/Documents/GitHub/MPCrecode/batch'
 # relative path of income variable inside MPCrecode
-args['Qincvar'] = "'IncomeVariables/quarterly_b.mat'"
+args['Qincvar'] = "'IncomeGrids/quarterly_b.mat'"
 # location of .mat output files
 args['MWout'] = '/Users/Brian/Documents/midway2temp'
 

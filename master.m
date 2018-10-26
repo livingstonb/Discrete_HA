@@ -3,20 +3,20 @@ close all;
 
 %% RUN OPTIONS
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
-runopts.Display = 1;
+runopts.Display = 0;
 runopts.Server = 0; % use server paths and limit display
-runopts.TryCatch = 0; % use try-catch block in main loop (auto-on if Server=1)
+runopts.TryCatch = 1; % use try-catch block in main loop (auto-on if Server=1)
 runopts.fast = 1; % specify very small asset and income grids for speed
 runopts.localdir = '/Users/Brian/Documents/GitHub/MPCrecode';
 
 % empty string if not loading from file
-IncomeProcess = 'IncomeVariables/quarterly_b.mat';
+IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments
 selection.names_to_run = {}; % cell array of strings, {} to run all
 selection.suffix = ''; % string, added to filenames
-selection.frequencies = [4]; % 1,4 ([] to run all)
-selection.nb = [5]; % 1,5 ([] to run all)
+selection.frequencies = []; % 1,4 ([] to run all)
+selection.nb = []; % 1,5 ([] to run all)
 
 %% Add paths
 if runopts.Server == 0
@@ -29,21 +29,17 @@ else
 end
 addpath([runopts.path '/Classes']);
 addpath([runopts.path '/Auxiliary Functions']);
-addpath([runopts.path '/MPC Functions']);
+addpath([runopts.path '/Solution Functions']);
 addpath([runopts.path '/Output Functions']);
-addpath([runopts.path '/EGP']);
 cd(runopts.path);
 
 %% PARAMETERIZATIONS
 if runopts.Batch == 0
-    params = parameters_experiment(runopts); 
+    params = parameters_experiment(runopts,IncomeProcess); 
 else
-    params = parameters(runopts,selection);
+    params = parameters(runopts,selection,IncomeProcess);
 end
 
-% Set income process for specifications where it has not been set
-unset = find(cellfun(@(x) isempty(x),{params.IncomeProcess}));
-[params(unset).IncomeProcess] = deal(IncomeProcess);
 
 %% CALL MAIN FUNCTION
 Nparams = size(params,2);
@@ -82,10 +78,7 @@ for ip = 1:Nparams
 end
 
 %% DECOMPOSITIONS - COMPARISONS WITH BASELINE
-for ip = 1:numel(params)
-    decomp2(ip) = DecompTwo(params(ip));
-end
-decomp2 = DecompTwo.decompose(decomp2,params,results);
+decomp2 = decomposition2(params,results);
 
 %% CREATE TABLE/SAVE
 

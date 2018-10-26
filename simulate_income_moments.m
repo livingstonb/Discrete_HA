@@ -27,17 +27,17 @@ income{1} = gen_income_variables(params(1));
 
 % quarterly_a
 params(2) = params(1);
-params(2).IncomeProcess = 'IncomeVariables/quarterly_a.mat';
+params(2).IncomeProcess = 'IncomeGrids/quarterly_a.mat';
 income{2} = gen_income_variables(params(2));
 
 % quarterly_b
 params(3) = params(1);
-params(3).IncomeProcess = 'IncomeVariables/quarterly_b.mat';
+params(3).IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 income{3} = gen_income_variables(params(3));
 
 % quarterly_b
 params(4) = params(1);
-params(4).IncomeProcess = 'IncomeVariables/quarterly_c.mat';
+params(4).IncomeProcess = 'IncomeGrids/quarterly_c.mat';
 income{4} = gen_income_variables(params(4));
 
 %% SIMULATE
