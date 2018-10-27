@@ -406,7 +406,7 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     if runopts.Server~=1 && runopts.Display==1
-        params.set_display_on
+        params.set_display_on;
     end
     
     if runopts.fast == 1
@@ -422,8 +422,7 @@ function params = parameters(runopts,selection,IncomeProcess)
     for ip = 1:numel(params)
         if isempty(params(ip).IncomeProcess)
             params(ip).IncomeProcess = IncomeProcess;
+        end
     end
-    
-%     warning('BETA ITERATION IS SET OFF')
-%     [params.IterateBeta] = deal(0);
+
 end
