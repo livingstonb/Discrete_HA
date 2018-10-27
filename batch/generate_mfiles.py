@@ -14,7 +14,7 @@ def gen_mfiles(mfile,args):
     
     for nb in ['1','5']:
         count = 0
-        for freq in ['1','4']:
+        for freq in args['frequencies']:
             for name in args['names'][nb]:
                 count += 1
                 label = '_nb' + nb + '_' + str(count)
@@ -25,6 +25,8 @@ def gen_mfiles(mfile,args):
                             newmfile.write("runopts.Batch = 1;\n")
                         elif line.startswith('runopts.Server ='):
                             newmfile.write('runopts.Server = 1;\n')
+                        elif line.startswith('runopts.fast ='):
+                            newmfile.write('runopts.fast = '+args['fast']+';\n')
                         elif line.startswith('IncomeProcess'):
                             newmfile.write('IncomeProcess = '+args['Qincvar']+';\n')
                         elif line.startswith('selection.names_to_run'):
@@ -66,7 +68,7 @@ def gen_sbatch(mfile,args,nb1end,nb5end):
                      '#SBATCH --output='+'/home/livingstonb/output/matlab'+label+'_%a.out',
                      '#SBATCH --error=' +'/home/livingstonb/output/matlab'+label+'_%a.err',
                      '#SBATCH --partition=broadwl',
-                     '#SBATCH --01:00:00',
+                     '#SBATCH --'+args['time'],
                      '#SBATCH --array=1-'+str(end),
                      '#SBATCH --nodes=1',
                      '#SBATCH --ntasks-per-node=1',
@@ -117,6 +119,12 @@ args['batchpath'] = '/Users/Brian/Documents/GitHub/MPCrecode/batch'
 args['Qincvar'] = "'IncomeGrids/quarterly_b.mat'"
 # location of .mat output files
 args['MWout'] = '/Users/Brian/Documents/midway2temp'
+# run with small grids for speed (string)
+args['fast'] = '1'
+# frequencies to run (list of strings)
+args['frequencies'] = ['1']
+# time allocation for each mfile
+args['time'] = '00:15:00'
 
 mfile = open(args['masterpath'])
 

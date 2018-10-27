@@ -3,7 +3,7 @@
 .DS_Store
 *.*~
 *.mat
-*.sublime-workspace
+*.sublime*
 
 # directories
 IncomeGrids
