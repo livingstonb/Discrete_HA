@@ -1,6 +1,6 @@
 function params = parameters_experiment(runopts,IncomeProcess)
 
-    params = MPCParams(1,'test');
+    params = MPCParams(1,'test',IncomeProcess);
     params.nxlong = 2000;
     params.betaswitch = 1/50;
     params.nb = 1;

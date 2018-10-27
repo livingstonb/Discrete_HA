@@ -5,24 +5,23 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     % Annual
-    params(1) = MPCParams(1,'baseline_A');
+    params(1) = MPCParams(1,'baseline_A',IncomeProcess);
     
     % Quarterly
-    params(end+1) = MPCParams(4,'baseline_Q');
+    params(end+1) = MPCParams(4,'baseline_Q',IncomeProcess);
     
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
     %----------------------------------------------------------------------
-    
-    % baseline for quarterly income grid 'c'
-    params(end+1) = MPCParams(4,'baseline_Qc');
-    params(end).IncomeProcess = 'IncomeVariables/quarterly_c.mat';
+   
+    % quarterly, income grid 'c'
+    params(end+1) = MPCParams(4,'baseline_Qc','IncomeGrids/quarterly_c.mat');
     
     for ifreq = [1 4]
         % different mean wealth targets
         for mw = [0.25, 0.5, 1, 2.5, 5]
             name = ['2 AYtarget' num2str(mw) ];
-            params(end+1) = MPCParams(ifreq,name);
+            params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).targetAY = mw;
             if ifreq == 4
                 params(end).betaL = 0.5;
@@ -32,14 +31,14 @@ function params = parameters(runopts,selection,IncomeProcess)
         % different interest rates
         for ii = [0, 1, 3, 5]
             name = ['2 IntRate' num2str(ii)];
-            params(end+1) = MPCParams(ifreq,name);
+            params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).r = ii/100;
         end
 
         % different risk aversion coeffs
         for ira = [0.5, 1.5, 2, 4, 6]
             name = ['2 RiskAver' num2str(ira)];
-            params(end+1) = MPCParams(ifreq,name);
+            params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).risk_aver = ira;
             if (ifreq==4 && ira==4) || ira==6
                 params(end).betaL = 0.5;
@@ -49,26 +48,26 @@ function params = parameters(runopts,selection,IncomeProcess)
         % different tax rates
         for itax = [0.05, 0.1, 0.15, 0.25]
             name = ['2 LabTax' num2str(itax)];
-            params(end+1) = MPCParams(ifreq,name);
+            params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).labtaxlow = itax;
         end
 
         % no death
-        params(end+1) = MPCParams(ifreq,'2 NoDeath');
+        params(end+1) = MPCParams(ifreq,'2 NoDeath',IncomeProcess);
         params(end).dieprob = 0;
 
         % no bequests
-        params(end+1) = MPCParams(ifreq,'2 NoBequests');
+        params(end+1) = MPCParams(ifreq,'2 NoBequests',IncomeProcess);
         params(end).Bequests = 0;
 
         % perfect annuities
-        params(end+1) = MPCParams(ifreq,'2 Annuities');
+        params(end+1) = MPCParams(ifreq,'2 Annuities',IncomeProcess);
         params(end).annuities_on();
 
         % bequest curvature
         for bcurv = [0.1 0.5 1 2 5]
             name = ['2 BeqWt0.02 BeqLux0.01 BeqCurv' num2str(bcurv)];
-            params(end+1) = MPCParams(ifreq,name);
+            params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).bequest_weight = 0.02;
             params(end).bequest_luxury = 0.01;
             params(end).bequest_curv   = bcurv;
@@ -84,7 +83,7 @@ function params = parameters(runopts,selection,IncomeProcess)
 
             for ibw = [0.001, 0.005, 0.01]
                 name = ['2 FixedBetaHet5 Width' num2str(ibw) deathind];
-                params(end+1) = MPCParams(ifreq,name);
+                params(end+1) = MPCParams(ifreq,name,IncomeProcess);
                 params(end).nb = 5;
                 params(end).betawidth = ibw;
                 params(end).betaswitch = 0;
@@ -95,7 +94,7 @@ function params = parameters(runopts,selection,IncomeProcess)
             for ibw = [0.001, 0.005, 0.01]
                 for bs = [1/50, 1/10]
                     name = ['2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
-                    params(end+1) = MPCParams(ifreq,name);
+                    params(end+1) = MPCParams(ifreq,name,IncomeProcess);
                     params(end).nb = 5;
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
@@ -110,16 +109,16 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     % i
-    params(end+1) = MPCParams(1,'3a(i) NoTransShocks');
+    params(end+1) = MPCParams(1,'3a(i) NoTransShocks',IncomeProcess);
     params(end).nyT = 1;
     params(end).sd_logyT = 0;
     
     % ii
-    params(end+1) = MPCParams(1,'3a(ii) MeasError');
+    params(end+1) = MPCParams(1,'3a(ii) MeasError',IncomeProcess);
     params(end).sd_logyT = sqrt(0.02);
     
     % iii
-    params(end+1) = MPCParams(1,'3a(iii) NoTranReEst');
+    params(end+1) = MPCParams(1,'3a(iii) NoTranReEst',IncomeProcess);
     params(end).rho_logyP = 0.8592;
     params(end).sd_logyP = sqrt(0.132);
     params(end).nyT = 1;
@@ -133,34 +132,34 @@ function params = parameters(runopts,selection,IncomeProcess)
 %     params(end).sd_logyT = sqrt(0.01);
     
     % v
-    params(end+1) = MPCParams(1,'3a(v) HighPersNotReEst');
+    params(end+1) = MPCParams(1,'3a(v) HighPersNotReEst',IncomeProcess);
     params(end).rho_logyP = 0.99;
     
     % vi
-    params(end+1) = MPCParams(1,'3a(vi) LowPersNotReEst');
+    params(end+1) = MPCParams(1,'3a(vi) LowPersNotReEst',IncomeProcess);
     params(end).rho_logyP = 0.9;
 
     % vii
-    params(end+1) = MPCParams(1,'3a(vii) HighPersReEst');
+    params(end+1) = MPCParams(1,'3a(vii) HighPersReEst',IncomeProcess);
     params(end).rho_logyP = 0.99;
     params(end).sd_logyP = sqrt(0.0088);
     params(end).sd_logyT = sqrt(0.0667);
     
     % viii
-    params(end+1) = MPCParams(1,'3a(viii) EvenHigherPersReEst');
+    params(end+1) = MPCParams(1,'3a(viii) EvenHigherPersReEst',IncomeProcess);
     params(end).rho_logyP = 0.995;
     params(end).sd_logyP = sqrt(0.0043);
     params(end).sd_logyT = sqrt(0.0688);
     
     % ix
-    params(end+1) = MPCParams(1,'3a(ix) HighPersNoTransReEst');
+    params(end+1) = MPCParams(1,'3a(ix) HighPersNoTransReEst',IncomeProcess);
     params(end).rho_logyP = 0.99;
     params(end).sd_logyP = sqrt(0.0088);
     params(end).nyT = 1;
     params(end).sd_logyT = sqrt(0);
     
     % x
-    params(end+1) = MPCParams(1,'WithFE nyF 5');
+    params(end+1) = MPCParams(1,'WithFE nyF 5',IncomeProcess);
     params(end).rho_logyP = 0.9158;
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
@@ -168,20 +167,20 @@ function params = parameters(runopts,selection,IncomeProcess)
     params(end).nyF = 5;
 
     % xi
-    params(end+1) = MPCParams(1,'3a(xi) MatchSSA');
+    params(end+1) = MPCParams(1,'3a(xi) MatchSSA',IncomeProcess);
     params(end).rho_logyP = 0.9468;
     params(end).sd_logyP = sqrt(0.0641);
     params(end).sd_logyT = sqrt(0.0479);
     params(end).lambdaT  = 0.0821;
     
     % xii
-    params(end+1) = MPCParams(1,'3a(xii) WithSCF m0');
+    params(end+1) = MPCParams(1,'3a(xii) WithSCF m0',IncomeProcess);
     params(end).rho_logyP = 0.9787;
     params(end).sd_logyP = sqrt(0.0400);
     params(end).sd_logyT = sqrt(0.0508);
     
     % xiv
-    params(end+1) = MPCParams(1,'3a(xiv) MassPointTrans');
+    params(end+1) = MPCParams(1,'3a(xiv) MassPointTrans',IncomeProcess);
     params(end).rho_logyP = sqrt(0.9516);
     params(end).sd_logyP = sqrt(0.0434);
     params(end).sd_logyT = sqrt(0.6431);
@@ -192,13 +191,13 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     % i
-    params(end+1) = MPCParams(4,'3b(i) KMPTransf');
+    params(end+1) = MPCParams(4,'3b(i) KMPTransf',IncomeProcess);
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
     
     % iv
-    params(end+1) = MPCParams(4,'3b(iv) PersEveryPeriod');
+    params(end+1) = MPCParams(4,'3b(iv) PersEveryPeriod',IncomeProcess);
     params(end).rho_logyP = 0.9884;
     params(end).sd_logyP = sqrt(0.0105);
     params(end).sd_logyT = sqrt(1.5298);
@@ -210,7 +209,7 @@ function params = parameters(runopts,selection,IncomeProcess)
     for ifreq = [1 4]
         % temptation
         for itempt = [0.005 0.01 0.05]
-            params(end+1) = MPCParams(ifreq,['4 Temptation' num2str(itempt)]);
+            params(end+1) = MPCParams(ifreq,['4 Temptation' num2str(itempt)],IncomeProcess);
             params(end).temptation = itempt;
             if itempt == 0.05 && ifreq == 4
                 params(end).set_betaH_distance(-1e-5);
@@ -219,7 +218,7 @@ function params = parameters(runopts,selection,IncomeProcess)
         
         % epstein-zin: vary risk_aver
         for ra = [0.5 0.75 1.5 2 4 8]
-            params(end+1) = MPCParams(ifreq,['EZ ra' num2str(ra) ' invies1']);
+            params(end+1) = MPCParams(ifreq,['EZ ra' num2str(ra) ' invies1'],IncomeProcess);
             params(end).risk_aver = ra;
             params(end).invies = 1;
             params(end).EpsteinZin = 1;
@@ -227,7 +226,7 @@ function params = parameters(runopts,selection,IncomeProcess)
         
         % epstein-zin: vary invies
         for ies = [1/4 1/2 3/4 1.5 2 5]
-            params(end+1) = MPCParams(ifreq,['EZ ra1 ies' num2str(ies)]);
+            params(end+1) = MPCParams(ifreq,['EZ ra1 ies' num2str(ies)],IncomeProcess);
             params(end).risk_aver = 1;
             params(end).invies = 1/ies;
             params(end).EpsteinZin = 1;
@@ -406,10 +405,8 @@ function params = parameters(runopts,selection,IncomeProcess)
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------
     
-    if runopts.Server==1 || runopts.Display==0
-        [params.Display] = deal(0);
-    else
-        [params.Display] = deal(1);
+    if runopts.Server~=1 && runopts.Display==1
+        params.set_display_on
     end
     
     if runopts.fast == 1

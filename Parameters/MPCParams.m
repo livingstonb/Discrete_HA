@@ -1,14 +1,50 @@
 classdef MPCParams < handle
     % usage: params = MPCParams(frequency)
-    
-    properties
+    properties (SetAccess = protected)
         % identifiers
         name;
         index;
         
         % data frequency
         freq;
+
+        % source for income process (file, or empty string for gen in code)
+        IncomeProcess ='';
+
+        % computation
+        max_iter    = 1e5; % EGP
+        tol_iter    = 1.0e-6; % EGP
+        Nsim        = 100000; % For optional simulation
+        nxlong      = 400;
+
+        % beta iteration
+        maxiterAY   = 50;
+        tolAY       = 1e-5;
+
+        % mpc options
+        Nmpcsim = 1e6; % Number of draws to compute MPCs
+        mpcfrac = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
         
+        % wealth statistics options
+        epsilon = [0, 0.005, 0.01, 0.02, 0.05, 0.1]; % fraction of mean ann labor income
+        percentiles = [10, 25, 50, 75, 90, 95, 99, 99.9]; % in percent
+        
+        % decomposition
+        abars = [0, 0.01, 0.05];
+
+        % cash on hand / savings grid
+        nx          = 100;
+        xmax        = 1000;
+        xgrid_par   = 1/3; %1 for linear, 0 for L-shaped
+        borrow_lim  = 0; % negative does not work
+        
+        % OPTIONS
+        IterateBeta = 1;
+        MakePlots = 0;
+        Display = 0;
+        Simulate = 0;
+    end
+    properties
         % returns
         r = 0.02; % default annual, adjusted if frequency = 4;
         R;
@@ -33,9 +69,6 @@ classdef MPCParams < handle
         bequest_luxury  = 0.01;
         Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
         
-        % source for income process (file, or empty string for gen in code)
-        IncomeProcess ='';
-        
         % income risk: AR(1) + IID in logs
     	nyT	= 11;
         yTContinuous = 0; % only works for simulation
@@ -46,12 +79,6 @@ classdef MPCParams < handle
         rho_logyP;
         nyF = 1;
         sd_logyF = 0;
-        
-        % cash on hand / savings grid
-    	nx          = 100;
-    	xmax        = 1000;
-    	xgrid_par   = 1/3; %1 for linear, 0 for L-shaped
-    	borrow_lim  = 0; % negative does not work
         
         %government
         labtaxlow       = 0; %proportional tax
@@ -66,40 +93,17 @@ classdef MPCParams < handle
         betaswitch = 0;
         
         % computation
-    	max_iter    = 1e5; % EGP
-    	tol_iter    = 1.0e-6; % EGP
-    	Nsim        = 100000; % For optional simulation
-    	Tsim        = 200; % Simulaation
-    	nxlong      = 400;
+    	Tsim        = 200; % Simulation
 
         % beta iteration
-    	targetAY    = 3.5;
-    	maxiterAY   = 50;
-    	tolAY       = 1e-5;
-        
-        % mpc options
-        Nmpcsim = 1e6; % Number of draws to compute MPCs
-        mpcfrac = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
-        
-        % wealth statistics options
-    	epsilon = [0, 0.005, 0.01, 0.02, 0.05, 0.1]; % fraction of mean ann labor income
-    	percentiles = [10, 25, 50, 75, 90, 95, 99, 99.9]; % in percent
-        
-        % decomposition
-        abars = [0, 0.01, 0.05];
-        
-        % OPTIONS
-    	IterateBeta = 1;
-        Display;
-        MakePlots = 0;
-        Simulate = 0;
-        
+    	targetAY    = 3.5; 
     end
 
     methods
-        function obj = MPCParams(frequency,name)
+        function obj = MPCParams(frequency,name,IncomeProcess)
             obj.name = name;
             obj.freq = frequency;
+            obj.IncomeProcess = IncomeProcess;
             obj.R = 1 + obj.r;
             
             if frequency == 1
@@ -133,15 +137,22 @@ classdef MPCParams < handle
         function obj = annuities_on(obj)
             % Wait until after frequency adjustments to change other
             % variables
+            if numel(obj) > 1
+                error('Turn on annuities for single specification at a time only')
+            end
             obj.annuities = 1;
         end
         
         function obj = set_fast(obj)
-            [obj.nxlong] = deal(20);
-            [obj.nx] = deal(15);
+            [obj.nxlong] = deal(10);
+            [obj.nx] = deal(10);
             [obj.Nmpcsim] = deal(1e2);
             [obj.nyT] = deal(3);
             [obj.nyP] = deal(3);
+        end
+
+        function obj = set_display_on(obj)
+            [obj.Display] = deal(1)
         end
         
         function obj = set_index(obj)
@@ -194,7 +205,7 @@ classdef MPCParams < handle
         function objs = select_by_freq(objs,freq)
             % Choose parameterizations based on frequency
             if numel(freq) == 1
-                if freq==1 || freq==4
+                if (freq==1) || (freq==4)
                     objs = objs([objs.freq]==freq);
                     % else use all
                 end
@@ -216,6 +227,16 @@ classdef MPCParams < handle
                 error('pfind method failed to find unique name-freq combination')
             else 
                 obj = objs(ind);
+            end
+        end
+
+        function S = to_struct(objs)
+            % save object as structure
+            ofields = fields(objs);
+            for is = 1:numel(objs)
+                for ifield = 1:numel(ofields)
+                    S(is).(ofields{ifield}) = objs(is).(ofields{ifield});
+                end
             end
         end
     end
