@@ -120,16 +120,14 @@ def gen_mfile_aggregator(args):
                  '    S = load(matfiles{im});',
                  '    for is = 1:numel(S)',
                  '        spec = spec + 1;',
-                 '        out(spec) = S(is);',
+                 '        params(spec) = S.Sparams(is);',
+                 '        results(spec) = S.results(is);',
+                 '        decomps(spec) = S.decomps(is);',
+                 '        checks(spec) = S.checks(is);',
+                 '        exceptions(spec) = S.exceptions(is);'
+                 '        decomp2(spec) = S.decomp2(is);',
                  '    end',
                  'end',
-                 '',
-                 'params = out.Sparams;',
-                 'results = out.results;',
-                 'decomps = out.decomps;',
-                 'checks = out.checks;',
-                 'exceptions = out.exceptions;',
-                 'decomp2 = out.decomp2;',
                  '',
                  '[T_annual,T_quarter] = '
                  'create_table(params,results,decomps,checks,exceptions,decomp2);']
@@ -151,11 +149,11 @@ args['Qincvar'] = "'IncomeGrids/quarterly_b.mat'"
 # location of .mat output files
 args['MWout'] = '/Users/Brian/Documents/midway2temp'
 # run with small grids for speed (string)
-args['fast'] = '1'
+args['fast'] = '0'
 # frequencies to run (list of strings)
-args['frequencies'] = ['1']
+args['frequencies'] = ['1','4']
 # time allocation for each mfile
-args['time'] = '00:15:00'
+args['time'] = '01:00:00'
 
 # names for each nb
 names = {};
