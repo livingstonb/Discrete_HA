@@ -31,6 +31,7 @@ addpath([runopts.path '/Classes']);
 addpath([runopts.path '/Auxiliary Functions']);
 addpath([runopts.path '/Solution Functions']);
 addpath([runopts.path '/Output Functions']);
+addpath([runopts.path '/Parameters']);
 cd(runopts.path);
 
 %% PARAMETERIZATIONS

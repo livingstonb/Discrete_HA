@@ -68,7 +68,7 @@ def gen_sbatch(mfile,args,nb1end,nb5end):
                      '#SBATCH --output='+'/home/livingstonb/output/matlab'+label+'_%a.out',
                      '#SBATCH --error=' +'/home/livingstonb/output/matlab'+label+'_%a.err',
                      '#SBATCH --partition=broadwl',
-                     '#SBATCH --'+args['time'],
+                     '#SBATCH --time='+args['time'],
                      '#SBATCH --array=1-'+str(end),
                      '#SBATCH --nodes=1',
                      '#SBATCH --ntasks-per-node=1',
