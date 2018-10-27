@@ -1,8 +1,16 @@
-
 import os
 import re
 
+# This script 
+
+# ---------------------------------------------------------------------
+# Functions
+# ---------------------------------------------------------------------
+
 def gen_mfiles(mfile,args):
+    # generate mfiles named matlab_nb#_#.m which are copies of master.m
+    # with tweaks to run on the server in batch
+
     # delete any existing batch m-files
     deletepath = os.path.join(args['batchpath'],'mfiles')
     for dirpath, dirs, files in os.walk(deletepath):
@@ -11,7 +19,6 @@ def gen_mfiles(mfile,args):
             
  
     # loop over specifications, identified by '_spec<#>' in files
-    
     for nb in ['1','5']:
         count = 0
         for freq in args['frequencies']:
@@ -47,6 +54,8 @@ def gen_mfiles(mfile,args):
     return (nb1end,nb5end)
             
 def gen_sbatch(mfile,args,nb1end,nb5end):
+    # generate sbatch scripts to run the m-files generated in the previous fcn
+
     # delete existing sbatch scripts
     deletepath = os.path.join(args['batchpath'],'sbatch')
     for dirpath, dirs, files in os.walk(deletepath):
@@ -80,14 +89,26 @@ def gen_sbatch(mfile,args,nb1end,nb5end):
             mfile.seek(0)
                     
 def gen_mfile_aggregator(args):
-    # create m-file to aggregate .mat files
+    # create m-file to aggregate .mat files and create a table
+
     matdir = args['MWout']
     matfiles = os.listdir(matdir)
-    pattern = re.compile('variables_nb[1,5]_[0-9]+.mat')
+    pattern = re.compile('variables_nb[1,5]_([0-9]+).mat')
     matfiles = list(filter(lambda x: re.fullmatch(pattern,x),matfiles))
     
     matfiles = sorted(matfiles)
+    # pull out index of each matfile
+    mindex = list(map(lambda x: re.fullmatch(pattern,x).group(1),matfiles))
+    mindex = list(map(lambda x: int(x),mindex))
     matfiles = list(map(lambda x: os.path.join(matdir,x),matfiles))
+    matfiles_new = []*len(mindex)
+
+    for i in range(1,max(mindex)+1):
+        # first use mindex = 1, then mindex = 2...
+        findmindex = [j for j in range(len(mindex)) if mindex[j] == i]
+        for ind in findmindex:
+            matfiles_new.append(matfiles[ind])
+    matfiles = matfiles_new
     
     with open(os.path.join(args['MWout'],'aggregate.m'),'w') as newmfile:
         newmfile.write("clear\n% Aggregates spec##.mat's into one .mat file\n\n")
@@ -101,7 +122,17 @@ def gen_mfile_aggregator(args):
                  '        spec = spec + 1;',
                  '        out(spec) = S(is);',
                  '    end',
-                 'end']
+                 'end',
+                 '',
+                 'params = out.Sparams;',
+                 'results = out.results;',
+                 'decomps = out.decomps;',
+                 'checks = out.checks;',
+                 'exceptions = out.exceptions;',
+                 'decomp2 = out.decomp2;',
+                 '',
+                 '[T_annual,T_quarter] = '
+                 'create_table(params,results,decomps,checks,exceptions,decomp2);']
         newmfile.write('\n'.join(lines))
             
         
@@ -126,13 +157,6 @@ args['frequencies'] = ['1']
 # time allocation for each mfile
 args['time'] = '00:15:00'
 
-mfile = open(args['masterpath'])
-
-if not os.path.exists(os.path.join(args['batchpath'],'sbatch')):
-    os.mkdir(os.path.join(args['batchpath'],'sbatch'))
-if not os.path.exists(os.path.join(args['batchpath'],'mfiles')):
-    os.mkdir(os.path.join(args['batchpath'],'mfiles'))
-
 # names for each nb
 names = {};
 names['1'] = ['{}'] # make matlab use all names
@@ -144,11 +168,23 @@ for d in ['NoDeath','Death']:
             names['5'].append("{{'2 RandomBetaHet5 Width{0:s} SwitchProb{1:s} {2:s}'}}".format(ibw,bs,d))
 args['names'] = names
 
+# open file and create new directories if necessary
+mfile = open(args['masterpath'])
+if not os.path.exists(os.path.join(args['batchpath'],'sbatch')):
+    os.mkdir(os.path.join(args['batchpath'],'sbatch'))
+if not os.path.exists(os.path.join(args['batchpath'],'mfiles')):
+    os.mkdir(os.path.join(args['batchpath'],'mfiles'))
+
 # ---------------------------------------------------------------------
 # Function calls
 # ---------------------------------------------------------------------
+# create batch m-files
 (nb1end,nb5end) = gen_mfiles(mfile,args)
+
+# create batch sbatch scripts
 gen_sbatch(mfile,args,nb1end,nb5end)
-gen_mfile_aggregator(args)
+
+# generate m-file that aggreagates .mat files and creates a table
+#gen_mfile_aggregator(args)
     
 mfile.close()
