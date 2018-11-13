@@ -151,8 +151,9 @@ classdef MPCParams < handle
             [obj.nyP] = deal(3);
         end
 
-        function obj = set_display_on(obj)
-            [obj.Display] = deal(1);
+        function obj = set_display(obj,on)
+            % on = 1 or 0
+            [obj.Display] = deal(on);
         end
         
         function obj = set_index(obj)

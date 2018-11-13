@@ -1,4 +1,4 @@
-function [avg_mpc1_agrid,mpcs1_a_direct,avg_mpc4_agrid,mpcs4_a_direct,agrid_dist,norisk_mpcs1_a_direct]...
+function [MPCs,agrid_dist,norisk_mpcs1_a_direct]...
                 = direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk)
 
     if p.Display == 1
@@ -58,19 +58,20 @@ function [avg_mpc1_agrid,mpcs1_a_direct,avg_mpc4_agrid,mpcs4_a_direct,agrid_dist
             con_baseline = Econ;
         else
             % Compute m(a,yP,yF,beta) = E[m(x,yP,yF,beta)|a,yP,yF,beta]
-            mpcs1_a_yP_yF_beta = (Econ - con_baseline) / mpcamount;
-            avg_mpc1_agrid(im) = basemodel.adist(:)' * mpcs1_a_yP_yF_beta(:);
+            % MPC in period 1 out of period 1 shock
+            mpcs_1_1_yP_yF_beta = (Econ - con_baseline) / mpcamount;
+            MPCs.avg_1_1(im) = basemodel.adist(:)' * mpcs_1_1_yP_yF_beta(:);
 
             % Compute m(a) = E(m(a,yP,yF,beta)|a)
             %       = sum of P(yP,yF,beta|a) * m(a,yP,yF,beta) over all
             %         (yP,yF,beta)
-            mpcs1_a_direct{im} = sum(sum(sum(Pcondl .* mpcs1_a_yP_yF_beta,4),3),2);
+            MPCs.mpcs_1_1{im} = sum(sum(sum(Pcondl .* mpcs_1_1_yP_yF_beta,4),3),2);
         end
         
         % 4-PERIOD MPCS
         % Construct transition matrix from period 1 to period 2
         NN = p.nxlong*p.nyP*p.nyF*p.nb;
-        if im>0 && p.freq==4
+        if im>0
 
             aprime_live = p.R * sav;
             interp = funbas(fspace,aprime_live(:));
@@ -89,15 +90,35 @@ function [avg_mpc1_agrid,mpcs1_a_direct,avg_mpc4_agrid,mpcs4_a_direct,agrid_dist
                 T12(:,p.nxlong*(col-1)+1:p.nxlong*col) = (1-p.dieprob)*newblock_live + p.dieprob*newblock_death;
             end
 
-            mpcs2_a_yP_yF_beta = mpcs1_a_yP_yF_beta(:) + (T12-speye(NN))*con_baseline(:)/mpcamount;
-            mpcs3_a_yP_yF_beta = mpcs2_a_yP_yF_beta + (T12*basemodel.statetrans-speye(NN))*con_baseline(:)/mpcamount;
-            mpcs4_a_yP_yF_beta = mpcs3_a_yP_yF_beta + (T12*basemodel.statetrans^2-speye(NN))*con_baseline(:)/mpcamount;
-            mpcs4_a_yP_yF_beta = reshape(mpcs4_a_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
-            avg_mpc4_agrid(im) = basemodel.adist(:)' * mpcs4_a_yP_yF_beta(:);
-            mpcs4_a_direct{im} = sum(sum(sum(Pcondl .* mpcs4_a_yP_yF_beta,4),3),2);
-        elseif im>0 && p.freq==1
-            avg_mpc4_agrid(im) = NaN;
-            mpcs4_a_direct{im} = [];
+            % MPC in period 2 out of period 1 shock
+            mpcs_1_2_yP_yF_beta = (T12-speye(NN))*con_baseline(:)/mpcamount;
+            mpcs_1_2_yP_yF_beta = reshape(mpcs_1_2_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
+            MPCs.mpcs_1_2{im} = sum(sum(sum(Pcondl .* mpcs_1_2_yP_yF_beta,4),3),2);
+            MPCs.avg_1_2(im) = basemodel.adist(:)' * mpcs_1_2_yP_yF_beta(:);
+
+            % MPC in period 3 out of period 1 shock
+            mpcs_1_3_yP_yF_beta = (T12*basemodel.statetrans-speye(NN))*con_baseline(:)/mpcamount;
+            mpcs_1_3_yP_yF_beta = reshape(mpcs_1_3_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
+            MPCs.mpcs_1_3{im} = sum(sum(sum(Pcondl .* mpcs_1_3_yP_yF_beta,4),3),2);
+            MPCs.avg_1_3(im) = basemodel.adist(:)' * mpcs_1_3_yP_yF_beta(:);
+
+            % MPC in period 4 out of period 1 shock
+            mpcs_1_4_yP_yF_beta = (T12*basemodel.statetrans^2-speye(NN))*con_baseline(:)/mpcamount;
+            mpcs_1_4_yP_yF_beta = reshape(mpcs_1_4_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
+            MPCs.mpcs_1_4{im} = sum(sum(sum(Pcondl .* mpcs_1_4_yP_yF_beta,4),3),2);
+            MPCs.avg_1_4(im) = basemodel.adist(:)' * mpcs_1_4_yP_yF_beta(:);
+            
+            if p.freq==1
+                MPCs.avg_1_1to4(im) = NaN;
+                MPCs.avg_1_5to8(im) = NaN;
+                MPCs.avg_1_9to12(im) = NaN;
+                MPCs.avg_1_13to16(im) = NaN;
+            else
+                % MPC in year 1 out of quarter 1 shock
+                MPCs.avg_1_1to4(im) = MPCs.avg_1_1(im) + MPCs.avg_1_2(im) + MPCs.avg_1_3(im) + MPCs.avg_1_4(im);
+                MPCs.mpcs_1_1to4{im} = MPCs.mpcs_1_1{im} + MPCs.mpcs_1_2{im} + MPCs.mpcs_1_3{im} + MPCs.mpcs_1_4{im};
+                % ...
+            end
         end
     end
 

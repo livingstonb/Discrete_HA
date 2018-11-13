@@ -2,7 +2,7 @@ clear;
 close all;
 
 %% RUN OPTIONS
-runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
+runopts.Batch = 0; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 0; % use server paths and limit display
 runopts.TryCatch = 0; % use try-catch block in main loop (auto-on if Server=1)

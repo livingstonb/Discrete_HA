@@ -1,11 +1,8 @@
 function params = parameters_experiment(runopts,IncomeProcess)
 
-    params = MPCParams(1,'test',IncomeProcess);
-    params.nxlong = 2000;
+    params = MPCParams(4,'test',IncomeProcess);
     params.betaswitch = 1/50;
     params.nb = 1;
-    
-    params.Simulate = 1;
     
     %----------------------------------------------------------------------
     % ADJUST PARAMETERS FOR FREQUENCY
@@ -18,9 +15,9 @@ function params = parameters_experiment(runopts,IncomeProcess)
     %----------------------------------------------------------------------
     
     if runopts.Server==1 || runopts.Display==0
-        [params.Display] = deal(0);
+        params.set_display(0);
     else
-        [params.Display] = deal(1);
+        params.set_display(1);
     end
     
     if runopts.fast == 1

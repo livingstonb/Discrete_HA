@@ -406,7 +406,7 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     if runopts.Server~=1 && runopts.Display==1
-        params.set_display_on;
+        params.set_display(1);
     end
     
     if runopts.fast == 1
