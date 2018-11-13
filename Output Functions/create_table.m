@@ -26,20 +26,56 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Wealth, top 10% share'
             'Wealth, top 1% share'
             'Gini coefficient'
-            '    MPCS OUT OF 0.01 MEAN ANN INC'
-            'Mean annual MPC (size = -1e-5)'
-            'Mean annual MPC (size = -0.01)'
-            'Mean annual MPC (size = -0.1)'
-            'Mean annual MPC (size = 1e-5)'
-            'Mean annual MPC (size = 0.01)'
-            'Mean annual MPC (size = 0.1)'
-            'Mean quarterly MPC (size = -1e-5)'
-            'Mean quarterly MPC (size = -0.01)'
-            'Mean quarterly MPC (size = -0.1)'
-            'Mean quarterly MPC (size = 1e-5)'
-            'Mean quarterly MPC (size = 0.01)'
-            'Mean quarterly MPC (size = 0.1)'
-            '    DECOMP OF 1-PERIOD EM0 (MPC OUT OF 0.01 MEAN ANN INC)'
+            '    MPCS OUT OF FRACTION MEAN ANN INC'
+            'IMPC(1,1) (size = -1e-5)'
+            'IMPC(1,1) (size = -0.01)'
+            'IMPC(1,1) (size = -0.1)'
+            'IMPC(1,1) (size = 1e-5)'
+            'IMPC(1,1) (size = 0.01)'
+            'IMPC(1,1) (size = 0.1)'
+            'IMPC(1,2) (size = -1e-5)'
+            'IMPC(1,2) (size = -0.01)'
+            'IMPC(1,2) (size = -0.1)'
+            'IMPC(1,2) (size = 1e-5)'
+            'IMPC(1,2) (size = 0.01)'
+            'IMPC(1,2) (size = 0.1)'
+            'IMPC(1,3) (size = -1e-5)'
+            'IMPC(1,3) (size = -0.01)'
+            'IMPC(1,3) (size = -0.1)'
+            'IMPC(1,3) (size = 1e-5)'
+            'IMPC(1,3) (size = 0.01)'
+            'IMPC(1,3) (size = 0.1)'
+            'IMPC(1,4) (size = -1e-5)'
+            'IMPC(1,4) (size = -0.01)'
+            'IMPC(1,4) (size = -0.1)'
+            'IMPC(1,4) (size = 1e-5)'
+            'IMPC(1,4) (size = 0.01)'
+            'IMPC(1,4) (size = 0.1)'
+            'IMPC(1,1-4) (size = -1e-5)'
+            'IMPC(1,1-4) (size = -0.01)'
+            'IMPC(1,1-4) (size = -0.1)'
+            'IMPC(1,1-4) (size = 1e-5)'
+            'IMPC(1,1-4) (size = 0.01)'
+            'IMPC(1,1-4) (size = 0.1)'
+            'IMPC(1,5-8) (size = -1e-5)'
+            'IMPC(1,5-8) (size = -0.01)'
+            'IMPC(1,5-8) (size = -0.1)'
+            'IMPC(1,5-8) (size = 1e-5)'
+            'IMPC(1,5-8) (size = 0.01)'
+            'IMPC(1,5-8) (size = 0.1)'
+            'IMPC(1,9-12) (size = -1e-5)'
+            'IMPC(1,9-12) (size = -0.01)'
+            'IMPC(1,9-12) (size = -0.1)'
+            'IMPC(1,9-12) (size = 1e-5)'
+            'IMPC(1,9-12) (size = 0.01)'
+            'IMPC(1,9-12) (size = 0.1)'
+            'IMPC(1,13-16) (size = -1e-5)'
+            'IMPC(1,13-16) (size = -0.01)'
+            'IMPC(1,13-16) (size = -0.1)'
+            'IMPC(1,13-16) (size = 1e-5)'
+            'IMPC(1,13-16) (size = 0.01)'
+            'IMPC(1,13-16) (size = 0.1)'
+            '    DECOMP OF IMPC(1,1) (MPC OUT OF FRACTION MEAN ANN INC)'
             '(A/Q) Decomp of Em0 around 0, RA MPC'
             '(A/Q) Decomp of Em0 around 0, HtM Effect'
             '(A/Q) Decomp of Em0 around 0, Non-HtM, constraint'
@@ -114,14 +150,6 @@ function [T_annual,T_quarter] = create_table(params,results,...
             if NaNcol == true
                     column = [p.index;NaN(Nrows-1,1)];
             else
-                % Annual and quarterly MPCs
-                if p.freq == 1
-                    mpcs_A = results(ip).direct.avg_mpc1_agrid(:);
-                    mpcs_Q = NaN(numel(p.mpcfrac),1);
-                else
-                    mpcs_A = results(ip).direct.avg_mpc4_agrid(:);
-                    mpcs_Q = results(ip).direct.avg_mpc1_agrid(:);
-                end
                 
                 % decomposition1
                 dec1 = [[decomps{ip}.term1]
@@ -172,8 +200,14 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     results(ip).direct.top1share            % Top 1% wealth share
                     results(ip).direct.wealthgini           % Gini coefficient
                     NaN
-                    mpcs_A(:)                               % Annual MPCs
-                    mpcs_Q(:)                               % Quarterly MPCs (if freq = 4)
+                    results(ip).direct.mpcs.avg_1_1(:)          % IMPC(1,1)
+                    results(ip).direct.mpcs.avg_1_2(:)          % IMPC(1,2)
+                    results(ip).direct.mpcs.avg_1_3(:)          % IMPC(1,3)
+                    results(ip).direct.mpcs.avg_1_4(:)          % IMPC(1,4)
+                    results(ip).direct.mpcs.avg_1_1to4(:)          % IMPC(1,1-4)
+                    results(ip).direct.mpcs.avg_1_5to8(:)          % IMPC(1,5-8)
+                    results(ip).direct.mpcs.avg_1_9to12(:)          % IMPC(1,9-12)
+                    results(ip).direct.mpcs.avg_1_13to16(:)          % IMPC(1,13-16)
                     NaN
                     dec1(:)                                 % Decomp1
                     NaN

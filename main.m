@@ -273,34 +273,7 @@ function [results,checks,decomp] = main(p)
     %% DIRECTLY COMPUTED 1-PERIOD MPCs
     [MPCs,agrid_dist,norisk_mpcs1_a_direct] = ...
                                 direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk);
-    if p.freq == 1
-        % Annual MPCs
-        results.direct.avg_mpcA_1_1 = MPCs.avg_1_1;
-        results.direct.avg_mpcA_1_2 = MPCs.avg_1_2;
-        results.direct.avg_mpcA_1_3 = MPCs.avg_1_3;
-        results.direct.avg_mpcA_1_4 = MPCs.avg_1_4;
-        results.direct.mpcsA_1_1 = MPCs.mpcs_1_1;
-
-        % Quarterly MPCs
-        results.direct.avg_mpcQ_1_1 = NaN;
-        results.direct.avg_mpcQ_1_2 = NaN;
-        results.direct.avg_mpcQ_1_3 = NaN;
-        results.direct.avg_mpcQ_1_4 = NaN;
-        results.direct.mpcsQ_1_1 = NaN;
-    else
-        % Annual MPCs
-        results.direct.avg_mpcA_1_1 = MPCs.avg_1_1to4;
-        results.direct.avg_mpcA_1_2 = NaN; % add later
-        results.direct.avg_mpcA_1_3 = NaN; % add later
-        results.direct.avg_mpcA_1_4 = NaN; % add later
-
-        % Quarterly MPCs
-        results.direct.avg_mpcQ_1_1 = MPCs.avg_1_1;
-        results.direct.avg_mpcQ_1_4 = MPCs.avg_1_2;
-        results.direct.avg_mpcQ_1_4 = MPCs.avg_1_3;
-        results.direct.avg_mpcQ_1_4 = MPCs.avg_1_4;
-        results.direct.mpcsQ_1_1 = MPCs.mpcs_1_1;
-    end
+    results.direct.mpcs = MPCs;
     results.direct.agrid_dist = agrid_dist;
     results.norisk.mpcs1_a_direct = norisk_mpcs1_a_direct;
     
@@ -347,11 +320,7 @@ function [results,checks,decomp] = main(p)
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
  
         % MPC shock of 0.01 * annual income
-        if p.freq == 1
-            m0 = results.direct.mpcsA_1_1{5};
-        else
-            m0 = results.direct.mpcsQ_1_1{5};
-        end
+        m0 = results.direct.mpcs.mpcs_1_1{5};
         g0 = results.direct.agrid_dist;
         mbc  = results.norisk.mpcs1_a_direct{5};
         for ia = 1:numel(p.abars)

@@ -57,6 +57,9 @@ function [MPCs,agrid_dist,norisk_mpcs1_a_direct]...
         if im == 0
             con_baseline = Econ;
         else
+            if p.Display == 1
+                disp('Computing IMPC(1,1)')
+            end
             % Compute m(a,yP,yF,beta) = E[m(x,yP,yF,beta)|a,yP,yF,beta]
             % MPC in period 1 out of period 1 shock
             mpcs_1_1_yP_yF_beta = (Econ - con_baseline) / mpcamount;
@@ -91,18 +94,27 @@ function [MPCs,agrid_dist,norisk_mpcs1_a_direct]...
             end
 
             % MPC in period 2 out of period 1 shock
+            if p.Display == 1
+                disp('Computing IMPC(1,2)')
+            end
             mpcs_1_2_yP_yF_beta = (T12-speye(NN))*con_baseline(:)/mpcamount;
             mpcs_1_2_yP_yF_beta = reshape(mpcs_1_2_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
             MPCs.mpcs_1_2{im} = sum(sum(sum(Pcondl .* mpcs_1_2_yP_yF_beta,4),3),2);
             MPCs.avg_1_2(im) = basemodel.adist(:)' * mpcs_1_2_yP_yF_beta(:);
 
             % MPC in period 3 out of period 1 shock
+            if p.Display == 1
+                disp('Computing IMPC(1,3)')
+            end
             mpcs_1_3_yP_yF_beta = (T12*basemodel.statetrans-speye(NN))*con_baseline(:)/mpcamount;
             mpcs_1_3_yP_yF_beta = reshape(mpcs_1_3_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
             MPCs.mpcs_1_3{im} = sum(sum(sum(Pcondl .* mpcs_1_3_yP_yF_beta,4),3),2);
             MPCs.avg_1_3(im) = basemodel.adist(:)' * mpcs_1_3_yP_yF_beta(:);
 
             % MPC in period 4 out of period 1 shock
+            if p.Display == 1
+                disp('Computing IMPC(1,4)')
+            end
             mpcs_1_4_yP_yF_beta = (T12*basemodel.statetrans^2-speye(NN))*con_baseline(:)/mpcamount;
             mpcs_1_4_yP_yF_beta = reshape(mpcs_1_4_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
             MPCs.mpcs_1_4{im} = sum(sum(sum(Pcondl .* mpcs_1_4_yP_yF_beta,4),3),2);
@@ -115,9 +127,52 @@ function [MPCs,agrid_dist,norisk_mpcs1_a_direct]...
                 MPCs.avg_1_13to16(im) = NaN;
             else
                 % MPC in year 1 out of quarter 1 shock
+                if p.Display == 1
+                    disp('Computing IMPC(1,1-4)')
+                end
                 MPCs.avg_1_1to4(im) = MPCs.avg_1_1(im) + MPCs.avg_1_2(im) + MPCs.avg_1_3(im) + MPCs.avg_1_4(im);
-                MPCs.mpcs_1_1to4{im} = MPCs.mpcs_1_1{im} + MPCs.mpcs_1_2{im} + MPCs.mpcs_1_3{im} + MPCs.mpcs_1_4{im};
-                % ...
+                
+                % MPC in periods 5-8 out of period 1 shock
+                if p.Display == 1
+                    disp('Computing IMPC(1,5-8)')
+                end
+                mpcs_1_5_yP_yF_beta = (T12*basemodel.statetrans^3-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_6_yP_yF_beta = (T12*basemodel.statetrans^4-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_7_yP_yF_beta = (T12*basemodel.statetrans^5-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_8_yP_yF_beta = (T12*basemodel.statetrans^5-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_5to8_yP_yF_beta = mpcs_1_5_yP_yF_beta+mpcs_1_6_yP_yF_beta+...
+                                        mpcs_1_7_yP_yF_beta+mpcs_1_8_yP_yF_beta;
+                MPCs.avg_1_5to8(im) = basemodel.adist(:)' * mpcs_1_5to8_yP_yF_beta(:);
+                clear mpcs_1_5_yP_yF_beta mpcs_1_6_yP_yF_beta mpcs_1_7_yP_yF_beta
+                clear mpcs_1_8_yP_yF_beta mpcs_1_5to8_yP_yF_beta
+
+                % MPC in periods 9-12 out of period 1 shock
+                if p.Display == 1
+                    disp('Computing IMPC(1,9-12)')
+                end
+                mpcs_1_9_yP_yF_beta = (T12*basemodel.statetrans^6-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_10_yP_yF_beta = (T12*basemodel.statetrans^7-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_11_yP_yF_beta = (T12*basemodel.statetrans^8-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_12_yP_yF_beta = (T12*basemodel.statetrans^9-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_9to12_yP_yF_beta = mpcs_1_9_yP_yF_beta+mpcs_1_10_yP_yF_beta+...
+                                        mpcs_1_11_yP_yF_beta+mpcs_1_12_yP_yF_beta;
+                MPCs.avg_1_9to12(im) = basemodel.adist(:)' * mpcs_1_9to12_yP_yF_beta(:);
+                clear mpcs_1_9_yP_yF_beta mpcs_1_10_yP_yF_beta mpcs_1_11_yP_yF_beta...
+                        mpcs_1_12_yP_yF_beta mpcs_1_9to12_yP_yF_beta
+
+                % MPC in periods 13-16 out of period 1 shock
+                if p.Display == 1
+                    disp('Computing IMPC(1,13-16)')
+                end
+                mpcs_1_13_yP_yF_beta = (T12*basemodel.statetrans^10-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_14_yP_yF_beta = (T12*basemodel.statetrans^11-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_15_yP_yF_beta = (T12*basemodel.statetrans^12-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_16_yP_yF_beta = (T12*basemodel.statetrans^13-speye(NN))*con_baseline(:)/mpcamount;
+                mpcs_1_13to16_yP_yF_beta = mpcs_1_13_yP_yF_beta+mpcs_1_14_yP_yF_beta+...
+                                        mpcs_1_15_yP_yF_beta+mpcs_1_16_yP_yF_beta;
+                MPCs.avg_1_13to16(im) = basemodel.adist(:)' * mpcs_1_13to16_yP_yF_beta(:);
+                clear mpcs_1_13_yP_yF_beta mpcs_1_14_yP_yF_beta mpcs_1_15_yP_yF_beta...
+                        mpcs_1_16_yP_yF_beta mpcs_1_13to16_yP_yF_beta
             end
         end
     end
