@@ -15,7 +15,7 @@ classdef MPCParams < handle
         max_iter    = 1e5; % EGP
         tol_iter    = 1.0e-6; % EGP
         Nsim        = 100000; % For optional simulation
-        nxlong      = 400;
+        nxlong      = 100;
 
         % beta iteration
         maxiterAY   = 50;
@@ -35,7 +35,7 @@ classdef MPCParams < handle
         % cash on hand / savings grid
         nx          = 100;
         xmax        = 1000;
-        xgrid_par   = 1/3; %1 for linear, 0 for L-shaped
+        xgrid_par   = 0.25; %1 for linear, 0 for L-shaped
         borrow_lim  = 0; % negative does not work
         
         % OPTIONS
