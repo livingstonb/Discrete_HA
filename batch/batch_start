@@ -1,0 +1,17 @@
+#!/bin/bash
+# run sbatch files and clean up output and temp directories
+
+mkdir -p ~/GitHub/MPCrecode/Output
+mkdir -p ~/GitHub/MPCrecode/Temp
+
+if ! [ -z "$(ls ~/GitHub/Continuous_Two_Asset/Output)" ]; then
+  rm ~/GitHub/MPCrecode/Output/*
+fi
+
+cd ~/GitHub/MPCrecode/batch
+array=$(ls *.sbatch)
+
+for i in ${array[@]}
+do
+  sbatch "$i"
+done

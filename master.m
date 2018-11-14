@@ -4,8 +4,8 @@ close all;
 %% RUN OPTIONS
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
-runopts.Server = 0; % use server paths and limit display
-runopts.TryCatch = 0; % use try-catch block in main loop (auto-on if Server=1)
+runopts.Server = 1; % use server paths and limit display
+runopts.TryCatch = 1; % use try-catch block in main loop (auto-on if Server=1)
 runopts.fast = 0; % specify very small asset and income grids for speed
 runopts.localdir = '/Users/Brian/Documents/GitHub/MPCrecode';
 
@@ -13,19 +13,17 @@ runopts.localdir = '/Users/Brian/Documents/GitHub/MPCrecode';
 IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments
-selection.names_to_run = {}; % cell array of strings, {} to run all
-selection.suffix = ''; % string, added to filenames
-selection.frequencies = []; % 1,4 ([] to run all)
-selection.nb = []; % 1,5 ([] to run all)
+% ignored when run on server
+selection.names_to_run = {}; % cell array of strings or {} to run all
 
 %% Add paths
 if runopts.Server == 0
     runopts.path = runopts.localdir;
+    selection.number = [];
 else
+    selection.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
     runopts.path = '/home/livingstonb/GitHub/MPCrecode';
-    runopts.savetablepath_annual = ['/home/livingstonb/output/table_annual' selection.suffix '.xls'];
-    runopts.savetablepath_quarterly = ['/home/livingstonb/output/table_quarterly' selection.suffix '.xls'];
-    runopts.savematpath = ['/home/livingstonb/output/variables' selection.suffix '.mat'];
+    runopts.savematpath = ['/home/livingstonb/GitHub/MPCrecode/Output/variables' selection.number '.mat'];
 end
 addpath([runopts.path '/Auxiliary Functions']);
 addpath([runopts.path '/Solution Functions']);
@@ -81,7 +79,7 @@ end
 %% DECOMPOSITIONS - COMPARISONS WITH BASELINE
 decomp2 = decomposition2(params,results);
 
-%% CREATE TABLE/SAVE
+%% CREATE TABLE/SAVE VARIABLES
 
 if runopts.Server == 0
     [T_annual,T_quarter] = create_table(params,results,...

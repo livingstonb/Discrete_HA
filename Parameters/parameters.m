@@ -413,9 +413,15 @@ function params = parameters(runopts,selection,IncomeProcess)
         params.set_fast();
     end
     
-    params = MPCParams.select_by_names(params,selection.names_to_run);
-    params = MPCParams.select_by_freq(params,selection.frequencies);
-    params = MPCParams.select_by_nb(params,selection.nb);
+    params.set_index();
+    
+    if numel(selection.number) == 1
+        params = MPCParams.select_by_number(params,selection.number);
+    elseif numel(selection.number) > 1
+        error('selection.number must have 1 or zero elements')
+    else
+        params = MPCParams.select_by_names(params,selection.names_to_run);
+    end
     
     params.set_index();
     

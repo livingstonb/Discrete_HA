@@ -38,7 +38,7 @@ function decomp2 = decomposition2(params,results)
             m0 = results(baseind).direct.mpcs.mpcs_1_1{5};
 
             decomp2(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs.avg_1_1(5) ...
-                            - results(baseind).direct.avg_1_1(5);
+                            - results(baseind).direct.mpcs.avg_1_1(5);
             decomp2(ip).mpc1_term1 = g0' * (m1 - m0);
             decomp2(ip).mpc1_term2 = m0' * (g1 - g0);
             decomp2(ip).mpc1_term3 = (m1 - m0)' * (g1 - g0);

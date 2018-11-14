@@ -157,7 +157,7 @@ classdef MPCParams < handle
         end
         
         function obj = set_index(obj)
-            % Should be called only after selecting which runs to drop
+            % Called twice: before and after selecting which runs to drop
             ind = num2cell(1:numel(obj));
             [obj.index] = deal(ind{:});
         end
@@ -188,6 +188,10 @@ classdef MPCParams < handle
             end
         end
         
+        function objs = select_by_number(objs,number)
+            objs = objs([objs.index]==number);
+        end
+        
         function objs = select_by_names(objs,names_to_run)
             % Choose parameterizations based on name
             if ~isempty(names_to_run)
@@ -202,25 +206,7 @@ classdef MPCParams < handle
                 return
             end
         end
-        
-        function objs = select_by_freq(objs,freq)
-            % Choose parameterizations based on frequency
-            if numel(freq) == 1
-                if (freq==1) || (freq==4)
-                    objs = objs([objs.freq]==freq);
-                    % else use all
-                end
-            end
-        end 
-        
-        function objs = select_by_nb(objs,nb)
-            % Choose parameterizations based on frequency
-            if numel(nb) == 1
-                objs = objs([objs.nb]==nb);
-                % else use all
-            end
-        end 
-        
+  
         function obj = pfind(objs,name,freq)
             % Return single parameterization
             ind = find(ismember({objs.name},{name}) & [objs.freq]==freq);
