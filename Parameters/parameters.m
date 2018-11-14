@@ -405,7 +405,7 @@ function params = parameters(runopts,selection,IncomeProcess)
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------
     
-    if runopts.Server~=1 && runopts.Display==1
+    if runopts.Display==1
         params.set_display(1);
     end
     

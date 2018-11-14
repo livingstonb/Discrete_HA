@@ -23,7 +23,7 @@ if runopts.Server == 0
 else
     selection.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
     runopts.path = '/home/livingstonb/GitHub/MPCrecode';
-    runopts.savematpath = ['/home/livingstonb/GitHub/MPCrecode/Output/variables' selection.number '.mat'];
+    runopts.savematpath = ['/home/livingstonb/GitHub/MPCrecode/Output/variables' num2str(selection.number) '.mat'];
 end
 addpath([runopts.path '/Auxiliary Functions']);
 addpath([runopts.path '/Solution Functions']);
