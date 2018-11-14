@@ -280,13 +280,9 @@ function [results,checks,decomp] = main(p)
     %% MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % Model with income risk
     if p.freq == 4
-        [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A] ...
+        [MPCs,stdev_loggrossy_A,stdev_lognety_A] ...
                             = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid);
-        basemodel.mpcs1_sim = mpcs1;
-        basemodel.mpcs4_sim = mpcs4;
-    else
-        basemodel.mpcs1_sim = cell(1,numel(p.mpcfrac));
-        basemodel.mpcs4_sim = cell(1,numel(p.mpcfrac));
+        results.direct.mpcs_sim = MPCs;
     end
 
     % Find annual mean and standard deviations of income
@@ -303,17 +299,6 @@ function [results,checks,decomp] = main(p)
         results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
     end
 
-    for im = 1:numel(p.mpcfrac)
-        results.direct.avg_mpc1_sim(im) = mean(basemodel.mpcs1_sim{im});
-        results.direct.var_mpc1_sim(im) = var(basemodel.mpcs1_sim{im});
-        if p.freq == 4
-            results.direct.avg_mpc4_sim(im) = mean(basemodel.mpcs4_sim{im});
-            results.direct.var_mpc4(im) = var(basemodel.mpcs4_sim{im});
-        end
-    end
-    
-    
-    
     %% DECOMPOSITION
 	decomp = struct([]);
     if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0 && p.temptation == 0

@@ -1,14 +1,17 @@
-function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]... 
+function [MPCs,stdev_loggrossy_A,stdev_lognety_A]... 
                                 = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid)
     % This function draws from the stationary distribution of (a,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
     
     if p.Display == 1
-        disp([' Simulating ' num2str(p.freq) ' period(s) to get MPCs'])
+        disp([' Simulating ' num2str(p.freq*4) ' period(s) to get MPCs'])
     end
     
     % Number of draws from distribution
     Nsim = p.Nmpcsim;
+
+    % Number of periods to simulate
+    Tmax = p.freq * 4;
 
     % Vector of indexes for (yP,yF,beta) consistent with of mean ann inc
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nxlong,1)),p.nyF*p.nb,1);
@@ -17,20 +20,20 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
 
     % Construct stationary distribution
     state_rand  = rand(Nsim,1);
-    yPrand      = rand(Nsim,p.freq);
-    dierand     = rand(Nsim,p.freq);
-    betarand    = rand(Nsim,p.freq);
-    yTrand      = rand(Nsim,p.freq);
-    betaindsim  = ones(Nsim,p.freq);
-    yPindsim    = ones(Nsim,p.freq);
-    yTindsim    = ones(Nsim,p.freq);
+    yPrand      = rand(Nsim,Tmax);
+    dierand     = rand(Nsim,Tmax);
+    betarand    = rand(Nsim,Tmax);
+    yTrand      = rand(Nsim,Tmax);
+    betaindsim  = ones(Nsim,Tmax);
+    yPindsim    = ones(Nsim,Tmax);
+    yTindsim    = ones(Nsim,Tmax);
     yFindsim    = ones(Nsim,1);
     
     diesim      = dierand < p.dieprob;
     
     % Find (x,yPgrid,yFgrid,betagrid) indices of draws from stationary distribution
     % Done in partitions to economize on memory
-    partitionsize = 1e5;
+    partitionsize = 2e5;
     Npartition = Nsim/partitionsize;
     cumdist = cumsum(basemodel.adist(:));
    
@@ -50,9 +53,8 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
     end
     
     %% SIMULATE INCOME AND BETA
-
-    % Only simulate 4 periods when using quarterly frequency
-    for it = 1:p.freq
+    % Simulate frequency * 4 periods
+    for it = 1:Tmax
         live = (diesim(:,it)==0);
         [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
         
@@ -64,7 +66,7 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
     end
     
     ygrosssim = income.yPgrid(yPindsim) .*...
-            repmat(income.yFgrid(yFindsim),1,p.freq) .* income.yTgrid(yTindsim);
+            repmat(income.yFgrid(yFindsim),1,Tmax) .* income.yTgrid(yTindsim);
 
     % Net income
     ynetsim = income.lumptransfer + (1-p.labtaxlow)*ygrosssim...
@@ -85,9 +87,9 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
             mpcamount = p.mpcfrac(im) * income.meany1 * p.freq;
         end
 
-        ssim = zeros(Nsim,p.freq);
-        asim = zeros(Nsim,p.freq);
-        xsim = zeros(Nsim,p.freq);
+        ssim = zeros(Nsim,Tmax);
+        asim = zeros(Nsim,Tmax);
+        xsim = zeros(Nsim,Tmax);
 
         %% SIMULATE DECISION VARIABLES UPON MPC SHOCK
         
@@ -95,7 +97,7 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
         % in first period upon shock
         set_mpc_one = false(Nsim,1);
         
-        for it = 1:p.freq
+        for it = 1:Tmax
             % Update cash-on-hand          
             if it == 1
                 xsim(:,1) = a1 + + ynetsim(:,1) + mpcamount;
@@ -122,7 +124,7 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
             
             ssim(:,it) = max(ssim(:,it),p.borrow_lim);
 
-            if it < p.freq
+            if it < Tmax
                 asim(:,it+1) = p.R * ssim(:,it);
                 if p.Bequests == 0
                     % Assets discarded
@@ -138,18 +140,47 @@ function [mpcs1,mpcs4,stdev_loggrossy_A,stdev_lognety_A]...
             % No MPC schock
             csim_noshock = csim;
         else
-            mpcs1{im} = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
-            mpcs1{im}(set_mpc_one,1) = 1;  
-            if p.freq == 1
-                mpcs4 = [];
-                continue
+        	% MPC in period 1 out of period 1 shock
+            MPCs.mpcs_1_1{im} = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
+            MPCs.mpcs_1_1{im}(set_mpc_one,1) = 1;  
+            MPCs.avg_1_1(im) = mean(MPCs.mpcs_1_1{im});
+
+            % MPC in period 2 out of period 1 shock
+            mpcs_1_2 = (csim(:,2) - csim_noshock(:,2)) / mpcamount;
+            mpcs_1_2(set_mpc_one) = 0;
+            MPCs.avg_1_2(im) = mean(mpcs_1_2);
+
+            % MPC in period 3 out of period 1 shock
+            mpcs_1_3 = (csim(:,3) - csim_noshock(:,3)) / mpcamount;
+            mpcs_1_3(set_mpc_one) = 0;
+            MPCs.avg_1_3(im) = mean(mpcs_1_3);
+
+            % MPC in period 4 out of period 1 shock
+            MPCs.mpcs_1_4{im} = (csim(:,4) - csim_noshock(:,4)) / mpcamount;
+            MPCs.mpcs_1_4{im}(set_mpc_one) = 0;
+            MPCs.avg_1_4(im) = mean(MPCs.mpcs_1_4{im});
+
+            % Cumulative MPCs over first 4 periods
+            MPCs.mpcs_1_1to4{im} = MPCs.mpcs_1_1{im}+mpcs_1_2+mpcs_1_3+MPCs.mpcs_1_4{im};
+            MPCs.avg_1_1to4(im) = mean(MPCs.mpcs_1_1to4{im});
+
+            if p.freq == 4
+            	% MPC in period ip out of period 1 shock
+                mpcs_1_x = cell(1,16);
+            	for ip = 5:16
+            		mpcs_1_x{ip} = (csim(:,ip) - csim_noshock(:,ip)) / mpcamount;
+            		mpcs_1_x{ip}(set_mpc_one) = 0;
+            	end
+
+            	% Cumulative mean MPC over years 2-4 for quarterly model
+            	MPCs.avg_1_5to8(im) = mean(mpcs_1_x{5}+mpcs_1_x{6}+mpcs_1_x{7}+mpcs_1_x{8});
+            	MPCs.avg_1_9to12(im) = mean(mpcs_1_x{9}+mpcs_1_x{10}+mpcs_1_x{11}+mpcs_1_x{12});
+            	MPCs.avg_1_13to16(im) = mean(mpcs_1_x{13}+mpcs_1_x{14}+mpcs_1_x{15}+mpcs_1_x{16});
+            else
+            	MPCs.avg_1_5to8(im) = NaN;
+            	MPCs.avg_1_9to12(im) = NaN;
+            	MPCs.MPCs_avg_1_13to16(im) = NaN;
             end
-            mpcs2{im} = (csim(:,2) - csim_noshock(:,2)) / mpcamount + mpcs1{im};
-            mpcs2{im}(set_mpc_one) = 1;
-            mpcs3{im} = (csim(:,3) - csim_noshock(:,3)) / mpcamount + mpcs2{im};
-            mpcs3{im}(set_mpc_one) = 1;
-            mpcs4{im} = (csim(:,4) - csim_noshock(:,4)) / mpcamount + mpcs3{im};
-            mpcs4{im}(set_mpc_one) = 1;
         end
     end
     

@@ -6,8 +6,8 @@ runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 0; % use server paths and limit display
 runopts.TryCatch = 0; % use try-catch block in main loop (auto-on if Server=1)
-runopts.fast = 1; % specify very small asset and income grids for speed
-runopts.localdir = '/Users/Brian/Documents/GitHub/MPCrecode';
+runopts.fast = 0; % specify very small asset and income grids for speed
+runopts.localdir = '/Users/brianlivingston/Documents/GitHub/MPCrecode';
 
 % empty string if not loading from file
 IncomeProcess = 'IncomeGrids/quarterly_b.mat';
