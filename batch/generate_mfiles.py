@@ -151,7 +151,7 @@ args['batchpath'] = '/Users/Brian/Documents/GitHub/MPCrecode/batch'
 # relative path of income variable inside MPCrecode
 args['Qincvar'] = "'IncomeGrids/quarterly_b.mat'"
 # location of .mat output files
-args['MWout'] = '/Users/Brian/Documents/midway2temp'
+args['MWout'] = '/Users/Brian/Documents/midway2_output/discrete_time/11_13_18'
 # run with small grids for speed (string)
 args['fast'] = '0'
 # frequencies to run (list of strings)

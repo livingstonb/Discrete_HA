@@ -417,13 +417,13 @@ function params = parameters(runopts,selection,IncomeProcess)
     
     if numel(selection.number) == 1
         params = MPCParams.select_by_number(params,selection.number);
+        % index by individual .mat file
     elseif numel(selection.number) > 1
         error('selection.number must have 1 or zero elements')
     else
         params = MPCParams.select_by_names(params,selection.names_to_run);
+        params.set_index(); % index within .mat file
     end
-    
-    params.set_index();
     
     for ip = 1:numel(params)
         if isempty(params(ip).IncomeProcess)
