@@ -141,9 +141,9 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             csim_noshock = csim;
         else
         	% MPC in period 1 out of period 1 shock
-            MPCs.mpcs_1_1{im} = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
-            MPCs.mpcs_1_1{im}(set_mpc_one,1) = 1;  
-            MPCs.avg_1_1(im) = mean(MPCs.mpcs_1_1{im});
+            mpcs_1_1 = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
+            mpcs_1_1(set_mpc_one,1) = 1;  
+            MPCs.avg_1_1(im) = mean(mpcs_1_1);
 
             % MPC in period 2 out of period 1 shock
             mpcs_1_2 = (csim(:,2) - csim_noshock(:,2)) / mpcamount;
@@ -156,13 +156,13 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             MPCs.avg_1_3(im) = mean(mpcs_1_3);
 
             % MPC in period 4 out of period 1 shock
-            MPCs.mpcs_1_4{im} = (csim(:,4) - csim_noshock(:,4)) / mpcamount;
-            MPCs.mpcs_1_4{im}(set_mpc_one) = 0;
-            MPCs.avg_1_4(im) = mean(MPCs.mpcs_1_4{im});
+            mpcs_1_4 = (csim(:,4) - csim_noshock(:,4)) / mpcamount;
+            mpcs_1_4(set_mpc_one) = 0;
+            MPCs.avg_1_4(im) = mean(mpcs_1_4{im});
 
             % Cumulative MPCs over first 4 periods
-            MPCs.mpcs_1_1to4{im} = MPCs.mpcs_1_1{im}+mpcs_1_2+mpcs_1_3+MPCs.mpcs_1_4{im};
-            MPCs.avg_1_1to4(im) = mean(MPCs.mpcs_1_1to4{im});
+            mpcs_1_1to4 = MPCs.mpcs_1_1{im}+mpcs_1_2+mpcs_1_3+MPCs.mpcs_1_4{im};
+            MPCs.avg_1_1to4(im) = mean(mpcs_1_1to4);
 
             if p.freq == 4
             	% MPC in period ip out of period 1 shock
@@ -179,7 +179,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             else
             	MPCs.avg_1_5to8(im) = NaN;
             	MPCs.avg_1_9to12(im) = NaN;
-            	MPCs.MPCs_avg_1_13to16(im) = NaN;
+            	MPCs.avg_1_13to16(im) = NaN;
             end
         end
     end
