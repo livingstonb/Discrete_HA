@@ -72,10 +72,10 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
     ynetsim = income.lumptransfer + (1-p.labtaxlow)*ygrosssim...
                         - p.labtaxhigh*max(ygrosssim-income.labtaxthresh,0);
                     
-    % Find income variances
-    stdev_loggrossy_A = std(log(sum(ygrosssim,2)));
-    stdev_lognety_A = std(log(sum(ynetsim,2)));
-    mean_grossy_A = mean(sum(ygrosssim,2));
+    % Find annual income variances
+    stdev_loggrossy_A = std(log(sum(ygrosssim(:,1:p.freq),2)));
+    stdev_lognety_A = std(log(sum(ynetsim(:,1:p.freq),2)));
+    mean_grossy_A = mean(sum(ygrosssim(:,1:p.freq),2));
     
     
     % Loop over mpcfrac sizes, first running simulation as if there was no

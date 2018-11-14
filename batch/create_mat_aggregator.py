@@ -63,10 +63,7 @@ def gen_mfile_aggregator(MWout):
 # ---------------------------------------------------------------------
 
 # location of .mat output files
-MWout = '/Users/Brian/Documents/midway2_output/discrete_time/11_13_18'
-
-# open file and create new directories if necessary
-mfile = open(args['masterpath'])
+MWout = '/Users/Brian/Documents/midway2_output/discrete_time/11_14_18'
 
 # ---------------------------------------------------------------------
 # Function calls
@@ -79,5 +76,4 @@ mfile = open(args['masterpath'])
 
 # generate m-file that aggreagates .mat files and creates a table
 gen_mfile_aggregator(MWout)
-    
-mfile.close()
+

@@ -35,7 +35,7 @@ classdef MPCParams < handle
         % cash on hand / savings grid
         nx          = 100;
         xmax        = 1000;
-        xgrid_par   = 0.25; %1 for linear, 0 for L-shaped
+        xgrid_par   = 0.15; %1 for linear, 0 for L-shaped
         borrow_lim  = 0; % negative does not work
         
         % OPTIONS
