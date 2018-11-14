@@ -4,10 +4,10 @@
 #SBATCH --error=/home/livingstonb/GitHub/MPCrecode/Output/run%a.err
 #SBATCH --partition=broadwl
 #SBATCH --time=01:00:00
-#SBATCH --array=1-2
+#SBATCH --array=1-64
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mem-per-cpu=2000
+#SBATCH --mem-per-cpu=4000
 
 module load matlab
 
