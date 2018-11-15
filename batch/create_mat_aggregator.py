@@ -63,7 +63,7 @@ def gen_mfile_aggregator(MWout):
 # ---------------------------------------------------------------------
 
 # location of .mat output files
-MWout = '/Users/Brian/Documents/midway2_output/discrete_time/11_14_18'
+MWout = '/Users/Brian/Documents/midway2_output/discrete_time/11_14_18_fixedincomebug/matlab_output'
 
 # ---------------------------------------------------------------------
 # Function calls

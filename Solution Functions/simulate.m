@@ -1,20 +1,20 @@
-function [sim_results,assetmeans] = simulate(p,income,model,...
-                                                    xgrid,prefs,agrid)
+function [sim_results,assetmeans] = simulate(p,income,model,xgrid,prefs)
+
     % This function runs simulations based on the paratmers in 'p' and the
     % policy functions in 'model'.
     
     %% Simulate income process
     disp(['Simulating income process...']);
     if p.yTContinuous == 1
-        yTrand = randn(p.Nsim,p.Tsim);
+        yTrand = randn(p.Nsim,p.Tsim,'single');
     else
-        yTrand = rand(p.Nsim,p.Tsim);
+        yTrand = rand(p.Nsim,p.Tsim,'single');
     end
-    yPrand = rand(p.Nsim,p.Tsim);
-    yFrand = rand(p.Nsim,1);
-    dierand = rand(p.Nsim,p.Tsim);
+    yPrand = rand(p.Nsim,p.Tsim,'single');
+    yFrand = rand(p.Nsim,1,'single');
+    dierand = rand(p.Nsim,p.Tsim,'single');
     
-    diesim = dierand<p.dieprob;
+    diesim = dierand < p.dieprob;
     
     yTindsim = zeros(p.Nsim,p.Tsim,'int8');
     yPindsim = zeros(p.Nsim,p.Tsim,'int8');
@@ -22,25 +22,25 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     [~,yFindsim] = max(bsxfun(@le,yFrand,income.yFcumdist'),[],2);
     
     % simulate yP upon death outside of time loop for speed
-    for iyP = 1:p.nyP
-        if iyP == 1
-            idx = yPrand<income.yPcumdist(iyP);
-        else
-            idx = yPrand<income.yPcumdist(iyP) & yPrand>=income.yPcumdist(iyP-1);
-        end
-        yPindsim(diesim & idx) = iyP;
-    end
+%     for iyP = 1:p.nyP
+%         if iyP == 1
+%             idx = yPrand<income.yPcumdist(iyP);
+%         else
+%             idx = (yPrand<income.yPcumdist(iyP)) & (yPrand>=income.yPcumdist(iyP-1));
+%         end
+%         yPindsim(diesim & idx) = iyP;
+%     end
     
     % simulate yT outside of time loop
     if p.yTContinuous == 1 && p.nyT > 1
-        lambdarand = rand(p.Nsim,p.Tsim);
+        lambdarand = rand(p.Nsim,p.Tsim,'single');
         logyTsim = (lambdarand < p.lambdaT) .* (- 0.5*p.sd_logyT.^2 + yTrand*p.sd_logyT);
     elseif p.yTContinuous == 0 && p.nyT > 1
         for iyT = 1:p.nyT
             if iyT == 1
                 idx = yTrand<income.yTcumdist(iyT);
             else
-                idx = yTrand<income.yTcumdist(iyT) & yTrand>=income.yTcumdist(iyT-1);
+                idx = (yTrand<income.yTcumdist(iyT)) & (yTrand>=income.yTcumdist(iyT-1));
             end
             yTindsim(idx) = iyT;
         end
@@ -51,6 +51,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
         
     % iterate over time periods
     for it = 1:p.Tsim
+        [~,yPindsim(diesim(:,it)==1,it)] = max(bsxfun(@le,yPrand(diesim(:,it)==1,it),income.yPcumdist'),[],2);
         if it ==1
             [~,yPindsim(diesim(:,it)==0,it)] = max(bsxfun(@le,yPrand(diesim(:,it)==0,it),income.yPcumdist'),[],2);
         else
@@ -84,6 +85,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     xsim = zeros(p.Nsim,p.Tsim); 
     ssim = zeros(p.Nsim,p.Tsim);
     asim = zeros(p.Nsim,p.Tsim);
+    csim = zeros(p.Nsim,p.Tsim);
     
     for it = 1:p.Tsim
         if mod(it,50) == 0
@@ -97,7 +99,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
         for iyF = 1:p.nyF
         for ib = 1:p.nb
         for iyP = 1:p.nyP
-            idx = yPindsim(:,it)==iyP & betaindsim(:,it)==ib & yFindsim(:)==iyF;
+            idx = (yPindsim(:,it)==iyP) & (betaindsim(:,it)==ib) & (yFindsim(:)==iyF);
             ssim(idx,it) = model.savinterp{iyP,iyF,ib}(xsim(idx,it));
         end
         end
@@ -135,7 +137,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     else
         sim_results.mean_grossy_A    = mean(sum(ygrosssim(:,p.Tsim-3:p.Tsim),2));
         sim_results.mean_loggrossy_A = mean(log(sum(ygrosssim(:,p.Tsim),2)));
-        sim_results.mean_nety_A      = mean(ynetsim(:,p.Tsim));
+        sim_results.mean_nety_A      = mean(sum(ynetsim(:,p.Tsim-3:p.Tsim),2));
         sim_results.mean_lognety_A   = mean(log(ynetsim(:,p.Tsim)));
         sim_results.var_loggrossy_A  = var(log(ygrosssim(:,p.Tsim)));
         sim_results.var_lognety_A    = var(log(ynetsim(:,p.Tsim)));
@@ -166,9 +168,8 @@ function [sim_results,assetmeans] = simulate(p,income,model,...
     
     %% MPCs
     
-    [sim_results.avg_mpc1,sim_results.avg_mpc4,sim_results.var_mpc1,sim_results.var_mpc4]...
-        = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
-                                         	betaindsim,income,model,xgrid);
-
+    sim_results.mpcs = simulation_MPCs(p,xsim,csim,diesim,ynetsim,...
+                            yPindsim,yFindsim,betaindsim,income,model,xgrid);
+    sim_results.assetmeans = assetmeans;
 
 end

@@ -15,7 +15,7 @@ classdef MPCParams < handle
         max_iter    = 1e5; % EGP
         tol_iter    = 1.0e-6; % EGP
         Nsim        = 100000; % For optional simulation
-        nxlong      = 100;
+        nxlong      = 400;
 
         % beta iteration
         maxiterAY   = 50;
@@ -33,9 +33,9 @@ classdef MPCParams < handle
         abars = [0, 0.01, 0.05];
 
         % cash on hand / savings grid
-        nx          = 100;
+        nx          = 150;
         xmax        = 1000;
-        xgrid_par   = 0.15; %1 for linear, 0 for L-shaped
+        xgrid_par   = 0.3; %1 for linear, 0 for L-shaped
         borrow_lim  = 0; % negative does not work
         
         % OPTIONS
@@ -149,11 +149,17 @@ classdef MPCParams < handle
             [obj.Nmpcsim] = deal(1e2);
             [obj.nyT] = deal(3);
             [obj.nyP] = deal(3);
+            [obj.Tsim] = deal(100);
         end
 
         function obj = set_display(obj,on)
             % on = 1 or 0
             [obj.Display] = deal(on);
+        end
+        
+        function obj = set_simulate(obj,on)
+            % on = 1 or 0
+            [obj.Simulate] = deal(on);
         end
         
         function obj = set_index(obj)

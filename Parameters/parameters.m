@@ -405,9 +405,8 @@ function params = parameters(runopts,selection,IncomeProcess)
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------
     
-    if runopts.Display==1
-        params.set_display(1);
-    end
+    params.set_display(runopts.Display);
+    params.set_simulate(runopts.Simulate);
     
     if runopts.fast == 1
         params.set_fast();
@@ -430,5 +429,6 @@ function params = parameters(runopts,selection,IncomeProcess)
             params(ip).IncomeProcess = IncomeProcess;
         end
     end
+    
 
 end

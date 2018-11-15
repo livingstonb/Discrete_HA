@@ -19,15 +19,15 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
     betaind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
 
     % Construct stationary distribution
-    state_rand  = rand(Nsim,1);
-    yPrand      = rand(Nsim,Tmax);
-    dierand     = rand(Nsim,Tmax);
-    betarand    = rand(Nsim,Tmax);
-    yTrand      = rand(Nsim,Tmax);
-    betaindsim  = ones(Nsim,Tmax);
-    yPindsim    = ones(Nsim,Tmax);
-    yTindsim    = ones(Nsim,Tmax);
-    yFindsim    = ones(Nsim,1);
+    state_rand  = rand(Nsim,1,'single');
+    yPrand      = rand(Nsim,Tmax,'single');
+    dierand     = rand(Nsim,Tmax,'single');
+    betarand    = rand(Nsim,Tmax,'single');
+    yTrand      = rand(Nsim,Tmax,'single');
+    betaindsim  = ones(Nsim,Tmax,'int8');
+    yPindsim    = ones(Nsim,Tmax,'int8');
+    yTindsim    = ones(Nsim,Tmax,'int8');
+    yFindsim    = ones(Nsim,1,'int8');
     
     diesim      = dierand < p.dieprob;
     
@@ -158,10 +158,10 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             % MPC in period 4 out of period 1 shock
             mpcs_1_4 = (csim(:,4) - csim_noshock(:,4)) / mpcamount;
             mpcs_1_4(set_mpc_one) = 0;
-            MPCs.avg_1_4(im) = mean(mpcs_1_4{im});
+            MPCs.avg_1_4(im) = mean(mpcs_1_4);
 
             % Cumulative MPCs over first 4 periods
-            mpcs_1_1to4 = MPCs.mpcs_1_1{im}+mpcs_1_2+mpcs_1_3+MPCs.mpcs_1_4{im};
+            mpcs_1_1to4 = mpcs_1_1+mpcs_1_2+mpcs_1_3+mpcs_1_4;
             MPCs.avg_1_1to4(im) = mean(mpcs_1_1to4);
 
             if p.freq == 4
@@ -176,6 +176,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             	MPCs.avg_1_5to8(im) = mean(mpcs_1_x{5}+mpcs_1_x{6}+mpcs_1_x{7}+mpcs_1_x{8});
             	MPCs.avg_1_9to12(im) = mean(mpcs_1_x{9}+mpcs_1_x{10}+mpcs_1_x{11}+mpcs_1_x{12});
             	MPCs.avg_1_13to16(im) = mean(mpcs_1_x{13}+mpcs_1_x{14}+mpcs_1_x{15}+mpcs_1_x{16});
+                clear mpcs_1_x
             else
             	MPCs.avg_1_5to8(im) = NaN;
             	MPCs.avg_1_9to12(im) = NaN;

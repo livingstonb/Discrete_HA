@@ -265,7 +265,7 @@ function [results,checks,decomp] = main(p)
     
     %% SIMULATIONS
     if p.Simulate == 1
-        [results.sim,assetmeans] = simulate(p,income,basemodel,xgrid,prefs,agrid);
+        [results.sim,assetmeans] = simulate(p,income,basemodel,xgrid,prefs);
     else
         assetmeans = [];
     end
