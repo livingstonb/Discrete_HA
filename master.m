@@ -8,7 +8,7 @@ runopts.Server = 1; % use server paths and limit display
 runopts.TryCatch = 1; % use try-catch block in main loop (auto-on if Server=1)
 runopts.fast = 0; % specify very small asset and income grids for speed
 runopts.Simulate = 0;
-runopts.localdir = '/Users/Brian/Documents/GitHub/MPCrecode';
+runopts.localdir = '/Users/Brian/Documents/GitHub/Discrete_HA';
 
 % empty string if not loading from file
 IncomeProcess = 'IncomeGrids/quarterly_b.mat';
@@ -23,8 +23,8 @@ if runopts.Server == 0
     selection.number = [];
 else
     selection.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-    runopts.path = '/home/livingstonb/GitHub/MPCrecode';
-    runopts.savematpath = ['/home/livingstonb/GitHub/MPCrecode/Output/variables' num2str(selection.number) '.mat'];
+    runopts.path = '/home/livingstonb/GitHub/Discrete_HA';
+    runopts.savematpath = ['/home/livingstonb/GitHub/Discrete_HA/Output/variables' num2str(selection.number) '.mat'];
 end
 addpath([runopts.path '/Auxiliary Functions']);
 addpath([runopts.path '/Solution Functions']);
