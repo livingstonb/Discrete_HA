@@ -33,7 +33,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
     
     % Find (x,yPgrid,yFgrid,betagrid) indices of draws from stationary distribution
     % Done in partitions to economize on memory
-    partitionsize = 2e5;
+    partitionsize = 1e5;
     Npartition = Nsim/partitionsize;
     cumdist = cumsum(basemodel.adist(:));
    
@@ -87,9 +87,9 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             mpcamount = p.mpcfrac(im) * income.meany1 * p.freq;
         end
 
-        ssim = zeros(Nsim,Tmax);
-        asim = zeros(Nsim,Tmax);
-        xsim = zeros(Nsim,Tmax);
+        ssim = zeros(Nsim,Tmax,'single');
+        asim = zeros(Nsim,Tmax,'single');
+        xsim = zeros(Nsim,Tmax,'single');
 
         %% SIMULATE DECISION VARIABLES UPON MPC SHOCK
         
