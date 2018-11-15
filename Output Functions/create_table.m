@@ -142,9 +142,11 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     NaNcol = true;
                 end
             end
-            if numel(exceptions{ip}) == 1
-                % Exception was thrown for this parameterization
-                NaNcol = true;
+            if numel(checks{ip}) == 1
+                if checks{ip} == {'EXCEPTION_THROWN'}
+                    % Exception was thrown for this parameterization
+                    NaNcol = true;
+                end
             end
 
             if NaNcol == true
