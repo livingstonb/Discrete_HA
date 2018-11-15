@@ -86,13 +86,13 @@ function MPCs = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
                 mpcs_1_x{ip} = (csim_mpc(:,ip) - csim_baseline(:,ip))/mpcamount{im};
             end
             
-            MPCs.avg_1_5to8 = mean(mpcs_1_x{5}+mpcs_1_x{6}+mpcs_1_x{7}+mpcs_1_x{8});
-            MPCs.avg_1_9to12 = mean(mpcs_1_x{9}+mpcs_1_x{10}+mpcs_1_x{11}+mpcs_1_x{12});
-            MPCs.avg_1_13to16 = mean(mpcs_1_x{13}+mpcs_1_x{14}+mpcs_1_x{15}+mpcs_1_x{16});
+            MPCs.avg_1_5to8(im) = mean(mpcs_1_x{5}+mpcs_1_x{6}+mpcs_1_x{7}+mpcs_1_x{8});
+            MPCs.avg_1_9to12(im) = mean(mpcs_1_x{9}+mpcs_1_x{10}+mpcs_1_x{11}+mpcs_1_x{12});
+            MPCs.avg_1_13to16(im) = mean(mpcs_1_x{13}+mpcs_1_x{14}+mpcs_1_x{15}+mpcs_1_x{16});
         else
-            MPCs.avg_1_5to8 = NaN;
-            MPCs.avg_1_9to12 = NaN;
-            MPCs.avg_1_13to16 = NaN;
+            MPCs.avg_1_5to8(im) = NaN;
+            MPCs.avg_1_9to12(im) = NaN;
+            MPCs.avg_1_13to16(im) = NaN;
         end
         
         MPCs.var_1_1(im) = var(mpcs_1_1);

@@ -97,7 +97,13 @@ function [MPCs,agrid_dist,norisk_mpcs1_a_direct]...
             if p.Display == 1
                 disp('Computing IMPC(1,2)')
             end
-            mpcs_1_2_yP_yF_beta = (T12-speye(NN))*con_baseline(:)/mpcamount;
+
+            clear interp interp_death newblock_live newblock_death
+
+            % This is statetrans^(period-2) * con_baseline
+            % This procedure avoids having to store in memory a large matrix of statetrans raised to a power
+            RHScon_mpc = con_baseline(:);
+            mpcs_1_2_yP_yF_beta = (T12*RHScon_mpc - con_baseline(:))/mpcamount;
             mpcs_1_2_yP_yF_beta = reshape(mpcs_1_2_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
             MPCs.mpcs_1_2{im} = sum(sum(sum(Pcondl .* mpcs_1_2_yP_yF_beta,4),3),2);
             MPCs.avg_1_2(im) = basemodel.adist(:)' * mpcs_1_2_yP_yF_beta(:);
@@ -106,7 +112,9 @@ function [MPCs,agrid_dist,norisk_mpcs1_a_direct]...
             if p.Display == 1
                 disp('Computing IMPC(1,3)')
             end
-            mpcs_1_3_yP_yF_beta = (T12*basemodel.statetrans-speye(NN))*con_baseline(:)/mpcamount;
+
+            RHScon_mpc = basemodel.statetrans * RHScon_mpc;
+            mpcs_1_3_yP_yF_beta = (T12*RHScon_mpc - con_baseline(:))/mpcamount;
             mpcs_1_3_yP_yF_beta = reshape(mpcs_1_3_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
             MPCs.mpcs_1_3{im} = sum(sum(sum(Pcondl .* mpcs_1_3_yP_yF_beta,4),3),2);
             MPCs.avg_1_3(im) = basemodel.adist(:)' * mpcs_1_3_yP_yF_beta(:);
@@ -115,10 +123,13 @@ function [MPCs,agrid_dist,norisk_mpcs1_a_direct]...
             if p.Display == 1
                 disp('Computing IMPC(1,4)')
             end
-            mpcs_1_4_yP_yF_beta = (T12*basemodel.statetrans^2-speye(NN))*con_baseline(:)/mpcamount;
+            RHScon_mpc = basemodel.statetrans * RHScon_mpc;
+            mpcs_1_4_yP_yF_beta = (T12*RHScon_mpc - con_baseline(:))/mpcamount;
             mpcs_1_4_yP_yF_beta = reshape(mpcs_1_4_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
             MPCs.mpcs_1_4{im} = sum(sum(sum(Pcondl .* mpcs_1_4_yP_yF_beta,4),3),2);
             MPCs.avg_1_4(im) = basemodel.adist(:)' * mpcs_1_4_yP_yF_beta(:);
+
+            % Mean cumulative MPC in periods 1-4 out of period 1 shock
             MPCs.avg_1_1to4(im) = MPCs.avg_1_1(im) + MPCs.avg_1_2(im) + MPCs.avg_1_3(im) + MPCs.avg_1_4(im);
             
             if p.freq==1
@@ -128,62 +139,37 @@ function [MPCs,agrid_dist,norisk_mpcs1_a_direct]...
             else
                 % MPC in year 1 out of quarter 1 shock
                 if p.Display == 1
-                    disp('Computing IMPC(1,1-4)')
+                    disp('Computing IMPCs for periods > 4')
                 end
 
-                % MPC in periods 5-8 out of period 1 shock
-                if p.Display == 1
-                    disp('Computing IMPC(1,5-8)')
+                % mean mpc_1_x for x = 5:16
+                avg_1_x = cell(1,16);
+                for ip = 5:16
+                	RHScon_mpc = basemodel.statetrans * RHScon_mpc;
+                	mpcs_1_x_yP_yF_beta = (T12*RHScon_mpc - con_baseline(:)) / mpcamount;
+                	mpcs_1_x_yP_yF_beta = reshape(mpcs_1_x_yP_yF_beta,[p.nxlong p.nyP p.nyF p.nb]);
+                	avg_1_x{ip} = basemodel.adist(:)' * mpcs_1_x_yP_yF_beta(:);
                 end
-                statetransP = basemodel.statetrans^3;
-                mpcs_1_5_yP_yF_beta = (T12 * statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_6_yP_yF_beta = (T12* statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_7_yP_yF_beta = (T12 * statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_8_yP_yF_beta = (T12 * statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                mpcs_1_5to8_yP_yF_beta = mpcs_1_5_yP_yF_beta+mpcs_1_6_yP_yF_beta+...
-                                        mpcs_1_7_yP_yF_beta+mpcs_1_8_yP_yF_beta;
-                MPCs.avg_1_5to8(im) = basemodel.adist(:)' * mpcs_1_5to8_yP_yF_beta(:);
-                clear mpcs_1_5_yP_yF_beta mpcs_1_6_yP_yF_beta mpcs_1_7_yP_yF_beta
-                clear mpcs_1_8_yP_yF_beta mpcs_1_5to8_yP_yF_beta
 
-                % MPC in periods 9-12 out of period 1 shock
-                if p.Display == 1
-                    disp('Computing IMPC(1,9-12)')
+                MPCs.avg_1_5to8(im) = 0;
+                for ip = 5:8
+                	MPCs.avg_1_5to8(im) = MPCs.avg_1_5to8(im) + avg_1_x{ip};
                 end
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_9_yP_yF_beta = (T12*statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_10_yP_yF_beta = (T12*statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_11_yP_yF_beta = (T12*statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_12_yP_yF_beta = (T12*statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                mpcs_1_9to12_yP_yF_beta = mpcs_1_9_yP_yF_beta+mpcs_1_10_yP_yF_beta+...
-                                        mpcs_1_11_yP_yF_beta+mpcs_1_12_yP_yF_beta;
-                MPCs.avg_1_9to12(im) = basemodel.adist(:)' * mpcs_1_9to12_yP_yF_beta(:);
-                clear mpcs_1_9_yP_yF_beta mpcs_1_10_yP_yF_beta mpcs_1_11_yP_yF_beta...
-                        mpcs_1_12_yP_yF_beta mpcs_1_9to12_yP_yF_beta
+                MPCs.avg_1_5to8(im) = MPCs.avg_1_5to8(im);
 
-                % MPC in periods 13-16 out of period 1 shock
-                if p.Display == 1
-                    disp('Computing IMPC(1,13-16)')
+                MPCs.avg_1_9to12(im) = 0;
+                for ip = 9:12
+                	MPCs.avg_1_9to12(im) = MPCs.avg_1_9to12(im) + avg_1_x{ip};
                 end
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_13_yP_yF_beta = (T12*statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_14_yP_yF_beta = (T12*statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_15_yP_yF_beta = (T12*statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                statetransP = statetransP * basemodel.statetrans;
-                mpcs_1_16_yP_yF_beta = (T12*statetransP-speye(NN))*con_baseline(:)/mpcamount;
-                mpcs_1_13to16_yP_yF_beta = mpcs_1_13_yP_yF_beta+mpcs_1_14_yP_yF_beta+...
-                                        mpcs_1_15_yP_yF_beta+mpcs_1_16_yP_yF_beta;
-                MPCs.avg_1_13to16(im) = basemodel.adist(:)' * mpcs_1_13to16_yP_yF_beta(:);
-                clear mpcs_1_13_yP_yF_beta mpcs_1_14_yP_yF_beta mpcs_1_15_yP_yF_beta...
-                        mpcs_1_16_yP_yF_beta mpcs_1_13to16_yP_yF_beta
+                MPCs.avg_1_9to12(im) = MPCs.avg_1_9to12(im);
+
+                MPCs.avg_1_13to16(im) = 0;
+                for ip = 13:16
+                	MPCs.avg_1_13to16(im) = MPCs.avg_1_13to16(im) + avg_1_x{ip};
+                end
+                MPCs.avg_1_13to16(im) = MPCs.avg_1_13to16(im);
+
+                clear avg_1_x
             end
         end
     end
