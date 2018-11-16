@@ -1,6 +1,5 @@
 function print_statistics(direct_results,sim_results,norisk_results,checks,p,decomp)
-    % This function prints the main results associated with the
-    % parameterization structure 'p'
+    % THIS FUNCTION IS OUTDATED AND DOES NOT WORK
     
     if p.Simulate == 0
         sim = [];

@@ -1,5 +1,6 @@
 classdef MPCParams < handle
-    % usage: params = MPCParams(frequency)
+    % usage: params = MPCParams(frequency,name,IncomeProcess)
+
     properties (SetAccess = protected)
         % identifiers
         name;
@@ -142,24 +143,23 @@ classdef MPCParams < handle
             end
             obj.annuities = 1;
         end
-        
-        function obj = set_fast(obj)
-            [obj.nxlong] = deal(10);
-            [obj.nx] = deal(10);
-            [obj.Nmpcsim] = deal(1e2);
-            [obj.nyT] = deal(3);
-            [obj.nyP] = deal(3);
-            [obj.Tsim] = deal(100);
-        end
 
-        function obj = set_display(obj,on)
-            % on = 1 or 0
-            [obj.Display] = deal(on);
-        end
-        
-        function obj = set_simulate(obj,on)
-            % on = 1 or 0
-            [obj.Simulate] = deal(on);
+        function obj = set_run_parameters(obj,runopts)
+            % fast option
+            if runopts.fast == 1
+                [obj.nxlong] = deal(10);
+                [obj.nx] = deal(10);
+                [obj.Nmpcsim] = deal(1e2);
+                [obj.nyT] = deal(3);
+                [obj.nyP] = deal(3);
+                [obj.Tsim] = deal(100);
+            end
+
+            % display option
+            [obj.Display] = deal(runopts.Display);
+
+            % simulate option
+            [obj.Simulate] = deal(runopts.Simulate);
         end
         
         function obj = set_index(obj)
@@ -178,6 +178,8 @@ classdef MPCParams < handle
     methods (Static)
         
         function objs = adjust_if_quarterly(objs)
+
+            % Adjust model parameters
             for io = 1:numel(objs)
                 objs(io).R = (1+objs(io).r)^(1/objs(io).freq);
                 objs(io).r = objs(io).R - 1;
@@ -219,16 +221,6 @@ classdef MPCParams < handle
             end
         end
   
-        function obj = pfind(objs,name,freq)
-            % Return single parameterization
-            ind = find(ismember({objs.name},{name}) & [objs.freq]==freq);
-            if numel(ind) ~= 1
-                error('pfind method failed to find unique name-freq combination')
-            else 
-                obj = objs(ind);
-            end
-        end
-
         function S = to_struct(objs)
             % save object as structure
             ofields = fields(objs);

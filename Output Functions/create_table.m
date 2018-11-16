@@ -1,5 +1,5 @@
 function [T_annual,T_quarter] = create_table(params,results,...
-                                    decomps,checks,exceptions,decomp2)
+                                            decomps,checks,decomp2)
     % Rownames
     rows = {'Specification'
             'Lookup Index'

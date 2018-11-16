@@ -73,14 +73,14 @@ function params = parameters(runopts,selection,IncomeProcess)
             params(end).bequest_curv   = bcurv;
         end
 
-        % fixed beta heterogeneity
+       
         for deathp = [0 1/50]
             if deathp == 0
                 deathind = ' NoDeath';
             else
                 deathind = ' Death';
             end
-
+             % fixed beta heterogeneity
             for ibw = [0.001, 0.005, 0.01]
                 name = ['2 FixedBetaHet5 Width' num2str(ibw) deathind];
                 params(end+1) = MPCParams(ifreq,name,IncomeProcess);
@@ -234,14 +234,11 @@ function params = parameters(runopts,selection,IncomeProcess)
     end
     
     %----------------------------------------------------------------------
-    % ADJUST PARAMETERS FOR FREQUENCY
-    %----------------------------------------------------------------------
-    
-    params = MPCParams.adjust_if_quarterly(params);
-    
-    %----------------------------------------------------------------------
     % SET BETA UPPER BOUND FOR EZ CASES
     %----------------------------------------------------------------------
+    % This section adjusts the beta upper bound for specific cases
+    % to ensure convergence
+
     % varying risk_aver
     EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==1);
     for iz = EZ
@@ -404,19 +401,17 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------
-    
-    params.set_display(runopts.Display);
-    params.set_simulate(runopts.Simulate);
-    
-    if runopts.fast == 1
-        params.set_fast();
-    end
-    
+
+    params = MPCParams.adjust_if_quarterly(params);
+    params.set_run_parameters(runopts);
+
+    % creates ordered 'index' field
     params.set_index();
     
+    % select by number if there is one, otherwise select by names,
+    % otherwise use all
     if numel(selection.number) == 1
         params = MPCParams.select_by_number(params,selection.number);
-        % index by individual .mat file
     elseif numel(selection.number) > 1
         error('selection.number must have 1 or zero elements')
     else
@@ -424,6 +419,7 @@ function params = parameters(runopts,selection,IncomeProcess)
         params.set_index(); % index within .mat file
     end
     
+    % alternative income processes
     for ip = 1:numel(params)
         if isempty(params(ip).IncomeProcess)
             params(ip).IncomeProcess = IncomeProcess;

@@ -1,6 +1,5 @@
 function makeplots(p,xgrid,sgrid,basemodel,income,assetmeans,agrid)
-    % This function makes plots based on fields from 'direct_results'
-    % and 'simulation_results' and 'income' as well as plotting MPCs
+    % THIS FUNCTION IS OUTDATED AND DOES NOT WORK
 
     figure(1);
 

@@ -10,9 +10,12 @@ function [results,checks,decomp] = main(p)
     % and to find the implied stationary distribution over the state space.
 
     results = struct('direct',[],'norisk',[],'sim',[]);
-    checks          = {};
+    checks = {};
     
+    % -------------------------------------------------------------
     %% LOAD INCOME VARIABLES
+    % -------------------------------------------------------------
+
     % Create income structure
     income = gen_income_variables(p);
     
@@ -54,7 +57,9 @@ function [results,checks,decomp] = main(p)
             prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
     end
 
+    % -------------------------------------------------------------
     %% ASSET GRIDS
+    % -------------------------------------------------------------
     
     % savings grids
     sgrid.orig = linspace(0,1,p.nx)';
@@ -112,7 +117,10 @@ function [results,checks,decomp] = main(p)
     prefs.u1inv = @(u) u.^(-1./p.risk_aver);
     prefs.beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.bequest_curv);
 
+    % -------------------------------------------------------------
     %% MODEL SOLUTION
+    % -------------------------------------------------------------
+
     if p.IterateBeta == 1
         
         Iterating = 1;
@@ -164,7 +172,10 @@ function [results,checks,decomp] = main(p)
         return
     end
     
+    % -------------------------------------------------------------
     %% IMPORTANT MOMENTS
+    % -------------------------------------------------------------
+
     results.direct.mean_s = basemodel.xdist(:)' * basemodel.sav_x(:);
     results.direct.mean_a = basemodel.mean_a;
     results.direct.mean_x = basemodel.xdist(:)' * basemodel.xvals(:);
@@ -215,8 +226,10 @@ function [results,checks,decomp] = main(p)
         checks{end+1} = 'SmallNegativeStateProbability';
     end
 
+    % -------------------------------------------------------------
     %% WEALTH DISTRIBUTION
-    
+    % -------------------------------------------------------------
+
     % Create values for fraction constrained at every pt in asset space,
     % defining constrained as s <= epsilon * mean annual gross labor income 
     % + borrowing limit
@@ -299,7 +312,9 @@ function [results,checks,decomp] = main(p)
         results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
     end
 
-    %% DECOMPOSITION
+    % -------------------------------------------------------------
+    %% DECOMPOSITION 1 (DECOMP OF EM)
+    % -------------------------------------------------------------
 	decomp = struct([]);
     if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0 && p.temptation == 0
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
@@ -342,17 +357,6 @@ function [results,checks,decomp] = main(p)
         dist_sort  = sorted(:,2);
         S = [0;cumsum(dist_sort .* level_sort)];
         gini = 1 - dist_sort' * (S(1:end-1)+S(2:end)) / S(end);
-    end
-    
-    %% MAKE PLOTS
-  
-    if p.MakePlots ==1 
-        makeplots(p,xgrid,sgrid,basemodel,income,assetmeans);
-    end 
-    
-    %% Print Results
-    if p.Display == 1 && 0
-        print_statistics(results.direct,results.sim,results.norisk,checks,p,decomp);
     end
     
 end

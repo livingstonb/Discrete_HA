@@ -17,7 +17,7 @@ IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 % ignored when run on server
 selection.names_to_run = {}; % cell array of strings or {} to run all
 
-%% Add paths
+%% ADD PATHS
 if runopts.Server == 0
     runopts.path = runopts.localdir;
     selection.number = [];
@@ -28,7 +28,7 @@ else
     if exist(runopts.savematpath, 'file') == 2
     % Delete old results
     delete runopts.savematpath;
-    end 
+
 end
 addpath([runopts.path '/Auxiliary Functions']);
 addpath([runopts.path '/Solution Functions']);
@@ -36,7 +36,7 @@ addpath([runopts.path '/Output Functions']);
 addpath([runopts.path '/Parameters']);
 cd(runopts.path);
 
-%% PARAMETERIZATIONS
+%% LOAD PARAMETERIZATIONS
 if runopts.GRIDTEST == 1
     params = parameters_grid_tests(runopts,selection,IncomeProcess);
 elseif runopts.Batch == 0
@@ -44,23 +44,21 @@ elseif runopts.Batch == 0
 else
     params = parameters(runopts,selection,IncomeProcess);
 end
-
+% convert to structure for saving
 Sparams = MPCParams.to_struct(params);
 
 %% CALL MAIN FUNCTION
 Nparams = size(params,2);
-exceptions = cell(1,Nparams); % ME objects on any exceptions thrown
 checks     = cell(1,Nparams); % Information on failed sanity checks
 decomps    = cell(1,Nparams); 
 
+% iterate through specifications
 for ip = 1:Nparams
-    
     if params(ip).freq == 1
         msgfreq = 'annual';
     else
         msgfreq = 'quarterly';
     end
-
     fprintf('\n Trying %s parameterization "%s"\n',msgfreq,params(ip).name)
 
     tic
@@ -74,10 +72,10 @@ end
 decomp2 = decomposition2(params,results);
 
 %% CREATE TABLE/SAVE VARIABLES
-
 if runopts.Server == 0
+    % Create table
     [T_annual,T_quarter] = create_table(params,results,...
-                                    decomps,checks,exceptions,decomp2);
+                                    decomps,checks,decomp2);
     if ~isempty(T_annual)
         T_annual
     end
@@ -88,6 +86,7 @@ if runopts.Server == 0
 
     disp('Check the results structure for detailed results')
 else
-    save(runopts.savematpath,'Sparams','results','decomps','checks','exceptions','decomp2')
+    % Save this run
+    save(runopts.savematpath,'Sparams','results','decomps','checks','decomp2')
     exit
 end
