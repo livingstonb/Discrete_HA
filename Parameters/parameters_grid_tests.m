@@ -1,5 +1,6 @@
-function params = parameters_grid_tests(runopts,selection,IncomeProcess)
+function params = parameters_grid_tests(runopts,IncomeProcess)
     % This function solves the model with many different grid parameters
+    % Uses baseline quarterly specification
     
     %----------------------------------------------------------------------
     % DIFFERENT GRIDS
@@ -18,30 +19,16 @@ function params = parameters_grid_tests(runopts,selection,IncomeProcess)
     end
     
     %----------------------------------------------------------------------
-    % ADJUST PARAMETERS FOR FREQUENCY
-    %----------------------------------------------------------------------
-    
-    params = MPCParams.adjust_if_quarterly(params);
-    
-    %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------
     
-    params.set_display(runopts.Display);
-    params.set_simulate(runopts.Simulate);
-    
+    params = MPCParams.adjust_if_quarterly(params);
+    params.set_run_parameters(runopts);
+
+    % creates ordered 'index' field
     params.set_index();
     
-    if numel(selection.number) == 1
-        params = MPCParams.select_by_number(params,selection.number);
-        % index by individual .mat filerunopts
-    elseif numel(selection.number) > 1
-        error('selection.number must have 1 or zero elements')
-    else
-        params = MPCParams.select_by_names(params,selection.names_to_run);
-        params.set_index(); % index within .mat file
-    end
-    
+    % alternative income processes
     for ip = 1:numel(params)
         if isempty(params(ip).IncomeProcess)
             params(ip).IncomeProcess = IncomeProcess;

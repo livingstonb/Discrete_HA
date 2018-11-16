@@ -2,20 +2,20 @@ clear;
 close all;
 
 %% RUN OPTIONS
-runopts.Batch = 0; % use parameters.m, not parameters_experiment.m
+runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 0; % use server paths and limit display
-runopts.fast = 0; % specify very small asset and income grids for speed
+runopts.fast = 1; % specify very small asset and income grids for speed
 runopts.Simulate = 1;
-runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
-runopts.GRIDTEST = 0;
+runopts.localdir = '/Users/Brian/Documents/GitHub/Discrete_HA';
+runopts.GRIDTEST = 1;
 
 % empty string if not loading from file
 IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments
 % ignored when run on server
-selection.names_to_run = {}; % cell array of strings or {} to run all
+selection.names_to_run = {'baseline_Q'}; % cell array of strings or {} to run all
 
 %% ADD PATHS
 if runopts.Server == 0
@@ -26,9 +26,9 @@ else
     runopts.path = '/home/livingstonb/GitHub/Discrete_HA';
     runopts.savematpath = ['/home/livingstonb/GitHub/Discrete_HA/Output/variables' num2str(selection.number) '.mat'];
     if exist(runopts.savematpath, 'file') == 2
-    % Delete old results
-    delete runopts.savematpath;
-
+        % Delete old results
+        delete runopts.savematpath;
+    end
 end
 addpath([runopts.path '/Auxiliary Functions']);
 addpath([runopts.path '/Solution Functions']);
@@ -38,7 +38,7 @@ cd(runopts.path);
 
 %% LOAD PARAMETERIZATIONS
 if runopts.GRIDTEST == 1
-    params = parameters_grid_tests(runopts,selection,IncomeProcess);
+    params = parameters_grid_tests(runopts,IncomeProcess);
 elseif runopts.Batch == 0
     params = parameters_experiment(runopts,IncomeProcess); 
 else
