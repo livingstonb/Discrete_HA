@@ -167,6 +167,12 @@ classdef MPCParams < handle
             ind = num2cell(1:numel(obj));
             [obj.index] = deal(ind{:});
         end
+
+        function obj = set_grid(obj,nx,nxlong,curv)
+            obj.nx = nx;
+            obj.nxlong = nxlong;
+            obj.xgrid_par = curv;
+        end
     end
     
     methods (Static)

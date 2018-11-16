@@ -1,8 +1,7 @@
 function params = parameters_experiment(runopts,IncomeProcess)
 
     params = MPCParams(4,'test',IncomeProcess);
-    params.betaswitch = 1/50;
-    params.nb = 1;
+    params.set_grid(2000,2000,0.3);
     
     %----------------------------------------------------------------------
     % ADJUST PARAMETERS FOR FREQUENCY
