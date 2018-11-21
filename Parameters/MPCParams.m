@@ -44,6 +44,7 @@ classdef MPCParams < handle
         MakePlots = 0;
         Display = 0;
         Simulate = 0;
+        GRIDTEST;
     end
     properties
         % returns
@@ -160,6 +161,9 @@ classdef MPCParams < handle
 
             % simulate option
             [obj.Simulate] = deal(runopts.Simulate);
+            
+            % gridtest option
+            [obj.GRIDTEST] = deal(runopts.GRIDTEST);
         end
         
         function obj = set_index(obj)

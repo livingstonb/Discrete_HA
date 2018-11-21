@@ -185,14 +185,22 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,
         % Policy functions associated with xdist
         model.con_x= model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
     end
-           
+    
     % mean saving, mean assets
     model.mean_a = model.adist(:)' * agrid(:);
- 
     
-    if p.Display == 1
-        fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany1*p.freq));
+    if p.GRIDTEST == 2
+        % use simulation results in objective function
+        sim = simulate(p,income,model,xgrid,prefs);
+        mean_assets = sim.mean_a;
+    else
+        % use distribution results
+        mean_assets = model.mean_a;
     end
-    AYdiff = model.mean_a/(income.meany1*p.freq) -  p.targetAY;
+           
+    if p.Display == 1
+        fprintf(' A/Y = %2.3f\n',mean_assets/(income.meany1*p.freq));
+    end
+    AYdiff = mean_assets/(income.meany1*p.freq) -  p.targetAY;
 
 end
