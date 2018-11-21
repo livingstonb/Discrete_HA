@@ -1,14 +1,14 @@
 #!/bin/bash
 # run sbatch files and clean up output and temp directories
 
-mkdir -p ~/GitHub/MPCrecode/Output
-mkdir -p ~/GitHub/MPCrecode/Temp
+mkdir -p ~/GitHub/Discrete_HA/Output
+mkdir -p ~/GitHub/Discrete_HA/Temp
 
-if ! [ -z "$(ls ~/GitHub/Continuous_Two_Asset/Output)" ]; then
-  rm ~/GitHub/MPCrecode/Output/*
+if ! [ -z "$(ls ~/GitHub/Discrete_HA/Output)" ]; then
+  rm ~/GitHub/Discrete_HA/Output/*
 fi
 
-cd ~/GitHub/MPCrecode/batch
+cd ~/GitHub/Discrete_HA/batch
 array=$(ls *.sbatch)
 
 for i in ${array[@]}

@@ -4,9 +4,9 @@ close all;
 %% RUN OPTIONS
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
-runopts.Server = 0; % use server paths and limit display
+runopts.Server = 1; % use server paths and limit display
 runopts.fast = 0; % specify very small asset and income grids for speed
-runopts.Simulate = 0;
+runopts.Simulate = 1;
 runopts.localdir = '/Users/Brian/Documents/GitHub/Discrete_HA';
 runopts.GRIDTEST = 2;
 
@@ -38,9 +38,10 @@ cd(runopts.path);
 
 %% LOAD PARAMETERIZATIONS
 if runopts.GRIDTEST == 1
+    % only setup to run locally
     params = parameters_grid_tests(runopts,IncomeProcess);
 elseif runopts.GRIDTEST == 2
-    params = parameters_grid_tests2(runopts,IncomeProcess);
+    params = parameters_grid_tests2(runopts,selection,IncomeProcess);
 elseif runopts.Batch == 0
     params = parameters_experiment(runopts,IncomeProcess); 
 else
