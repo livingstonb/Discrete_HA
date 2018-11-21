@@ -3,6 +3,9 @@ function [sim_results,assetmeans] = simulate(p,income,model,xgrid,prefs)
     % This function runs simulations based on the paratmers in 'p' and the
     % policy functions in 'model'.
     
+    rng('default');
+    rng(1991);
+    
     %% Simulate income process
     disp(['Simulating income process...']);
     if p.yTContinuous == 1

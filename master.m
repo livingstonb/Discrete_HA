@@ -5,17 +5,17 @@ close all;
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 0; % use server paths and limit display
-runopts.fast = 1; % specify very small asset and income grids for speed
-runopts.Simulate = 1;
+runopts.fast = 0; % specify very small asset and income grids for speed
+runopts.Simulate = 0;
 runopts.localdir = '/Users/Brian/Documents/GitHub/Discrete_HA';
-runopts.GRIDTEST = 1;
+runopts.GRIDTEST = 2;
 
 % empty string if not loading from file
 IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments
 % ignored when run on server
-selection.names_to_run = {'baseline_Q'}; % cell array of strings or {} to run all
+selection.names_to_run = {}; % cell array of strings or {} to run all
 
 %% ADD PATHS
 if runopts.Server == 0
@@ -39,6 +39,8 @@ cd(runopts.path);
 %% LOAD PARAMETERIZATIONS
 if runopts.GRIDTEST == 1
     params = parameters_grid_tests(runopts,IncomeProcess);
+elseif runopts.GRIDTEST == 2
+    params = parameters_grid_tests2(runopts,IncomeProcess);
 elseif runopts.Batch == 0
     params = parameters_experiment(runopts,IncomeProcess); 
 else
