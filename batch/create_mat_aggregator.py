@@ -6,8 +6,9 @@ import re
 # ---------------------------------------------------------------------
 # Functions
 # ---------------------------------------------------------------------
+
                     
-def gen_mfile_aggregator(MWout):
+def gen_mfile_aggregator(MWout,sim):
     # create m-file to aggregate .mat files and create a table
 
     matdir = MWout
@@ -23,42 +24,39 @@ def gen_mfile_aggregator(MWout):
     matfiles_new = []
 
     # sort by mindex
-    for i in range(1,max(mindex)+1):
-        # first use mindex = 1, then mindex = 2...
-        findmindex = [j for j in range(len(mindex)) if mindex[j] == i]
-        for ind in findmindex:
-            if ~findmindex:
-                # run j must have failed, .mat file not found
-                matfiles_new.append('')
-            matfiles_new.append(matfiles[ind])
-    matfiles = matfiles_new
-    
+    matfiles = sorted(matfiles,key=lambda x:mindex[matfiles.index(x)])
+
     with open(os.path.join(MWout,'aggregate.m'),'w') as newmfile:
         newmfile.write("clear\n% Aggregates specification##.mat's into one .mat file\n\n")
         for i,matfile in enumerate(matfiles):
             newmfile.write("matfiles{{{0:d}}} = '{1:s}';\n".format(i+1,matfile))
         
+        if sim:
+            tablefn = 'create_table_sim(params,results,decomps,checks);'
+            decomp2 = ''
+        else:
+            tablefn = 'create_table(params,results,decomps,checks,decomp2);'
+            decomp2 = 'decomp2 = decomposition2(params,results);'
+
         lines = ['',
-                 'for im = 1:len(matfiles)',
+                 'for im = 1:length(matfiles)',
                  '    if isempty(matfiles{im})',
                  '        continue',
                  '    end',
                  '',
                  '    S = load(matfiles{im});',
-                 '    params(im) = S.Sparams(im);',
-                 '    results(im) = S.results(im);',
-                 '    decomps(im) = S.decomps(im);',
-                 '    checks(im) = S.checks(im);',
-                 '    exceptions(im) = S.exceptions(im);',
+                 '    params(im) = S.Sparams;',
+                 '    results(im) = S.results;',
+                 '    decomps(im) = S.decomps;',
+                 '    checks(im) = S.checks;',
                  'end',
                  '',
-                 "addpath('/Users/Brian/Documents/GitHub/MPCrecode/Output Functions');"
-                 "addpath('/Users/Brian/Documents/GitHub/MPCrecode/Solution Functions');"
+                 "addpath('/Users/Brian/Documents/GitHub/Discrete_HA/Output Functions');",
+                 "addpath('/Users/Brian/Documents/GitHub/Discrete_HA/Solution Functions');",
                  '',
-                 'decomp2 = decomposition2(params,results);',
+                 decomp2,
                  '',
-                 '[T_annual,T_quarter] = '
-                 'create_table(params,results,decomps,checks,exceptions,decomp2);']
+                 f'[T_annual,T_quarter] = {tablefn}']
         newmfile.write('\n'.join(lines))
             
         
@@ -69,16 +67,12 @@ def gen_mfile_aggregator(MWout):
 
 # location of .mat output files
 MWout = '/Users/Brian/Documents/midway2_output/discrete_time/11_21_18/matlab_output'
+sim = True # True/False
 
 # ---------------------------------------------------------------------
 # Function calls
 # ---------------------------------------------------------------------
-# create batch m-files
-#(nb1end,nb5end) = gen_mfiles(mfile,args)
-
-# create batch sbatch scripts
-#gen_sbatch(mfile,args,nb1end,nb5end)
 
 # generate m-file that aggreagates .mat files and creates a table
-gen_mfile_aggregator(MWout)
+gen_mfile_aggregator(MWout,sim)
 
