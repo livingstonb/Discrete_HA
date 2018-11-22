@@ -1,6 +1,6 @@
 function [T_annual,T_quarter] = create_table(params,results,...
                                             decomps,checks,decomp2)
-    % Rownames
+    %% Rownames
     rows = {'Specification'
             'Lookup Index'
             'Beta (Annualized)'
@@ -114,7 +114,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
             };
     Nrows = numel(rows) - 1;
 
-    % Iterate over frequency
+    %% Iterate over frequency
     for ifreq = [1 4]
         this_freq = find([params.freq]==ifreq);
         if isempty(this_freq)
@@ -143,7 +143,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                 end
             end
             if numel(checks{ip}) == 1
-                if checks{ip} == {'EXCEPTION_THROWN'}
+                if ismember('EXCEPTION_THROWN',checks{ip})
                     % Exception was thrown for this parameterization
                     NaNcol = true;
                 end

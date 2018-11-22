@@ -6,11 +6,13 @@ clear
 path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);
 
-%% SET PARAMETERS
+%% ------------------------------------------------------------------------
+% SET PARAMETERS
+% -------------------------------------------------------------------------
 Nsim = 1e6;
 
 % Baseline quarterly
-params(1).IncomeProcess = '';
+params(1).IncomeProcess = ''; % generate in code
 params(1).freq         = 4;
 params(1).nyT          = 11;
 params(1).yTContinuous = 0;
@@ -43,7 +45,9 @@ params(4) = params(1);
 params(4).IncomeProcess = 'IncomeGrids/quarterly_c.mat';
 income{4} = gen_income_variables(params(4));
 
-%% SIMULATE
+%% ------------------------------------------------------------------------
+% SIMULATE
+% -------------------------------------------------------------------------
 yTsim = cell(1,4);
 yPsim = cell(1,4);
 
@@ -66,7 +70,9 @@ for i = 1:4
     yPsim{i} = income{i}.yPgrid(yPindsim);
 end
 
-%% COMPUTE MOMENTS
+%% ------------------------------------------------------------------------
+% COMPUTE MOMENTS
+% -------------------------------------------------------------------------
 
 Qmoments(1).name = 'q_base';
 Qmoments(2).name = 'q_a';

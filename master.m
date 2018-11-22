@@ -1,23 +1,27 @@
 clear;
 close all;
 
-%% RUN OPTIONS
+%% ------------------------------------------------------------------------
+% SET OPTIONS 
+% -------------------------------------------------------------------------
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
-runopts.Server = 0; % use server paths and limit display
-runopts.fast = 0; % specify very small asset and income grids for speed
+runopts.Server = 0; % use server paths
+runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 1;
 runopts.localdir = '/Users/Brian/Documents/GitHub/Discrete_HA';
-runopts.GRIDTEST = 2;
 
-% empty string if not loading from file
+% local grid tests, 1 for transition probs, 2 for simulations
+runopts.GRIDTEST = 2; % 
+
 IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
-% select only a subset of experiments
-% ignored when run on server
+% select only a subset of experiments (ignored when run on server)
 selection.names_to_run = {}; % cell array of strings or {} to run all
 
-%% ADD PATHS
+%% ------------------------------------------------------------------------
+% APPLY OPTIONS AND LOAD PARAMETERS
+% -------------------------------------------------------------------------
 if runopts.Server == 0
     runopts.path = runopts.localdir;
     selection.number = [];
@@ -36,7 +40,7 @@ addpath([runopts.path '/Output Functions']);
 addpath([runopts.path '/Parameters']);
 cd(runopts.path);
 
-%% LOAD PARAMETERIZATIONS
+% Load parameters
 if runopts.GRIDTEST == 1
     % only setup to run locally
     params = parameters_grid_tests(runopts,IncomeProcess);
@@ -47,15 +51,15 @@ elseif runopts.Batch == 0
 else
     params = parameters(runopts,selection,IncomeProcess);
 end
-% convert to structure for saving
-Sparams = MPCParams.to_struct(params);
 
-%% CALL MAIN FUNCTION
+%% ------------------------------------------------------------------------
+% CALL MAIN FUNCTION
+% -------------------------------------------------------------------------
 Nparams = size(params,2);
 checks     = cell(1,Nparams); % Information on failed sanity checks
 decomps    = cell(1,Nparams); 
 
-% iterate through specifications
+% iterate through specifications (or run 1)
 for ip = 1:Nparams
     if params(ip).freq == 1
         msgfreq = 'annual';
@@ -71,10 +75,11 @@ for ip = 1:Nparams
     
 end
 
-%% DECOMPOSITIONS - COMPARISONS WITH BASELINE
+%% ------------------------------------------------------------------------
+% DECOMPOSITION 2 AND SAVING/TABLE CREATING
+% -------------------------------------------------------------------------
 decomp2 = decomposition2(params,results);
 
-%% CREATE TABLE/SAVE VARIABLES
 if runopts.Server == 0
     % Create table
     [T_annual,T_quarter] = create_table(params,results,...
@@ -89,7 +94,8 @@ if runopts.Server == 0
 
     disp('Check the results structure for detailed results')
 else
-    % Save this run
+    % convert MPCParams object to structure for saving
+	Sparams = MPCParams.to_struct(params);
     save(runopts.savematpath,'Sparams','results','decomps','checks','decomp2')
     exit
 end

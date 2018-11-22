@@ -1,6 +1,6 @@
 function [T_annual,T_quarter] = create_table_sim(params,results,...
                                             decomps,checks)
-    % Rownames
+    %% Rownames
     rows = {'Specification'
             'Lookup Index'
             'Beta (Annualized)'

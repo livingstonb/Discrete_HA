@@ -1,5 +1,7 @@
 clear
 
+% Construct grids for comparison
+
 sgrid = cell(1,18);
 i = 0;
 for nx = [50 100 150 200 500 2000]
@@ -10,6 +12,6 @@ for nx = [50 100 150 200 500 2000]
         sgrid{i} = 1000 .* sgrid{i};
         
         T = table(sgrid{i});
-        writetable(T,['/Users/Brian/Documents/midway2_output/discrete_time/11_21_18/grid',num2str(i),'.xls'],'WriteRowNames',true);
+        %writetable(T,['/Users/Brian/Documents/midway2_output/discrete_time/11_21_18/grid',num2str(i),'.xls'],'WriteRowNames',true);
     end
 end

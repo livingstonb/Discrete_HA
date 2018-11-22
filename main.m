@@ -12,9 +12,9 @@ function [results,checks,decomp] = main(p)
     results = struct('direct',[],'norisk',[],'sim',[]);
     checks = {};
     
-    % -------------------------------------------------------------
-    %% LOAD INCOME VARIABLES
-    % -------------------------------------------------------------
+    %% --------------------------------------------------------------------
+    % LOAD INCOME VARIABLES, CONSTRUCT BETA DISTRIBUTION
+    % ---------------------------------------------------------------------
 
     % Create income structure
     income = gen_income_variables(p);
@@ -22,7 +22,6 @@ function [results,checks,decomp] = main(p)
     % savtaxthresh should be a multiple of mean gross labor income
     p.savtaxthresh  = p.savtaxthresh * income.meany1;
 
-    %% DISCOUNT FACTOR
     % discount factor distribution
     if  p.nb == 1
         prefs.betadist = 1;
@@ -57,9 +56,9 @@ function [results,checks,decomp] = main(p)
             prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
     end
 
-    % -------------------------------------------------------------
-    %% ASSET GRIDS
-    % -------------------------------------------------------------
+    %% --------------------------------------------------------------------
+    % ASSET GRIDS
+    % ---------------------------------------------------------------------
     
     % savings grids
     sgrid.orig = linspace(0,1,p.nx)';
@@ -99,7 +98,9 @@ function [results,checks,decomp] = main(p)
     agrid_short = agrid;
     agrid = repmat(agrid,p.nyP*p.nyF*p.nb,1);
     
-    %% UTILITY FUNCTION, BEQUEST FUNCTION
+    %% --------------------------------------------------------------------
+    % UTILITY FUNCTION, BEQUEST FUNCTION
+    % ---------------------------------------------------------------------
     if p.risk_aver==1
         prefs.u = @(c)log(c);
     else    
@@ -117,9 +118,9 @@ function [results,checks,decomp] = main(p)
     prefs.u1inv = @(u) u.^(-1./p.risk_aver);
     prefs.beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.bequest_curv);
 
-    % -------------------------------------------------------------
-    %% MODEL SOLUTION
-    % -------------------------------------------------------------
+    %% --------------------------------------------------------------------
+    % MODEL SOLUTION
+    % ---------------------------------------------------------------------
 
     if p.IterateBeta == 1
         
@@ -172,9 +173,9 @@ function [results,checks,decomp] = main(p)
         return
     end
     
-    % -------------------------------------------------------------
-    %% IMPORTANT MOMENTS
-    % -------------------------------------------------------------
+    %% --------------------------------------------------------------------
+    % IMPORTANT MOMENTS
+    % ---------------------------------------------------------------------
 
     results.direct.mean_s = basemodel.xdist(:)' * basemodel.sav_x(:);
     results.direct.mean_a = basemodel.mean_a;
@@ -198,8 +199,9 @@ function [results,checks,decomp] = main(p)
     yFdist_check = reshape(basemodel.adist,[p.nxlong*p.nyP p.nyF p.nb]);
     yFdist_check = sum(sum(yFdist_check,3),1)';
     
-
-    %% RECORD PROBLEMS
+    %% --------------------------------------------------------------------
+    % RECORD PROBLEMS
+    % ---------------------------------------------------------------------
     if  abs((p.targetAY - results.direct.mean_a/(income.meany1*p.freq))/p.targetAY) > 1e-3
         checks{end+1} = 'BadAY';
     end
@@ -226,9 +228,9 @@ function [results,checks,decomp] = main(p)
         checks{end+1} = 'SmallNegativeStateProbability';
     end
 
-    % -------------------------------------------------------------
-    %% WEALTH DISTRIBUTION
-    % -------------------------------------------------------------
+    %% --------------------------------------------------------------------
+    % WEALTH DISTRIBUTION
+    % ---------------------------------------------------------------------
 
     % Create values for fraction constrained at every pt in asset space,
     % defining constrained as s <= epsilon * mean annual gross labor income 
@@ -267,7 +269,10 @@ function [results,checks,decomp] = main(p)
     results.direct.top10share  = 1 - cumwealthshare(0.9);
     results.direct.top1share   = 1 - cumwealthshare(0.99);
     
-    %% EGP FOR MODEL WITHOUT INCOME RISK
+    %% --------------------------------------------------------------------
+    % EGP FOR MODEL WITHOUT INCOME RISK
+    % ---------------------------------------------------------------------
+    
     % Deterministic model
     norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,results.direct);
     if norisk.EGP_cdiff > p.tol_iter
@@ -276,21 +281,27 @@ function [results,checks,decomp] = main(p)
         return
     end
     
-    %% SIMULATIONS
+    %% --------------------------------------------------------------------
+    % SIMULATIONS
+    % ---------------------------------------------------------------------
     if p.Simulate == 1
         [results.sim,assetmeans] = simulate(p,income,basemodel,xgrid,prefs);
     else
         assetmeans = [];
     end
     
-    %% DIRECTLY COMPUTED 1-PERIOD MPCs
+    %% --------------------------------------------------------------------
+    % DIRECTLY COMPUTED 1-PERIOD MPCs
+    % ---------------------------------------------------------------------
     [MPCs,agrid_dist,norisk_mpcs1_a_direct] = ...
                                 direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk);
     results.direct.mpcs = MPCs;
     results.direct.agrid_dist = agrid_dist;
     results.norisk.mpcs1_a_direct = norisk_mpcs1_a_direct;
     
-    %% MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
+    %% --------------------------------------------------------------------
+    % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
+    % ---------------------------------------------------------------------
     % Model with income risk
     if p.freq == 4
         [MPCs,stdev_loggrossy_A,stdev_lognety_A] ...
@@ -312,9 +323,9 @@ function [results,checks,decomp] = main(p)
         results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
     end
 
-    % -------------------------------------------------------------
-    %% DECOMPOSITION 1 (DECOMP OF EM)
-    % -------------------------------------------------------------
+    %% --------------------------------------------------------------------
+    % DECOMPOSITION 1 (DECOMP OF EM)
+    % ---------------------------------------------------------------------
 	decomp = struct([]);
     if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0 && p.temptation == 0
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
@@ -340,7 +351,9 @@ function [results,checks,decomp] = main(p)
         end
     end
     
-    %% GINI
+    %% --------------------------------------------------------------------
+    % GINI
+    % ---------------------------------------------------------------------
     % Wealth
     results.direct.wealthgini = direct_gini(agrid,basemodel.adist);
     
