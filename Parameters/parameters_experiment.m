@@ -2,7 +2,6 @@ function params = parameters_experiment(runopts,IncomeProcess)
     % Used to run experiments outside of batch mode
 
     params = MPCParams(4,'test',IncomeProcess);
-    params.set_grid(2000,2000,0.3);
     
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS

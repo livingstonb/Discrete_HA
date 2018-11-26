@@ -4,20 +4,21 @@ close all;
 %% ------------------------------------------------------------------------
 % SET OPTIONS 
 % -------------------------------------------------------------------------
-runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
+runopts.Batch = 0; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 0; % use server paths
-runopts.fast = 0; % very small asset and income grids for speed
-runopts.Simulate = 1;
+runopts.fast = 1; % very small asset and income grids for speed
+runopts.Simulate = 0;
 runopts.localdir = '/Users/Brian/Documents/GitHub/Discrete_HA';
 
-% local grid tests, 1 for transition probs, 2 for simulations
-runopts.GRIDTEST = 2; % 
+% local grid tests, 0 to turn off, 1 for transition probs, 2 for simulations
+runopts.GRIDTEST = 0; % 
 
 IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
-selection.names_to_run = {}; % cell array of strings or {} to run all
+% use empty cell array, {}, to run all
+selection.names_to_run = {};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS
@@ -83,15 +84,7 @@ decomp2 = decomposition2(params,results);
 if runopts.Server == 0
     % Create table
     [T_annual,T_quarter] = create_table(params,results,...
-                                    decomps,checks,decomp2);
-    if ~isempty(T_annual)
-        T_annual
-    end
-
-    if ~isempty(T_quarter)
-        T_quarter
-    end
-
+                                    decomps,checks,decomp2)
     disp('Check the results structure for detailed results')
 else
     % convert MPCParams object to structure for saving

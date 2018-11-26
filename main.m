@@ -124,11 +124,12 @@ function [results,checks,decomp] = main(p)
 
     if p.IterateBeta == 1
         
+        mpcshock = 0;
         Iterating = 1;
         if p.EpsteinZin == 1
             iterate_EGP = @(x) solve_EGP_EZ(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
         else
-            iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+            iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock);
         end
 
         if p.nb == 1
@@ -159,7 +160,8 @@ function [results,checks,decomp] = main(p)
     if p.EpsteinZin == 1
         [~,basemodel] = solve_EGP_EZ(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
     else
-        [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+        mpcshock = 0;
+        [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock);
     end
     results.direct.adist = basemodel.adist;
 
@@ -293,11 +295,11 @@ function [results,checks,decomp] = main(p)
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED 1-PERIOD MPCs
     % ---------------------------------------------------------------------
-    [MPCs,agrid_dist,norisk_mpcs1_a_direct] = ...
-                                direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short,norisk);
+    [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short);
     results.direct.mpcs = MPCs;
     results.direct.agrid_dist = agrid_dist;
-    results.norisk.mpcs1_a_direct = norisk_mpcs1_a_direct;
+
+    results.norisk.mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,agrid_short);
     
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING

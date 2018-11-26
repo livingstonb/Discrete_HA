@@ -1,4 +1,4 @@
-function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,Iterating)
+function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
