@@ -1,4 +1,5 @@
-function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock)
+function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
+                                    prefs,income,Iterating,nextmpcshock,prevmodel)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
@@ -56,15 +57,25 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,prefs,income,
         % x'(s)
         temp_sav = repmat(sgrid.full(:),p.nb,p.nyT);
         temp_inc = repmat(kron(income.netymat,ones(p.nx,1)),p.nb,1);
-        xp_s = (1+p.r)*temp_sav + temp_inc;
+        xp_s = (1+p.r)*temp_sav + temp_inc + nextmpcshock;
         xp_s = reshape(xp_s,[p.nx p.nyP p.nyF p.nb p.nyT]);
 
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            coninterp = griddedInterpolant(xgrid.full(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
-            xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
-            c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+            if isempty(prevmodel)
+                % usual method of EGP
+                coninterp = griddedInterpolant(xgrid.full(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
+                xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
+                c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+            else
+                % need to compute IMPC(s,t) for s > 1, where IMPC(s,t) is MPC in period t out of period
+                % s shock that was learned about in period 1 < s
+                % coninterp = griddedInterpolant(xgrid.full(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
+                xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
+                %c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+                c_xp(:,iyP,iyF,ib,:) = reshape(prevmodel.coninterp{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+            end
         end
         end
         end

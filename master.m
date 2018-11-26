@@ -7,7 +7,7 @@ close all;
 runopts.Batch = 0; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 0; % use server paths
-runopts.fast = 1; % very small asset and income grids for speed
+runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0;
 runopts.localdir = '/Users/Brian/Documents/GitHub/Discrete_HA';
 

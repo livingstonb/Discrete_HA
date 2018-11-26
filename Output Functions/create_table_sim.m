@@ -132,14 +132,14 @@ function [T_annual,T_quarter] = create_table_sim(params,results,...
                     results(ip).sim.top1share            % Top 1% wealth share
                     results(ip).sim.wealthgini_A           % Gini coefficient
                     NaN
-                    results(ip).direct.mpcs.avg_1_1(:)          % IMPC(1,1)
-                    results(ip).direct.mpcs.avg_1_2(:)          % IMPC(1,2)
-                    results(ip).direct.mpcs.avg_1_3(:)          % IMPC(1,3)
-                    results(ip).direct.mpcs.avg_1_4(:)          % IMPC(1,4)
-                    results(ip).direct.mpcs.avg_1_1to4(:)          % IMPC(1,1-4)
-                    results(ip).direct.mpcs.avg_1_5to8(:)          % IMPC(1,5-8)
-                    results(ip).direct.mpcs.avg_1_9to12(:)          % IMPC(1,9-12)
-                    results(ip).direct.mpcs.avg_1_13to16(:)          % IMPC(1,13-16)
+                    results(ip).sim.mpcs.avg_1_1(:)          % IMPC(1,1)
+                    results(ip).sim.mpcs.avg_1_2(:)          % IMPC(1,2)
+                    results(ip).sim.mpcs.avg_1_3(:)          % IMPC(1,3)
+                    results(ip).sim.mpcs.avg_1_4(:)          % IMPC(1,4)
+                    results(ip).sim.mpcs.avg_1_1to4(:)          % IMPC(1,1-4)
+                    results(ip).sim.mpcs.avg_1_5to8(:)          % IMPC(1,5-8)
+                    results(ip).sim.mpcs.avg_1_9to12(:)          % IMPC(1,9-12)
+                    results(ip).sim.mpcs.avg_1_13to16(:)          % IMPC(1,13-16)
                     numel(checks{ip})>0];                
             end
 

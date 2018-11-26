@@ -129,7 +129,7 @@ function [results,checks,decomp] = main(p)
         if p.EpsteinZin == 1
             iterate_EGP = @(x) solve_EGP_EZ(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
         else
-            iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock);
+            iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock,[]);
         end
 
         if p.nb == 1
@@ -161,7 +161,7 @@ function [results,checks,decomp] = main(p)
         [~,basemodel] = solve_EGP_EZ(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
     else
         mpcshock = 0;
-        [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock);
+        [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock,[]);
     end
     results.direct.adist = basemodel.adist;
 
@@ -293,13 +293,47 @@ function [results,checks,decomp] = main(p)
     end
     
     %% --------------------------------------------------------------------
-    % DIRECTLY COMPUTED 1-PERIOD MPCs
+    % DIRECTLY COMPUTED MPCs, IMPC(1,j)
     % ---------------------------------------------------------------------
     [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short);
     results.direct.mpcs = MPCs;
     results.direct.agrid_dist = agrid_dist;
 
     results.norisk.mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,agrid_short);
+
+    %% --------------------------------------------------------------------
+    % DIRECTLY COMPUTED MPCs, IMPC(s,t)
+    % ---------------------------------------------------------------------
+    
+    % mpcmodels(s,t) stores the policy functions associated with the case
+    % where the household is currently in period t, but recieved news about
+    % the period-s shock in period 1
+    mpcmodels = cell(4,4);
+    
+    % policy functions are the same as baseline when shock is received in
+    % the current period
+    mpcmodels{1,1} = basemodel;
+    mpcmodels{2,2} = basemodel;
+    mpcmodels{3,3} = basemodel;
+    mpcmodels{4,4} = basemodel;
+    
+    
+    for is = 2:4
+    for it = is-1:-1:1
+        
+        if it == is-1
+        	nextmpcshock = 0.01 * income.meany1 * p.freq;
+        else
+            nextmpcshock = 0;
+        end
+        Iterating = 0;
+        [~,mpcmodels{is,it}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...
+                    agrid_short,prefs,income,Iterating,nextmpcshock,mpcmodels{is,it+1});
+    end
+    end
+    
+    [MPCs,agrid_dist] = direct_MPCs_by_computation_new(p,basemodel,mpcmodels,income,prefs,agrid_short);
+    
     
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
