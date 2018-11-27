@@ -308,31 +308,40 @@ function [results,checks,decomp] = main(p)
     % mpcmodels(s,t) stores the policy functions associated with the case
     % where the household is currently in period t, but recieved news about
     % the period-s shock in period 1
-    mpcmodels = cell(4,4);
+    maxT = p.freq * 4;
+    mpcmodels = cell(maxT,maxT);
+    model_lagged = cell(maxT-1);
     
     % policy functions are the same as baseline when shock is received in
     % the current period
-    mpcmodels{1,1} = basemodel;
-    mpcmodels{2,2} = basemodel;
-    mpcmodels{3,3} = basemodel;
-    mpcmodels{4,4} = basemodel;
+    for is = 1:maxT
+        mpcmodels{is,is} = basemodel;
+    end
     
-    
-    for is = 2:4
-    for it = is-1:-1:1
-        
-        if it == is-1
-        	nextmpcshock = 0.01 * income.meany1 * p.freq;
+    % get consumption functions conditional on future shock
+    % 'lag' is number of periods before shock
+    for lag = 1:maxT-1
+        Iterating = 0;
+        if lag == 1
+            nextmpcshock = 0.01 * income.meany1 * p.freq;
+            nextmodel = basemodel;
         else
             nextmpcshock = 0;
+            nextmodel = model_lagged{lag-1};
         end
-        Iterating = 0;
-        [~,mpcmodels{is,it}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...
-                    agrid_short,prefs,income,Iterating,nextmpcshock,mpcmodels{is,it+1});
+       
+        [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
+            agrid_short,prefs,income,Iterating,nextmpcshock,nextmodel);
+    end
+
+    % populate mpcmodels with remaining (s,t) combinations for t < s
+    for is = 2:maxT
+    for it = is-1:-1:1
+        mpcmodels{is,it} = model_lagged{is-it};
     end
     end
     
-    [MPCs,agrid_dist] = direct_MPCs_by_computation_new(p,basemodel,mpcmodels,income,prefs,agrid_short);
+    [results.direct.newMPCs,agrid_dist] = direct_MPCs_by_computation_new(p,basemodel,mpcmodels,income,prefs,agrid_short);
     
     
     %% --------------------------------------------------------------------

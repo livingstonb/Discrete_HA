@@ -12,13 +12,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation_new(p,basemodel,models,i
     %% --------------------------------------------------------------------
     % TRANSITION PROBABILITES AND BASELINE CONSUMPTION
     % ---------------------------------------------------------------------
-
-    % Find P(yP,yF,beta|a) = P(a,yP,yF,beta)/P(a)
-    Pa = sum(sum(sum(basemodel.adist,4),3),2);
-    Pa = repmat(Pa,[1 p.nyP p.nyF p.nb]);
-    Pcondl = basemodel.adist ./ Pa;
-    Pcondl(Pa == 0) = 0;
-
+    
     % Each (a,yP,yF) is associated with nyT possible x values, create this
     % grid here
     netymat_reshape = reshape(income.netymat,[1 p.nyP p.nyF p.nyT]);
@@ -33,25 +27,29 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation_new(p,basemodel,models,i
     trans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_stationary));
     
     con_baseline = get_policy(p,xgrid_yT,basemodel,income);
+    
+    mpcamount = 0.01*income.meany1*p.freq;
 
     %% --------------------------------------------------------------------
-    % ITERATION OVER S
+    % ITERATION OVER (s,t)
     % ---------------------------------------------------------------------
-    T1t = cell(1,4);
-    for is = 1:4
+    MPCs.avg_s_t = cell(16,16);
+    maxT = p.freq * 4;
+    for is = 1:maxT
         % iterate over t within s
         for it = 1:is % in this block, look at t <= s
             % Create transition matrix from period 1 to period
-            % t
+            % t (for last iteration, this is transition from period t to
+            % period s)
             for ii = 1:it
                 if ii == 1
-                    T1t{is} = speye(NN);
+                    T1t = speye(NN);
                 else
                     %Ti is transition from t=ii-1 to t=ii
                     mpcshock = 0;
                     Ti = transition_t_less_s(p,income,xgrid_yT,...
                         models,is,ii-1,fspace,trans_live,trans_death,mpcshock);
-                    T1t{is} = T1t{is} * Ti;
+                    T1t = T1t * Ti;
                 end
             end
 
@@ -65,21 +63,31 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation_new(p,basemodel,models,i
             con = get_policy(p,x_mpc,models{is,it},income);
 
             % now compute IMPC(s,t)
-            mpcs = ( T1t{is} * con(:) - con_baseline(:) ) / mpcamount;
+            mpcs = ( T1t * con(:) - con_baseline(:) ) / mpcamount;
             MPCs.avg_s_t{is,it} = basemodel.adist(:)' * mpcs(:);
 
         end
 
-        mpcshock = 0.01 * income.meany1 * p.freq;
-        % transition probabilites from it = is to it = is + 1
+        % transition probabilities from it = is to it = is + 1
+        mpcshock = mpcamount;
         T_s1_s = transition_t_less_s(p,income,xgrid_yT,models,is,is,...
                                     fspace,trans_live,trans_death,mpcshock);
 
         RHScon = con_baseline(:);
-        for it = is+1:4 % it > is case, policy fcns stay the same in this region
-            mpcs = ( T1t{is} * T_s1_s * RHScon(:) - con_baseline(:) ) / mpcamount;
+        for it = is+1:maxT % it > is case, policy fcns stay the same in this region
+            mpcs = ( T1t * T_s1_s * RHScon(:) - con_baseline(:) ) / mpcamount;
             MPCs.avg_s_t{is,it} = basemodel.adist(:)' * mpcs(:);
             RHScon = basemodel.statetrans * RHScon;
+        end
+    end
+    
+    if p.freq == 1
+        for is = 1:16
+        for it = 1:16
+            if (is>4) || (it>4)
+                MPCs.avg_s_t{is,it} = NaN;
+            end
+        end
         end
     end
 
