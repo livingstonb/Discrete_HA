@@ -20,7 +20,7 @@ classdef MPCParams < handle
 
         % beta iteration
         maxiterAY   = 50;
-        tolAY       = 1e-5;
+        tolAY       = 1e-7;
 
         % mpc options
         Nmpcsim = 2e5; % Number of draws to compute MPCs

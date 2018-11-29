@@ -34,11 +34,11 @@ function decomp2 = decomposition2(params,results)
             g0 = results(baseind).direct.agrid_dist;
 
             % 1-Period MPC decomp
-            m1 = results(ip).direct.mpcs.mpcs_1_1{5};
-            m0 = results(baseind).direct.mpcs.mpcs_1_1{5};
+            m1 = results(ip).direct.mpcs01.mpcs_1_t{1};
+            m0 = results(baseind).direct.mpcs01.mpcs_1_t{1};
 
-            decomp2(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs.avg_1_1(5) ...
-                            - results(baseind).direct.mpcs.avg_1_1(5);
+            decomp2(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs01.avg_1_t{1} ...
+                            - results(baseind).direct.mpcs01.avg_1_t{1};
             decomp2(ip).mpc1_term1 = g0' * (m1 - m0);
             decomp2(ip).mpc1_term2 = m0' * (g1 - g0);
             decomp2(ip).mpc1_term3 = (m1 - m0)' * (g1 - g0);
@@ -52,11 +52,11 @@ function decomp2 = decomposition2(params,results)
 
             % 4-Period MPC decomp
             if params(ip).freq == 4
-                m1 = results(ip).direct.mpcs.mpcs_1_1to4{5};
-                m0 = results(baseind).direct.mpcs.mpcs_1_1to4{5};
+                m1 = results(ip).direct.mpcs01.mpcs_1_1to4;
+                m0 = results(baseind).direct.mpcs01.mpcs_1_1to4;
 
-                decomp2(ip).mpc4_Em1_less_Em0 = results(ip).direct.mpcs.avg_1_1to4(5) ...
-                            - results(baseind).direct.mpcs.avg_1_1to4(5);
+                decomp2(ip).mpc4_Em1_less_Em0 = results(ip).direct.mpcs01.avg_1_1to4 ...
+                            - results(baseind).direct.mpcs01.avg_1_1to4;
                 decomp2(ip).mpc4_term1 = g0' * (m1 - m0);
                 decomp2(ip).mpc4_term2 = m0' * (g1 - g0);
                 decomp2(ip).mpc4_term3 = (m1 - m0)' * (g1 - g0);

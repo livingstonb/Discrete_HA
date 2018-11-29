@@ -293,12 +293,9 @@ function [results,checks,decomp] = main(p)
     end
     
     %% --------------------------------------------------------------------
-    % DIRECTLY COMPUTED MPCs, IMPC(1,j)
+    % MPCS FOR NO-RISK MODEL
     % ---------------------------------------------------------------------
-    [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,income,prefs,agrid_short);
-    results.direct.mpcs = MPCs;
-    results.direct.agrid_dist = agrid_dist;
-
+    
     results.norisk.mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,agrid_short);
 
     %% --------------------------------------------------------------------
@@ -341,8 +338,13 @@ function [results,checks,decomp] = main(p)
     end
     end
     
-    [results.direct.newMPCs,agrid_dist] = direct_MPCs_by_computation_new(p,basemodel,mpcmodels,income,prefs,agrid_short);
-    
+    shocksize = 0.01*income.meany1*p.freq;
+    [results.direct.mpcs01,results.direct.agrid_dist] ...
+        = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+
+    shocksize = 0.05*income.meany1*p.freq;
+    [results.direct.mpcs05,~] ...
+        = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
     
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
@@ -376,7 +378,7 @@ function [results,checks,decomp] = main(p)
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
  
         % MPC shock of 0.01 * annual income
-        m0 = results.direct.mpcs.mpcs_1_1{5};
+        m0 = results.direct.mpcs01.mpcs_1_t{1,1};
         g0 = results.direct.agrid_dist;
         mbc  = results.norisk.mpcs1_a_direct{5};
         for ia = 1:numel(p.abars)
