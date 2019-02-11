@@ -218,7 +218,7 @@ function params = parameters(runopts,selection,IncomeProcess)
         
         % epstein-zin: vary risk_aver
         for ra = [0.5 0.75 1.5 2 4 8]
-            params(end+1) = MPCParams(ifreq,['EZ ra' num2str(ra) ' invies1'],IncomeProcess);
+            params(end+1) = MPCParams(ifreq,['EZ ra' num2str(ra) ' ies1'],IncomeProcess);
             params(end).risk_aver = ra;
             params(end).invies = 1;
             params(end).EpsteinZin = 1;
