@@ -191,13 +191,13 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     % i
-    params(end+1) = MPCParams(4,'3b(i) KMPTransf',IncomeProcess);
+    params(end+1) = MPCParams(4,'3b(i) KMPTransf','');
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
     
     % iv
-    params(end+1) = MPCParams(4,'3b(iv) PersEveryPeriod',IncomeProcess);
+    params(end+1) = MPCParams(4,'3b(iv) PersEveryPeriod','');
     params(end).rho_logyP = 0.9884;
     params(end).sd_logyP = sqrt(0.0105);
     params(end).sd_logyT = sqrt(1.5298);

@@ -114,7 +114,7 @@ classdef MPCParams < handle
                 obj.rho_logyP =0.9525;
             elseif frequency == 4
                 obj.sd_logyT = sqrt(0.02087);
-                obj.sd_logyP = sqrt(0.0108);
+                obj.sd_logyP = sqrt(0.01080);
                 obj.rho_logyP = 0.9881;
             else
                 error('Frequency must be 1 or 4')
