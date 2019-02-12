@@ -125,11 +125,10 @@ function params = parameters(runopts,selection,IncomeProcess)
     params(end).sd_logyT = 0;
 
     % iv
-%     params(end) = baseline;
-%     params(end).name = '3a(iv) HighPersistCarrol';
-%     params(end).rho_logyP = 0.9995;
-%     params(end).sd_logyP = sqrt(0.015);
-%     params(end).sd_logyT = sqrt(0.01);
+    params(end+1) = MPCParams(1,'3a(iv) HighPersistCarrol',IncomeProcess);
+    params(end).rho_logyP = 0.999;
+    params(end).sd_logyP = sqrt(0.015);
+    params(end).sd_logyT = sqrt(0.01);
     
     % v
     params(end+1) = MPCParams(1,'3a(v) HighPersNotReEst',IncomeProcess);
