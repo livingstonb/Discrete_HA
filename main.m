@@ -22,6 +22,10 @@ function [results,checks,decomp] = main(p)
     % savtaxthresh should be a multiple of mean gross labor income
     p.savtaxthresh  = p.savtaxthresh * income.meany1;
 
+    if (p.nb > 1) && (numel(p.risk_aver) > 1)
+    	error('cannot have both beta and risk aversion heterogeneity')
+    end
+
     % discount factor distribution
     if  p.nb == 1
         prefs.betadist = 1;
@@ -54,6 +58,24 @@ function [results,checks,decomp] = main(p)
             prefs.betagrid0 = [-3*bw/2 -bw/2 bw/2 3*bw/2]';
         case 5
             prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
+    end
+
+    %% --------------------------------------------------------------------
+    % IES Heterogeneity
+    % ---------------------------------------------------------------------
+    % same way as introducting beta heterogeneity
+
+    if numel(p.risk_aver) > 1
+    	% use nb as grid size for risk aversion
+    	p.nb = numel(p.risk_aver);
+
+    	prefs.IESdist = ones(p.nb,1) / p.nb;
+    	IESswitch_ij = p.IESswitch / (p.nb-1);
+
+    	diagonal = (1-p.IESswitch) * ones(p.nb,1)
+    	off_diag = IESswitch_ij * ones(p.nb);
+    	off_diag = off_diag - diag(diag(off_diag));
+    	prefs.IEStrans = off_diag + diag(diagonal);
     end
 
     %% --------------------------------------------------------------------
@@ -101,21 +123,41 @@ function [results,checks,decomp] = main(p)
     %% --------------------------------------------------------------------
     % UTILITY FUNCTION, BEQUEST FUNCTION
     % ---------------------------------------------------------------------
-    if p.risk_aver==1
-        prefs.u = @(c)log(c);
-    else    
-        prefs.u = @(c)(c.^(1-p.risk_aver)-1)./(1-p.risk_aver);
-        
-    end    
+    % utility function
+    if numel(p.risk_aver) == 1
+	    if p.risk_aver==1
+	        prefs.u = @(c)log(c);
+	    else    
+	        prefs.u = @(c)(c.^(1-p.risk_aver)-1)./(1-p.risk_aver);
+	        
+	    end    
+	else
+		% risk_aver heterogeneity, preferences defined in utility.m
+		prefs.u = @(risk_aver,c) utility(risk_aver,c);
+	end
     
+    % bequest utility
     if p.bequest_curv == 1
         prefs.beq = @(a) p.bequest_weight.* log(a+ p.bequest_luxury);
     else
         prefs.beq = @(a) p.bequest_weight.*((a+p.bequest_luxury).^(1-p.bequest_curv)-1)./(1-p.bequest_curv);
     end
 
-    prefs.u1 = @(c) c.^(-p.risk_aver);
-    prefs.u1inv = @(u) u.^(-1./p.risk_aver);
+    % 1st derivative of utility wrt c
+    if numel(p.risk_aver) == 1
+    	prefs.u1 = @(c) c.^(-p.risk_aver);
+    else
+    	prefs.u1 = @(risk_aver,c) c.^(-risk_aver);
+    end
+
+    % inverse of 1st derivative
+    if numel(p.risk_aver) == 1
+    	prefs.u1inv = @(u) u.^(-1./p.risk_aver);
+    else
+    	prefs.u1inv = @(risk_aver,u) u.^(-1./risk_aver);
+    end
+
+    % first derivative of bequest utility
     prefs.beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.bequest_curv);
 
     %% --------------------------------------------------------------------
@@ -129,7 +171,7 @@ function [results,checks,decomp] = main(p)
         if p.EpsteinZin == 1
             iterate_EGP = @(x) solve_EGP_EZ(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
         else
-            iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock,[]);
+            iterisk_averrate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock,[]);
         end
 
         if p.nb == 1

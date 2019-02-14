@@ -82,17 +82,20 @@ classdef MPCParams < handle
         nyF = 1;
         sd_logyF = 0;
         
-        %government
+        % government
         labtaxlow       = 0; %proportional tax
         labtaxhigh      = 0; %additional tax on incomes above threshold
         labtaxthreshpc  = 0.99; %percentile of earnings distribution where high tax rate kicks in
         savtax          = 0; %0.0001;  %tax rate on savings
         savtaxthresh    = 0; %multiple of mean gross labor income
 
-        %discount factor shocks
+        % discount factor shocks
         nb = 1;
         betawidth = 0.005;
         betaswitch = 0;
+
+        % IES shocks
+        IESswitch = 0.01;
         
         % computation
     	Tsim        = 200; % Simulation

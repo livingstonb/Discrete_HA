@@ -29,12 +29,24 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
-    betastacked = sparse(diag(betastacked));
+    if numel(p.risk_aver) > 1
+        % IES heterogeneity - nb is number of IES values
+        % betagrid is just beta
+        betastacked = speye(p.nyP*p.nyF*p.nx*p.nb) * betagrid;
+    else
+        % beta heterogeneity
+        betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
+        betastacked = sparse(diag(betastacked));
+    end
 
     % Expectations operator (conditional on yT)
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+    if numel(p.risk_aver) == 1
+        Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+        risk_aver_col = kron(p.risk_aver,ones(p.nx*p.nyP*p.nyF,1));
+    else
+        Emat = kron(prefs.IEStrans,kron(income.ytrans,speye(p.nx)));
+    end
 
     %% EGP ITERATION
     iter = 1;
