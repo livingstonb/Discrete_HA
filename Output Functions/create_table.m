@@ -15,6 +15,8 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Fraction with a <= 2% mean ann gross lab inc'
             'Fraction with a <= 5% mean ann gross lab inc'
             'Fraction with a <= 10% mean ann gross lab inc'
+            'Fraction with a <= 1/6 quarterly income'
+            'Fraction with a <= 1/12 quarterly income'
             'Wealth, 10th percentile'
             'Wealth, 25th percentile'
             'Wealth, 50th percentile'
@@ -238,6 +240,8 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     NaN
                     results(ip).direct.mean_a               % Mean assets
                     results(ip).direct.constrained(:)       % Fraction with a < eps * mean ann gross inc
+                    results.direct.HtM_one_sixth_Q          % Fraction with a < 1/6 quarterly income
+                    results.direct.HtM_one_twelfth_Q        % Fraction with a < 1/12 quarterly income
                     results(ip).direct.wpercentiles(:)      % Wealth percentiles
                     results(ip).direct.top10share           % Top 10% wealth share
                     results(ip).direct.top1share            % Top 1% wealth share

@@ -234,8 +234,8 @@ function [results,checks,decomp] = main(p)
     % WEALTH DISTRIBUTION
     % ---------------------------------------------------------------------
 
-    % Create values for fraction constrained at every pt in asset space,
-    % defining constrained as s <= epsilon * mean annual gross labor income 
+    % Create values for fraction constrained (HtM) at every pt in asset space,
+    % defining constrained as a <= epsilon * mean annual gross labor income 
     % + borrowing limit
     sort_aspace = sortrows([agrid basemodel.adist(:)]);
     sort_agrid = sort_aspace(:,1);
@@ -254,6 +254,20 @@ function [results,checks,decomp] = main(p)
             results.direct.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany1*p.freq);
         end
     end
+
+    % HtM with different income frequency
+    ymat_large = kron(netymat,ones(p.nb));
+
+    % 1/6 quarterly income (1/24 annual income)
+	one_sixth_quarterly = agrid < (ymat_large * p.freq / 24);
+    probabilities = one_sixth_quarterly * basemodel.adist * income.yTdist(:)' ;
+    results.direct.HtM_one_sixth_Q = sum(probabilities(:));
+
+	% 1/12 quarterly income (1/48 annual income)
+    one_twelfth_quarterly = agrid < (ymat_large * p.freq / 48);
+    probabilities = one_twelfth_quarterly * basemodel.adist * income.yTdist(:)' ;
+    results.direct.HtM_one_twelfth_Q = sum(probabilities(:));
+
     
     % Wealth percentiles
     [acumdist_unique,uniqueind] = unique(sort_acumdist,'last');
