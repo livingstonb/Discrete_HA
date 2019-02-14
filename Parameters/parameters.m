@@ -19,7 +19,7 @@ function params = parameters(runopts,selection,IncomeProcess)
     
     for ifreq = [1 4]
         % different mean wealth targets
-        for mw = [0.25, 0.5, 1, 2.5, 5]
+        for mw = [0.25, 0.5, 1]
             name = ['2 AYtarget' num2str(mw) ];
             params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).targetAY = mw;
@@ -29,14 +29,14 @@ function params = parameters(runopts,selection,IncomeProcess)
         end
 
         % different interest rates
-        for ii = [0, 1, 3, 5]
+        for ii = [0, 5]
             name = ['2 IntRate' num2str(ii)];
             params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).r = ii/100;
         end
 
         % different risk aversion coeffs
-        for ira = [0.5, 1.5, 2, 4, 6]
+        for ira = [0.5, 2, 6]
             name = ['2 RiskAver' num2str(ira)];
             params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).risk_aver = ira;
@@ -91,7 +91,7 @@ function params = parameters(runopts,selection,IncomeProcess)
             end
 
             % random beta heterogeneity
-            for ibw = [0.001, 0.005, 0.01]
+            for ibw = [0.01]
                 for bs = [1/50, 1/10]
                     name = ['2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
                     params(end+1) = MPCParams(ifreq,name,IncomeProcess);
