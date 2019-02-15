@@ -17,7 +17,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nxlong,1)),p.nyF*p.nb,1);
     yFind_trans = repmat(kron((1:p.nyF)',ones(p.nxlong*p.nyP,1)),p.nb,1);
     
-    if numel(p.risk_aver) == 1
+    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) 
         betaind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
         IESind_trans = kron(ones(p.nb,1),ones(p.nxlong*p.nyP*p.nyF,1));
     else
@@ -119,7 +119,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             for ib = 1:p.nb
             for iyF = 1:p.nyF
             for iyP = 1:p.nyP
-                if numel(p.risk_aver) == 1
+                if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) 
                     idx = yPindsim(:,it)==iyP & yFindsim==iyF & betaindsim(:,it)==ib;
                 else
                     idx = yPindsim(:,it)==iyP & yFindsim==iyF & IESindsim(:,it)==ib;

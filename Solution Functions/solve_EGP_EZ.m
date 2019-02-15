@@ -1,4 +1,5 @@
-function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,income,Iterating)
+function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,...
+                                        prefs,income,Iterating)
 
     agrid = repmat(agrid_short,p.nyP*p.nyF*p.nb,1);
     
@@ -19,12 +20,22 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
     
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
-    betastacked = sparse(diag(betastacked));
+    if numel(p.invies) > 1
+        betastacked = speye(p.nyP*p.nyF*p.nx*p.nb) * betagrid;
+    else
+        betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
+        betastacked = sparse(diag(betastacked));
+    end
 
     % Expectations operator (conditional on yT)
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+    if numel(p.invies) == 1
+        Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+    else
+        Emat = kron(prefs.IEStrans,kron(income.ytrans,speye(p.nx)));
+        invies_col = kron(p.invies',ones(p.nx*p.nyP*p.nyF,1));
+        invies_col_yT = repmat(invies_col,1,p.nyT);
+    end
     
     %% EGP Iteration
     iter = 1;
@@ -71,7 +82,11 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         V_xp = reshape(V_xp,[],p.nyT);
 
         % matrix of next period muc, muc(x',yP',yF)
-        mucnext = c_xp.^(-p.invies) .* V_xp.^(p.invies-p.risk_aver);
+        if numel(p.invies) == 1
+            mucnext = c_xp.^(-p.invies) .* V_xp.^(p.invies-p.risk_aver);
+        else
+            mucnext = c_xp.^(-invies_col_yT) .* V_xp.^(invies_col_yT-p.risk_aver);
+        end
         
         % expected muc
         savtaxrate  = (1+p.savtax.*(repmat(sgrid.full(:),p.nb,1)>=p.savtaxthresh));
@@ -81,8 +96,8 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         else
             ezvalnext = (Emat * V_xp.^(1-p.risk_aver) * income.yTdist).^(1/(1-p.risk_aver));
         end
-        muc_s = emuc .* ezvalnext .^(p.risk_aver-p.invies);
-        con_s = muc_s .^ (-1/p.invies);
+        muc_s = emuc .* ezvalnext .^(p.risk_aver-invies_col);
+        con_s = muc_s .^ (-1./invies_col);
         x_s = con_s + repmat(sgrid.full(:),p.nb,1)...
                         + p.savtax * max(repmat(sgrid.full(:),p.nb,1)-p.savtaxthresh,0);
         x_s = reshape(x_s,[p.nx p.nyP p.nyF p.nb]);
@@ -98,7 +113,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         end
         end
         sav = max(sav,p.borrow_lim);
-        xp = p.R * repmat(sav(:),p.nb,p.nyT) ... 
+        xp = p.R * repmat(sav(:),1,p.nyT) ... 
                     + repmat(kron(income.netymat,ones(p.nx,1)),p.nb,1);
         xp = reshape(xp,[p.nx p.nyP p.nyF p.nb p.nyT]);
         
@@ -129,12 +144,23 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,prefs,inco
         ezval = reshape(ezval,p.nx,p.nyP,p.nyF,p.nb);
         Vupdate = zeros(p.nx,p.nyP,p.nyF,p.nb);
         for ib = 1:p.nb
-            if p.invies==1
-                Vupdate(:,:,:,ib) = conupdate(:,:,:,ib) .^ (1-betagrid(ib)) .* ezval(:,:,:,ib) .^ betagrid(ib);
+            if numel(p.invies) == 1
+                if p.invies == 1
+                    Vupdate(:,:,:,ib) = conupdate(:,:,:,ib) .^ (1-betagrid(ib)) .* ezval(:,:,:,ib) .^ betagrid(ib);
+                else
+                	Vupdate(:,:,:,ib) = (1-betagrid(ib)) * conupdate(:,:,:,ib) .^ (1-p.invies) ...
+                                    + betagrid(ib) * ezval(:,:,:,ib) .^ (1-p.invies);
+                    Vupdate(:,:,:,ib) = Vupdate(:,:,:,ib) .^ (1/(1-p.invies));
+                end
             else
-            	Vupdate(:,:,:,ib) = (1-betagrid(ib)) * conupdate(:,:,:,ib) .^ (1-p.invies) ...
-                                + betagrid(ib) * ezval(:,:,:,ib) .^ (1-p.invies);
-                Vupdate(:,:,:,ib) = Vupdate(:,:,:,ib) .^ (1/(1-p.invies));
+                if p.invies(ib) == 1
+                    Vupdate(:,:,:,ib) = conupdate(:,:,:,ib) .^ (1-betagrid) .* ezval(:,:,:,ib) .^ betagrid;
+                else
+                    invies_mat = repmat(p.invies(ib),[p.nx p.nyP p.nyF 1]);
+                    Vupdate(:,:,:,ib) = (1-betagrid) * conupdate(:,:,:,ib) .^ (1-invies_mat) ...
+                                    + betagrid * ezval(:,:,:,ib) .^ (1-invies_mat);
+                    Vupdate(:,:,:,ib) = Vupdate(:,:,:,ib) .^ (1./(1-invies_mat));
+                end
             end
         end
         

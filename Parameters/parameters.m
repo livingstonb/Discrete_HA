@@ -202,9 +202,15 @@ function params = parameters(runopts,selection,IncomeProcess)
     params(end).sd_logyT = sqrt(1.5298);
     params(end).lambdaT = 0.0813;
 
-    % IES heterogeneity
+    % CRRA with IES heterogeneity
     params(end+1) = MPCParams(4,'CRRA with IES heterogeneity',IncomeProcess);
     params(end).risk_aver = [1 2 3];
+
+    % EZ with IES heterogeneity
+    params(end+1) = MPCParams(4,'EZ with IES heterogeneity',IncomeProcess);
+    params(end).invies = [1 1/2 1/3];
+    params(end).IterateBeta = 0;
+    params(end).EpsteinZin = 1;
     
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences
@@ -252,14 +258,14 @@ function params = parameters(runopts,selection,IncomeProcess)
     params.set_betaH_distance(-1e-2,'CRRA with IES heterogeneity',4);
 
     % varying risk_aver
-    EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==1);
-    for iz = EZ
-        params(iz).set_betaH_distance(-3e-2);
-    end
-    EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==4);
-    for iz = EZ
-        params(iz).set_betaH_distance(-6e-3);
-    end
+%     EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==1);
+%     for iz = EZ
+%         params(iz).set_betaH_distance(-3e-2);
+%     end
+%     EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==4);
+%     for iz = EZ
+%         params(iz).set_betaH_distance(-6e-3);
+%     end
     
     
     % --------- annual, varying invies -------------

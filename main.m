@@ -63,11 +63,15 @@ function [results,checks,decomp] = main(p)
     %% --------------------------------------------------------------------
     % IES Heterogeneity
     % ---------------------------------------------------------------------
-    % same way as introducting beta heterogeneity
+    % same way as introducing beta heterogeneity
 
-    if numel(p.risk_aver) > 1
+    if numel(p.risk_aver) > 1 || ((numel(p.invies) > 1) && (p.EpsteinZin == 1))
     	% use nb as grid size for risk aversion
-    	p.nb = numel(p.risk_aver);
+        if numel(p.risk_aver) > 1
+            p.nb = numel(p.risk_aver);
+        else
+            p.nb = numel(p.invies);
+        end
 
     	prefs.IESdist = ones(p.nb,1) / p.nb;
     	IESswitch_ij = p.IESswitch / (p.nb-1);
@@ -365,50 +369,63 @@ function [results,checks,decomp] = main(p)
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
     % ---------------------------------------------------------------------
-    
-    % mpcmodels(s,t) stores the policy functions associated with the case
-    % where the household is currently in period t, but recieved news about
-    % the period-s shock in period 1
     maxT = p.freq * 4;
     mpcmodels = cell(maxT,maxT);
-    model_lagged = cell(maxT-1);
     
     % policy functions are the same as baseline when shock is received in
     % the current period
     for is = 1:maxT
         mpcmodels{is,is} = basemodel;
     end
-    
-    % get consumption functions conditional on future shock
-    % 'lag' is number of periods before shock
-    for lag = 1:maxT-1
-        Iterating = 0;
-        if lag == 1
-            nextmpcshock = 0.01 * income.meany1 * p.freq;
-            nextmodel = basemodel;
-        else
-            nextmpcshock = 0;
-            nextmodel = model_lagged{lag-1};
+        
+    if p.EpsteinZin == 0
+        % mpcmodels(s,t) stores the policy functions associated with the case
+        % where the household is currently in period t, but recieved news about
+        % the period-s shock in period 1
+        model_lagged = cell(maxT-1);
+
+        % get consumption functions conditional on future shock
+        % 'lag' is number of periods before shock
+        for lag = 1:maxT-1
+            Iterating = 0;
+            if lag == 1
+                nextmpcshock = 0.01 * income.meany1 * p.freq;
+                nextmodel = basemodel;
+            else
+                nextmpcshock = 0;
+                nextmodel = model_lagged{lag-1};
+            end
+
+            [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
+                agrid_short,prefs,income,Iterating,nextmpcshock,nextmodel);
         end
-       
-        [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
-            agrid_short,prefs,income,Iterating,nextmpcshock,nextmodel);
-    end
 
-    % populate mpcmodels with remaining (s,t) combinations for t < s
-    for is = 2:maxT
-    for it = is-1:-1:1
-        mpcmodels{is,it} = model_lagged{is-it};
-    end
-    end
-    
-    shocksize = 0.01*income.meany1*p.freq;
-    [results.direct.mpcs01,results.direct.agrid_dist] ...
-        = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+        % populate mpcmodels with remaining (s,t) combinations for t < s
+        for is = 2:maxT
+        for it = is-1:-1:1
+            mpcmodels{is,it} = model_lagged{is-it};
+        end
+        end
 
-    shocksize = 0.05*income.meany1*p.freq;
-    [results.direct.mpcs05,~] ...
-        = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+        shocksize = 0.01*income.meany1*p.freq;
+        [results.direct.mpcs01,results.direct.agrid_dist] ...
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+
+        shocksize = 0.05*income.meany1*p.freq;
+        [results.direct.mpcs05,~] ...
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+    else
+        [~,EZmodel] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
+                agrid_short,prefs,income,Iterating);
+            
+        shocksize = 0.01*income.meany1*p.freq;
+        [results.direct.mpcs01,~] ...
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+        
+        shocksize = 0.05*income.meany1*p.freq;
+        [results.direct.mpcs05,~] ...
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+    end
     
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING

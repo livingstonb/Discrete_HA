@@ -25,7 +25,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     yPtrans_stationary = repmat(income.yPdist',p.nyP,1);
     
     % transition matrix between (yP,yF,beta) states, cond'l on living
-    if numel(p.risk_aver) == 1
+    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1)
         trans_live = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
         trans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_stationary));
     else
@@ -46,10 +46,16 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     maxT = p.freq * 4;
     for is = 1:maxT
         % iterate over t within s
+
+        if (p.EpsteinZin == 1) && (is > 1)
+            continue
+        end
+
         for it = 1:is % in this block, look at t <= s
             % Create transition matrix from period 1 to period
             % t (for last iteration, this is transition from period t to
             % period s)
+
             for ii = 1:it
                 if ii == 1
                     T1t = speye(NN);
@@ -100,6 +106,14 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             if (is>4) || (it>4)
                 MPCs.avg_s_t{is,it} = NaN;
             end
+        end
+        end
+    end
+
+    if p.EpsteinZin == 1
+        for is = 2:16
+        for it = 1:16
+            MPCs.avg_s_t{is,it} = NaN;
         end
         end
     end
