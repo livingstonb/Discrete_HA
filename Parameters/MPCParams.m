@@ -16,7 +16,7 @@ classdef MPCParams < handle
         max_iter    = 1e5; % EGP
         tol_iter    = 1.0e-6; % EGP
         Nsim        = 100000; % For optional simulation
-        nxlong      = 400;
+        nxlong      = 100;
 
         % beta iteration
         maxiterAY   = 50;
@@ -34,13 +34,12 @@ classdef MPCParams < handle
         abars = [0, 0.01, 0.05];
 
         % cash on hand / savings grid
-        nx          = 150;
+        nx          = 100;
         xmax        = 1000;
-        xgrid_par   = 0.3; %1 for linear, 0 for L-shaped
+        xgrid_par   = 0.25; %1 for linear, 0 for L-shaped
         borrow_lim  = 0; % negative does not work
         
         % OPTIONS
-        IterateBeta = 1;
         MakePlots = 0;
         Display = 0;
         Simulate = 0;
@@ -57,7 +56,7 @@ classdef MPCParams < handle
         
         % preferences
         EpsteinZin  = 0;
-        invies      = 2.5;
+        invies      = 2.5; % only relevant for Epstein-Zin
         risk_aver   = 1;
     	beta0       = 0.98;
     	temptation  = 0;
@@ -101,6 +100,7 @@ classdef MPCParams < handle
     	Tsim        = 200; % Simulation
 
         % beta iteration
+        IterateBeta = 1;
     	targetAY    = 3.5; 
     end
 

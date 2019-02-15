@@ -12,11 +12,17 @@ function [adist,xdist,xvals,incvals,netincvals,statetrans,diff] = find_stationar
     NN = gridsize * p.nyP * p.nyF * p.nb;
     nn = gridsize;
     
-    % transition matrix between (yP,yF,beta) states, cond'l on living
-    trans_live = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
     % transition matrix between (yP,yF,beta) states cond'l on dying
     yPtrans_stationary = repmat(income.yPdist',p.nyP,1);
-    trans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_stationary));
+    
+    % transition matrix between (yP,yF,beta) states, cond'l on living
+    if numel(p.risk_aver) == 1
+        trans_live = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
+        trans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_stationary));
+    else
+        trans_live = kron(prefs.IEStrans,kron(eye(p.nyF),income.yPtrans));
+        trans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_stationary));
+    end
     
     agrid_full = repmat(agridinput,[1 p.nyP p.nyF p.nyT]);
     netymat_full = reshape(income.netymat,[1 p.nyP p.nyF p.nyT]);

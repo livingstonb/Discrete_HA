@@ -43,9 +43,9 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
     if numel(p.risk_aver) == 1
         Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
-        risk_aver_col = kron(p.risk_aver,ones(p.nx*p.nyP*p.nyF,1));
     else
         Emat = kron(prefs.IEStrans,kron(income.ytrans,speye(p.nx)));
+        risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
     end
 
     %% EGP ITERATION
@@ -93,11 +93,18 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
         end
         
         % reshape to take expecation over yT first
-        c_xp        = reshape(c_xp,[],p.nyT);
-        xp_s	    = reshape(xp_s,[],p.nyT);
+        risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
+        c_xp = reshape(c_xp,[],p.nyT);
+        xp_s = reshape(xp_s,[],p.nyT);
 
         % matrix of next period muc, muc(x',yP',yF)
-        mucnext     = prefs.u1(c_xp) - p.temptation/(1+p.temptation) * prefs.u1(xp_s);
+        if numel(p.risk_aver) == 1
+            mucnext = prefs.u1(c_xp) - p.temptation/(1+p.temptation) * prefs.u1(xp_s);
+        else
+            mucnext = prefs.u1(risk_aver_col_yT,c_xp)...
+                - p.temptation/(1+p.temptation) * prefs.u1(risk_aver_col_yT,xp_s);
+        end
+            
         
         % now find muc this period as a function of s:
         % variables defined for each (x,yP,yF,beta) in state space,
@@ -111,7 +118,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
                                                 + p.dieprob * mu_bequest;
                 
         % c(s)
-        con_s = prefs.u1inv(muc_s);
+        con_s = prefs.u1inv(risk_aver_col,muc_s);
         
         % x(s) = s + stax + c(s)
         x_s = repmat(sgrid.full(:),p.nb,1)...

@@ -7,9 +7,9 @@ close all;
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 0; % use server paths
-runopts.fast = 1; % very small asset and income grids for speed
+runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0;
-runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
 
 % local grid tests, 0 to turn off, 1 for transition probs, 2 for simulations
 runopts.GRIDTEST = 0; % 
@@ -18,7 +18,7 @@ IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-selection.names_to_run = {'baseline_Q'};
+selection.names_to_run = {'CRRA with IES heterogeneity'};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS

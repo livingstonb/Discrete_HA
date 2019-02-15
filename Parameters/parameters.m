@@ -201,6 +201,10 @@ function params = parameters(runopts,selection,IncomeProcess)
     params(end).sd_logyP = sqrt(0.0105);
     params(end).sd_logyT = sqrt(1.5298);
     params(end).lambdaT = 0.0813;
+
+    % IES heterogeneity
+    params(end+1) = MPCParams(4,'CRRA with IES heterogeneity',IncomeProcess);
+    params(end).risk_aver = [1 2 3];
     
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences
@@ -231,12 +235,21 @@ function params = parameters(runopts,selection,IncomeProcess)
             params(end).EpsteinZin = 1;
         end
     end
+
+    %----------------------------------------------------------------------
+    % ADJUST TO QUARTERLY VALUES
+    %----------------------------------------------------------------------
+
+    params = MPCParams.adjust_if_quarterly(params);
     
     %----------------------------------------------------------------------
-    % SET BETA UPPER BOUND FOR EZ CASES
+    % SET BETA UPPER BOUND FOR SPECIAL CASES
     %----------------------------------------------------------------------
     % This section adjusts the beta upper bound for specific cases
     % to ensure convergence
+
+    % CRRA heterogeneity
+    params.set_betaH_distance(-1e-2,'CRRA with IES heterogeneity',4);
 
     % varying risk_aver
     EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==1);
@@ -401,7 +414,6 @@ function params = parameters(runopts,selection,IncomeProcess)
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------
 
-    params = MPCParams.adjust_if_quarterly(params);
     params.set_run_parameters(runopts);
 
     % creates ordered 'index' field

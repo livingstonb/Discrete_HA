@@ -20,11 +20,18 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     xgrid_yT = repmat(agrid_short,[1 p.nyP p.nyF p.nyT]) + netymat_reshape;
 
     fspace = fundef({'spli',agrid_short,0,1});
-    % transition matrix between (yP,yF,beta) states, cond'l on living
-    trans_live = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
+    
     % transition matrix between (yP,yF,beta) states cond'l on dying
     yPtrans_stationary = repmat(income.yPdist',p.nyP,1);
-    trans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_stationary));
+    
+    % transition matrix between (yP,yF,beta) states, cond'l on living
+    if numel(p.risk_aver) == 1
+        trans_live = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
+        trans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_stationary));
+    else
+        trans_live = kron(prefs.IEStrans,kron(eye(p.nyF),income.yPtrans));
+        trans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_stationary));
+    end
     
     con_baseline = get_policy(p,xgrid_yT,basemodel,income);
     

@@ -16,15 +16,24 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
     % Vector of indexes for (yP,yF,beta) consistent with of mean ann inc
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nxlong,1)),p.nyF*p.nb,1);
     yFind_trans = repmat(kron((1:p.nyF)',ones(p.nxlong*p.nyP,1)),p.nb,1);
-    betaind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
+    
+    if numel(p.risk_aver) == 1
+        betaind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
+        IESind_trans = kron(ones(p.nb,1),ones(p.nxlong*p.nyP*p.nyF,1));
+    else
+        betaind_trans = kron(ones(p.nb,1),ones(p.nxlong*p.nyP*p.nyF,1));
+        IESind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
+    end
 
     % Construct stationary distribution
     state_rand  = rand(Nsim,1,'single');
     yPrand      = rand(Nsim,Tmax,'single');
     dierand     = rand(Nsim,Tmax,'single');
     betarand    = rand(Nsim,Tmax,'single');
+    IESrand      = rand(Nsim,Tmax,'single');
     yTrand      = rand(Nsim,Tmax,'single');
     betaindsim  = ones(Nsim,Tmax,'int8');
+    IESindsim = ones(Nsim,Tmax,'int8');
     yPindsim    = ones(Nsim,Tmax,'int8');
     yTindsim    = ones(Nsim,Tmax,'int8');
     yFindsim    = ones(Nsim,1,'int8');
@@ -47,6 +56,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
         yPindsim(partition,1)	= yPind_trans(ind);
         yFindsim(partition)     = yFind_trans(ind);
         betaindsim(partition,1)	= betaind_trans(ind);
+        IESindsim(partition,1)  = IESind_trans(ind);
         
         % Initial assets from stationary distribution
         a1(partition) = agrid(ind);
@@ -62,6 +72,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
             [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
             [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
+            [~,IESindsim(:,it)] = max(bsxfun(@le,IESrand(:,it),prefs.IEScumtrans(IESindsim(:,it-1),:)),[],2);
         end
     end
     
@@ -108,7 +119,12 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             for ib = 1:p.nb
             for iyF = 1:p.nyF
             for iyP = 1:p.nyP
-                idx = yPindsim(:,it)==iyP & yFindsim==iyF & betaindsim(:,it)==ib;
+                if numel(p.risk_aver) == 1
+                    idx = yPindsim(:,it)==iyP & yFindsim==iyF & betaindsim(:,it)==ib;
+                else
+                    idx = yPindsim(:,it)==iyP & yFindsim==iyF & IESindsim(:,it)==ib;
+                end
+                
                 if mpcamount < 0 && it == 1
                     below_grid = xsim(:,it)<xgrid.longgrid(1,iyP,iyF);
                     % Bring households pushed below grid back up to grid
