@@ -171,7 +171,7 @@ function [results,checks,decomp] = main(p)
         if p.EpsteinZin == 1
             iterate_EGP = @(x) solve_EGP_EZ(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
         else
-            iterisk_averrate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock,[]);
+            iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock,[]);
         end
 
         if p.nb == 1
@@ -298,16 +298,17 @@ function [results,checks,decomp] = main(p)
     end
 
     % HtM with different income frequency
-    ymat_large = kron(netymat,ones(p.nb));
+    ymat_large = kron(income.netymat,ones(p.nx,1));
+    ymat_large = repmat(ymat_large,p.nb,1);
 
     % 1/6 quarterly income (1/24 annual income)
 	one_sixth_quarterly = agrid < (ymat_large * p.freq / 24);
-    probabilities = one_sixth_quarterly * basemodel.adist * income.yTdist(:)' ;
+    probabilities = (one_sixth_quarterly .* basemodel.adist(:)) .* income.yTdist(:)';
     results.direct.HtM_one_sixth_Q = sum(probabilities(:));
 
 	% 1/12 quarterly income (1/48 annual income)
     one_twelfth_quarterly = agrid < (ymat_large * p.freq / 48);
-    probabilities = one_twelfth_quarterly * basemodel.adist * income.yTdist(:)' ;
+    probabilities = (one_twelfth_quarterly .* basemodel.adist(:)) .* income.yTdist(:)';
     results.direct.HtM_one_twelfth_Q = sum(probabilities(:));
 
     

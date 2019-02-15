@@ -298,87 +298,87 @@ function params = parameters(runopts,selection,IncomeProcess)
     
     % fixed beta heterogeneity cases converge ok
     
-    % --------- annual, random ----------
-    freq = 1;
-    
-    % no death
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(-3e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(-3e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(-3e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(-1e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(-8e-4,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(5e-3,change_betaH,freq);
-        
-    % death
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
-    params.set_betaH_distance(-1.3e-2,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 Death';
-    params.set_betaH_distance(-9e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 Death';
-    params.set_betaH_distance(-7e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death';
-    params.set_betaH_distance(-4e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death';
-    params.set_betaH_distance(-1e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death';
-    params.set_betaH_distance(3e-3,change_betaH,freq);
-
-    % --------- quarterly, random -----------
-    freq = 4;
-    
-    % no death
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(-1e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(-1e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(3e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(5e-3,change_betaH,freq);
-                    
-    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath';
-    params.set_betaH_distance(4e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
-    params.set_betaH_distance(1.5e-2,change_betaH,freq);
-    
-    % death
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
-    params.set_betaH_distance(-1e-4,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 Death';
-    params.set_betaH_distance(-1e-4,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 Death';
-    params.set_betaH_distance(2e-3,change_betaH,freq);
-
-    change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death';
-    params.set_betaH_distance(5.1e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death';
-    params.set_betaH_distance(4.7e-3,change_betaH,freq);
-    
-    change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death';
-    params.set_betaH_distance(1.2e-2,change_betaH,freq);
+%     % --------- annual, random ----------
+%     freq = 1;
+% 
+%     % no death
+%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
+%     params.set_betaH_distance(-3e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 NoDeath';
+%     params.set_betaH_distance(-3e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath';
+%     params.set_betaH_distance(-3e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath';
+%     params.set_betaH_distance(-1e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath';
+%     params.set_betaH_distance(-8e-4,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
+%     params.set_betaH_distance(5e-3,change_betaH,freq);
+% 
+%     % death
+%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
+%     params.set_betaH_distance(-1.3e-2,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 Death';
+%     params.set_betaH_distance(-9e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 Death';
+%     params.set_betaH_distance(-7e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death';
+%     params.set_betaH_distance(-4e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death';
+%     params.set_betaH_distance(-1e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death';
+%     params.set_betaH_distance(3e-3,change_betaH,freq);
+% 
+%     % --------- quarterly, random -----------
+%     freq = 4;
+% 
+%     % no death
+%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
+%     params.set_betaH_distance(-1e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 NoDeath';
+%     params.set_betaH_distance(-1e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath';
+%     params.set_betaH_distance(3e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath';
+%     params.set_betaH_distance(5e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath';
+%     params.set_betaH_distance(4e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
+%     params.set_betaH_distance(1.5e-2,change_betaH,freq);
+% 
+%     % death
+%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
+%     params.set_betaH_distance(-1e-4,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 Death';
+%     params.set_betaH_distance(-1e-4,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 Death';
+%     params.set_betaH_distance(2e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death';
+%     params.set_betaH_distance(5.1e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death';
+%     params.set_betaH_distance(4.7e-3,change_betaH,freq);
+% 
+%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death';
+%     params.set_betaH_distance(1.2e-2,change_betaH,freq);
     
     %----------------------------------------------------------------------
     % SET BETA UPPER BOUND FOR OTHER CASES
