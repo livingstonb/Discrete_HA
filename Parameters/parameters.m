@@ -208,8 +208,7 @@ function params = parameters(runopts,selection,IncomeProcess)
 
     % EZ with IES heterogeneity
     params(end+1) = MPCParams(4,'EZ with IES heterogeneity',IncomeProcess);
-    params(end).invies = [1 1/2 1/3];
-    params(end).IterateBeta = 0;
+    params(end).invies = [1 1/0.75 1/1.25];
     params(end).EpsteinZin = 1;
     
     %----------------------------------------------------------------------
@@ -268,6 +267,8 @@ function params = parameters(runopts,selection,IncomeProcess)
     params.set_betaH_distance(-1e-2,'CRRA with IES heterogeneity',4);
     
     % Epstein-Zin
+    params.set_betaH_distance(-6e-3,'EZ with IES heterogeneity',4);
+    
     params.set_betaH_distance(-3e-2,'EZ ra0.5 ies1',1);
     params.set_betaH_distance(-8e-3,'EZ ra0.5 ies1',4);
     params.set_betaH_distance(-3e-2,'EZ ra8 ies1',1);
