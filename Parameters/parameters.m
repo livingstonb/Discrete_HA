@@ -225,21 +225,31 @@ function params = parameters(runopts,selection,IncomeProcess)
             end    
         end
         
-        % epstein-zin: vary risk_aver
-        for ra = [0.5 0.75 1.5 2 4 8]
-            params(end+1) = MPCParams(ifreq,['EZ ra' num2str(ra) ' ies1'],IncomeProcess);
-            params(end).risk_aver = ra;
-            params(end).invies = 1;
+        % epstein-zin
+        ras = [0.5 8 1 1 8];
+        ies = [1 1 0.25 2 2];
+        for i = 1:5
+            params(end+1) = MPCParams(ifreq,['EZ ra' num2str(ras(i)) ' ies' num2str(ies(i))],IncomeProcess);
+            params(end).risk_aver = ras(i);
+            params(end).invies = 1 / ies(i);
             params(end).EpsteinZin = 1;
         end
         
-        % epstein-zin: vary invies
-        for ies = [1/4 1/2 3/4 1.5 2 5]
-            params(end+1) = MPCParams(ifreq,['EZ ra1 ies' num2str(ies)],IncomeProcess);
-            params(end).risk_aver = 1;
-            params(end).invies = 1/ies;
-            params(end).EpsteinZin = 1;
-        end
+%         % epstein-zin: vary risk_aver
+%         for ra = [0.5 0.75 1.5 2 4 8]
+%             params(end+1) = MPCParams(ifreq,['EZ ra' num2str(ra) ' ies1'],IncomeProcess);
+%             params(end).risk_aver = ra;
+%             params(end).invies = 1;
+%             params(end).EpsteinZin = 1;
+%         end
+%         
+%         % epstein-zin: vary invies
+%         for ies = [1/4 1/2 3/4 1.5 2 5]
+%             params(end+1) = MPCParams(ifreq,['EZ ra1 ies' num2str(ies)],IncomeProcess);
+%             params(end).risk_aver = 1;
+%             params(end).invies = 1/ies;
+%             params(end).EpsteinZin = 1;
+%         end
     end
 
     %----------------------------------------------------------------------
@@ -256,59 +266,68 @@ function params = parameters(runopts,selection,IncomeProcess)
 
     % CRRA heterogeneity
     params.set_betaH_distance(-1e-2,'CRRA with IES heterogeneity',4);
+    
+    % Epstein-Zin
+    params.set_betaH_distance(-3e-2,'EZ ra0.5 ies1',1);
+    params.set_betaH_distance(-8e-3,'EZ ra0.5 ies1',4);
+    params.set_betaH_distance(-3e-2,'EZ ra8 ies1',1);
+    params.set_betaH_distance(-8e-3,'EZ ra8 ies1',4);
+    params.set_betaH_distance(-3e-2,'EZ ra1 ies0.25',1);
+    params.set_betaH_distance(-8e-3,'EZ ra1 ies0.25',4);
+    params.set_betaH_distance(-2.5e-2,'EZ ra1 ies2',1);
+    params.set_betaH_distance(-6.5e-3,'EZ ra1 ies2',4);
+    params.set_betaH_distance(-2.5e-2,'EZ ra8 ies2',1);
+    params.set_betaH_distance(-6.5e-3,'EZ ra8 ies2',4);
 
-    % varying risk_aver
-%     EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==1);
-%     for iz = EZ
-%         params(iz).set_betaH_distance(-3e-2);
-%     end
-%     EZ = find([params.EpsteinZin]==1 & [params.invies]==1 & [params.freq]==4);
-%     for iz = EZ
-%         params(iz).set_betaH_distance(-6e-3);
-%     end
+%     % varying risk_aver
+%     EZ = find([params.EpsteinZin]==1 & [params.freq]==1);
+%     params.set_betaH_distance(-3e-2,name,1);
+% 
+%     EZ = find([params.EpsteinZin]==1 & [params.freq]==4);
+%     params.set_betaH_distance(-6e-3,name,4);
     
     
-    % --------- annual, varying invies -------------
-    freq = 1;
-    
-    change_betaH = ['EZ ra1 ies' num2str(1/4)];
-    params.set_betaH_distance(-3e-2,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(1/2)];
-    params.set_betaH_distance(-3e-2,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(3/4)];
-    params.set_betaH_distance(-3e-2,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(1.5)];
-    params.set_betaH_distance(-2.1e-2,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(2)];
-    params.set_betaH_distance(-2.1e-2,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(5)];
-    params.set_betaH_distance(-2.1e-2,change_betaH,freq);
-    
-    % --------- quarterly, varying invies -------------
-    freq = 4;
-    
-    change_betaH = ['EZ ra1 ies' num2str(1/4)];
-    params.set_betaH_distance(-1.5e-2,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(1/2)];
-    params.set_betaH_distance(-1.5e-2,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(3/4)];
-    params.set_betaH_distance(-1e-2,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(1.5)];
-    params.set_betaH_distance(-5.5e-3,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(2)];
-    params.set_betaH_distance(-5.5e-3,change_betaH,freq);
-    
-    change_betaH = ['EZ ra1 ies' num2str(5)];
-    params.set_betaH_distance(-5.4e-3,change_betaH,freq);
+%     % --------- annual, varying invies -------------
+%     freq = 1;
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(1/4)];
+%     params.set_betaH_distance(-3e-2,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(1/2)];
+%     params.set_betaH_distance(-3e-2,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(3/4)];
+%     params.set_betaH_distance(-3e-2,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(1.5)];
+%     params.set_betaH_distance(-2.1e-2,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(2)];
+%     params.set_betaH_distance(-2.1e-2,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(5)];
+%     params.set_betaH_distance(-2.1e-2,change_betaH,freq);
+%     
+%     % --------- quarterly, varying invies -------------
+%     freq = 4;
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(1/4)];
+%     params.set_betaH_distance(-1.5e-2,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(1/2)];
+%     params.set_betaH_distance(-1.5e-2,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(3/4)];
+%     params.set_betaH_distance(-1e-2,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(1.5)];
+%     params.set_betaH_distance(-5.5e-3,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(2)];
+%     params.set_betaH_distance(-5.5e-3,change_betaH,freq);
+%     
+%     change_betaH = ['EZ ra1 ies' num2str(5)];
+%     params.set_betaH_distance(-5.4e-3,change_betaH,freq);
     
     
     %----------------------------------------------------------------------

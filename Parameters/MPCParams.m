@@ -139,6 +139,21 @@ classdef MPCParams < handle
             end
         end
         
+        function obj = set_betaL_distance(obj,val,name,freq)
+            if nargin == 4
+                change_ind = find(ismember({obj.name},name) & [obj.freq]==freq);
+                obj(change_ind).betaL = obj(change_ind).betaL + val;
+            elseif nargin == 2
+                if numel(obj) == 1
+                    obj.betaL = obj.betaL + val;
+                else
+                    error('cannot pass array to method unless passing name,freq')
+                end
+            else 
+                error('must pass 1 or 3 arguments')
+            end
+        end
+        
         function obj = annuities_on(obj)
             % Wait until after frequency adjustments to change other
             % variables

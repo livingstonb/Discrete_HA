@@ -240,8 +240,8 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     NaN
                     results(ip).direct.mean_a               % Mean assets
                     results(ip).direct.constrained(:)       % Fraction with a < eps * mean ann gross inc
-                    results.direct.HtM_one_sixth_Q          % Fraction with a < 1/6 quarterly income
-                    results.direct.HtM_one_twelfth_Q        % Fraction with a < 1/12 quarterly income
+                    results(ip).direct.HtM_one_sixth_Q          % Fraction with a < 1/6 quarterly income
+                    results(ip).direct.HtM_one_twelfth_Q        % Fraction with a < 1/12 quarterly income
                     results(ip).direct.wpercentiles(:)      % Wealth percentiles
                     results(ip).direct.top10share           % Top 10% wealth share
                     results(ip).direct.top1share            % Top 1% wealth share

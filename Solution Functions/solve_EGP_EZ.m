@@ -96,8 +96,15 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,xgrid,sgrid,agrid_short,...
         else
             ezvalnext = (Emat * V_xp.^(1-p.risk_aver) * income.yTdist).^(1/(1-p.risk_aver));
         end
-        muc_s = emuc .* ezvalnext .^(p.risk_aver-invies_col);
-        con_s = muc_s .^ (-1./invies_col);
+        
+        if numel(p.invies) == 1
+            muc_s = emuc .* ezvalnext .^(p.risk_aver-p.invies);
+            con_s = muc_s .^ (-1/p.invies);
+        else
+            muc_s = emuc .* ezvalnext .^(p.risk_aver-invies_col);
+            con_s = muc_s .^ (-1./invies_col);
+        end
+        
         x_s = con_s + repmat(sgrid.full(:),p.nb,1)...
                         + p.savtax * max(repmat(sgrid.full(:),p.nb,1)-p.savtaxthresh,0);
         x_s = reshape(x_s,[p.nx p.nyP p.nyF p.nb]);
