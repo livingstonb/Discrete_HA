@@ -1,7 +1,7 @@
 classdef MPCParams < handle
     % usage: params = MPCParams(frequency,name,IncomeProcess)
 
-    properties (SetAccess = protected)
+    properties
         % identifiers
         name;
         index;

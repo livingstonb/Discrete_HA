@@ -93,7 +93,6 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
         end
         
         % reshape to take expecation over yT first
-        risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
         c_xp = reshape(c_xp,[],p.nyT);
         xp_s = reshape(xp_s,[],p.nyT);
 
@@ -101,6 +100,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
         if numel(p.risk_aver) == 1
             mucnext = prefs.u1(c_xp) - p.temptation/(1+p.temptation) * prefs.u1(xp_s);
         else
+            risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
             mucnext = prefs.u1(risk_aver_col_yT,c_xp)...
                 - p.temptation/(1+p.temptation) * prefs.u1(risk_aver_col_yT,xp_s);
         end
@@ -118,7 +118,11 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
                                                 + p.dieprob * mu_bequest;
                 
         % c(s)
-        con_s = prefs.u1inv(risk_aver_col,muc_s);
+        if numel(p.risk_aver) == 1
+            con_s = prefs.u1inv(muc_s);
+        else
+            con_s = prefs.u1inv(risk_aver_col,muc_s);
+        end
         
         % x(s) = s + stax + c(s)
         x_s = repmat(sgrid.full(:),p.nb,1)...

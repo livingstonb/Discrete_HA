@@ -1,8 +1,20 @@
 function params = parameters_experiment(runopts,IncomeProcess)
     % Used to run experiments outside of batch mode
 
-    params = MPCParams(4,'test',IncomeProcess);
-    
+    ibw = 0.01;
+    bs = 1/10;
+    deathind = ' NoDeath'
+    name = ['2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
+    params(1) = MPCParams(4,name,IncomeProcess);
+    params(1).nb = 5;
+    params(1).betawidth = ibw;
+    params(1).betaswitch = bs;
+    params(1).dieprob = 0;
+   
+    params(1).nx = 500;
+    params(1).xgrid_par = 0.2;
+    params(1).nxlong = 400;
+
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS
     %----------------------------------------------------------------------

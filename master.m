@@ -4,9 +4,9 @@ close all;
 %% ------------------------------------------------------------------------
 % SET OPTIONS 
 % -------------------------------------------------------------------------
-runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
+runopts.Batch = 0; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
-runopts.Server = 0; % use server paths
+runopts.Server = 1; % use server paths
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0;
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
@@ -18,7 +18,7 @@ IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-selection.names_to_run = {'EZ with IES heterogeneity'};
+selection.names_to_run = { ['2 RandomBetaHet5 Width' num2str(0.01) ' SwitchProb' num2str(1/50) ' NoDeath']};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS
