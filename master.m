@@ -12,7 +12,7 @@ runopts.Simulate = 0;
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 
 % local grid tests, 0 to turn off, 1 for transition probs, 2 for simulations
-runopts.GRIDTEST = 0; % 
+runopts.GRIDTEST = 3; % 
 
 IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
@@ -46,8 +46,10 @@ cd(runopts.path);
 if runopts.GRIDTEST == 1
     % only setup to run locally
     params = parameters_grid_tests(runopts,IncomeProcess);
-elseif runopts.GRIDTEST == 2
+elseif runopts.GRIDTEST == 2 % simulations
     params = parameters_grid_tests2(runopts,selection,IncomeProcess);
+elseif runopts.GRIDTEST == 3
+    params = parameters_grid_tests3(runopts,IncomeProcess);
 elseif runopts.Batch == 0
     params = parameters_experiment(runopts,IncomeProcess); 
 else

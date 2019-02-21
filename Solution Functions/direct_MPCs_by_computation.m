@@ -60,22 +60,32 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             % Create transition matrix from period 1 to period
             % t (for last iteration, this is transition from period t to
             % period s)
-
-            for ii = 1:it
-                if ii == 1
-                    T1t = speye(NN);
-                else
-                    if p.Display == 1
-                        fprintf('      Transition from t=%d to t=%d\n',ii-1,ii)
-                        disp(['      --Time ' datestr(now,'HH:MM:SS')])
-                    end
-                    %Ti is transition from t=ii-1 to t=ii
-                    mpcshock = 0;
-                    Ti = transition_t_less_s(p,income,xgrid_yT,...
-                        models,is,ii-1,fspace,trans_live,trans_death,mpcshock);
-                    T1t = T1t * Ti;
-                end
+            
+            if it == 1
+                T1t = speye(NN);
+            else
+                %Ti is transition from t=ii-1 to t=ii
+                mpcshock = 0;
+                Ti = transition_t_less_s(p,income,xgrid_yT,...
+                    models,is,it-1,fspace,trans_live,trans_death,mpcshock);
+                T1t = T1t * Ti;
             end
+
+%             for ii = 1:it
+%                 if ii == 1
+%                     T1t = speye(NN);
+%                 else
+%                     if p.Display == 1
+%                         fprintf('      Transition from t=%d to t=%d\n',ii-1,ii)
+%                         disp(['      --Time ' datestr(now,'HH:MM:SS')])
+%                     end
+%                     %Ti is transition from t=ii-1 to t=ii
+%                     mpcshock = 0;
+%                     Ti = transition_t_less_s(p,income,xgrid_yT,...
+%                         models,is,ii-1,fspace,trans_live,trans_death,mpcshock);
+%                     T1t = T1t * Ti;
+%                 end
+%             end
 
             % get consumption policy function
             if it == is
