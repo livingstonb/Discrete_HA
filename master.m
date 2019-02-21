@@ -12,7 +12,7 @@ runopts.Simulate = 0;
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 
 % local grid tests, 0 to turn off, 1 for transition probs, 2 for simulations
-runopts.GRIDTEST = 3; % 
+runopts.GRIDTEST = 0; % 
 
 IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 

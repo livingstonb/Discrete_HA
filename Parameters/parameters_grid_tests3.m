@@ -6,11 +6,20 @@ function params = parameters_grid_tests3(runopts,IncomeProcess)
     % DIFFERENT GRIDS
     %----------------------------------------------------------------------
     
+%     counter = 1;
+%     for xmax = [1000 500 7500 1250 1500]
+%         name = ['xmax',num2str(xmax)];
+%         params(counter) = MPCParams(4,name,IncomeProcess);
+%         params(counter).xmax = xmax;
+%         counter = counter + 1;
+%     end
+%     
+
     counter = 1;
-    for xmax = [1000 500 7500 1250 1500]
-        name = ['xmax',num2str(xmax)];
+    for gridspace_min = [0 0.0005 0.001 0.005]
+        name = ['gridspace_min',num2str(gridspace_min)];
         params(counter) = MPCParams(4,name,IncomeProcess);
-        params(counter).xmax = xmax;
+        params(counter).gridspace_min = gridspace_min;
         counter = counter + 1;
     end
     

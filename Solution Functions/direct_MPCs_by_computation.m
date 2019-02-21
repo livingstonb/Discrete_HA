@@ -44,7 +44,14 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     MPCs.avg_s_t = cell(16,16);
     MPCs.mpcs_1_t = cell(1,4);
     maxT = p.freq * 4;
-    for is = 1:maxT
+    
+    if maxT == 4
+        IS = [1 2 3 4];
+    else
+        IS = [1 2 3 4 5 9 13];
+    end
+    
+    for is = IS
         % iterate over t within s
 
         if (p.EpsteinZin == 1) && (is > 1)
@@ -127,6 +134,12 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             if (is>4) || (it>4)
                 MPCs.avg_s_t{is,it} = NaN;
             end
+        end
+        end
+    else
+        for is = [6 7 8 10 11 12 14 15 16]
+        for it = 1:16
+            MPCs.avg_s_t{is,it} = NaN;
         end
         end
     end

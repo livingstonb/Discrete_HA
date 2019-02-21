@@ -99,6 +99,16 @@ function [results,checks,decomp] = main(p)
     sgrid.orig = sgrid.orig.^(1./p.xgrid_par);
     sgrid.orig = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid.orig;
     sgrid.short = sgrid.orig;
+    
+    % Force grid spacing >= gridspace_min near 0
+    for ix = 1:p.nx-1
+        if sgrid.short(ix+1) - sgrid.short(ix) < p.gridspace_min
+            sgrid.short(ix+1) = sgrid.short(ix) + p.gridspace_min;
+        else
+            break
+        end
+    end
+    
     sgrid.full = repmat(sgrid.short,[1 p.nyP p.nyF]);
 
     % xgrids (cash on hand), different min points for each value of (iyP,iyF)
@@ -110,6 +120,14 @@ function [results,checks,decomp] = main(p)
     xgrid.norisk_short  = sgrid.short + income.meany1;
     xgrid.norisk_longgrid = linspace(0,1,p.nxlong);
     xgrid.norisk_longgrid = xgrid.norisk_longgrid.^(1/p.xgrid_par);
+    % Force grid spacing >= gridspace_min near 0
+    for ix = 1:p.nxlong-1
+        if xgrid.norisk_longgrid(ix+1) - xgrid.norisk_longgrid(ix) < p.gridspace_min
+            xgrid.norisk_longgrid(ix+1) = xgrid.norisk_longgrid(ix) + p.gridspace_min;
+        else
+            break
+        end
+    end
     xgrid.norisk_longgrid = p.borrow_lim + (p.xmax-p.borrow_lim).*xgrid.norisk_longgrid;
     xgrid.norisk_longgrid = xgrid.norisk_longgrid + income.meany1;
     
@@ -118,6 +136,14 @@ function [results,checks,decomp] = main(p)
     xgrid.longgrid = linspace(0,1,p.nxlong)';
     xgrid.longgrid = xgrid.longgrid.^(1/p.xgrid_par);
     xgrid.longgrid = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid.longgrid;
+    % Force grid spacing >= gridspace_min near 0
+    for ix = 1:p.nxlong-1
+        if xgrid.longgrid(ix+1) - xgrid.longgrid(ix) < p.gridspace_min
+            xgrid.longgrid(ix+1) = xgrid.longgrid(ix) + p.gridspace_min;
+        else
+            break
+        end
+    end
     xgrid.longgrid = repmat(xgrid.longgrid,p.nyP*p.nyF,1);
     xgrid.longgrid = xgrid.longgrid + minyT;
     xgrid.longgrid = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
@@ -129,6 +155,14 @@ function [results,checks,decomp] = main(p)
     agrid = linspace(0,1,p.nxlong)';
     agrid = agrid.^(1/p.xgrid_par);
     agrid = p.borrow_lim + (p.xmax - p.borrow_lim) * agrid;
+    % Force grid spacing >= gridspace_min near 0
+    for ia = 1:p.nxlong-1
+        if agrid(ia+1) - agrid(ia) < p.gridspace_min
+            agrid(ia+1) = agrid(ia) + p.gridspace_min;
+        else
+            break
+        end
+    end
     agrid_short = agrid;
     agrid = repmat(agrid,p.nyP*p.nyF*p.nb,1);
     
