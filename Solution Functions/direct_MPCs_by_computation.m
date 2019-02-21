@@ -52,6 +52,11 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         end
 
         for it = 1:is % in this block, look at t <= s
+            if p.Display == 1
+                fprintf('    Processing (s,t) = (%d,%d)\n',is,it)
+                disp(['    --Time ' datestr(now,'HH:MM:SS')])
+            end
+
             % Create transition matrix from period 1 to period
             % t (for last iteration, this is transition from period t to
             % period s)
@@ -60,6 +65,10 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 if ii == 1
                     T1t = speye(NN);
                 else
+                    if p.Display == 1
+                        fprintf('      Transition from t=%d to t=%d\n',ii-1,ii)
+                        disp(['      --Time ' datestr(now,'HH:MM:SS')])
+                    end
                     %Ti is transition from t=ii-1 to t=ii
                     mpcshock = 0;
                     Ti = transition_t_less_s(p,income,xgrid_yT,...
@@ -91,10 +100,12 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         mpcshock = mpcamount;
         T_s1_s = transition_t_less_s(p,income,xgrid_yT,models,is,is,...
                                     fspace,trans_live,trans_death,mpcshock);
+        T1t = T1t * T_s1_s;
+        clear T_s1_s
 
         RHScon = con_baseline(:);
         for it = is+1:maxT % it > is case, policy fcns stay the same in this region
-            mpcs = ( T1t * T_s1_s * RHScon(:) - con_baseline(:) ) / mpcamount;
+            mpcs = ( T1t * RHScon(:) - con_baseline(:) ) / mpcamount;
             MPCs.avg_s_t{is,it} = basemodel.adist(:)' * mpcs(:);
             RHScon = basemodel.statetrans * RHScon;
         end
@@ -199,7 +210,8 @@ end
 
 function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
                                             fspace,trans_live,trans_death,mpcshock)
-    % Computes the transition matrix between t=ii and t=is
+    % Computes the transition matrix between t=ii and t=ii + 1 given shock
+    % in is
     NN = p.nxlong*p.nyP*p.nyF*p.nb;
     x_mpc = xgrid_yT + mpcshock;
     sav = zeros(p.nxlong,p.nyP,p.nyF,p.nb,p.nyT);
