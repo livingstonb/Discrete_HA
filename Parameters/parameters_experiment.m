@@ -2,7 +2,7 @@ function params = parameters_experiment(runopts,IncomeProcess)
     % Used to run experiments outside of batch mode
 
     ibw = 0.01;
-    bs = 1/10;
+    bs = 1/50;
     deathind = ' NoDeath'
     name = ['2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
     params(1) = MPCParams(4,name,IncomeProcess);

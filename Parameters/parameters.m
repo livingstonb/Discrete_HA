@@ -18,9 +18,14 @@ function params = parameters(runopts,selection,IncomeProcess)
     params(end+1) = MPCParams(4,'baseline_Qc','IncomeGrids/quarterly_c.mat');
     
     for ifreq = [1 4]
+        if ifreq == 1
+            lfreq = 'A';
+        else
+            lfreq = 'Q';
+        end
         % different mean wealth targets
         for mw = [0.25, 0.5, 1]
-            name = ['2 AYtarget' num2str(mw) ];
+            name = [lfreq '2 AYtarget' num2str(mw) ];
             params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).targetAY = mw;
             if ifreq == 4
@@ -30,14 +35,14 @@ function params = parameters(runopts,selection,IncomeProcess)
 
         % different interest rates
         for ii = [0, 5]
-            name = ['2 IntRate' num2str(ii)];
+            name = [lfreq '2 IntRate' num2str(ii)];
             params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).r = ii/100;
         end
 
         % different risk aversion coeffs
         for ira = [0.5, 2, 6]
-            name = ['2 RiskAver' num2str(ira)];
+            name = [lfreq '2 RiskAver' num2str(ira)];
             params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).risk_aver = ira;
             if (ifreq==4 && ira==4) || ira==6
@@ -47,7 +52,7 @@ function params = parameters(runopts,selection,IncomeProcess)
 
         % different tax rates
         for itax = [0.05, 0.1, 0.15, 0.25]
-            name = ['2 LabTax' num2str(itax)];
+            name = [lfreq '2 LabTax' num2str(itax)];
             params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).labtaxlow = itax;
         end
@@ -66,7 +71,7 @@ function params = parameters(runopts,selection,IncomeProcess)
 
         % bequest curvature
         for bcurv = [0.1 0.5 1 2 5]
-            name = ['2 BeqWt0.02 BeqLux0.01 BeqCurv' num2str(bcurv)];
+            name = [lfreq '2 BeqWt0.02 BeqLux0.01 BeqCurv' num2str(bcurv)];
             params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).bequest_weight = 0.02;
             params(end).bequest_luxury = 0.01;
@@ -74,7 +79,7 @@ function params = parameters(runopts,selection,IncomeProcess)
         end
 
        
-        for deathp = [0 1/50]
+        for deathp = 1/50 %[0 1/50]
             if deathp == 0
                 deathind = ' NoDeath';
             else
@@ -82,7 +87,7 @@ function params = parameters(runopts,selection,IncomeProcess)
             end
              % fixed beta heterogeneity
             for ibw = [0.001, 0.005, 0.01]
-                name = ['2 FixedBetaHet5 Width' num2str(ibw) deathind];
+                name = [lfreq '2 FixedBetaHet5 Width' num2str(ibw) deathind];
                 params(end+1) = MPCParams(ifreq,name,IncomeProcess);
                 params(end).nb = 5;
                 params(end).betawidth = ibw;
@@ -93,7 +98,7 @@ function params = parameters(runopts,selection,IncomeProcess)
             % random beta heterogeneity
             for ibw = [0.01]
                 for bs = [1/50, 1/10]
-                    name = ['2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
+                    name = [lfreq '2 RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
                     params(end+1) = MPCParams(ifreq,name,IncomeProcess);
                     params(end).nb = 5;
                     params(end).betawidth = ibw;
@@ -109,56 +114,56 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     % i
-    params(end+1) = MPCParams(1,'3a(i) NoTransShocks',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(i) NoTransShocks','');
     params(end).nyT = 1;
     params(end).sd_logyT = 0;
     
     % ii
-    params(end+1) = MPCParams(1,'3a(ii) MeasError',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(ii) MeasError','');
     params(end).sd_logyT = sqrt(0.02);
     
     % iii
-    params(end+1) = MPCParams(1,'3a(iii) NoTranReEst',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(iii) NoTranReEst','');
     params(end).rho_logyP = 0.8592;
     params(end).sd_logyP = sqrt(0.132);
     params(end).nyT = 1;
     params(end).sd_logyT = 0;
 
     % iv
-    params(end+1) = MPCParams(1,'3a(iv) HighPersistCarrol',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(iv) HighPersistCarrol','');
     params(end).rho_logyP = 0.999;
     params(end).sd_logyP = sqrt(0.015);
     params(end).sd_logyT = sqrt(0.01);
     
     % v
-    params(end+1) = MPCParams(1,'3a(v) HighPersNotReEst',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(v) HighPersNotReEst','');
     params(end).rho_logyP = 0.99;
     
     % vi
-    params(end+1) = MPCParams(1,'3a(vi) LowPersNotReEst',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(vi) LowPersNotReEst','');
     params(end).rho_logyP = 0.9;
 
     % vii
-    params(end+1) = MPCParams(1,'3a(vii) HighPersReEst',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(vii) HighPersReEst','');
     params(end).rho_logyP = 0.99;
     params(end).sd_logyP = sqrt(0.0088);
     params(end).sd_logyT = sqrt(0.0667);
     
     % viii
-    params(end+1) = MPCParams(1,'3a(viii) EvenHigherPersReEst',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(viii) EvenHigherPersReEst','');
     params(end).rho_logyP = 0.995;
     params(end).sd_logyP = sqrt(0.0043);
     params(end).sd_logyT = sqrt(0.0688);
     
     % ix
-    params(end+1) = MPCParams(1,'3a(ix) HighPersNoTransReEst',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(ix) HighPersNoTransReEst','');
     params(end).rho_logyP = 0.99;
     params(end).sd_logyP = sqrt(0.0088);
     params(end).nyT = 1;
     params(end).sd_logyT = sqrt(0);
     
     % x
-    params(end+1) = MPCParams(1,'WithFE nyF 5',IncomeProcess);
+    params(end+1) = MPCParams(1,'A WithFE nyF 5','');
     params(end).rho_logyP = 0.9158;
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
@@ -166,20 +171,20 @@ function params = parameters(runopts,selection,IncomeProcess)
     params(end).nyF = 5;
 
     % xi
-    params(end+1) = MPCParams(1,'3a(xi) MatchSSA',IncomeProcess);
+    params(end+1) = MPCParams(1,'A 3 a(xi) MatchSSA','');
     params(end).rho_logyP = 0.9468;
     params(end).sd_logyP = sqrt(0.0641);
     params(end).sd_logyT = sqrt(0.0479);
     params(end).lambdaT  = 0.0821;
     
     % xii
-    params(end+1) = MPCParams(1,'3a(xii) WithSCF m0',IncomeProcess);
+    params(end+1) = MPCParams(1,'A3 a(xii) WithSCF m0','');
     params(end).rho_logyP = 0.9787;
     params(end).sd_logyP = sqrt(0.0400);
     params(end).sd_logyT = sqrt(0.0508);
     
     % xiv
-    params(end+1) = MPCParams(1,'3a(xiv) MassPointTrans',IncomeProcess);
+    params(end+1) = MPCParams(1,'3a(xiv) MassPointTrans','');
     params(end).rho_logyP = sqrt(0.9516);
     params(end).sd_logyP = sqrt(0.0434);
     params(end).sd_logyT = sqrt(0.6431);
@@ -190,24 +195,24 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     % i
-    params(end+1) = MPCParams(4,'3b(i) KMPTransf','');
+    params(end+1) = MPCParams(4,'Q3 b(i) KMPTransf','');
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
     
     % iv
-    params(end+1) = MPCParams(4,'3b(iv) PersEveryPeriod','');
+    params(end+1) = MPCParams(4,'Q3 b(iv) PersEveryPeriod','');
     params(end).rho_logyP = 0.9884;
     params(end).sd_logyP = sqrt(0.0105);
     params(end).sd_logyT = sqrt(1.5298);
     params(end).lambdaT = 0.0813;
 
     % CRRA with IES heterogeneity
-    params(end+1) = MPCParams(4,'CRRA with IES heterogeneity',IncomeProcess);
+    params(end+1) = MPCParams(4,'Q CRRA with IES heterogeneity',IncomeProcess);
     params(end).risk_aver = [1 2 3];
 
     % EZ with IES heterogeneity
-    params(end+1) = MPCParams(4,'EZ with IES heterogeneity',IncomeProcess);
+    params(end+1) = MPCParams(4,'Q EZ with IES heterogeneity',IncomeProcess);
     params(end).invies = [1 1/0.75 1/1.25];
     params(end).EpsteinZin = 1;
     
@@ -215,9 +220,15 @@ function params = parameters(runopts,selection,IncomeProcess)
     % PART 4, Exotic Preferences
     %----------------------------------------------------------------------
     for ifreq = [1 4]
+        if ifreq == 1
+            lfreq = 'A';
+        else
+            lfreq = 'Q';
+        end
+        
         % temptation
         for itempt = [0.005 0.01 0.05]
-            params(end+1) = MPCParams(ifreq,['4 Temptation' num2str(itempt)],IncomeProcess);
+            params(end+1) = MPCParams(ifreq,[lfreq '4 Temptation' num2str(itempt)],IncomeProcess);
             params(end).temptation = itempt;
             if itempt == 0.05 && ifreq == 4
                 params(end).set_betaH_distance(-1e-5);
@@ -228,7 +239,7 @@ function params = parameters(runopts,selection,IncomeProcess)
         ras = [0.5 8 1 1 8];
         ies = [1 1 0.25 2 2];
         for i = 1:5
-            params(end+1) = MPCParams(ifreq,['EZ ra' num2str(ras(i)) ' ies' num2str(ies(i))],IncomeProcess);
+            params(end+1) = MPCParams(ifreq,[lfreq ' EZ ra' num2str(ras(i)) ' ies' num2str(ies(i))],IncomeProcess);
             params(end).risk_aver = ras(i);
             params(end).invies = 1 / ies(i);
             params(end).EpsteinZin = 1;
@@ -264,21 +275,21 @@ function params = parameters(runopts,selection,IncomeProcess)
     % to ensure convergence
 
     % CRRA heterogeneity
-    params.set_betaH_distance(-1e-2,'CRRA with IES heterogeneity',4);
+    params.set_betaH_distance(-1e-2,'Q CRRA with IES heterogeneity',4);
     
     % Epstein-Zin
-    params.set_betaH_distance(-6e-3,'EZ with IES heterogeneity',4);
+    params.set_betaH_distance(-6e-3,'Q EZ with IES heterogeneity',4);
     
-    params.set_betaH_distance(-3e-2,'EZ ra0.5 ies1',1);
-    params.set_betaH_distance(-8e-3,'EZ ra0.5 ies1',4);
-    params.set_betaH_distance(-3e-2,'EZ ra8 ies1',1);
-    params.set_betaH_distance(-8e-3,'EZ ra8 ies1',4);
-    params.set_betaH_distance(-3e-2,'EZ ra1 ies0.25',1);
-    params.set_betaH_distance(-8e-3,'EZ ra1 ies0.25',4);
-    params.set_betaH_distance(-2.5e-2,'EZ ra1 ies2',1);
-    params.set_betaH_distance(-6.5e-3,'EZ ra1 ies2',4);
-    params.set_betaH_distance(-2.5e-2,'EZ ra8 ies2',1);
-    params.set_betaH_distance(-6.5e-3,'EZ ra8 ies2',4);
+    params.set_betaH_distance(-3e-2,'A EZ ra0.5 ies1',1);
+    params.set_betaH_distance(-8e-3,'Q EZ ra0.5 ies1',4);
+    params.set_betaH_distance(-3e-2,'A EZ ra8 ies1',1);
+    params.set_betaH_distance(-8e-3,'Q EZ ra8 ies1',4);
+    params.set_betaH_distance(-3e-2,'A EZ ra1 ies0.25',1);
+    params.set_betaH_distance(-8e-3,'Q EZ ra1 ies0.25',4);
+    params.set_betaH_distance(-2.5e-2,'A EZ ra1 ies2',1);
+    params.set_betaH_distance(-6.5e-3,'Q EZ ra1 ies2',4);
+    params.set_betaH_distance(-2.5e-2,'A EZ ra8 ies2',1);
+    params.set_betaH_distance(-6.5e-3,'Q EZ ra8 ies2',4);
 
 %     % varying risk_aver
 %     EZ = find([params.EpsteinZin]==1 & [params.freq]==1);
@@ -335,7 +346,15 @@ function params = parameters(runopts,selection,IncomeProcess)
     % SET BETA UPPER BOUND FOR BETA HETEROGENEITY CASES
     %----------------------------------------------------------------------
     
-    % fixed beta heterogeneity cases converge ok
+    change_betaH = ['2 RandomBetaHet5 Width' num2str(0.01)...
+                        ' SwitchProb' num2str(1/10) ' Death'];
+    params.set_betaH_distance(1e-2,['A' change_betaH],1);
+    params.set_betaH_distance(1.3e-2,['Q' change_betaH],4);
+    
+    change_betaH = ['2 RandomBetaHet5 Width' num2str(0.01)...
+                        ' SwitchProb' num2str(1/50) ' Death'];
+    params.set_betaH_distance(1e-2,['A' change_betaH],1);
+    params.set_betaH_distance(5e-3,['Q' change_betaH],4);
     
 %     % --------- annual, random ----------
 %     freq = 1;
@@ -424,16 +443,16 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     change_betaH = '2 BeqWt0.02 BeqLux0.01 BeqCurv0.1';
-    params.set_betaH_distance(-5e-3,change_betaH,1);
+    params.set_betaH_distance(-5e-3,['A' change_betaH],1);
     change_betaH = '4 Temptation0.05';
-    params.set_betaH_distance(-1e-4,change_betaH,4);
+    params.set_betaH_distance(-1e-4,['Q' change_betaH],4);
     
     if strcmp(IncomeProcess,'IncomeVariables/quarterly_b.mat')
         change_betaH = '2 RiskAver6';
-        params.set_betaH_distance(-1e-2,change_betaH,4);
+        params.set_betaH_distance(-1e-2,['Q' change_betaH],4);
         
         change_betaH = '2 Annuities';
-        params.set_betaH_distance(-5e-3,change_betaH,4);
+        params.set_betaH_distance(-5e-3,['Q' change_betaH],4);
     end
     
     %----------------------------------------------------------------------
@@ -455,13 +474,7 @@ function params = parameters(runopts,selection,IncomeProcess)
         params = MPCParams.select_by_names(params,selection.names_to_run);
         params.set_index(); % index within .mat file
     end
-    
-    % alternative income processes
-    for ip = 1:numel(params)
-        if isempty(params(ip).IncomeProcess)
-            params(ip).IncomeProcess = IncomeProcess;
-        end
-    end
+   
     
 
 end
