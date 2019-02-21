@@ -18,8 +18,7 @@ IncomeProcess = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-selection.names_to_run = {['Q2 RandomBetaHet5 Width' num2str(0.01)...
-                        ' SwitchProb' num2str(1/50) ' Death']};
+selection.names_to_run = {};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS
