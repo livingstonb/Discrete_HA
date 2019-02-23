@@ -7,7 +7,7 @@
 #SBATCH --array=1-49
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mem-per-cpu=8000
+#SBATCH --mem-per-cpu=10000
 
 module load matlab
 
