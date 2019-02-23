@@ -1,4 +1,4 @@
-function params = parameters(runopts,selection,IncomeProcess)
+function params = parameters(runopts,selection,QIncome)
     
     %----------------------------------------------------------------------
     % BASELINES
@@ -8,7 +8,7 @@ function params = parameters(runopts,selection,IncomeProcess)
     params(1) = MPCParams(1,'baseline_A','');
     
     % Quarterly
-    params(end+1) = MPCParams(4,'baseline_Q',IncomeProcess);
+    params(end+1) = MPCParams(4,'baseline_Q',QIncome);
     
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -17,13 +17,15 @@ function params = parameters(runopts,selection,IncomeProcess)
     for ifreq = [1 4]
         if ifreq == 1
             lfreq = 'A';
+            IncomeProcess = '';
         else
             lfreq = 'Q';
+            IncomeProcess = QIncome;
         end
         % different mean wealth targets
         for mw = [0.25, 0.5, 1]
             name = [lfreq ' AYtarget' num2str(mw) ];
-            params(end+1) = MPCParams(ifreq,name,'');
+            params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).targetAY = mw;
             if ifreq == 4
                 params(end).betaL = 0.5;
@@ -33,14 +35,14 @@ function params = parameters(runopts,selection,IncomeProcess)
         % different interest rates
         for ii = [0, 5]
             name = [lfreq ' IntRate' num2str(ii)];
-            params(end+1) = MPCParams(ifreq,name,'');
+            params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).r = ii/100;
         end
 
         % different risk aversion coeffs
         for ira = [0.5, 2, 6]
             name = [lfreq ' RiskAver' num2str(ira)];
-            params(end+1) = MPCParams(ifreq,name,'');
+            params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).risk_aver = ira;
             if (ifreq==4 && ira==4) || ira==6
                 params(end).betaL = 0.5;
@@ -56,12 +58,12 @@ function params = parameters(runopts,selection,IncomeProcess)
 
         % no death
         name = [lfreq ' NoDeath'];
-        params(end+1) = MPCParams(ifreq,name,'');
+        params(end+1) = MPCParams(ifreq,name,IncomeProcess);
         params(end).dieprob = 0;
 
         % no bequests
         name = [lfreq ' NoBequests'];
-        params(end+1) = MPCParams(ifreq,name,'');
+        params(end+1) = MPCParams(ifreq,name,IncomeProcess);
         params(end).Bequests = 0;
 
         % perfect annuities
@@ -195,7 +197,7 @@ function params = parameters(runopts,selection,IncomeProcess)
     %----------------------------------------------------------------------
     
     % i quarterly_a
-    params(end+1) = MPCParams(4,'Q b(i) quarterly_a','IncomeGrids/quarterly_a.mat');
+    params(end+1) = MPCParams(4,'Q b(i) quarterly_a','');
     
     % ii
     params(end+1) = MPCParams(4,'Q b(ii) KMPTransf','');
@@ -214,11 +216,11 @@ function params = parameters(runopts,selection,IncomeProcess)
 %     params(end).lambdaT = 0.0813;
 
     % CRRA with IES heterogeneity
-    params(end+1) = MPCParams(4,'Q CRRA with IES heterogeneity',IncomeProcess);
+    params(end+1) = MPCParams(4,'Q CRRA with IES heterogeneity',QIncome);
     params(end).risk_aver = [1 2 3];
 
     % EZ with IES heterogeneity
-    params(end+1) = MPCParams(4,'Q EZ with IES heterogeneity',IncomeProcess);
+    params(end+1) = MPCParams(4,'Q EZ with IES heterogeneity',QIncome);
     params(end).invies = [1 1/0.75 1/1.25];
     params(end).EpsteinZin = 1;
     
@@ -228,8 +230,10 @@ function params = parameters(runopts,selection,IncomeProcess)
     for ifreq = [1 4]
         if ifreq == 1
             lfreq = 'A';
+            IncomeProcess = '';
         else
             lfreq = 'Q';
+            IncomeProcess = QIncome;
         end
         
         % temptation
@@ -282,6 +286,9 @@ function params = parameters(runopts,selection,IncomeProcess)
 
     % CRRA heterogeneity
     params.set_betaH_distance(-1e-2,'Q CRRA with IES heterogeneity',4);
+
+    % temptation
+    params.set_betaH_distance(-1e-5,'Q Temptation0.05',4);
     
 %     % Epstein-Zin
 %     params.set_betaH_distance(-6e-3,'Q EZ with IES heterogeneity',4);

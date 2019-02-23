@@ -5,13 +5,13 @@ function income = gen_income_variables(p)
     
     LoadIncome = ~isempty(p.IncomeProcess); % 1 if load from file
     
-    if LoadIncome==1 && p.freq==4
+    if LoadIncome==1
         Import = load(p.IncomeProcess);
     end
 
     %% PERSISTENT INCOME
     % rowenhurst
-    if LoadIncome==1 && p.freq==4
+    if LoadIncome == 1
         logyPgrid = Import.discmodel1.logyPgrid;
         yPdist = Import.discmodel1.yPdist;
         yPtrans = Import.discmodel1.yPtrans;
@@ -34,7 +34,7 @@ function income = gen_income_variables(p)
     
     %% TRANSITORY INCOME
     % disretize normal distribution
-    if LoadIncome==1 && p.freq==4
+    if LoadIncome == 1
         logyTgrid = Import.discmodel1.logyTgrid;
         yTdist = Import.discmodel1.yTdist;
         p.nyT = length(logyTgrid);

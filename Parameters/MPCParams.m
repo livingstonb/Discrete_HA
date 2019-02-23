@@ -113,10 +113,11 @@ classdef MPCParams < handle
             obj.R = 1 + obj.r;
             
             if frequency == 1
-                obj.sd_logyT = sqrt(0.0497);
+                obj.sd_logyT = sqrt(0.0494);
                 obj.sd_logyP = sqrt(0.0422);
                 obj.rho_logyP =0.9525;
             elseif frequency == 4
+                % quarterly_a
                 obj.sd_logyT = sqrt(0.02087);
                 obj.sd_logyP = sqrt(0.01080);
                 obj.rho_logyP = 0.9881;

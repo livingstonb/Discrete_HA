@@ -7,14 +7,14 @@ close all;
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 1; % use server paths
-runopts.fast = 0; % very small asset and income grids for speed
+runopts.fast = 1; % very small asset and income grids for speed
 runopts.Simulate = 0;
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 
 % local grid tests, 0 to turn off, 1 for transition probs, 2 for simulations
 runopts.GRIDTEST = 0; % 
 
-IncomeProcess = 'IncomeGrids/quarterly_b.mat';
+QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
@@ -44,15 +44,15 @@ cd(runopts.path);
 % Load parameters
 if runopts.GRIDTEST == 1
     % only setup to run locally
-    params = parameters_grid_tests(runopts,IncomeProcess);
+    params = parameters_grid_tests(runopts,QIncome);
 elseif runopts.GRIDTEST == 2 % simulations
-    params = parameters_grid_tests2(runopts,selection,IncomeProcess);
+    params = parameters_grid_tests2(runopts,selection,QIncome);
 elseif runopts.GRIDTEST == 3
-    params = parameters_grid_tests3(runopts,IncomeProcess);
+    params = parameters_grid_tests3(runopts,QIncome);
 elseif runopts.Batch == 0
-    params = parameters_experiment(runopts,IncomeProcess); 
+    params = parameters_experiment(runopts,QIncome); 
 else
-    params = parameters(runopts,selection,IncomeProcess);
+    params = parameters(runopts,selection,QIncome);
 end
 
 %% ------------------------------------------------------------------------
