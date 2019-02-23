@@ -109,6 +109,15 @@ function params = parameters(runopts,selection,QIncome)
                 end
             end
         end
+        
+        % CRRA with IES heterogeneity
+        params(end+1) = MPCParams(ifreq,[lfreq ' CRRA with IES heterogeneity'],IncomeProcess);
+        params(end).risk_aver = exp([-1 -0.5 0 0.5 1]);
+
+        % EZ with IES heterogeneity
+        params(end+1) = MPCParams(ifreq,[lfreq ' EZ with IES heterogeneity'],IncomeProcess);
+        params(end).invies = 1 ./ exp([-1 -0.5 0 0.5 1]);
+        params(end).EpsteinZin = 1;
     end
 
     %----------------------------------------------------------------------
@@ -215,15 +224,6 @@ function params = parameters(runopts,selection,QIncome)
 %     params(end).sd_logyT = sqrt(1.5298);
 %     params(end).lambdaT = 0.0813;
 
-    % CRRA with IES heterogeneity
-    params(end+1) = MPCParams(4,'Q CRRA with IES heterogeneity',QIncome);
-    params(end).risk_aver = [1 2 3];
-
-    % EZ with IES heterogeneity
-    params(end+1) = MPCParams(4,'Q EZ with IES heterogeneity',QIncome);
-    params(end).invies = [1 1/0.75 1/1.25];
-    params(end).EpsteinZin = 1;
-    
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences
     %----------------------------------------------------------------------
@@ -285,14 +285,16 @@ function params = parameters(runopts,selection,QIncome)
     % to ensure convergence
 
     % CRRA heterogeneity
-    params.set_betaH_distance(-1e-2,'Q CRRA with IES heterogeneity',4);
+    params.set_betaH_distance(-2e-2,'A CRRA with IES heterogeneity',1);
+    params.set_betaH_distance(-5e-3,'Q CRRA with IES heterogeneity',4);
 
     % temptation
     params.set_betaH_distance(-1e-5,'Q Temptation0.05',4);
     params.set_betaH_distance(-1e-5,'A Temptation0.05',1);
     
 %     % Epstein-Zin
-    params.set_betaH_distance(-6e-3,'Q EZ with IES heterogeneity',4);
+    params.set_betaH_distance(-3e-2,'A EZ with IES heterogeneity',1);
+    params.set_betaH_distance(-8e-3,'Q EZ with IES heterogeneity',4);
 %     
 %     params.set_betaH_distance(-3e-2,'A EZ ra0.5 ies1',1);
 %     params.set_betaH_distance(-8e-3,'Q EZ ra0.5 ies1',4);

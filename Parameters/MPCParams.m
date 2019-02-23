@@ -95,7 +95,7 @@ classdef MPCParams < handle
         betaswitch = 0;
 
         % IES shocks
-        IESswitch = 0.01;
+        IESswitch = 0;
         
         % computation
     	Tsim        = 200; % Simulation
