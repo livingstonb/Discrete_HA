@@ -51,8 +51,8 @@ def gen_mfile_aggregator(MWout,sim):
                  '    checks(im) = S.checks;',
                  'end',
                  '',
-                 "addpath('/Users/Brian/Documents/GitHub/Discrete_HA/Output Functions');",
-                 "addpath('/Users/Brian/Documents/GitHub/Discrete_HA/Solution Functions');",
+                 "addpath('/home/brian/Documents/GitHub/Discrete_HA/Output Functions');",
+                 "addpath('/home/brian/Documents/GitHub/Discrete_HA/Solution Functions');",
                  '',
                  decomp2,
                  '',
@@ -66,7 +66,7 @@ def gen_mfile_aggregator(MWout,sim):
 # ---------------------------------------------------------------------
 
 # location of .mat output files
-MWout = '/Users/Brian/Documents/midway2_output/discrete_time/11_21_18/matlab_output'
+MWout = '/home/brian/Desktop/temp/discrete'
 sim = True # True/False
 
 # ---------------------------------------------------------------------

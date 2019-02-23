@@ -125,6 +125,10 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             mpcs = ( T1t * RHScon(:) - con_baseline(:) ) / mpcamount;
             MPCs.avg_s_t{is,it} = basemodel.adist(:)' * mpcs(:);
             RHScon = basemodel.statetrans * RHScon;
+            
+            if (is == 1) && (it >= 1 && it <= 4)
+                MPCs.mpcs_1_t{it} = mpcs;
+            end
         end
     end
     

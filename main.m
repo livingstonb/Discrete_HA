@@ -373,6 +373,9 @@ function [results,checks,decomp] = main(p)
     results.direct.top10share  = 1 - cumwealthshare(0.9);
     results.direct.top1share   = 1 - cumwealthshare(0.99);
     
+    % save adist from model
+    results.direct.adist = basemodel.adist;
+    
     %% --------------------------------------------------------------------
     % EGP FOR MODEL WITHOUT INCOME RISK
     % ---------------------------------------------------------------------

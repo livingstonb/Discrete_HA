@@ -7,7 +7,7 @@ close all;
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 1; % use server paths
-runopts.fast = 1; % very small asset and income grids for speed
+runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0;
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 
@@ -81,12 +81,12 @@ end
 %% ------------------------------------------------------------------------
 % DECOMPOSITION 2 AND SAVING/TABLE CREATING
 % -------------------------------------------------------------------------
-decomp2 = decomposition2(params,results);
+[decomp2,decomp3] = decomposition2(params,results);
 
 if runopts.Server == 0
     % Create table
     [T_annual,T_quarter] = create_table(params,results,...
-                                    decomps,checks,decomp2)
+                                    decomps,checks,decomp2,decomp3)
     disp('Check the results structure for detailed results')
 else
     % convert MPCParams object to structure for saving
