@@ -39,16 +39,6 @@ function params = parameters(runopts,selection,QIncome)
             params(end).r = ii/100;
         end
 
-        % different risk aversion coeffs
-        for ira = [0.5, 2, 6]
-            name = [lfreq ' RiskAver' num2str(ira)];
-            params(end+1) = MPCParams(ifreq,name,IncomeProcess);
-            params(end).risk_aver = ira;
-            if (ifreq==4 && ira==4) || ira==6
-                params(end).betaL = 0.5;
-            end
-        end
-
 %         % different tax rates
 %         for itax = [0.05, 0.1, 0.15, 0.25]
 %             name = [lfreq ' LabTax' num2str(itax)];
@@ -205,6 +195,16 @@ function params = parameters(runopts,selection,QIncome)
     % PART 3b, QUARTERLY MODEL
     %----------------------------------------------------------------------
     
+    % different risk aversion coeffs
+    for ira = [0.5, 2, 6]
+        name = ['Q RiskAver' num2str(ira)];
+        params(end+1) = MPCParams(4,name,QIncome);
+        params(end).risk_aver = ira;
+        if (ifreq==4 && ira==4) || ira==6
+            params(end).betaL = 0.5;
+        end
+    end
+    
     % i quarterly_a
     params(end+1) = MPCParams(4,'Q b(i) quarterly_a','');
     
@@ -244,16 +244,17 @@ function params = parameters(runopts,selection,QIncome)
                 params(end).set_betaH_distance(-1e-5);
             end    
         end
+    end
         
-%         % epstein-zin
-%         ras = [0.5 8 1 1 8];
-%         ies = [1 1 0.25 2 2];
-%         for i = 1:5
-%             params(end+1) = MPCParams(ifreq,[lfreq ' EZ ra' num2str(ras(i)) ' ies' num2str(ies(i))],IncomeProcess);
-%             params(end).risk_aver = ras(i);
-%             params(end).invies = 1 / ies(i);
-%             params(end).EpsteinZin = 1;
-%         end
+    % epstein-zin, quarterly
+    ras = [0.5 8  1    1 8];
+    ies = [1   1  0.25 2 2];
+    for i = 1:5
+        params(end+1) = MPCParams(4,['Q EZ ra' num2str(ras(i)) ' ies' num2str(ies(i))],QIncome);
+        params(end).risk_aver = ras(i);
+        params(end).invies = 1 / ies(i);
+        params(end).EpsteinZin = 1;
+    end
         
 %         % epstein-zin: vary risk_aver
 %         for ra = [0.5 0.75 1.5 2 4 8]
@@ -270,7 +271,6 @@ function params = parameters(runopts,selection,QIncome)
 %             params(end).invies = 1/ies;
 %             params(end).EpsteinZin = 1;
 %         end
-    end
 
     %----------------------------------------------------------------------
     % ADJUST TO QUARTERLY VALUES
@@ -295,17 +295,17 @@ function params = parameters(runopts,selection,QIncome)
 %     % Epstein-Zin
     params.set_betaH_distance(-3e-2,'A EZ with IES heterogeneity',1);
     params.set_betaH_distance(-8e-3,'Q EZ with IES heterogeneity',4);
-%     
+    
 %     params.set_betaH_distance(-3e-2,'A EZ ra0.5 ies1',1);
-%     params.set_betaH_distance(-8e-3,'Q EZ ra0.5 ies1',4);
+    params.set_betaH_distance(-8e-3,'Q EZ ra0.5 ies1',4);
 %     params.set_betaH_distance(-3e-2,'A EZ ra8 ies1',1);
-%     params.set_betaH_distance(-8e-3,'Q EZ ra8 ies1',4);
+    params.set_betaH_distance(-8e-3,'Q EZ ra8 ies1',4);
 %     params.set_betaH_distance(-3e-2,'A EZ ra1 ies0.25',1);
-%     params.set_betaH_distance(-8e-3,'Q EZ ra1 ies0.25',4);
+    params.set_betaH_distance(-8e-3,'Q EZ ra1 ies0.25',4);
 %     params.set_betaH_distance(-2.5e-2,'A EZ ra1 ies2',1);
-%     params.set_betaH_distance(-6.5e-3,'Q EZ ra1 ies2',4);
+    params.set_betaH_distance(-6.5e-3,'Q EZ ra1 ies2',4);
 %     params.set_betaH_distance(-2.5e-2,'A EZ ra8 ies2',1);
-%     params.set_betaH_distance(-6.5e-3,'Q EZ ra8 ies2',4);
+    params.set_betaH_distance(-6.5e-3,'Q EZ ra8 ies2',4);
 
 %     % varying risk_aver
 %     EZ = find([params.EpsteinZin]==1 & [params.freq]==1);
