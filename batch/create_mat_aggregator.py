@@ -35,8 +35,8 @@ def gen_mfile_aggregator(MWout,sim):
             tablefn = 'create_table_sim(params,results,decomps,checks);'
             decomp2 = ''
         else:
-            tablefn = 'create_table(params,results,decomps,checks,decomp2);'
-            decomp2 = 'decomp2 = decomposition2(params,results);'
+            tablefn = 'create_table(params,results,decomps,checks,decomp2,decomp3);'
+            decomp2 = '[decomp2,decomp3] = decomposition2(params,results);'
 
         lines = ['',
                  'for im = 1:length(matfiles)',
@@ -66,8 +66,8 @@ def gen_mfile_aggregator(MWout,sim):
 # ---------------------------------------------------------------------
 
 # location of .mat output files
-MWout = '/home/brian/Desktop/temp/discrete'
-sim = True # True/False
+MWout = '/home/brian/Desktop/temp/discrete_2_24_19'
+sim = False # True/False
 
 # ---------------------------------------------------------------------
 # Function calls
