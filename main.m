@@ -407,34 +407,30 @@ function [results,checks,decomp] = main(p)
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
     % ---------------------------------------------------------------------
     maxT = p.freq * 4;
-    mpcmodels1 = cell(maxT,maxT);
-    mpcmodels2 = cell(maxT,maxT);
-    mpcmodels3 = cell(maxT,maxT);
+    mpcmodels = cell(maxT,maxT);
     
-    shocks = [1e-5 0.01 0.1];
+    shocks = [-0.01 1e-5 0.01 0.1];
     
     % policy functions are the same as baseline when shock is received in
     % the current period
-    for is = 1:maxT
-        mpcmodels1{is,is} = basemodel;
-        mpcmodels2{is,is} = basemodel;
-        mpcmodels3{is,is} = basemodel;
-    end
+    
+    for ishock = 1:4
         
-    if p.EpsteinZin == 0
-        % mpcmodels(s,t) stores the policy functions associated with the case
-        % where the household is currently in period t, but recieved news about
-        % the period-s shock in period 1
-        model1_lagged = cell(maxT-1);
-        model2_lagged = cell(maxT-1);
-        model3_lagged = cell(maxT-1);
+        for is = 1:maxT
+            mpcmodels{is,is} = basemodel;
+        end
 
-        % get consumption functions conditional on future shock
-        % 'lag' is number of periods before shock
-        for lag = 1:maxT-1
-            Iterating = 0;
-            
-            for ishock = 1:3
+        if p.EpsteinZin == 0
+            % mpcmodels(s,t) stores the policy functions associated with the case
+            % where the household is currently in period t, but recieved news about
+            % the period-s shock in period 1
+            model_lagged = cell(maxT-1);
+
+            % get consumption functions conditional on future shock
+            % 'lag' is number of periods before shock
+            for lag = 1:maxT-1
+                Iterating = 0;
+
                 if lag == 1
                     % shock is next period
                     nextmpcshock = shocks(ishock) * income.meany1 * p.freq;
@@ -442,66 +438,30 @@ function [results,checks,decomp] = main(p)
                 else
                     % no shock next period
                     nextmpcshock = 0;
-                    
-                    if ishock == 1
-                        nextmodel = model1_lagged{lag-1};
-                    elseif ishock == 2
-                        nextmodel = model2_lagged{lag-1};
-                    else
-                        nextmodel = model3_lagged{lag-1};
-                    end
+                    nextmodel = model_lagged{lag-1};
                 end
-                
-                [~,temp] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
+
+                [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
                                 agrid_short,prefs,income,Iterating,nextmpcshock,nextmodel);
-                
-                if ishock == 1
-                    model1_lagged{lag} = temp;
-                elseif ishock == 2
-                    model2_lagged{lag} = temp;
-                else
-                    model3_lagged{lag} = temp;
-                end
-
             end
-        end
 
-        % populate mpcmodels with remaining (s,t) combinations for t < s
-        for is = 2:maxT
-        for it = is-1:-1:1
-            mpcmodels1{is,it} = model1_lagged{is-it};
-            mpcmodels2{is,it} = model2_lagged{is-it};
-            mpcmodels3{is,it} = model3_lagged{is-it};
-        end
-        end
+            % populate mpcmodels with remaining (s,t) combinations for t < s
+            for is = 2:maxT
+            for it = is-1:-1:1
+                mpcmodels{is,it} = model_lagged{is-it};
+            end
+            end
 
-        shocksize = shocks(1) * income.meany1 * p.freq;
-        [results.direct.mpcs1,results.direct.agrid_dist] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels1,income,prefs,xgrid,agrid_short,shocksize);
-
-        shocksize = shocks(2) * income.meany1 * p.freq;
-        [results.direct.mpcs2,results.direct.agrid_dist] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels2,income,prefs,xgrid,agrid_short,shocksize);
-        
-        shocksize = shocks(3) * income.meany1 * p.freq;
-        [results.direct.mpcs3,results.direct.agrid_dist] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels3,income,prefs,xgrid,agrid_short,shocksize);
-    else
-        % epstein-zin preferences, only do (is,it) for is == 1
-        [~,EZmodel] = solve_EGP_EZ(results.direct.beta,p,xgrid,sgrid,...                   
-                agrid_short,prefs,income,Iterating);
+            shocksize = shocks(ishock) * income.meany1 * p.freq;
+            [results.direct.mpcs(ishock),results.direct.agrid_dist] ...
+                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,xgrid,agrid_short,shocksize);
+        else
+            % epstein-zin preferences, only do (is,it) for is == 1
             
-        shocksize = shocks(1) * income.meany1 * p.freq;
-        [results.direct.mpcs1,~] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels1,income,prefs,xgrid,agrid_short,shocksize);
-        
-        shocksize = shocks(2) * income.meany1 * p.freq;
-        [results.direct.mpcs2,~] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels2,income,prefs,xgrid,agrid_short,shocksize);
-        
-        shocksize = shocks(3) * income.meany1 * p.freq;
-        [results.direct.mpcs3,~] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels3,income,prefs,xgrid,agrid_short,shocksize);
+            shocksize = shocks(ishock) * income.meany1 * p.freq;
+            [results.direct.mpcs(ishock),~] ...
+                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,xgrid,agrid_short,shocksize);
+        end
     end
     
     %% --------------------------------------------------------------------
