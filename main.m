@@ -407,61 +407,82 @@ function [results,checks,decomp] = main(p)
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
     % ---------------------------------------------------------------------
     maxT = p.freq * 4;
-    mpcmodels = cell(maxT,maxT);
+    mpcmodels01 = cell(maxT,maxT);
+    mpcmodels05 = cell(maxT,maxT);
     
     % policy functions are the same as baseline when shock is received in
     % the current period
     for is = 1:maxT
-        mpcmodels{is,is} = basemodel;
+        mpcmodels01{is,is} = basemodel;
+        mpcmodels05{is,is} = basemodel;
     end
         
     if p.EpsteinZin == 0
         % mpcmodels(s,t) stores the policy functions associated with the case
         % where the household is currently in period t, but recieved news about
         % the period-s shock in period 1
-        model_lagged = cell(maxT-1);
+        model01_lagged = cell(maxT-1);
+        model05_lagged = cell(maxT-1);
 
         % get consumption functions conditional on future shock
         % 'lag' is number of periods before shock
         for lag = 1:maxT-1
             Iterating = 0;
-            if lag == 1
-                nextmpcshock = 0.01 * income.meany1 * p.freq;
-                nextmodel = basemodel;
-            else
-                nextmpcshock = 0;
-                nextmodel = model_lagged{lag-1};
-            end
+            for shock = [0.01 0.05]
+                if lag == 1
+                    % shock is next period
+                    nextmpcshock = shock * income.meany1 * p.freq;
+                    nextmodel = basemodel;
+                else
+                    % no shock next period
+                    nextmpcshock = 0;
+                    
+                    if shock == 0.01
+                        nextmodel = model01_lagged{lag-1};
+                    else
+                        nextmodel = model05_lagged{lag-1};
+                    end
+                end
+                
+                [~,temp] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
+                                agrid_short,prefs,income,Iterating,nextmpcshock,nextmodel);
+                
+                if shock == 0.01
+                    model01_lagged{lag} = temp;
+                else
+                    model05_lagged{lag} = temp;
+                end
 
-            [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
-                agrid_short,prefs,income,Iterating,nextmpcshock,nextmodel);
+            end
         end
 
         % populate mpcmodels with remaining (s,t) combinations for t < s
         for is = 2:maxT
         for it = is-1:-1:1
-            mpcmodels{is,it} = model_lagged{is-it};
+            mpcmodels01{is,it} = model01_lagged{is-it};
+            mpcmodels05{is,it} = model05_lagged{is-it};
         end
         end
 
         shocksize = 0.01*income.meany1*p.freq;
         [results.direct.mpcs01,results.direct.agrid_dist] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels01,income,prefs,agrid_short,shocksize);
 
         shocksize = 0.05*income.meany1*p.freq;
         [results.direct.mpcs05,~] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels05,income,prefs,agrid_short,shocksize);
     else
+        % epstein-zin preferences, only do (is,it) for is == 1
         [~,EZmodel] = solve_EGP_EZ(results.direct.beta,p,xgrid,sgrid,...                   
                 agrid_short,prefs,income,Iterating);
             
         shocksize = 0.01*income.meany1*p.freq;
         [results.direct.mpcs01,~] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels01,income,prefs,agrid_short,shocksize);
         
         shocksize = 0.05*income.meany1*p.freq;
         [results.direct.mpcs05,~] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels05,income,prefs,agrid_short,shocksize);
     end
     
     %% --------------------------------------------------------------------
