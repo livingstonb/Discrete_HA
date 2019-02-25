@@ -20,7 +20,7 @@ function [results,checks,decomp] = main(p)
     income = gen_income_variables(p);
     
     % savtaxthresh should be a multiple of mean gross labor income
-    p.savtaxthresh  = p.savtaxthresh * income.meany1;
+    p.savtaxthresh  = p.savtaxthresh * income.meany1 * p.freq;
 
     if (p.nb > 1) && (numel(p.risk_aver) > 1)
     	error('cannot have both beta and risk aversion heterogeneity')
@@ -338,7 +338,7 @@ function [results,checks,decomp] = main(p)
             % Get exact figure
             results.direct.constrained(i) = basemodel.adist(:)' * (agrid==0);
         else
-            results.direct.constrained(i) = wpinterp(p.borrow_lim + p.epsilon(i)*income.meany1*p.freq);
+            results.direct.constrained(i) = wpinterp(p.epsilon(i)*income.meany1*p.freq);
         end
     end
 
