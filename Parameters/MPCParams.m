@@ -45,6 +45,7 @@ classdef MPCParams < handle
         Display = 0;
         Simulate = 0;
         GRIDTEST;
+        mpcshocks_after_period1;
     end
     properties
         % returns
@@ -184,6 +185,9 @@ classdef MPCParams < handle
             
             % gridtest option
             [obj.GRIDTEST] = deal(runopts.GRIDTEST);
+
+            % compute mpcs for is > 1?
+            [obj.mpcshocks_after_period1] = deal(runopts.mpcshocks_after_period1);
         end
         
         function obj = set_index(obj)

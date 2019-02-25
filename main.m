@@ -409,12 +409,12 @@ function [results,checks,decomp] = main(p)
     maxT = p.freq * 4;
     mpcmodels = cell(maxT,maxT);
     
-    shocks = [-0.01 1e-5 0.01 0.1];
+    shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
     
     % policy functions are the same as baseline when shock is received in
     % the current period
     
-    for ishock = 1:4
+    for ishock = 1:6
         
         for is = 1:maxT
             mpcmodels{is,is} = basemodel;

@@ -46,7 +46,9 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     MPCs.mpcs_1_t = cell(1,4);
     maxT = p.freq * 4;
     
-    if maxT == 4
+    if (shocksize < 0) || (p.mpcshocks_after_period1 == 1)
+        IS = 1;
+    elseif maxT == 4
         IS = [1 2 3 4];
     else
         IS = [1 2 3 4 5 9 13];

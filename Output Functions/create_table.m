@@ -28,6 +28,33 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Wealth, top 10% share'
             'Wealth, top 1% share'
             'Gini coefficient'
+            '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK -1e-5)'
+            'IMPC(1,1), shock=-1e-5'
+            'IMPC(1,2), shock=-1e-5'
+            'IMPC(1,3), shock=-1e-5'
+            'IMPC(1,4), shock=-1e-5'
+            'IMPC(1,1-4), shock=-1e-5'
+            'IMPC(1,5-9), shock=-1e-5'
+            'IMPC(1,10-13), shock=-1e-5'
+            'IMPC(1,13-16), shock=-1e-5'
+            '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK -0.01)'
+            'IMPC(1,1), shock=-0.01'
+            'IMPC(1,2), shock=-0.01'
+            'IMPC(1,3), shock=-0.01'
+            'IMPC(1,4), shock=-0.01'
+            'IMPC(1,1-4), shock=-0.01'
+            'IMPC(1,5-9), shock=-0.01'
+            'IMPC(1,10-13), shock=-0.01'
+            'IMPC(1,13-16), shock=-0.01'
+            '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK -0.1)'
+            'IMPC(1,1), shock=-0.1'
+            'IMPC(1,2), shock=-0.1'
+            'IMPC(1,3), shock=-0.1'
+            'IMPC(1,4), shock=-0.1'
+            'IMPC(1,1-4), shock=-0.1'
+            'IMPC(1,5-9), shock=-0.1'
+            'IMPC(1,10-13), shock=-0.1'
+            'IMPC(1,13-16), shock=-0.1'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK 1e-5)'
             'IMPC(1,1), shock=1e-5'
             'IMPC(1,2), shock=1e-5'
@@ -74,50 +101,50 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'IMPC(13,10-13), shock=1e-5'
             'IMPC(13,13-16), shock=1e-5'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK 0.01)'
-            'IMPC(1,1), shock=1e-5'
-            'IMPC(1,2), shock=1e-5'
-            'IMPC(1,3), shock=1e-5'
-            'IMPC(1,4), shock=1e-5'
-            'IMPC(1,1-4), shock=1e-5'
-            'IMPC(1,5-9), shock=1e-5'
-            'IMPC(1,10-13), shock=1e-5'
-            'IMPC(1,13-16), shock=1e-5'
-            'IMPC(2,1), shock=1e-5'
-            'IMPC(2,2), shock=1e-5'
-            'IMPC(2,3), shock=1e-5'
-            'IMPC(2,4), shock=1e-5'
-            'IMPC(2,1-4), shock=1e-5'
-            'IMPC(2,5-9), shock=1e-5'
-            'IMPC(2,10-13), shock=1e-5'
-            'IMPC(2,13-16), shock=1e-5'
-            'IMPC(3,1), shock=1e-5'
-            'IMPC(3,2), shock=1e-5'
-            'IMPC(3,3), shock=1e-5'
-            'IMPC(3,4), shock=1e-5'
-            'IMPC(3,1-4), shock=1e-5'
-            'IMPC(3,5-9), shock=1e-5'
-            'IMPC(3,10-13), shock=1e-5'
-            'IMPC(3,13-16), shock=1e-5'
-            'IMPC(4,1), shock=1e-5'
-            'IMPC(4,2), shock=1e-5'
-            'IMPC(4,3), shock=1e-5'
-            'IMPC(4,4), shock=1e-5'
-            'IMPC(4,1-4), shock=1e-5'
-            'IMPC(4,5-9), shock=1e-5'
-            'IMPC(4,10-13), shock=1e-5'
-            'IMPC(4,13-16), shock=1e-5'
-            'IMPC(5,1-4), shock=1e-5'
-            'IMPC(5,5-9), shock=1e-5'
-            'IMPC(5,10-13), shock=1e-5'
-            'IMPC(5,13-16), shock=1e-5'
-            'IMPC(9,1-4), shock=1e-5'
-            'IMPC(9,5-9), shock=1e-5'
-            'IMPC(9,10-13), shock=1e-5'
-            'IMPC(9,13-16), shock=1e-5'
-            'IMPC(13,1-4), shock=1e-5'
-            'IMPC(13,5-9), shock=1e-5'
-            'IMPC(13,10-13), shock=1e-5'
-            'IMPC(13,13-16), shock=1e-5'
+            'IMPC(1,1), shock=0.01'
+            'IMPC(1,2), shock=0.01'
+            'IMPC(1,3), shock=0.01'
+            'IMPC(1,4), shock=0.01'
+            'IMPC(1,1-4), shock=0.01'
+            'IMPC(1,5-9), shock=0.01'
+            'IMPC(1,10-13), shock=0.01'
+            'IMPC(1,13-16), shock=0.01'
+            'IMPC(2,1), shock=0.01'
+            'IMPC(2,2), shock=0.01'
+            'IMPC(2,3), shock=0.01'
+            'IMPC(2,4), shock=0.01'
+            'IMPC(2,1-4), shock=0.01'
+            'IMPC(2,5-9), shock=0.01'
+            'IMPC(2,10-13), shock=0.01'
+            'IMPC(2,13-16), shock=0.01'
+            'IMPC(3,1), shock=0.01'
+            'IMPC(3,2), shock=0.01'
+            'IMPC(3,3), shock=0.01'
+            'IMPC(3,4), shock=0.01'
+            'IMPC(3,1-4), shock=0.01'
+            'IMPC(3,5-9), shock=0.01'
+            'IMPC(3,10-13), shock=0.01'
+            'IMPC(3,13-16), shock=0.01'
+            'IMPC(4,1), shock=0.01'
+            'IMPC(4,2), shock=0.01'
+            'IMPC(4,3), shock=0.01'
+            'IMPC(4,4), shock=0.01'
+            'IMPC(4,1-4), shock=0.01'
+            'IMPC(4,5-9), shock=0.01'
+            'IMPC(4,10-13), shock=0.01'
+            'IMPC(4,13-16), shock=0.01'
+            'IMPC(5,1-4), shock=0.01'
+            'IMPC(5,5-9), shock=0.01'
+            'IMPC(5,10-13), shock=0.01'
+            'IMPC(5,13-16), shock=0.01'
+            'IMPC(9,1-4), shock=0.01'
+            'IMPC(9,5-9), shock=0.01'
+            'IMPC(9,10-13), shock=0.01'
+            'IMPC(9,13-16), shock=0.01'
+            'IMPC(13,1-4), shock=0.01'
+            'IMPC(13,5-9), shock=0.01'
+            'IMPC(13,10-13), shock=0.01'
+            'IMPC(13,13-16), shock=0.01'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK 0.1)'
             'IMPC(1,1), shock=0.1'
             'IMPC(1,2), shock=0.1'
@@ -290,6 +317,66 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     dec2_Q = dec2_mpc1;
                 end
 
+                s_t_mpcs = cell(1,6);
+
+                for i = 1:3
+                    st_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}          % IMPC(1,1)
+                                    results(ip).direct.mpcs(i).avg_s_t{1,2}        % IMPC(1,2)
+                                    results(ip).direct.mpcs(i).avg_s_t{1,3}        % IMPC(1,3)
+                                    results(ip).direct.mpcs(i).avg_s_t{1,4}        % IMPC(1,4)
+                                    results(ip).direct.mpcs(i).avg_1_1to4          % IMPC(1,1-4)
+                                    results(ip).direct.mpcs(i).avg_1_5to8          % IMPC(1,5-8)
+                                    results(ip).direct.mpcs(i).avg_1_9to12         % IMPC(1,9-12)
+                                    results(ip).direct.mpcs(i).avg_1_13to16];
+                end
+
+                for i = 4:6
+                    st_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}          % IMPC(1,1)
+                                    results(ip).direct.mpcs(i).avg_s_t{1,2}        % IMPC(1,2)
+                                    results(ip).direct.mpcs(i).avg_s_t{1,3}        % IMPC(1,3)
+                                    results(ip).direct.mpcs(i).avg_s_t{1,4}        % IMPC(1,4)
+                                    results(ip).direct.mpcs(i).avg_1_1to4          % IMPC(1,1-4)
+                                    results(ip).direct.mpcs(i).avg_1_5to8          % IMPC(1,5-8)
+                                    results(ip).direct.mpcs(i).avg_1_9to12         % IMPC(1,9-12)
+                                    results(ip).direct.mpcs(i).avg_1_13to16        % IMPC(1,13-16)
+                                    results(ip).direct.mpcs(i).avg_s_t{2,1}        % IMPC(2,1)
+                                    results(ip).direct.mpcs(i).avg_s_t{2,2}        % IMPC(2,2)
+                                    results(ip).direct.mpcs(i).avg_s_t{2,3}        % IMPC(2,3)
+                                    results(ip).direct.mpcs(i).avg_s_t{2,4}        % IMPC(2,4)
+                                    results(ip).direct.mpcs(i).avg_2_1to4          % IMPC(2,1-4)
+                                    results(ip).direct.mpcs(i).avg_2_5to8          % IMPC(2,5-8)
+                                    results(ip).direct.mpcs(i).avg_2_9to12         % IMPC(2,9-12)
+                                    results(ip).direct.mpcs(i).avg_2_13to16        % IMPC(2,13-16)
+                                    results(ip).direct.mpcs(i).avg_s_t{3,1}        % IMPC(3,1)
+                                    results(ip).direct.mpcs(i).avg_s_t{3,2}        % IMPC(3,2)
+                                    results(ip).direct.mpcs(i).avg_s_t{3,3}        % IMPC(3,3)
+                                    results(ip).direct.mpcs(i).avg_s_t{3,4}        % IMPC(3,4)
+                                    results(ip).direct.mpcs(i).avg_3_1to4          % IMPC(3,1-4)
+                                    results(ip).direct.mpcs(i).avg_3_5to8          % IMPC(3,5-8)
+                                    results(ip).direct.mpcs(i).avg_3_9to12         % IMPC(3,9-12)
+                                    results(ip).direct.mpcs(i).avg_3_13to16        % IMPC(3,13-16)
+                                    results(ip).direct.mpcs(i).avg_s_t{4,1}        % IMPC(4,1)
+                                    results(ip).direct.mpcs(i).avg_s_t{4,2}        % IMPC(4,2)
+                                    results(ip).direct.mpcs(i).avg_s_t{4,3}        % IMPC(4,3)
+                                    results(ip).direct.mpcs(i).avg_s_t{4,4}        % IMPC(4,4)
+                                    results(ip).direct.mpcs(i).avg_4_1to4          % IMPC(4,1-4)
+                                    results(ip).direct.mpcs(i).avg_4_5to8          % IMPC(4,5-8)
+                                    results(ip).direct.mpcs(i).avg_4_9to12         % IMPC(4,9-12)
+                                    results(ip).direct.mpcs(i).avg_4_13to16        % IMPC(4,13-16)
+                                    results(ip).direct.mpcs(i).avg_5_1to4          % IMPC(5,13-16)
+                                    results(ip).direct.mpcs(i).avg_5_5to8          % IMPC(5,5-8)
+                                    results(ip).direct.mpcs(i).avg_5_9to12         % IMPC(5,9-12)
+                                    results(ip).direct.mpcs(i).avg_5_13to16        % IMPC(5,13-16)
+                                    results(ip).direct.mpcs(i).avg_9_1to4          % IMPC(9,1-4)
+                                    results(ip).direct.mpcs(i).avg_9_5to8          % IMPC(9,5-8)
+                                    results(ip).direct.mpcs(i).avg_9_9to12         % IMPC(9,9-12)
+                                    results(ip).direct.mpcs(i).avg_9_13to16        % IMPC(9,13-16)
+                                    results(ip).direct.mpcs(i).avg_13_1to4         % IMPC(13,1-4)
+                                    results(ip).direct.mpcs(i).avg_13_5to8         % IMPC(13,5-8)
+                                    results(ip).direct.mpcs(i).avg_13_9to12        % IMPC(13,9-12)
+                                    results(ip).direct.mpcs(i).avg_13_13to16];     % IMPC(13,13-16)
+                end
+
                 column = [
                     p.index
                     results(ip).direct.beta_annualized      % Annualized beta
@@ -305,141 +392,18 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     results(ip).direct.top10share           % Top 10% wealth share
                     results(ip).direct.top1share            % Top 1% wealth share
                     results(ip).direct.wealthgini           % Gini coefficient
-                     NaN
-                    results(ip).direct.mpcs1.avg_s_t{1,1}        % IMPC(1,1)
-                    results(ip).direct.mpcs1.avg_s_t{1,2}        % IMPC(1,2)
-                    results(ip).direct.mpcs1.avg_s_t{1,3}        % IMPC(1,3)
-                    results(ip).direct.mpcs1.avg_s_t{1,4}        % IMPC(1,4)
-                    results(ip).direct.mpcs1.avg_1_1to4          % IMPC(1,1-4)
-                    results(ip).direct.mpcs1.avg_1_5to8          % IMPC(1,5-8)
-                    results(ip).direct.mpcs1.avg_1_9to12         % IMPC(1,9-12)
-                    results(ip).direct.mpcs1.avg_1_13to16        % IMPC(1,13-16)
-                    results(ip).direct.mpcs1.avg_s_t{2,1}        % IMPC(2,1)
-                    results(ip).direct.mpcs1.avg_s_t{2,2}        % IMPC(2,2)
-                    results(ip).direct.mpcs1.avg_s_t{2,3}        % IMPC(2,3)
-                    results(ip).direct.mpcs1.avg_s_t{2,4}        % IMPC(2,4)
-                    results(ip).direct.mpcs1.avg_2_1to4          % IMPC(2,1-4)
-                    results(ip).direct.mpcs1.avg_2_5to8          % IMPC(2,5-8)
-                    results(ip).direct.mpcs1.avg_2_9to12         % IMPC(2,9-12)
-                    results(ip).direct.mpcs1.avg_2_13to16        % IMPC(2,13-16)
-                    results(ip).direct.mpcs1.avg_s_t{3,1}        % IMPC(3,1)
-                    results(ip).direct.mpcs1.avg_s_t{3,2}        % IMPC(3,2)
-                    results(ip).direct.mpcs1.avg_s_t{3,3}        % IMPC(3,3)
-                    results(ip).direct.mpcs1.avg_s_t{3,4}        % IMPC(3,4)
-                    results(ip).direct.mpcs1.avg_3_1to4          % IMPC(3,1-4)
-                    results(ip).direct.mpcs1.avg_3_5to8          % IMPC(3,5-8)
-                    results(ip).direct.mpcs1.avg_3_9to12         % IMPC(3,9-12)
-                    results(ip).direct.mpcs1.avg_3_13to16        % IMPC(3,13-16)
-                    results(ip).direct.mpcs1.avg_s_t{4,1}        % IMPC(4,1)
-                    results(ip).direct.mpcs1.avg_s_t{4,2}        % IMPC(4,2)
-                    results(ip).direct.mpcs1.avg_s_t{4,3}        % IMPC(4,3)
-                    results(ip).direct.mpcs1.avg_s_t{4,4}        % IMPC(4,4)
-                    results(ip).direct.mpcs1.avg_4_1to4          % IMPC(4,1-4)
-                    results(ip).direct.mpcs1.avg_4_5to8          % IMPC(4,5-8)
-                    results(ip).direct.mpcs1.avg_4_9to12         % IMPC(4,9-12)
-                    results(ip).direct.mpcs1.avg_4_13to16        % IMPC(4,13-16)
-                    results(ip).direct.mpcs1.avg_5_1to4          % IMPC(5,13-16)
-                    results(ip).direct.mpcs1.avg_5_5to8          % IMPC(5,5-8)
-                    results(ip).direct.mpcs1.avg_5_9to12         % IMPC(5,9-12)
-                    results(ip).direct.mpcs1.avg_5_13to16        % IMPC(5,13-16)
-                    results(ip).direct.mpcs1.avg_9_1to4          % IMPC(9,1-4)
-                    results(ip).direct.mpcs1.avg_9_5to8          % IMPC(9,5-8)
-                    results(ip).direct.mpcs1.avg_9_9to12         % IMPC(9,9-12)
-                    results(ip).direct.mpcs1.avg_9_13to16        % IMPC(9,13-16)
-                    results(ip).direct.mpcs1.avg_13_1to4         % IMPC(13,1-4)
-                    results(ip).direct.mpcs1.avg_13_5to8         % IMPC(13,5-8)
-                    results(ip).direct.mpcs1.avg_13_9to12        % IMPC(13,9-12)
-                    results(ip).direct.mpcs1.avg_13_13to16       % IMPC(13,13-16)
                     NaN
-                    results(ip).direct.mpcs2.avg_s_t{1,1}        % IMPC(1,1)
-                    results(ip).direct.mpcs2.avg_s_t{1,2}        % IMPC(1,2)
-                    results(ip).direct.mpcs2.avg_s_t{1,3}        % IMPC(1,3)
-                    results(ip).direct.mpcs2.avg_s_t{1,4}        % IMPC(1,4)
-                    results(ip).direct.mpcs2.avg_1_1to4          % IMPC(1,1-4)
-                    results(ip).direct.mpcs2.avg_1_5to8          % IMPC(1,5-8)
-                    results(ip).direct.mpcs2.avg_1_9to12         % IMPC(1,9-12)
-                    results(ip).direct.mpcs2.avg_1_13to16        % IMPC(1,13-16)
-                    results(ip).direct.mpcs2.avg_s_t{2,1}        % IMPC(2,1)
-                    results(ip).direct.mpcs2.avg_s_t{2,2}        % IMPC(2,2)
-                    results(ip).direct.mpcs2.avg_s_t{2,3}        % IMPC(2,3)
-                    results(ip).direct.mpcs2.avg_s_t{2,4}        % IMPC(2,4)
-                    results(ip).direct.mpcs2.avg_2_1to4          % IMPC(2,1-4)
-                    results(ip).direct.mpcs2.avg_2_5to8          % IMPC(2,5-8)
-                    results(ip).direct.mpcs2.avg_2_9to12         % IMPC(2,9-12)
-                    results(ip).direct.mpcs2.avg_2_13to16        % IMPC(2,13-16)
-                    results(ip).direct.mpcs2.avg_s_t{3,1}        % IMPC(3,1)
-                    results(ip).direct.mpcs2.avg_s_t{3,2}        % IMPC(3,2)
-                    results(ip).direct.mpcs2.avg_s_t{3,3}        % IMPC(3,3)
-                    results(ip).direct.mpcs2.avg_s_t{3,4}        % IMPC(3,4)
-                    results(ip).direct.mpcs2.avg_3_1to4          % IMPC(3,1-4)
-                    results(ip).direct.mpcs2.avg_3_5to8          % IMPC(3,5-8)
-                    results(ip).direct.mpcs2.avg_3_9to12         % IMPC(3,9-12)
-                    results(ip).direct.mpcs2.avg_3_13to16        % IMPC(3,13-16)
-                    results(ip).direct.mpcs2.avg_s_t{4,1}        % IMPC(4,1)
-                    results(ip).direct.mpcs2.avg_s_t{4,2}        % IMPC(4,2)
-                    results(ip).direct.mpcs2.avg_s_t{4,3}        % IMPC(4,3)
-                    results(ip).direct.mpcs2.avg_s_t{4,4}        % IMPC(4,4)
-                    results(ip).direct.mpcs2.avg_4_1to4          % IMPC(4,1-4)
-                    results(ip).direct.mpcs2.avg_4_5to8          % IMPC(4,5-8)
-                    results(ip).direct.mpcs2.avg_4_9to12         % IMPC(4,9-12)
-                    results(ip).direct.mpcs2.avg_4_13to16        % IMPC(4,13-16)
-                    results(ip).direct.mpcs2.avg_5_1to4          % IMPC(5,13-16)
-                    results(ip).direct.mpcs2.avg_5_5to8          % IMPC(5,5-8)
-                    results(ip).direct.mpcs2.avg_5_9to12         % IMPC(5,9-12)
-                    results(ip).direct.mpcs2.avg_5_13to16        % IMPC(5,13-16)
-                    results(ip).direct.mpcs2.avg_9_1to4          % IMPC(9,1-4)
-                    results(ip).direct.mpcs2.avg_9_5to8          % IMPC(9,5-8)
-                    results(ip).direct.mpcs2.avg_9_9to12         % IMPC(9,9-12)
-                    results(ip).direct.mpcs2.avg_9_13to16        % IMPC(9,13-16)
-                    results(ip).direct.mpcs2.avg_13_1to4         % IMPC(13,1-4)
-                    results(ip).direct.mpcs2.avg_13_5to8         % IMPC(13,5-8)
-                    results(ip).direct.mpcs2.avg_13_9to12        % IMPC(13,9-12)
-                    results(ip).direct.mpcs2.avg_13_13to16       % IMPC(13,13-16)
+                    s_t_mpcs{1}
                     NaN
-                    results(ip).direct.mpcs3.avg_s_t{1,1}        % IMPC(1,1)
-                    results(ip).direct.mpcs3.avg_s_t{1,2}        % IMPC(1,2)
-                    results(ip).direct.mpcs3.avg_s_t{1,3}        % IMPC(1,3)
-                    results(ip).direct.mpcs3.avg_s_t{1,4}        % IMPC(1,4)
-                    results(ip).direct.mpcs3.avg_1_1to4          % IMPC(1,1-4)
-                    results(ip).direct.mpcs3.avg_1_5to8          % IMPC(1,5-8)
-                    results(ip).direct.mpcs3.avg_1_9to12         % IMPC(1,9-12)
-                    results(ip).direct.mpcs3.avg_1_13to16        % IMPC(1,13-16)
-                    results(ip).direct.mpcs3.avg_s_t{2,1}        % IMPC(2,1)
-                    results(ip).direct.mpcs3.avg_s_t{2,2}        % IMPC(2,2)
-                    results(ip).direct.mpcs3.avg_s_t{2,3}        % IMPC(2,3)
-                    results(ip).direct.mpcs3.avg_s_t{2,4}        % IMPC(2,4)
-                    results(ip).direct.mpcs3.avg_2_1to4          % IMPC(2,1-4)
-                    results(ip).direct.mpcs3.avg_2_5to8          % IMPC(2,5-8)
-                    results(ip).direct.mpcs3.avg_2_9to12         % IMPC(2,9-12)
-                    results(ip).direct.mpcs3.avg_2_13to16        % IMPC(2,13-16)
-                    results(ip).direct.mpcs3.avg_s_t{3,1}        % IMPC(3,1)
-                    results(ip).direct.mpcs3.avg_s_t{3,2}        % IMPC(3,2)
-                    results(ip).direct.mpcs3.avg_s_t{3,3}        % IMPC(3,3)
-                    results(ip).direct.mpcs3.avg_s_t{3,4}        % IMPC(3,4)
-                    results(ip).direct.mpcs3.avg_3_1to4          % IMPC(3,1-4)
-                    results(ip).direct.mpcs3.avg_3_5to8          % IMPC(3,5-8)
-                    results(ip).direct.mpcs3.avg_3_9to12         % IMPC(3,9-12)
-                    results(ip).direct.mpcs3.avg_3_13to16        % IMPC(3,13-16)
-                    results(ip).direct.mpcs3.avg_s_t{4,1}        % IMPC(4,1)
-                    results(ip).direct.mpcs3.avg_s_t{4,2}        % IMPC(4,2)
-                    results(ip).direct.mpcs3.avg_s_t{4,3}        % IMPC(4,3)
-                    results(ip).direct.mpcs3.avg_s_t{4,4}        % IMPC(4,4)
-                    results(ip).direct.mpcs3.avg_4_1to4          % IMPC(4,1-4)
-                    results(ip).direct.mpcs3.avg_4_5to8          % IMPC(4,5-8)
-                    results(ip).direct.mpcs3.avg_4_9to12         % IMPC(4,9-12)
-                    results(ip).direct.mpcs3.avg_4_13to16        % IMPC(4,13-16)
-                    results(ip).direct.mpcs3.avg_5_1to4          % IMPC(5,1-4)
-                    results(ip).direct.mpcs3.avg_5_5to8          % IMPC(5,5-8)
-                    results(ip).direct.mpcs3.avg_5_9to12         % IMPC(5,9-12)
-                    results(ip).direct.mpcs3.avg_5_13to16        % IMPC(5,13-16)
-                    results(ip).direct.mpcs3.avg_9_1to4          % IMPC(9,1-4)
-                    results(ip).direct.mpcs3.avg_9_5to8          % IMPC(9,5-8)
-                    results(ip).direct.mpcs3.avg_9_9to12         % IMPC(9,9-12)
-                    results(ip).direct.mpcs3.avg_9_13to16        % IMPC(9,13-16)
-                    results(ip).direct.mpcs3.avg_13_1to4         % IMPC(13,1-4)
-                    results(ip).direct.mpcs3.avg_13_5to8         % IMPC(13,5-8)
-                    results(ip).direct.mpcs3.avg_13_9to12        % IMPC(13,9-12)
-                    results(ip).direct.mpcs3.avg_13_13to16       % IMPC(13,13-16)
+                    s_t_mpcs{2}
+                    NaN
+                    s_t_mpcs{3}
+                    NaN
+                    s_t_mpcs{4}
+                    NaN
+                    s_t_mpcs{5}
+                    NaN
+                    s_t_mpcs{6}
                     NaN
                     dec1(:)                                 % Decomp1
                     NaN
