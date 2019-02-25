@@ -153,16 +153,11 @@ function [T_annual,T_quarter] = create_table(params,results,...
             '(Quarterly) Decomp of the distr effect around 0.01, non-HtM households'
             '(Quarterly) Decomp of the distr effect around 0.05, HtM households'
             '(Quarterly) Decomp of the distr effect around 0.05, non-HtM households'
-            '____DECOMP OF ANNUAL EM1-EM_RA (MPC OUT OF 0.01 MEAN ANN INC)'
-            '(Annual) Em1 - EmRA'
-            '(Annual) Decomp of Em1-EmRA, effect of MPC fcn'
-            '(Annual) Decomp of Em1-EmRA, effect of distr'
-            '(Annual) Decomp of Em1-EmRA, interaction'
-            '____DECOMP OF QUARTERLY EM1-EM_RA (MPC OUT OF 0.01 MEAN ANN INC)'
-            '(Quarterly) Em1 - EmRA'
-            '(Quarterly) Decomp of Em1-EmRA, effect of MPC fcn'
-            '(Quarterly) Decomp of Em1-EmRA, effect of distr'
-            '(Quarterly) Decomp of Em1-EmRA, interaction'
+            '____DECOMP OF ONE PERIOD EM1-EM_RA (MPC OUT OF 0.01 MEAN ANN INC)'
+            'Em1 - EmRA'
+            'Decomp of Em1-EmRA, effect of MPC fcn'
+            'Decomp of Em1-EmRA, effect of distr'
+            'Decomp of Em1-EmRA, interaction'
             'Failed one or more checks'
             };
     Nrows = numel(rows) - 1;
@@ -245,13 +240,9 @@ function [T_annual,T_quarter] = create_table(params,results,...
                 if p.freq == 1
                     dec2_A = dec2_mpc1;
                     dec2_Q = NaN(10,1);
-                    dec3_A = dec3_mpc1;
-                    dec3_Q = NaN(4,1);
                 else
                     dec2_A = dec2_mpc4;
                     dec2_Q = dec2_mpc1;
-                    dec3_A = dec3_mpc4;
-                    dec3_Q = dec3_mpc1;
                 end
 
                 column = [
@@ -366,9 +357,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     NaN
                     dec2_Q
                     NaN
-                    dec3_A                                  % Decomposition3
-                    NaN
-                    dec3_Q
+                    dec3_mpc1                                  	% Decomposition3
                     numel(checks{ip})>0 ];
             end
 

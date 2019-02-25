@@ -76,7 +76,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
                 m0 = params(ip).R * (results(ip).direct.beta*params(ip).R)^(-1/params(ip).risk_aver) - 1;
 
 
-                decomp3(ip).mpc4_Em1_less_mRA = results(ip).direct.mpcs01.avg_s_t{1,1} - m0;
+                decomp3(ip).mpc1_Em1_less_mRA = results(ip).direct.mpcs01.avg_s_t{1,1} - m0;
                 decomp3(ip).mpc1_term1 = m1(1)- m0; % m1 at assets = 0
                 decomp3(ip).mpc1_term2 = 0;
                 decomp3(ip).mpc1_term3 = (m1 - m0)' * g1 - m1(1) - m0;
@@ -105,6 +105,8 @@ function [decomp2,decomp3] = decomposition2(params,results)
                     decomp2(ip).mpc4_term3b(ia) = m0(~idx)' * (g1(~idx) - g0(~idx));
                 end
             end
+            
+            
         catch ME
             decomp2(ip).decomp_error = ME;
             decomp3(ip).decomp_error = ME;
