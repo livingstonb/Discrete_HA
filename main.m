@@ -477,15 +477,15 @@ function [results,checks,decomp] = main(p)
 
         shocksize = shocks(1) * income.meany1 * p.freq;
         [results.direct.mpcs1,results.direct.agrid_dist] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels1,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels1,income,prefs,xgrid,agrid_short,shocksize);
 
         shocksize = shocks(2) * income.meany1 * p.freq;
         [results.direct.mpcs2,results.direct.agrid_dist] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels2,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels2,income,prefs,xgrid,agrid_short,shocksize);
         
         shocksize = shocks(3) * income.meany1 * p.freq;
         [results.direct.mpcs3,results.direct.agrid_dist] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels3,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels3,income,prefs,xgrid,agrid_short,shocksize);
     else
         % epstein-zin preferences, only do (is,it) for is == 1
         [~,EZmodel] = solve_EGP_EZ(results.direct.beta,p,xgrid,sgrid,...                   
@@ -493,15 +493,15 @@ function [results,checks,decomp] = main(p)
             
         shocksize = shocks(1) * income.meany1 * p.freq;
         [results.direct.mpcs1,~] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels1,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels1,income,prefs,xgrid,agrid_short,shocksize);
         
         shocksize = shocks(2) * income.meany1 * p.freq;
         [results.direct.mpcs2,~] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels2,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels2,income,prefs,xgrid,agrid_short,shocksize);
         
         shocksize = shocks(3) * income.meany1 * p.freq;
         [results.direct.mpcs3,~] ...
-            = direct_MPCs_by_computation(p,basemodel,mpcmodels3,income,prefs,agrid_short,shocksize);
+            = direct_MPCs_by_computation(p,basemodel,mpcmodels3,income,prefs,xgrid,agrid_short,shocksize);
     end
     
     %% --------------------------------------------------------------------

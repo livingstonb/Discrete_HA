@@ -1,4 +1,4 @@
-function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,income,prefs,agrid_short,shocksize)
+function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,income,prefs,xgrid,agrid_short,shocksize)
     % This function computes IMPC(s,t) using transition probabilities,
     % where IMPC(s,t) is the MPC in period t out of a period-s shock that
     % is learned about in period 1
@@ -33,7 +33,8 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         trans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_stationary));
     end
     
-    con_baseline = get_policy(p,xgrid_yT,basemodel,income);
+    con_baseline_yT = get_policy(p,xgrid_yT,basemodel,income);
+    con_baseline = reshape(con_baseline_yT,[],p.nyT) * income.yTdist;
     
     mpcamount = shocksize;
 
@@ -101,10 +102,32 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             else
                 x_mpc = xgrid_yT;
             end
+
+            if shocksize < 0 && it == 1
+                below_xgrid = false(size(x_mpc));
+                for iyT = 1:p.nyT
+                    below_xgrid (:,:,:,iyT) = x_mpc(:,:,:,iyT) < xgrid.full(1,:,:);
+                end
+                below_xgrid = reshape(below_xgrid,[p.nxlong p.nyP p.nyF 1 p.nyT]);
+                below_xgrid = repmat(below_xgrid,[1 1 1 p.nb 1]);
+            end
+
             con = get_policy(p,x_mpc,models{is,it},income);
 
+            if shocksize < 0 && it == 1
+                % set MPC 1 for points below xgrid
+                con(below_xgrid) = con_baseline_yT(below_xgrid) + mpcamount;
+            elseif shocksize < 0 && it > 1
+                % set MPC 0 for points that were already set to 1
+                con(below_xgrid) = con_baseline_yT(below_xgrid);
+            end
+
+            con = reshape(con,[],p.nyT) * income.yTdist;
+
             % now compute IMPC(s,t)
-            mpcs = ( T1t * con(:) - con_baseline(:) ) / mpcamount;
+            mpcs = ( T1t * con - con_baseline) / mpcamount;
+
+
             MPCs.avg_s_t{is,it} = basemodel.adist(:)' * mpcs(:);
             
             if (is == 1) && (it >= 1 && it <= 4)
@@ -211,7 +234,7 @@ end
 % SUBFUNCTIONS
 % -------------------------------------------------------------------------
 
-function Econ = get_policy(p,x_mpc,model,income)
+function con = get_policy(p,x_mpc,model,income)
     % Computes consumption policy function after taking expectation to get
     % rid of yT dependence
     
@@ -226,13 +249,15 @@ function Econ = get_policy(p,x_mpc,model,income)
     end
     end
     sav = max(sav,p.borrow_lim);
+    x_mpc = reshape(x_mpc,[p.nxlong p.nyP p.nyF 1 p.nyT]);
+    con = repmat(x_mpc,[1 1 1 p.nb 1]) - sav - p.savtax * max(sav-p.savtaxthresh,0);
 
     % Take expectation over yT
     % con becomes E[con(x,yP,yF,beta)|a,yP,yF,beta]
-    Esav = reshape(sav,[],p.nyT) * income.yTdist;
-    Esav = reshape(Esav,[p.nxlong p.nyP p.nyF p.nb]);
-    Exx = reshape(reshape(x_mpc,[],p.nyT) * income.yTdist,[p.nxlong p.nyP p.nyF]);
-    Econ = repmat(Exx,[1 1 1 p.nb]) - Esav - p.savtax * max(Esav - p.savtaxthresh,0);  
+    % Esav = reshape(sav,[],p.nyT) * income.yTdist;
+    % Esav = reshape(Esav,[p.nxlong p.nyP p.nyF p.nb]);
+    % Exx = reshape(reshape(x_mpc,[],p.nyT) * income.yTdist,[p.nxlong p.nyP p.nyF]);
+    % Econ = repmat(Exx,[1 1 1 p.nb]) - Esav - p.savtax * max(Esav - p.savtaxthresh,0);  
 end
 
 function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
