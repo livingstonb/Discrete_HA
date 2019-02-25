@@ -1,6 +1,8 @@
 function [decomp2,decomp3] = decomposition2(params,results)
     % decomp2 is relative to baseline
     % decomp3 is relative to RA model
+    
+    % computed with respect to a shock of 0.01 * mean ann gross income
 
     % Construct agrid based off p(1)
     agrid = linspace(0,1,params(1).nxlong)';
@@ -54,11 +56,11 @@ function [decomp2,decomp3] = decomposition2(params,results)
             g0 = results(baseind).direct.adist(:);
 
             % 1-Period MPC decomp2
-            m1 = results(ip).direct.mpcs01.mpcs_1_t{1};
-            m0 = results(baseind).direct.mpcs01.mpcs_1_t{1};
+            m1 = results(ip).direct.mpcs2.mpcs_1_t{1};
+            m0 = results(baseind).direct.mpcs2.mpcs_1_t{1};
 
-            decomp2(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs01.avg_s_t{1,1} ...
-                            - results(baseind).direct.mpcs01.avg_s_t{1,1};
+            decomp2(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs2.avg_s_t{1,1} ...
+                            - results(baseind).direct.mpcs2.avg_s_t{1,1};
             decomp2(ip).mpc1_term1 = g0' * (m1 - m0);
             decomp2(ip).mpc1_term2 = m0' * (g1 - g0);
             decomp2(ip).mpc1_term3 = (m1 - m0)' * (g1 - g0);
@@ -72,11 +74,11 @@ function [decomp2,decomp3] = decomposition2(params,results)
             
             % 1-Period MPC decomp3
             if params(ip).nb == 1
-                m1 = results(ip).direct.mpcs01.mpcs_1_t{1};
+                m1 = results(ip).direct.mpcs2.mpcs_1_t{1};
                 m0 = params(ip).R * (results(ip).direct.beta*params(ip).R)^(-1/params(ip).risk_aver) - 1;
 
 
-                decomp3(ip).mpc1_Em1_less_mRA = results(ip).direct.mpcs01.avg_s_t{1,1} - m0;
+                decomp3(ip).mpc1_Em1_less_mRA = results(ip).direct.mpcs2.avg_s_t{1,1} - m0;
                 decomp3(ip).mpc1_term1 = m1(1)- m0; % m1 at assets = 0
                 decomp3(ip).mpc1_term2 = 0;
                 decomp3(ip).mpc1_term3 = (m1 - m0)' * g1 - m1(1) - m0;
@@ -88,11 +90,11 @@ function [decomp2,decomp3] = decomposition2(params,results)
                 m1 = 0;
                 m0 = 0;
                 for i = 1:4
-                    m1 = m1 + results(ip).direct.mpcs01.mpcs_1_t{i};
-                    m0 = m0 + results(baseind).direct.mpcs01.mpcs_1_t{i};
+                    m1 = m1 + results(ip).direct.mpcs2.mpcs_1_t{i};
+                    m0 = m0 + results(baseind).direct.mpcs2.mpcs_1_t{i};
                 end
 
-                decomp2(ip).mpc4_Em1_less_Em0 = results(ip).direct.mpcs01.avg_1_1to4 ...
+                decomp2(ip).mpc4_Em1_less_Em0 = results(ip).direct.mpcs2.avg_1_1to4 ...
                             - results(baseind).direct.mpcs01.avg_1_1to4;
                 decomp2(ip).mpc4_term1 = g0' * (m1 - m0);
                 decomp2(ip).mpc4_term2 = m0' * (g1 - g0);
