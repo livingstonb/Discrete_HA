@@ -300,7 +300,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                                 decomp2(ip).mpc4_term3b(2)
                                 decomp2(ip).mpc4_term3a(3)   
                                 decomp2(ip).mpc4_term3b(3)];
-                dec3_mpc1 = [NaN %decomp3(ip).mpc1_Em1_less_mRA
+                dec3_mpc1 = [decomp3(ip).mpc1_Em1_less_mRA
                                 decomp3(ip).mpc1_term1
                                 decomp3(ip).mpc1_term2
                                 decomp3(ip).mpc1_term3];
@@ -320,7 +320,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                 s_t_mpcs = cell(1,6);
 
                 for i = 1:3
-                    st_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}          % IMPC(1,1)
+                    s_t_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}         % IMPC(1,1)
                                     results(ip).direct.mpcs(i).avg_s_t{1,2}        % IMPC(1,2)
                                     results(ip).direct.mpcs(i).avg_s_t{1,3}        % IMPC(1,3)
                                     results(ip).direct.mpcs(i).avg_s_t{1,4}        % IMPC(1,4)
@@ -331,7 +331,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                 end
 
                 for i = 4:6
-                    st_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}          % IMPC(1,1)
+                    s_t_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}          % IMPC(1,1)
                                     results(ip).direct.mpcs(i).avg_s_t{1,2}        % IMPC(1,2)
                                     results(ip).direct.mpcs(i).avg_s_t{1,3}        % IMPC(1,3)
                                     results(ip).direct.mpcs(i).avg_s_t{1,4}        % IMPC(1,4)

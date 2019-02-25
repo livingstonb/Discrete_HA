@@ -19,7 +19,7 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-selection.names_to_run = {'baseline_A'};
+selection.names_to_run = {};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS
@@ -86,7 +86,7 @@ end
 
 if runopts.Server == 0
     % Create table
-    [T_annual,T_quarter] = create_table(params,results,...
+   [T_annual,T_quarter] = create_table(params,results,...
                                     decomps,checks,decomp2,decomp3)
     disp('Check the results structure for detailed results')
 else

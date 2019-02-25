@@ -428,28 +428,30 @@ function [results,checks,decomp] = main(p)
 
             % get consumption functions conditional on future shock
             % 'lag' is number of periods before shock
-            for lag = 1:maxT-1
-                Iterating = 0;
+            if shocks(ishock) > 0
+                for lag = 1:maxT-1
+                    Iterating = 0;
 
-                if lag == 1
-                    % shock is next period
-                    nextmpcshock = shocks(ishock) * income.meany1 * p.freq;
-                    nextmodel = basemodel;
-                else
-                    % no shock next period
-                    nextmpcshock = 0;
-                    nextmodel = model_lagged{lag-1};
+                    if lag == 1
+                        % shock is next period
+                        nextmpcshock = shocks(ishock) * income.meany1 * p.freq;
+                        nextmodel = basemodel;
+                    else
+                        % no shock next period
+                        nextmpcshock = 0;
+                        nextmodel = model_lagged{lag-1};
+                    end
+
+                    [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
+                                    agrid_short,prefs,income,Iterating,nextmpcshock,nextmodel);
                 end
 
-                [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
-                                agrid_short,prefs,income,Iterating,nextmpcshock,nextmodel);
-            end
-
-            % populate mpcmodels with remaining (s,t) combinations for t < s
-            for is = 2:maxT
-            for it = is-1:-1:1
-                mpcmodels{is,it} = model_lagged{is-it};
-            end
+                % populate mpcmodels with remaining (s,t) combinations for t < s
+                for is = 2:maxT
+                for it = is-1:-1:1
+                    mpcmodels{is,it} = model_lagged{is-it};
+                end
+                end
             end
 
             shocksize = shocks(ishock) * income.meany1 * p.freq;
@@ -496,7 +498,7 @@ function [results,checks,decomp] = main(p)
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
  
         % MPC shock of 0.01 * annual income
-        m0 = results.direct.mpcs2.mpcs_1_t{1,1};
+        m0 = results.direct.mpcs(5).mpcs_1_t{1,1};
         g0 = results.direct.agrid_dist;
         mbc  = results.norisk.mpcs1_a_direct{5};
         for ia = 1:numel(p.abars)

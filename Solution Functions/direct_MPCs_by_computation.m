@@ -43,10 +43,17 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     % ---------------------------------------------------------------------
     % period t MPC out of shock in period s, learned about in period 1
     MPCs.avg_s_t = cell(16,16);
+    
+    for is = 1:16
+    for it = 1:16
+        MPCs.avg_s_t{is,it} = NaN;
+    end
+    end
+    
     MPCs.mpcs_1_t = cell(1,4);
     maxT = p.freq * 4;
     
-    if (shocksize < 0) || (p.mpcshocks_after_period1 == 1)
+    if (shocksize < 0) || (p.mpcshocks_after_period1 == 0)
         IS = 1;
     elseif maxT == 4
         IS = [1 2 3 4];
@@ -109,6 +116,9 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 below_xgrid = false(size(x_mpc));
                 for iyT = 1:p.nyT
                     below_xgrid (:,:,:,iyT) = x_mpc(:,:,:,iyT) < xgrid.full(1,:,:);
+
+                    x_mpc(:,:,:,iyT) = ~below_xgrid(:,:,:,iyT) .* x_mpc(:,:,:,iyT)...
+                                        + below_xgrid(:,:,:,iyT) .* xgrid.full(1,:,:);
                 end
                 below_xgrid = reshape(below_xgrid,[p.nxlong p.nyP p.nyF 1 p.nyT]);
                 below_xgrid = repmat(below_xgrid,[1 1 1 p.nb 1]);
@@ -157,29 +167,6 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         end
     end
     
-    if p.freq == 1
-        for is = 1:16
-        for it = 1:16
-            if (is>4) || (it>4)
-                MPCs.avg_s_t{is,it} = NaN;
-            end
-        end
-        end
-    else
-        for is = [6 7 8 10 11 12 14 15 16]
-        for it = 1:16
-            MPCs.avg_s_t{is,it} = NaN;
-        end
-        end
-    end
-
-    if p.EpsteinZin == 1
-        for is = 2:16
-        for it = 1:16
-            MPCs.avg_s_t{is,it} = NaN;
-        end
-        end
-    end
 
     %% --------------------------------------------------------------------
     % FIND CUMULATIVE MPCs 1-4, 5-8, 9-12, 13-16
