@@ -79,11 +79,14 @@ function [decomp2,decomp3] = decomposition2(params,results)
                 m1 = results(ip).direct.mpcs(5).mpcs_1_t{1};
                 m0 = params(ip).R * (results(ip).direct.beta*params(ip).R)^(-1/params(ip).risk_aver) - 1;
 
+                % expected value of m1 conditional on assets = 0
+                m1_at0 = m1(agrid(:)==0)' * g1(agrid(:)==0) / sum(g1(agrid(:)==0));
+
 
                 decomp3(ip).mpc1_Em1_less_mRA = results(ip).direct.mpcs(5).avg_s_t{1,1} - m0;
-                decomp3(ip).mpc1_term1 = m1(1)- m0; % m1 at assets = 0
+                decomp3(ip).mpc1_term1 = m1_at0- m0; % m1 at assets = 0
                 decomp3(ip).mpc1_term2 = 0;
-                decomp3(ip).mpc1_term3 = (m1 - m0)' * g1 - m1(1) - m0;
+                decomp3(ip).mpc1_term3 = (m1 - m0)' * g1 - m1_at0 - m0;
             end
             
 
