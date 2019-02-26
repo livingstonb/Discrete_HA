@@ -495,12 +495,13 @@ function [results,checks,decomp] = main(p)
     % ---------------------------------------------------------------------
 	decomp = struct([]);
     if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0 && p.temptation == 0
+    	% RA MPC
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
  
         % MPC shock of 0.01 * annual income
-        m0 = results.direct.mpcs(5).mpcs_1_t{1,1};
-        g0 = results.direct.agrid_dist;
-        mbc  = results.norisk.mpcs1_a_direct{5};
+        m0 = results.direct.mpcs(5).mpcs_1_t{1,1}; % mpcs
+        g0 = results.direct.agrid_dist; % distribution
+        mbc  = results.norisk.mpcs1_a_direct{5}; % norisk distribution
         for ia = 1:numel(p.abars)
             zidx = agrid <= p.abars(ia);
             

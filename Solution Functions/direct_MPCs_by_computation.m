@@ -19,6 +19,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     netymat_reshape = repmat(netymat_reshape,[p.nxlong 1 1 1]);
     xgrid_yT = repmat(agrid_short,[1 p.nyP p.nyF p.nyT]) + netymat_reshape;
 
+    % for interpolating back onto agrid
     fspace = fundef({'spli',agrid_short,0,1});
     
     % transition matrix between (yP,yF,beta) states cond'l on dying
@@ -33,7 +34,9 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         trans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_stationary));
     end
     
+    % baseline consumption
     con_baseline_yT = get_policy(p,xgrid_yT,basemodel,income);
+    % take expectation wrt yT
     con_baseline = reshape(con_baseline_yT,[],p.nyT) * income.yTdist;
     
     mpcamount = shocksize;
@@ -50,9 +53,12 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     end
     end
     
+    % collect mpcs as a function of state space
     MPCs.mpcs_1_t = cell(1,4);
+
     maxT = p.freq * 4;
     
+    % which periods to apply shock
     if (shocksize < 0) || (p.mpcshocks_after_period1 == 0)
         IS = 1;
     elseif maxT == 4
@@ -65,6 +71,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         % iterate over t within s
 
         if (p.EpsteinZin == 1) && (is > 1)
+  			% not interested in this
             continue
         end
 
@@ -77,7 +84,6 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             % Create transition matrix from period 1 to period
             % t (for last iteration, this is transition from period t to
             % period s)
-            
             if it == 1
                 T1t = speye(NN);
             else
@@ -88,31 +94,17 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 T1t = T1t * Ti;
             end
 
-%             for ii = 1:it
-%                 if ii == 1
-%                     T1t = speye(NN);
-%                 else
-%                     if p.Display == 1
-%                         fprintf('      Transition from t=%d to t=%d\n',ii-1,ii)
-%                         disp(['      --Time ' datestr(now,'HH:MM:SS')])
-%                     end
-%                     %Ti is transition from t=ii-1 to t=ii
-%                     mpcshock = 0;
-%                     Ti = transition_t_less_s(p,income,xgrid_yT,...
-%                         models,is,ii-1,fspace,trans_live,trans_death,mpcshock);
-%                     T1t = T1t * Ti;
-%                 end
-%             end
-
             % get consumption policy function
             if it == is
-                % shock is 1% of annual income
+                % shock in this period
                 x_mpc = xgrid_yT + shocksize;
             else
+            	% no shock
                 x_mpc = xgrid_yT;
             end
 
             if shocksize < 0 && it == 1
+            	% record which states are pushed below asset grid after negative shock
                 below_xgrid = false(size(x_mpc));
                 for iyT = 1:p.nyT
                     below_xgrid (:,:,:,iyT) = x_mpc(:,:,:,iyT) < xgrid.full(1,:,:);
@@ -124,25 +116,27 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 below_xgrid = repmat(below_xgrid,[1 1 1 p.nb 1]);
             end
 
+            % consumption choice given the shock
             con = get_policy(p,x_mpc,models{is,it},income);
 
-            if shocksize < 0 && it == 1
+            if shocksize < 0 && (it == is)
                 % set MPC 1 for points below xgrid
                 con(below_xgrid) = con_baseline_yT(below_xgrid) + mpcamount;
-            elseif shocksize < 0 && it > 1
-                % set MPC 0 for points that were already set to 1
+            elseif shocksize < 0 && (it > is)
+                % set MPC 0 for points that were set to 1 in past periods
                 con(below_xgrid) = con_baseline_yT(below_xgrid);
             end
 
+            % expectation over yT
             con = reshape(con,[],p.nyT) * income.yTdist;
 
             % now compute IMPC(s,t)
             mpcs = ( T1t * con - con_baseline) / mpcamount;
 
-
             MPCs.avg_s_t{is,it} = basemodel.adist(:)' * mpcs(:);
             
             if (is == 1) && (it >= 1 && it <= 4)
+            	% store is = 1 mpcs
                 MPCs.mpcs_1_t{it} = mpcs;
             end
 
@@ -240,21 +234,14 @@ function con = get_policy(p,x_mpc,model,income)
     sav = max(sav,p.borrow_lim);
     x_mpc = reshape(x_mpc,[p.nxlong p.nyP p.nyF 1 p.nyT]);
     con = repmat(x_mpc,[1 1 1 p.nb 1]) - sav - p.savtax * max(sav-p.savtaxthresh,0);
-
-    % Take expectation over yT
-    % con becomes E[con(x,yP,yF,beta)|a,yP,yF,beta]
-    % Esav = reshape(sav,[],p.nyT) * income.yTdist;
-    % Esav = reshape(Esav,[p.nxlong p.nyP p.nyF p.nb]);
-    % Exx = reshape(reshape(x_mpc,[],p.nyT) * income.yTdist,[p.nxlong p.nyP p.nyF]);
-    % Econ = repmat(Exx,[1 1 1 p.nb]) - Esav - p.savtax * max(Esav - p.savtaxthresh,0);  
 end
 
 function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
                                             fspace,trans_live,trans_death,mpcshock)
-    % Computes the transition matrix between t=ii and t=ii + 1 given shock
-    % in is
+    % Computes the transition matrix between t=ii and t=ii + 1 given shock in
+    % period 'is'
     NN = p.nxlong*p.nyP*p.nyF*p.nb;
-    x_mpc = xgrid_yT + mpcshock;
+    x_mpc = xgrid_yT + mpcshock; % cash on hand after receiving shock
     sav = zeros(p.nxlong,p.nyP,p.nyF,p.nb,p.nyT);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
@@ -267,7 +254,9 @@ function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
     end
     sav = max(sav,p.borrow_lim);
 
-    aprime_live = p.R * sav;
+    aprime_live = p.R * sav; % next period's assets
+
+    % interpolate next period's assets back onto asset grid
     interp = funbas(fspace,aprime_live(:));
     interp = reshape(interp,NN,p.nxlong*p.nyT) * kron(speye(p.nxlong),income.yTdist);
     if p.Bequests == 1
