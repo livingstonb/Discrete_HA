@@ -502,7 +502,7 @@ function [results,checks,decomp] = main(p)
         g0 = results.direct.agrid_dist;
         mbc  = results.norisk.mpcs1_a_direct{5};
         for ia = 1:numel(p.abars)
-            zidx = agrid_short <= p.abars(ia);
+            zidx = agrid <= p.abars(ia);
             
             decomp(ia).term1 = m_ra;
             decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
