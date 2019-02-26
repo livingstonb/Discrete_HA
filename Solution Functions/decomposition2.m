@@ -17,6 +17,8 @@ function [decomp2,decomp3] = decomposition2(params,results)
             break
         end
     end
+
+    agrid = repmat(agrid,p.nyP*p.nyF*p.nb,1);
     
     for ip = 1:numel(params)
         decomp2(ip).mpc1_Em1_less_Em0 = NaN;
