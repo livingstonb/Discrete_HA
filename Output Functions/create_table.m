@@ -226,7 +226,6 @@ function [T_annual,T_quarter] = create_table(params,results,...
             '(Quarterly) Decomp of the distr effect around 0.05, HtM households'
             '(Quarterly) Decomp of the distr effect around 0.05, non-HtM households'
             '____DECOMP OF ONE PERIOD EM1-EM_RA (MPC OUT OF 0.01 MEAN ANN INC)'
-            'RA MPC'
             'Em1 - EmRA'
             'Decomp of Em1-EmRA, effect of MPC fcn'
             'Decomp of Em1-EmRA, effect of distr'
@@ -412,7 +411,6 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     NaN
                     dec2_Q
                     NaN
-                    decomps{ip}.m_ra
                     dec3_mpc1                                  	% Decomposition3
                     numel(checks{ip})>0 ];
             end

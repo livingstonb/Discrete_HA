@@ -496,7 +496,6 @@ function [results,checks,decomp] = main(p)
 	decomp = struct([]);
     if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0 && p.temptation == 0
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
-        decomp(ia).m_ra = m_ra;
  
         % MPC shock of 0.01 * annual income
         m0 = results.direct.mpcs(5).mpcs_1_t{1,1};
