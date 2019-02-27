@@ -18,7 +18,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
         end
     end
 
-    agrid = repmat(agrid,p.nyP*p.nyF*p.nb,1);
+    agrid = repmat(agrid,params(1).nyP*params(1).nyF*params(1).nb,1);
 
     % Initialize with NaNs
     for ip = 1:numel(params)

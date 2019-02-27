@@ -500,15 +500,17 @@ function [results,checks,decomp] = main(p)
  
         % MPC shock of 0.01 * annual income
         m0 = results.direct.mpcs(5).mpcs_1_t{1,1}; % mpcs
-        g0 = results.direct.agrid_dist; % distribution
+        g0 = results.direct.adist; % distribution
+        g0_norisk = results.direct.agrid_dist;
         mbc  = results.norisk.mpcs1_a_direct{5}; % norisk distribution
         for ia = 1:numel(p.abars)
-            zidx = agrid <= p.abars(ia);
+            zidx = agrid(:) <= p.abars(ia);
+            norisk_zidx = g0_norisk(:) <= p.abars(ia);
             
             decomp(ia).term1 = m_ra;
             decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
-            decomp(ia).term3 = (mbc(~zidx) - m_ra)' * g0(~zidx);
-            decomp(ia).term4 = (m0(~zidx) - mbc(~zidx))' * g0(~zidx);
+            decomp(ia).term3 = (mbc(~norisk_zidx) - m_ra)' * g0_norisk(~norisk_zidx);
+            decomp(ia).term4 = m0(~zidx)' * g0(~zidx)- mbc(~norisk_zidx)' * g0_norisk(~norisk_zidx);
         end
     else
         for ia = 1:numel(p.abars)
