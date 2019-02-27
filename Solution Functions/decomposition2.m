@@ -95,7 +95,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
 
                 decomp3(ip).mpc1_term1 = m1_at0- m0; % Effect of MPC function
                 decomp3(ip).mpc1_term2 = 0; % Effect of distribution
-                decomp3(ip).mpc1_term3 = (m1 - m0)' * g1 - m1_at0 - m0; % Interaction
+                decomp3(ip).mpc1_term3 = (m1 - m0)' * g1 - (m1_at0 - m0); % Interaction
             end
             
 

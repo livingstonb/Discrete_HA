@@ -14,7 +14,7 @@ function params = parameters(runopts,selection,QIncome)
     % PART 2, DIFFERENT ASSUMPTIONS
     %----------------------------------------------------------------------
 
-    for ifreq = [1 4]
+    for ifreq = [4]
         if ifreq == 1
             lfreq = 'A';
             IncomeProcess = '';
@@ -227,7 +227,7 @@ function params = parameters(runopts,selection,QIncome)
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences
     %----------------------------------------------------------------------
-    for ifreq = [1 4]
+    for ifreq = [4]
         if ifreq == 1
             lfreq = 'A';
             IncomeProcess = '';
@@ -285,15 +285,15 @@ function params = parameters(runopts,selection,QIncome)
     % to ensure convergence
 
     % CRRA heterogeneity
-    params.set_betaH_distance(-2e-2,'A CRRA with IES heterogeneity',1);
+    % params.set_betaH_distance(-2e-2,'A CRRA with IES heterogeneity',1);
     params.set_betaH_distance(-5e-3,'Q CRRA with IES heterogeneity',4);
 
     % temptation
     params.set_betaH_distance(-1e-5,'Q Temptation0.05',4);
-    params.set_betaH_distance(-1e-5,'A Temptation0.05',1);
+    % params.set_betaH_distance(-1e-5,'A Temptation0.05',1);
     
 %     % Epstein-Zin
-    params.set_betaH_distance(-3e-2,'A EZ with IES heterogeneity',1);
+    % params.set_betaH_distance(-3e-2,'A EZ with IES heterogeneity',1);
     params.set_betaH_distance(-8e-3,'Q EZ with IES heterogeneity',4);
     
 %     params.set_betaH_distance(-3e-2,'A EZ ra0.5 ies1',1);
@@ -364,12 +364,12 @@ function params = parameters(runopts,selection,QIncome)
     
     change_betaH = [' RandomBetaHet5 Width' num2str(0.01)...
                         ' SwitchProb' num2str(1/10) ' Death'];
-    params.set_betaH_distance(1e-2,['A' change_betaH],1);
+    % params.set_betaH_distance(1e-2,['A' change_betaH],1);
     params.set_betaH_distance(1.3e-2,['Q' change_betaH],4);
     
     change_betaH = [' RandomBetaHet5 Width' num2str(0.01)...
                         ' SwitchProb' num2str(1/50) ' Death'];
-    params.set_betaH_distance(1e-2,['A' change_betaH],1);
+    % params.set_betaH_distance(1e-2,['A' change_betaH],1);
     params.set_betaH_distance(5e-3,['Q' change_betaH],4);
     
 %     % --------- annual, random ----------
