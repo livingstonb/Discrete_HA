@@ -2,6 +2,8 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     % This function computes IMPC(s,t) using transition probabilities,
     % where IMPC(s,t) is the MPC in period t out of a period-s shock that
     % is learned about in period 1
+
+    % mpc out of negative shock is slightly innacurate for large shock
     
     NN = p.nxlong*p.nyP*p.nyF*p.nb;
     
@@ -107,10 +109,10 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             	% record which states are pushed below asset grid after negative shock
                 below_xgrid = false(size(x_mpc));
                 for iyT = 1:p.nyT
-                    below_xgrid (:,:,:,iyT) = x_mpc(:,:,:,iyT) < xgrid.full(1,:,:);
+                    below_xgrid(:,:,:,iyT) = x_mpc(:,:,:,iyT) < xgrid.full(1,:,:);
 
                     x_mpc(:,:,:,iyT) = ~below_xgrid(:,:,:,iyT) .* x_mpc(:,:,:,iyT)...
-                                        + below_xgrid(:,:,:,iyT) .* xgrid_yT(:,:,:,iyT);
+                                        + below_xgrid(:,:,:,iyT) .* xgrid.full(1,:,:);
                 end
                 below_xgrid = reshape(below_xgrid,[p.nxlong p.nyP p.nyF 1 p.nyT]);
                 below_xgrid = repmat(below_xgrid,[1 1 1 p.nb 1]);
@@ -120,6 +122,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             con = get_policy(p,x_mpc,models{is,it},income);
 
             if shocksize < 0 && (it == is)
+                % make mpc = 1 for households pushed below grid in shock period
             	con(below_xgrid) = con_baseline_yT(below_xgrid) + mpcamount;
             end
 
@@ -239,31 +242,30 @@ function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
     % period 'is'
     NN = p.nxlong*p.nyP*p.nyF*p.nb;
     x_mpc = xgrid_yT + mpcshock; % cash on hand after receiving shock
-
    
     sav = zeros(p.nxlong,p.nyP,p.nyF,p.nb,p.nyT);
+
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        x_iyP_iyF_iyT = x_mpc(:,iyP,iyF,:);
-        xbase = xgrid_yT(:,iyP,iyF,:);
+        x_iyP_iyF_iyT = reshape(x_mpc(:,iyP,iyF,:),[],1);
         
-
-        if mpcshock < 0 && (ii >= is)
-        	savA = models{is,ii}.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
-        	savB = models{1,1}.savinterp{iyP,iyF,ib}(xbase(:));
-
-        	below_xgrid = x_iyP_iyF_iyT(:) < min(xgrid_yT(1,iyP,iyF,:));
-
-        	sav_iyP_iyF_iyT = savA .* (~below_xgrid) + savB .* below_xgrid;
-        else
-        	sav_iyP_iyF_iyT = models{is,ii}.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
+        if mpcshock < 0 && (ii == is)
+        	below_xgrid = x_iyP_iyF_iyT < min(xgrid_yT(1,iyP,iyF,:));
+            x_iyP_iyF_iyT(below_xgrid) = min(xgrid_yT(1,iyP,iyF,:));
+        end
+        
+        sav_iyP_iyF_iyT = models{is,ii}.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT);
+        if mpcshock < 0 && (ii == is)
+            sav_iyP_iyF_iyT(below_xgrid) = 0;
         end
 
         sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,[p.nxlong 1 1 1 p.nyT]);
+
     end
     end
     end
+
     sav = max(sav,p.borrow_lim);
 
     aprime_live = p.R * sav; % next period's assets

@@ -111,7 +111,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
         for it = 1:Tmax
             % Update cash-on-hand          
             if it == 1
-                xsim(:,1) = a1 + + ynetsim(:,1) + mpcamount;
+                xsim(:,1) = a1 + ynetsim(:,1) + mpcamount;
             else
                 xsim(:,it) = asim(:,it) + ynetsim(:,it);
             end

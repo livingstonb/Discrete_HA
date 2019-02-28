@@ -69,9 +69,9 @@ function MPCs = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
         % cash-on-hand grids
         if mpcamount{im} < 0
             mpcs_1_1(set_mpc_one) = 1;
-            mpcs_1_2(set_mpc_one) = 1;
-            mpcs_1_3(set_mpc_one) = 1;
-            mpcs_1_4(set_mpc_one) = 1;
+            mpcs_1_2(set_mpc_one) = 0;
+            mpcs_1_3(set_mpc_one) = 0;
+            mpcs_1_4(set_mpc_one) = 0;
         end
 
         MPCs.avg_1_1(im) = mean(mpcs_1_1);
