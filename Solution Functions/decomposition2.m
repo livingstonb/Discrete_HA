@@ -48,86 +48,105 @@ function [decomp2,decomp3] = decomposition2(params,results)
         decomp2(ip).decomp_error = NaN;
         decomp3(ip).decomp_error = NaN;
 
-        try
-            % find index of baseline within 'p'
-            if params(ip).freq == 1
-                baseind = find(ismember({params.name},{'baseline_A'}));
-            else
-                baseind = find(ismember({params.name},{'baseline_Q'}));
-            end
-            
-            g1 = results(ip).direct.adist(:);       % model distribution
-            g0 = results(baseind).direct.adist(:);  % baseline distribution
-
-            %% 1-Period MPC decomposition2 (decomp with respect to baseline)
-            m1 = results(ip).direct.mpcs(5).mpcs_1_t{1};        % model MPCs
-            m0 = results(baseind).direct.mpcs(5).mpcs_1_t{1};   % baseline MPCs
-
-            % Mean model MPC  - mean baseline MPC
-            decomp2(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_s_t{1,1} ...
-                            - results(baseind).direct.mpcs(5).avg_s_t{1,1};
-            decomp2(ip).mpc1_term1 = g0' * (m1 - m0); % Effect of MPC function
-            decomp2(ip).mpc1_term2 = m0' * (g1 - g0); % Effect of distribution
-            decomp2(ip).mpc1_term3 = (m1 - m0)' * (g1 - g0); % Interaction
-
-            % Decomposition of distribution effect
-            for ia = 1:numel(params(ip).abars)
-                abar = params(ip).abars(ia); % HtM threshold
-                idx = agrid <= abar;
-                % HtM households
-                decomp2(ip).mpc1_term3a(ia) = m0(idx)' * (g1(idx) - g0(idx));
-                % Non-HtM households
-                decomp2(ip).mpc1_term3b(ia) = m0(~idx)' * (g1(~idx) - g0(~idx));
-            end
-            
-            %% 1-Period MPC decomposition3 (decomp with respect to representative agent model (RA))
-            if params(ip).nb == 1
-                % model MPCs
-                m1 = results(ip).direct.mpcs(5).mpcs_1_t{1};
-                % RA MPC
-                m0 = params(ip).R * (results(ip).direct.beta*params(ip).R)^(-1/params(ip).risk_aver) - 1;
-
-                % expected value of m1 conditional on assets = 0
-                m1_at0 = m1(agrid(:)==0)' * g1(agrid(:)==0) / sum(g1(agrid(:)==0));
-
-                % Mean model MPC - RA MPC
-                decomp3(ip).mpc1_Em1_less_mRA = results(ip).direct.mpcs(5).avg_s_t{1,1} - m0;
-
-                decomp3(ip).mpc1_term1 = m1_at0- m0; % Effect of MPC function
-                decomp3(ip).mpc1_term2 = 0; % Effect of distribution
-                decomp3(ip).mpc1_term3 = (m1 - m0)' * g1 - (m1_at0 - m0); % Interaction
-            end
-            
-
-            %% 4-Period MPC decomp2 (decomp with respect to baseline)
-            % Only used for quarterly models
-            if params(ip).freq == 4
-                m1 = 0;
-                m0 = 0;
-                for i = 1:4
-                    % model MPCs
-                    m1 = m1 + results(ip).direct.mpcs(5).mpcs_1_t{i};
-                    % baseline MPCs
-                    m0 = m0 + results(baseind).direct.mpcs(5).mpcs_1_t{i};
-                end
-
-                decomp2(ip).mpc4_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_1_1to4 ...
-                            - results(baseind).direct.mpcs(5).avg_1_1to4;
-                decomp2(ip).mpc4_term1 = g0' * (m1 - m0);
-                decomp2(ip).mpc4_term2 = m0' * (g1 - g0);
-                decomp2(ip).mpc4_term3 = (m1 - m0)' * (g1 - g0);
-
-                for ia = 1:numel(params(ip).abars)
-                    abar = params(ip).abars(ia);
-                    idx = agrid <= abar;
-                    decomp2(ip).mpc4_term3a(ia) = m0(idx)' * (g1(idx) - g0(idx));
-                    decomp2(ip).mpc4_term3b(ia) = m0(~idx)' * (g1(~idx) - g0(~idx));
-                end
-            end
-            
-            
-        catch ME
-            decomp2(ip).decomp_error = ME;
-            decomp3(ip).decomp_error = ME;
+        % find index of baseline within 'p'
+        if params(ip).freq == 1
+            baseind = find(ismember({params.name},{'baseline_A'}));
+        else
+            baseind = find(ismember({params.name},{'baseline_Q'}));
         end
+        
+        g1 = results(ip).direct.adist(:);       % model distribution
+        g1_nb = reshape(g1,[],params(ip).nb);
+        g1 = sum(g1_nb,2);
+
+        g0 = results(baseind).direct.adist(:);  % baseline distribution
+
+        %% 1-Period MPC decomposition2 (decomp with respect to baseline)
+        
+        % model MPCs
+        m1 = results(ip).direct.mpcs(5).mpcs_1_t{1};        
+        
+        if params(ip).nb > 1
+            % take mpc mean over beta for each (ix,iyP,iyF) point in state space
+            m1 = reshape(m1,[],params(ip).nb) .* g1_nb ./ g1;
+            m1 = sum(m1,2);
+        end
+        
+        m0 = results(baseind).direct.mpcs(5).mpcs_1_t{1};   % baseline MPCs
+
+        % Mean model MPC  - mean baseline MPC
+        decomp2(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_s_t{1,1} ...
+                        - results(baseind).direct.mpcs(5).avg_s_t{1,1};
+        decomp2(ip).mpc1_term1 = g0' * (m1 - m0); % Effect of MPC function
+        decomp2(ip).mpc1_term2 = m0' * (g1 - g0); % Effect of distribution
+        decomp2(ip).mpc1_term3 = (m1 - m0)' * (g1 - g0); % Interaction
+
+        % Decomposition of distribution effect
+        for ia = 1:numel(params(ip).abars)
+            abar = params(ip).abars(ia); % HtM threshold
+            idx = agrid <= abar;
+            % HtM households
+            decomp2(ip).mpc1_term3a(ia) = m0(idx)' * (g1(idx) - g0(idx));
+            % Non-HtM households
+            decomp2(ip).mpc1_term3b(ia) = m0(~idx)' * (g1(~idx) - g0(~idx));
+        end
+        
+        %% 1-Period MPC decomposition3 (decomp with respect to representative agent model (RA))
+        if params(ip).nb == 1
+            % model MPCs
+            m1 = results(ip).direct.mpcs(5).mpcs_1_t{1};
+            % RA MPC
+            m0 = params(ip).R * (results(ip).direct.beta*params(ip).R)^(-1/params(ip).risk_aver) - 1;
+
+            % expected value of m1 conditional on assets = 0
+            m1_at0 = m1(agrid(:)==0)' * g1(agrid(:)==0) / sum(g1(agrid(:)==0));
+
+            % Mean model MPC - RA MPC
+            decomp3(ip).mpc1_Em1_less_mRA = results(ip).direct.mpcs(5).avg_s_t{1,1} - m0;
+
+            decomp3(ip).mpc1_term1 = m1_at0- m0; % Effect of MPC function
+            decomp3(ip).mpc1_term2 = 0; % Effect of distribution
+            decomp3(ip).mpc1_term3 = (m1 - m0)' * g1 - (m1_at0 - m0); % Interaction
+        end
+        
+
+        %% 4-Period MPC decomp2 (decomp with respect to baseline)
+        % Only used for quarterly models
+        if params(ip).freq == 4
+            m1 = 0;
+            m0 = 0;
+            for i = 1:4
+                % model MPCs
+                m1_it = results(ip).direct.mpcs(5).mpcs_1_t{i};
+
+                if params(ip).nb > 1
+                    m1_it = reshape(m1_it,[],params(ip).nb) .* g1_nb ./ g1;
+                    m1_it = sum(m1_it,2);
+                end
+
+                m1 = m1 + m1_it;
+
+                % baseline MPCs
+                m0 = m0 + results(baseind).direct.mpcs(5).mpcs_1_t{i};
+            end
+
+            decomp2(ip).mpc4_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_1_1to4 ...
+                        - results(baseind).direct.mpcs(5).avg_1_1to4;
+            decomp2(ip).mpc4_term1 = g0' * (m1 - m0);
+            decomp2(ip).mpc4_term2 = m0' * (g1 - g0);
+            decomp2(ip).mpc4_term3 = (m1 - m0)' * (g1 - g0);
+
+            for ia = 1:numel(params(ip).abars)
+                abar = params(ip).abars(ia);
+                idx = agrid <= abar;
+                decomp2(ip).mpc4_term3a(ia) = m0(idx)' * (g1(idx) - g0(idx));
+                decomp2(ip).mpc4_term3b(ia) = m0(~idx)' * (g1(~idx) - g0(~idx));
+            end
+        end
+            
+            
+        % catch ME
+        %     decomp2(ip).decomp_error = ME;
+        %     decomp3(ip).decomp_error = ME;
+        % end
     end

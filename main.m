@@ -413,7 +413,11 @@ function [results,checks,decomp] = main(p)
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
     % ---------------------------------------------------------------------
-    maxT = p.freq * 4;
+    if p.mpcshocks_after_period1 == 1
+        maxT = p.freq * 4;
+    else
+        maxT = 1
+    end
     mpcmodels = cell(maxT,maxT);
     
     shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
@@ -435,7 +439,7 @@ function [results,checks,decomp] = main(p)
 
             % get consumption functions conditional on future shock
             % 'lag' is number of periods before shock
-            if shocks(ishock) > 0
+            if shocks(ishock) > 0 && (maxT > 1)
                 for lag = 1:maxT-1
                     Iterating = 0;
 
