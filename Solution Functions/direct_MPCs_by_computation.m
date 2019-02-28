@@ -122,9 +122,6 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             if shocksize < 0 && (it == is)
                 % set MPC 1 for points below xgrid
                 con(below_xgrid) = con_baseline_yT(below_xgrid) + mpcamount;
-            elseif shocksize < 0 && (it > is)
-                % set MPC 0 for points that were set to 1 in past periods
-                con(below_xgrid) = con_baseline_yT(below_xgrid);
             end
 
             % expectation over yT
@@ -152,6 +149,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         RHScon = con_baseline(:);
         for it = is+1:maxT % it > is case, policy fcns stay the same in this region
             mpcs = ( T1t * RHScon(:) - con_baseline(:) ) / mpcamount;
+
             MPCs.avg_s_t{is,it} = basemodel.adist(:)' * mpcs(:);
             RHScon = basemodel.statetrans * RHScon;
             

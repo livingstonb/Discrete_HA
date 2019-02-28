@@ -118,6 +118,13 @@ function [results,checks,decomp] = main(p)
     
     % xgrid for model without income risk
     xgrid.norisk_short  = sgrid.short + income.meany1;
+    for ix = 1:p.nx-1
+        if xgrid.norisk_short(ix+1) - xgrid.norisk_short(ix) < p.gridspace_min
+            xgrid.norisk_short(ix+1) = xgrid.norisk_short(ix) + p.gridspace_min;
+        else
+            break
+        end
+    end
     xgrid.norisk_longgrid = linspace(0,1,p.nxlong);
     xgrid.norisk_longgrid = xgrid.norisk_longgrid.^(1/p.xgrid_par);
     % Force grid spacing >= gridspace_min near 0
@@ -505,7 +512,7 @@ function [results,checks,decomp] = main(p)
         mbc  = results.norisk.mpcs1_a_direct{5}; % norisk distribution
         for ia = 1:numel(p.abars)
             zidx = agrid(:) <= p.abars(ia);
-            norisk_zidx = g0_norisk(:) <= p.abars(ia);
+            norisk_zidx = agrid_short <= p.abars(ia);
             
             decomp(ia).term1 = m_ra;
             decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);

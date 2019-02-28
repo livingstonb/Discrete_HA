@@ -126,10 +126,10 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
                 end
                 
                 if mpcamount < 0 && it == 1
-                    below_grid = xsim(:,it)<xgrid.longgrid(1,iyP,iyF);
+                    below_grid = xsim(:,it)<xgrid.full(1,iyP,iyF);
                     % Bring households pushed below grid back up to grid
                     idx_below = idx & below_grid;
-                    xsim(idx_below,it) = xgrid.longgrid(1,iyP,iyF);
+                    xsim(idx_below,it) = xgrid.full(1,iyP,iyF);
                     % Update set_mpc_one
                     set_mpc_one = set_mpc_one | idx_below;
                 end
