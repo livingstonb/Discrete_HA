@@ -30,10 +30,10 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
     yPrand      = rand(Nsim,Tmax,'single');
     dierand     = rand(Nsim,Tmax,'single');
     betarand    = rand(Nsim,Tmax,'single');
-    IESrand      = rand(Nsim,Tmax,'single');
+    IESrand     = rand(Nsim,Tmax,'single');
     yTrand      = rand(Nsim,Tmax,'single');
     betaindsim  = ones(Nsim,Tmax,'int8');
-    IESindsim = ones(Nsim,Tmax,'int8');
+    IESindsim   = ones(Nsim,Tmax,'int8');
     yPindsim    = ones(Nsim,Tmax,'int8');
     yTindsim    = ones(Nsim,Tmax,'int8');
     yFindsim    = ones(Nsim,1,'int8');

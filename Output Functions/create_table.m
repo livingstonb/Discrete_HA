@@ -320,14 +320,22 @@ function [T_annual,T_quarter] = create_table(params,results,...
                 s_t_mpcs = cell(1,6);
 
                 for i = 1:3
-                    s_t_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}         % IMPC(1,1)
-                                    results(ip).direct.mpcs(i).avg_s_t{1,2}        % IMPC(1,2)
-                                    results(ip).direct.mpcs(i).avg_s_t{1,3}        % IMPC(1,3)
-                                    results(ip).direct.mpcs(i).avg_s_t{1,4}        % IMPC(1,4)
-                                    results(ip).direct.mpcs(i).avg_1_1to4          % IMPC(1,1-4)
-                                    results(ip).direct.mpcs(i).avg_1_5to8          % IMPC(1,5-8)
-                                    results(ip).direct.mpcs(i).avg_1_9to12         % IMPC(1,9-12)
-                                    results(ip).direct.mpcs(i).avg_1_13to16];
+%                     s_t_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}         % IMPC(1,1)
+%                                     results(ip).direct.mpcs(i).avg_s_t{1,2}        % IMPC(1,2)
+%                                     results(ip).direct.mpcs(i).avg_s_t{1,3}        % IMPC(1,3)
+%                                     results(ip).direct.mpcs(i).avg_s_t{1,4}        % IMPC(1,4)
+%                                     results(ip).direct.mpcs(i).avg_1_1to4          % IMPC(1,1-4)
+%                                     results(ip).direct.mpcs(i).avg_1_5to8          % IMPC(1,5-8)
+%                                     results(ip).direct.mpcs(i).avg_1_9to12         % IMPC(1,9-12)
+%                                     results(ip).direct.mpcs(i).avg_1_13to16];
+                    s_t_mpcs{i} = [results(ip).direct.mpcs_sim.avg_1_1(i)
+                                    results(ip).direct.mpcs_sim.avg_1_2(i)
+                                    results(ip).direct.mpcs_sim.avg_1_3(i)
+                                    results(ip).direct.mpcs_sim.avg_1_4(i)
+                                    results(ip).direct.mpcs_sim.avg_1_1to4(i)
+                                    results(ip).direct.mpcs_sim.avg_1_5to8(i)
+                                    results(ip).direct.mpcs_sim.avg_1_9to12(i)
+                                    results(ip).direct.mpcs_sim.avg_1_13to16(i)];
                 end
 
                 for i = 4:6

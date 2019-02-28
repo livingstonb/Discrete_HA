@@ -9,7 +9,7 @@ runopts.Display = 1;
 runopts.Server = 1; % use server paths
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 1;
-runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 runopts.mpcshocks_after_period1 = 0; % compute mpcs for is > 1?
 
 % local grid tests, 0 to turn off, 1 for transition probs, 2 for simulations
@@ -82,16 +82,16 @@ end
 %% ------------------------------------------------------------------------
 % DECOMPOSITION 2 AND SAVING/TABLE CREATING
 % -------------------------------------------------------------------------
-[decomp2,decomp3] = decomposition2(params,results);
 
 if runopts.Server == 0
+    [decomp2,decomp3] = decomposition2(params,results);
     % Create table
-   [T_annual,T_quarter] = create_table(params,results,...
+    [T_annual,T_quarter] = create_table(params,results,...
                                     decomps,checks,decomp2,decomp3)
     disp('Check the results structure for detailed results')
 else
     % convert MPCParams object to structure for saving
 	Sparams = MPCParams.to_struct(params);
-    save(runopts.savematpath,'Sparams','results','decomps','checks','decomp2')
+    save(runopts.savematpath,'Sparams','results','decomps','checks')
     exit
 end
