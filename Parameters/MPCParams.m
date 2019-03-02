@@ -23,7 +23,7 @@ classdef MPCParams < handle
         tolAY       = 1e-7;
 
         % mpc options
-        Nmpcsim = 2e5; % Number of draws to compute MPCs
+        Nmpcsim = 1e6; % Number of draws to compute MPCs
         mpcfrac = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
         
         % wealth statistics options

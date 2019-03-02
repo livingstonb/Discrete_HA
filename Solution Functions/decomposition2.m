@@ -56,8 +56,12 @@ function [decomp2,decomp3] = decomposition2(params,results)
         end
         
         g1 = results(ip).direct.adist(:);       % model distribution
+        
         g1_nb = reshape(g1,[],params(ip).nb);
         g1 = sum(g1_nb,2);
+        
+        g1_nF = reshape(g1,[],params(ip).nyF);
+        g1 = sum(g1_nF,2);
 
         g0 = results(baseind).direct.adist(:);  % baseline distribution
 
@@ -69,6 +73,12 @@ function [decomp2,decomp3] = decomposition2(params,results)
         if params(ip).nb > 1
             % take mpc mean over beta for each (ix,iyP,iyF) point in state space
             m1 = reshape(m1,[],params(ip).nb) .* g1_nb ./ g1;
+            m1 = sum(m1,2);
+        end
+        
+        if params(ip).nyF > 1
+            % take mpc mean over beta for each (ix,iyP,iyF) point in state space
+            m1 = reshape(m1,[],params(ip).nyF) .* g1_nF ./ g1;
             m1 = sum(m1,2);
         end
         
@@ -95,6 +105,13 @@ function [decomp2,decomp3] = decomposition2(params,results)
         if params(ip).nb == 1
             % model MPCs
             m1 = results(ip).direct.mpcs(5).mpcs_1_t{1};
+            
+            if params(ip).nyF > 1
+                % take mpc mean over beta for each (ix,iyP,iyF) point in state space
+                m1 = reshape(m1,[],params(ip).nyF) .* g1_nF ./ g1;
+                m1 = sum(m1,2);
+            end
+        
             % RA MPC
             m0 = params(ip).R * (results(ip).direct.beta*params(ip).R)^(-1/params(ip).risk_aver) - 1;
 

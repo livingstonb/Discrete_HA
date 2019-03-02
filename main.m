@@ -481,11 +481,9 @@ function [results,checks,decomp] = main(p)
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
     % Model with income risk
-    if p.freq == 4
-        [MPCs,stdev_loggrossy_A,stdev_lognety_A] ...
-                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid);
-        results.direct.mpcs_sim = MPCs;
-    end
+    [MPCs,stdev_loggrossy_A,stdev_lognety_A] ...
+                        = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid);
+    results.direct.mpcs_sim = MPCs;
 
     % Find annual mean and standard deviations of income
     if p.freq == 4
