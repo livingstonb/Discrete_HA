@@ -47,8 +47,9 @@ function [sim_results,assetmeans] = simulate(p,income,model,xgrid,prefs)
             end
             yTindsim(idx) = iyT;
         end
-    elseif p.nyT == 0
+    elseif p.nyT == 1
         logyTsim = 0;
+        yTindsim = ones(p.Nsim,p.Tsim);
     end
     
         

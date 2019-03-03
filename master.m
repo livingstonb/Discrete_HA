@@ -19,7 +19,7 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-selection.names_to_run = {'baseline_A'};
+selection.names_to_run = {'A a(i) NoTransShocks'};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS
@@ -84,11 +84,11 @@ end
 % -------------------------------------------------------------------------
 
 if runopts.Server == 0
-    [decomp2,decomp3] = decomposition2(params,results);
-    % Create table
-    [T_annual,T_quarter] = create_table(params,results,...
-                                    decomps,checks,decomp2,decomp3)
-    disp('Check the results structure for detailed results')
+%     [decomp2,decomp3] = decomposition2(params,results);
+%     % Create table
+%     [T_annual,T_quarter] = create_table(params,results,...
+%                                     decomps,checks,decomp2,decomp3)
+%     disp('Check the results structure for detailed results')
 else
     % convert MPCParams object to structure for saving
 	Sparams = MPCParams.to_struct(params);
