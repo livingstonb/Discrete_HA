@@ -62,6 +62,10 @@ function [decomp2,decomp3] = decomposition2(params,results)
         
         g1_nF = reshape(g1,[],params(ip).nyF);
         g1 = sum(g1_nF,2);
+        
+        g1_nonzero = g1 .* (g1>1e-9);
+        g1_nonzero(g1_nonzero==0) = 2; % avoid dividing by zero
+
 
         g0 = results(baseind).direct.adist(:);  % baseline distribution
 
@@ -72,14 +76,26 @@ function [decomp2,decomp3] = decomposition2(params,results)
         
         if params(ip).nb > 1
             % take mpc mean over beta for each (ix,iyP,iyF) point in state space
-            m1 = reshape(m1,[],params(ip).nb) .* g1_nb ./ g1;
+            m1_nb = reshape(m1,[],params(ip).nb);
+            
+            % take expectation over beta
+            m1 = m1_nb .* (g1_nb ./ g1_nonzero);
             m1 = sum(m1,2);
+            
+            % if density was too low at some points, just use arithmetic
+            % mean as mpc
+            m1(g1_nonzero==2) = sum(m1_nb(g1_nonzero==2,:),2) / params(ip).nb;
         end
         
         if params(ip).nyF > 1
             % take mpc mean over beta for each (ix,iyP,iyF) point in state space
-            m1 = reshape(m1,[],params(ip).nyF) .* g1_nF ./ g1;
+            m1_nF = reshape(m1,[],params(ip).nyF);
+            m1 = m1_nF .* (g1_nF ./ g1_nonzero);
             m1 = sum(m1,2);
+            
+            % if density was too low at some points, just use arithmetic
+            % mean as mpc
+            m1(g1_nonzero==2) = sum(m1_nF(g1_nonzero==2,:),2) / params(ip).nyF;
         end
         
         m0 = results(baseind).direct.mpcs(5).mpcs_1_t{1};   % baseline MPCs
@@ -108,8 +124,13 @@ function [decomp2,decomp3] = decomposition2(params,results)
             
             if params(ip).nyF > 1
                 % take mpc mean over beta for each (ix,iyP,iyF) point in state space
-                m1 = reshape(m1,[],params(ip).nyF) .* g1_nF ./ g1;
+                m1_nF = reshape(m1,[],params(ip).nyF);
+                m1 = m1_nF .* (g1_nF ./ g1_nonzero);
                 m1 = sum(m1,2);
+                
+                % if density was too low at some points, just use arithmetic
+                % mean as mpc at these points
+                m1(g1_nonzero==2) = sum(m1_nF(g1_nonzero==2,:),2) / params(ip).nyF;
             end
         
             % RA MPC
@@ -137,8 +158,13 @@ function [decomp2,decomp3] = decomposition2(params,results)
                 m1_it = results(ip).direct.mpcs(5).mpcs_1_t{i};
 
                 if params(ip).nb > 1
-                    m1_it = reshape(m1_it,[],params(ip).nb) .* g1_nb ./ g1;
+                    m1_nb = reshape(m1_it,[],params(ip).nb);
+                    m1_it = m1_nb .* g1_nb ./ g1_nonzero;
                     m1_it = sum(m1_it,2);
+                    
+                    % if density was too low at some points, just use arithmetic
+                    % mean as mpc
+                    m1_it(g1_nonzero==2) = sum(m1_nb(g1_nonzero==2,:),2) / params(ip).nb;
                 end
 
                 m1 = m1 + m1_it;
@@ -161,9 +187,5 @@ function [decomp2,decomp3] = decomposition2(params,results)
             end
         end
             
-            
-        % catch ME
-        %     decomp2(ip).decomp_error = ME;
-        %     decomp3(ip).decomp_error = ME;
-        % end
+
     end
