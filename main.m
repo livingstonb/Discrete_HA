@@ -353,15 +353,32 @@ function [results,checks,decomp] = main(p)
     ymat_large = kron(income.netymat,ones(p.nxlong,1));
     ymat_large = repmat(ymat_large,p.nb,1);
 
-    % 1/6 quarterly income (1/24 annual income)
-	one_sixth_quarterly = agrid < (ymat_large * p.freq / 24);
-    probabilities = (one_sixth_quarterly .* basemodel.adist(:)) .* income.yTdist(:)';
-    results.direct.HtM_one_sixth_Q = sum(probabilities(:));
+    % fraction constrained in terms of own quarterly income
+    xrange = 0:0.01:0.5;
+    constrained = zeros(numel(xrange),1);
+    ic = 0;
+    for c = xrange
+        ic = ic + 1;
 
-	% 1/12 quarterly income (1/48 annual income)
-    one_twelfth_quarterly = agrid < (ymat_large * p.freq / 48);
-    probabilities = (one_twelfth_quarterly .* basemodel.adist(:)) .* income.yTdist(:)';
-    results.direct.HtM_one_twelfth_Q = sum(probabilities(:));
+        ind = agrid < (ymat_large * (p.freq/4) * c);
+        probabilities = (ind .* basemodel.adist(:)) .* income.yTdist(:)';
+        constrained(ic) = sum(probabilities(:));
+    end
+
+    constrained_interp = griddedInterpolant(xrange,constrained,'linear');
+    results.direct.HtM_one_sixth_Q = constrained_interp(1/6);
+    results.direct.HtM_one_twelfth_Q = constrained_interp(1/12);
+
+
+ %    % 1/6 quarterly income (1/24 annual income)
+	% one_sixth_quarterly = agrid < (ymat_large * p.freq / 24);
+ %    probabilities = (one_sixth_quarterly .* basemodel.adist(:)) .* income.yTdist(:)';
+ %    results.direct.HtM_one_sixth_Q = sum(probabilities(:));
+
+	% % 1/12 quarterly income (1/48 annual income)
+ %    one_twelfth_quarterly = agrid < (ymat_large * p.freq / 48);
+ %    probabilities = (one_twelfth_quarterly .* basemodel.adist(:)) .* income.yTdist(:)';
+ %    results.direct.HtM_one_twelfth_Q = sum(probabilities(:));
 
     
     % Wealth percentiles
