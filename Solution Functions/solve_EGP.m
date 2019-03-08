@@ -21,11 +21,14 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
     if p.r < 0.001
         % Add income so consumption guess is not all zeros
         %extracon = repmat(kron(min(income.netymat,[],2),ones(p.nx,1)),p.nb,1);
-        extracon = 0.02 * repmat(xgrid.full(:),p.nb,1);
+        extra = 0.02;
+    elseif p.temptation > 0.05
+        extra = 0.5;
     else
-        extracon = 0;
+        extra = 0;
     end
-    con = p.r * repmat(xgrid.full(:),p.nb,1) + extracon;
+    
+    con = (p.r + extra) * repmat(xgrid.full(:),p.nb,1);
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb

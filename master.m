@@ -6,7 +6,7 @@ close all;
 % -------------------------------------------------------------------------
 runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
-runopts.Server = 0; % use server paths
+runopts.Server = 1; % use server paths
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 1;
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
@@ -19,7 +19,7 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-selection.names_to_run = {'baseline_A'};
+selection.names_to_run = {};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS

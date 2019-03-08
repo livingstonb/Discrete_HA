@@ -101,12 +101,19 @@ function params = parameters(runopts,selection,QIncome)
         end
         
         % CRRA with IES heterogeneity
-        params(end+1) = MPCParams(ifreq,[lfreq ' CRRA with IES heterogeneity'],IncomeProcess);
-        params(end).risk_aver = exp([-1 -0.5 0 0.5 1]);
+        params(end+1) = MPCParams(ifreq,[lfreq ' CRRA w/IES betw exp(-1), exp(1)'],IncomeProcess);
+        params(end).risk_aver = 1./ exp([-1 -0.5 0 0.5 1]);
+        
+        params(end+1) = MPCParams(ifreq,[lfreq ' CRRA w/IES betw exp(-2), exp(2)'],IncomeProcess);
+        params(end).risk_aver = 1./ exp([-2 -1 0 1 2]);
 
         % EZ with IES heterogeneity
-        params(end+1) = MPCParams(ifreq,[lfreq ' EZ with IES heterogeneity'],IncomeProcess);
+        params(end+1) = MPCParams(ifreq,[lfreq ' EZ w/IES betw exp(-1), exp(1)'],IncomeProcess);
         params(end).invies = 1 ./ exp([-1 -0.5 0 0.5 1]);
+        params(end).EpsteinZin = 1;
+        
+        params(end+1) = MPCParams(ifreq,[lfreq ' EZ w/IES betw exp(-2), exp(2)'],IncomeProcess);
+        params(end).invies = 1 ./ exp([-2 -1 0 1 2]);
         params(end).EpsteinZin = 1;
     end
 
@@ -237,7 +244,7 @@ function params = parameters(runopts,selection,QIncome)
         end
         
         % temptation
-        for itempt = [0.005 0.01 0.05]
+        for itempt = [0.005 0.01 0.05 0.1]
             params(end+1) = MPCParams(ifreq,[lfreq ' Temptation' num2str(itempt)],IncomeProcess);
             params(end).temptation = itempt;
             if itempt == 0.05 && ifreq == 4
@@ -286,15 +293,18 @@ function params = parameters(runopts,selection,QIncome)
 
     % CRRA heterogeneity
     % params.set_betaH_distance(-2e-2,'A CRRA with IES heterogeneity',1);
-    params.set_betaH_distance(-5e-3,'Q CRRA with IES heterogeneity',4);
+    params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-1), exp(1)',4);
+    params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-2), exp(2)',4);
 
     % temptation
     params.set_betaH_distance(-1e-5,'Q Temptation0.05',4);
     % params.set_betaH_distance(-1e-5,'A Temptation0.05',1);
+    params.set_betaH_distance(-1e-3,'Q Temptation0.1',4);
     
 %     % Epstein-Zin
     % params.set_betaH_distance(-3e-2,'A EZ with IES heterogeneity',1);
-    params.set_betaH_distance(-8e-3,'Q EZ with IES heterogeneity',4);
+    params.set_betaH_distance(-8e-3,'Q EZ w/IES betw exp(-1), exp(1)',4);
+    params.set_betaH_distance(-8e-3,'Q EZ w/IES betw exp(-2), exp(2)',4);
     
 %     params.set_betaH_distance(-3e-2,'A EZ ra0.5 ies1',1);
     params.set_betaH_distance(-8e-3,'Q EZ ra0.5 ies1',4);
