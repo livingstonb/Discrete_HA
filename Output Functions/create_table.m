@@ -284,22 +284,22 @@ function [T_annual,T_quarter] = create_table(params,results,...
                                 decomp2(ip).mpc1_term1                       
                                 decomp2(ip).mpc1_term2
                                 decomp2(ip).mpc1_term3
-                                decomp2(ip).mpc1_term3a(1)   
-                                decomp2(ip).mpc1_term3b(1)
-                                decomp2(ip).mpc1_term3a(2)   
-                                decomp2(ip).mpc1_term3b(2)
-                                decomp2(ip).mpc1_term3a(3)   
-                                decomp2(ip).mpc1_term3b(3)];
+                                decomp2(ip).mpc1_term2a(1)   
+                                decomp2(ip).mpc1_term2b(1)
+                                decomp2(ip).mpc1_term2a(2)   
+                                decomp2(ip).mpc1_term2b(2)
+                                decomp2(ip).mpc1_term2a(3)   
+                                decomp2(ip).mpc1_term2b(3)];
                 dec2_mpc4 = [decomp2(ip).mpc4_Em1_less_Em0
                                 decomp2(ip).mpc4_term1                       
                                 decomp2(ip).mpc4_term2
                                 decomp2(ip).mpc4_term3
-                                decomp2(ip).mpc4_term3a(1)   
-                                decomp2(ip).mpc4_term3b(1)
-                                decomp2(ip).mpc4_term3a(2)   
-                                decomp2(ip).mpc4_term3b(2)
-                                decomp2(ip).mpc4_term3a(3)   
-                                decomp2(ip).mpc4_term3b(3)];
+                                decomp2(ip).mpc4_term2a(1)   
+                                decomp2(ip).mpc4_term2b(1)
+                                decomp2(ip).mpc4_term2a(2)   
+                                decomp2(ip).mpc4_term2b(2)
+                                decomp2(ip).mpc4_term2a(3)   
+                                decomp2(ip).mpc4_term2b(3)];
                 dec3_mpc1 = [decomp3(ip).mpc1_Em1_less_mRA
                                 decomp3(ip).mpc1_term1
                                 decomp3(ip).mpc1_term2
