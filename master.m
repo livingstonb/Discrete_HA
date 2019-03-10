@@ -8,7 +8,7 @@ runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
 runopts.Display = 1;
 runopts.Server = 1; % use server paths
 runopts.fast = 0; % very small asset and income grids for speed
-runopts.Simulate = 1;
+runopts.Simulate = 0;
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 runopts.mpcshocks_after_period1 = 0; % compute mpcs for is > 1?
 
