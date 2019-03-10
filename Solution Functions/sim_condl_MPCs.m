@@ -62,7 +62,7 @@ function MPCs = simulation_MPCs(p,income,basemodel,xgrid,a)
         
         for it = 1:Tmax
             if it > 1
-                xsim_mpc(:,it) = asim_mpc(:,it) + ynetsim_mpc(:,it);
+                xsim_mpc(:,it) = a + ynetsim(:,it);
             end
 
             for iyF = 1:p.nyF

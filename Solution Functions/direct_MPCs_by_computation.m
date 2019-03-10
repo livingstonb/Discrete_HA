@@ -93,7 +93,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 mpcshock = 0;
                 Ti = transition_t_less_s(p,income,xgrid_yT,...
                     models,is,it-1,fspace,trans_live,trans_death,mpcshock);
-                T1t = T1t * Ti;
+                T1t = Ti * T1t;
             end
 
             % get consumption policy function
@@ -145,15 +145,18 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         mpcshock = mpcamount;
         T_s1_s = transition_t_less_s(p,income,xgrid_yT,models,is,is,...
                                     fspace,trans_live,trans_death,mpcshock);
-        T1t = T1t * T_s1_s;
+        T1t = T_s1_s * T1t;
         clear T_s1_s
 
-        RHScon = con_baseline(:);
+        RHScon = basemodel.statetrans * con_baseline(:);
+        LHScon = con_baseline(:);
+
         for it = is+1:maxT % it > is case, policy fcns stay the same in this region
-            mpcs = ( T1t * RHScon(:) - con_baseline(:) ) / mpcamount;
+            mpcs = (T1t * LHScon(:) - RHScon(:)) / mpcamount;
 
             MPCs.avg_s_t{is,it} = basemodel.adist(:)' * mpcs(:);
             RHScon = basemodel.statetrans * RHScon;
+            LHScon = basemodel.statetrans * LHScon;
             
             if (is == 1) && (it >= 1 && it <= 4)
                 MPCs.mpcs_1_t{it} = mpcs;
