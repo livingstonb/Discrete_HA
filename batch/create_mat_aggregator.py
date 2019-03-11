@@ -66,7 +66,7 @@ def gen_mfile_aggregator(MWout,sim):
 # ---------------------------------------------------------------------
 
 # location of .mat output files
-MWout = '/media/hdd/Other/midway2_output/discrete_time/3_2_19'
+MWout = '/media/hdd/Other/midway2_output/discrete_time/3_11_19'
 # MWout = '/Users/brianlivingston/Documents/discrete_2_25_19'
 sim = False # True/False
 

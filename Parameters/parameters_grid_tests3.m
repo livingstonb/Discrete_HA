@@ -16,11 +16,14 @@ function params = parameters_grid_tests3(runopts,IncomeProcess)
 %     
 
     counter = 1;
-    for gridspace_min = [0 0.0005 0.001 0.005]
-        name = ['gridspace_min',num2str(gridspace_min)];
-        params(counter) = MPCParams(4,name,IncomeProcess);
-        params(counter).gridspace_min = gridspace_min;
-        counter = counter + 1;
+    for xmax = [200 1000]
+        for curv = [0.15 0.2 0.25]
+            name = ['curv',num2str(curv),' xmax',num2str(xmax)];
+            params(counter) = MPCParams(4,name,IncomeProcess);
+            params(counter).xmax = xmax;
+            params(counter).xgrid_par = curv;
+            counter = counter + 1;
+        end
     end
     
    

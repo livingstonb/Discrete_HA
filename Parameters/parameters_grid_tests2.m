@@ -9,8 +9,8 @@ function params = parameters_grid_tests2(runopts,selection,IncomeProcess)
     
     nxlong = 10;
     counter = 0;
-    for nx = [50 100 150 200 500 2000]
-    for curv = [0.2 0.3 0.4]
+    for nx = [200 500 1000]
+    for curv = [0.2]
         counter = counter + 1;
         name = ['nx',num2str(nx),'_curv',num2str(curv)];
         params(counter) = MPCParams(4,name,IncomeProcess);

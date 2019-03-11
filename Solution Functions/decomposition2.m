@@ -60,8 +60,8 @@ function [decomp2,decomp3] = decomposition2(params,results)
         g0 = results(baseind).direct.adist(:); 
 
         % g0_wide rows indexed by assets, columns by yF, yP, beta combination
-        dim0 = params(1).nyF * params(1).nyP * params(1).nb;
-        g0_wide = reshape(g0,[params(1).nxlong dim0]);
+        dim0 = params(baseind).nyF * params(1).nyP * params(baseind).nb;
+        g0_wide = reshape(g0,[params(baseind).nxlong dim0]);
 
         % P(a), vector
         g0_a = sum(g0_wide,2);
@@ -71,8 +71,8 @@ function [decomp2,decomp3] = decomposition2(params,results)
         g0_a_nonzero = g0_a .* (~g0small) + 2 .* g0small;
 
         % baseline MPCs
-        m0 = results(1).direct.mpcs(5).mpcs_1_t{1};       
-        m0_wide = reshape(m0,[params(1).nxlong dim0]);
+        m0 = results(baseind).direct.mpcs(5).mpcs_1_t{1};       
+        m0_wide = reshape(m0,[params(baseind).nxlong dim0]);
         m0_a = m0_wide .* g0_wide ./ g0_a_nonzero;
         m0_a = sum(m0_a,2);
 
@@ -81,9 +81,9 @@ function [decomp2,decomp3] = decomposition2(params,results)
 
         m0_4 = 0;
         for t = 1:4
-            m0_4 = m0_4 + results(1).direct.mpcs(5).mpcs_1_t{t};
+            m0_4 = m0_4 + results(baseind).direct.mpcs(5).mpcs_1_t{t};
         end
-        m0_4_wide = reshape(m0_4,[params(1).nxlong dim0]);
+        m0_4_wide = reshape(m0_4,[params(baseind).nxlong dim0]);
         m0_4_a = m0_4_wide .* g0_wide ./ g0_a_nonzero;
         m0_4_a = sum(m0_4_a,2);
 
@@ -146,9 +146,9 @@ function [decomp2,decomp3] = decomposition2(params,results)
             % Mean model MPC - RA MPC
             decomp3(ip).mpc1_Em1_less_mRA = results(ip).direct.mpcs(5).avg_s_t{1,1} - m0;
 
-            decomp3(ip).mpc1_term1 = m1_atmean - m0_a; % Effect of MPC function
+            decomp3(ip).mpc1_term1 = m1_atmean - m0; % Effect of MPC function
             decomp3(ip).mpc1_term2 = 0; % Effect of distribution
-            decomp3(ip).mpc1_term3 = (m1_a - m0_a)' * g1_a - (m1_atmean - m0_a); % Interaction
+            decomp3(ip).mpc1_term3 = (m1_a - m0)' * g1_a - (m1_atmean - m0); % Interaction
         end
         
 
