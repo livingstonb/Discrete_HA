@@ -244,12 +244,9 @@ function params = parameters(runopts,selection,QIncome)
         end
         
         % temptation
-        for itempt = [0.005 0.01 0.05 0.1]
+        for itempt = [0.01 0.05 0.07]
             params(end+1) = MPCParams(ifreq,[lfreq ' Temptation' num2str(itempt)],IncomeProcess);
             params(end).temptation = itempt;
-            if itempt == 0.05 && ifreq == 4
-                params(end).set_betaH_distance(-1e-5);
-            end    
         end
     end
         
@@ -297,9 +294,9 @@ function params = parameters(runopts,selection,QIncome)
     params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-2), exp(2)',4);
 
     % temptation
-    params.set_betaH_distance(-1e-5,'Q Temptation0.05',4);
+    params.set_betaH_distance(3.2e-4,'Q Temptation0.07',4);
     % params.set_betaH_distance(-1e-5,'A Temptation0.05',1);
-    params.set_betaH_distance(-1e-3,'Q Temptation0.1',4);
+    params.set_betaH_distance(-2e-5,'Q Temptation0.05',4);
     
 %     % Epstein-Zin
     % params.set_betaH_distance(-3e-2,'A EZ with IES heterogeneity',1);

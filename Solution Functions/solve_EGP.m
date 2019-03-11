@@ -18,12 +18,12 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
 
     % initial guess for consumption function, stacked state combinations
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
-    if p.r < 0.001
+    if p.temptation > 0.05
+        extra = 0.5;
+    elseif p.r < 0.001
         % Add income so consumption guess is not all zeros
         %extracon = repmat(kron(min(income.netymat,[],2),ones(p.nx,1)),p.nb,1);
         extra = 0.02;
-    elseif p.temptation > 0.05
-        extra = 0.5;
     else
         extra = 0;
     end
