@@ -113,7 +113,7 @@ function [results,checks,decomp] = main(p)
 
     % xgrids (cash on hand), different min points for each value of (iyP,iyF)
     minyT               = kron(min(income.netymat,[],2),ones(p.nx,1));
-    xgrid.orig          = sgrid.full(:) + minyT;
+    xgrid.orig          = p.R * sgrid.full(:) + minyT;
     xgrid.full          = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
     
     % xgrid for model without income risk
@@ -498,9 +498,24 @@ function [results,checks,decomp] = main(p)
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
     % Model with income risk
-    [MPCs,stdev_loggrossy_A,stdev_lognety_A] ...
-                        = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid);
+    MPCs = struct();
+    for i = 1:3
+        [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i)] ...
+                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid);
+    end
+    
+    MPCs.avg_1_1 = (MPC_trials(1).avg_1_1 + MPC_trials(2).avg_1_1 + MPC_trials(3).avg_1_1)/3;
+    MPCs.avg_1_2 = (MPC_trials(1).avg_1_2 + MPC_trials(2).avg_1_2 + MPC_trials(3).avg_1_2)/3;
+    MPCs.avg_1_3 = (MPC_trials(1).avg_1_3 + MPC_trials(2).avg_1_3 + MPC_trials(3).avg_1_3)/3;
+    MPCs.avg_1_4 = (MPC_trials(1).avg_1_4 + MPC_trials(2).avg_1_4 + MPC_trials(3).avg_1_4)/3;
+    MPCs.avg_1_1to4 = (MPC_trials(1).avg_1_1to4 + MPC_trials(2).avg_1_1to4 + MPC_trials(3).avg_1_1to4)/3;
+    MPCs.avg_1_5to8 = (MPC_trials(1).avg_1_5to8 + MPC_trials(2).avg_1_5to8 + MPC_trials(3).avg_1_5to8)/3;
+    MPCs.avg_1_9to12 = (MPC_trials(1).avg_1_9to12 + MPC_trials(2).avg_1_9to12 + MPC_trials(3).avg_1_9to12)/3;
+    MPCs.avg_1_13to16 = (MPC_trials(1).avg_1_13to16 + MPC_trials(2).avg_1_13to16 + MPC_trials(3).avg_1_13to16)/3;
     results.direct.mpcs_sim = MPCs;
+    
+    stdev_loggrossy_A = mean(stdev_loggrossy_A);
+    stdev_lognety_A = mean(stdev_lognety_A);
 
     % Find annual mean and standard deviations of income
     if p.freq == 4
