@@ -290,8 +290,8 @@ function params = parameters(runopts,selection,QIncome)
 
     % CRRA heterogeneity
     % params.set_betaH_distance(-2e-2,'A CRRA with IES heterogeneity',1);
-    params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-1), exp(1)',4);
-    params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-2), exp(2)',4);
+    params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-1), exp(1)');
+    params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-2), exp(2)');
 
     % temptation
     params.set_betaH_distance(3.2e-4,'Q Temptation0.07',4);
@@ -300,19 +300,19 @@ function params = parameters(runopts,selection,QIncome)
     
 %     % Epstein-Zin
     % params.set_betaH_distance(-3e-2,'A EZ with IES heterogeneity',1);
-    params.set_betaH_distance(-8e-3,'Q EZ w/IES betw exp(-1), exp(1)',4);
-    params.set_betaH_distance(-8e-3,'Q EZ w/IES betw exp(-2), exp(2)',4);
+    params.set_betaH_distance(-8e-3,'Q EZ w/IES betw exp(-1), exp(1)');
+    params.set_betaH_distance(-8e-3,'Q EZ w/IES betw exp(-2), exp(2)');
     
 %     params.set_betaH_distance(-3e-2,'A EZ ra0.5 ies1',1);
-    params.set_betaH_distance(-8e-3,'Q EZ ra0.5 ies1',4);
+    params.set_betaH_distance(-8e-3,'Q EZ ra0.5 ies1');
 %     params.set_betaH_distance(-3e-2,'A EZ ra8 ies1',1);
-    params.set_betaH_distance(-8e-3,'Q EZ ra8 ies1',4);
+    params.set_betaH_distance(-8e-3,'Q EZ ra8 ies1');
 %     params.set_betaH_distance(-3e-2,'A EZ ra1 ies0.25',1);
-    params.set_betaH_distance(-8e-3,'Q EZ ra1 ies0.25',4);
+    params.set_betaH_distance(-8e-3,'Q EZ ra1 ies0.25');
 %     params.set_betaH_distance(-2.5e-2,'A EZ ra1 ies2',1);
-    params.set_betaH_distance(-6.5e-3,'Q EZ ra1 ies2',4);
+    params.set_betaH_distance(-6.5e-3,'Q EZ ra1 ies2');
 %     params.set_betaH_distance(-2.5e-2,'A EZ ra8 ies2',1);
-    params.set_betaH_distance(-6.5e-3,'Q EZ ra8 ies2',4);
+    params.set_betaH_distance(-6.5e-3,'Q EZ ra8 ies2');
 
 %     % varying risk_aver
 %     EZ = find([params.EpsteinZin]==1 & [params.freq]==1);
@@ -372,12 +372,12 @@ function params = parameters(runopts,selection,QIncome)
     change_betaH = [' RandomBetaHet5 Width' num2str(0.01)...
                         ' SwitchProb' num2str(1/10) ' Death'];
     % params.set_betaH_distance(1e-2,['A' change_betaH],1);
-    params.set_betaH_distance(1.3e-2,['Q' change_betaH],4);
+    params.set_betaH_distance(1.3e-2,['Q' change_betaH]);
     
     change_betaH = [' RandomBetaHet5 Width' num2str(0.01)...
                         ' SwitchProb' num2str(1/50) ' Death'];
     % params.set_betaH_distance(1e-2,['A' change_betaH],1);
-    params.set_betaH_distance(5e-3,['Q' change_betaH],4);
+    params.set_betaH_distance(5e-3,['Q' change_betaH]);
     
 %     % --------- annual, random ----------
 %     freq = 1;
@@ -471,10 +471,10 @@ function params = parameters(runopts,selection,QIncome)
 %     params.set_betaH_distance(-1e-4,['Q' change_betaH],4);S
 
     change_betaH = ' RiskAver6';
-    params.set_betaH_distance(-1e-2,['Q' change_betaH],4);
+    params.set_betaH_distance(-1e-2,['Q' change_betaH]);
 
     change_betaH = ' Annuities';
-    params.set_betaH_distance(-5e-3,['Q' change_betaH],4);
+    params.set_betaH_distance(-5e-3,['Q' change_betaH]);
 
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS

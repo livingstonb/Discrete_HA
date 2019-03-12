@@ -1,20 +1,29 @@
 clear;
 close all;
 
+% master script for discrete HA model
+% need to set runopts in "SET OPTIONS" prior to running
+
 %% ------------------------------------------------------------------------
 % SET OPTIONS 
 % -------------------------------------------------------------------------
-runopts.Batch = 1; % use parameters.m, not parameters_experiment.m
+% options
 runopts.Display = 1;
 runopts.Server = 1; % use server paths
 runopts.fast = 0; % very small asset and income grids for speed
-runopts.Simulate = 1;
-runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
-runopts.mpcshocks_after_period1 = 0; % compute mpcs for is > 1?
+runopts.Simulate = 1; % also solve distribution via simulation
+runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
-% local grid tests, 0 to turn off, 1 for transition probs, 2 for simulations
+% directories
+runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
+runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
+
+% grid tests, 0 to turn off
+% 1-3 to select grid test parameters
+% 2 is for simulations
 runopts.GRIDTEST = 0; % 
 
+% location of quarterly income file
 QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
@@ -29,8 +38,8 @@ if runopts.Server == 0
     selection.number = [];
 else
     selection.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-    runopts.path = '/home/livingstonb/GitHub/Discrete_HA';
-    runopts.savematpath = ['/home/livingstonb/GitHub/Discrete_HA/Output/variables' num2str(selection.number) '.mat'];
+    runopts.path = runopts.serverdir;
+    runopts.savematpath = [runopts.serverdir '/Output/variables' num2str(selection.number) '.mat'];
     if exist(runopts.savematpath, 'file') == 2
         % Delete old results
         delete runopts.savematpath;
@@ -50,8 +59,6 @@ elseif runopts.GRIDTEST == 2 % simulations
     params = parameters_grid_tests2(runopts,selection,QIncome);
 elseif runopts.GRIDTEST == 3
     params = parameters_grid_tests3(runopts,QIncome);
-elseif runopts.Batch == 0
-    params = parameters_experiment(runopts,QIncome); 
 else
     params = parameters(runopts,selection,QIncome);
 end
@@ -88,7 +95,7 @@ if runopts.Server == 0
 %     % Create table
 %     [T_annual,T_quarter] = create_table(params,results,...
 %                                     decomps,checks,decomp2,decomp3)
-%     disp('Check the results structure for detailed results')
+	disp('Check the results structure for detailed results')
 else
     % convert MPCParams object to structure for saving
 	Sparams = MPCParams.to_struct(params);

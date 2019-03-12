@@ -108,6 +108,7 @@ classdef MPCParams < handle
 
     methods
         function obj = MPCParams(frequency,name,IncomeProcess)
+        	% create params object
             obj.name = name;
             obj.freq = frequency;
             obj.IncomeProcess = IncomeProcess;
@@ -118,7 +119,7 @@ classdef MPCParams < handle
                 obj.sd_logyP = sqrt(0.0422);
                 obj.rho_logyP =0.9525;
             elseif frequency == 4
-                % quarterly_a
+                % use quarterly_a if quarterly & no IncomeProcess is given
                 obj.sd_logyT = sqrt(0.2087);
                 obj.sd_logyP = sqrt(0.01080);
                 obj.rho_logyP = 0.9881;
@@ -127,9 +128,17 @@ classdef MPCParams < handle
             end             
         end
         
-        function obj = set_betaH_distance(obj,val,name,freq)
-            if nargin == 4
-                change_ind = find(ismember({obj.name},name) & [obj.freq]==freq);
+        function obj = set_betaH_distance(obj,val,name)
+        	% change the value of beta upper bound by the value 'val'
+        	% for the experiment 'name'
+
+        	% use BEFORE calling adjust_if_quarterly
+
+        	% usage: params.set_betaH_distance(1e-5,'baseline_Q')
+        	% or: params(i).set_betaH_distance(1e-5)
+
+            if nargin == 3
+                change_ind = find(ismember({obj.name},name));
                 obj(change_ind).betaH = obj(change_ind).betaH0 + val;
             elseif nargin == 2
                 if numel(obj) == 1
@@ -142,9 +151,17 @@ classdef MPCParams < handle
             end
         end
         
-        function obj = set_betaL_distance(obj,val,name,freq)
-            if nargin == 4
-                change_ind = find(ismember({obj.name},name) & [obj.freq]==freq);
+        function obj = set_betaL_distance(obj,val,name)
+        	% change the value of beta lower bound by the value 'val'
+        	% for the experiment 'name'
+
+        	% use BEFORE calling adjust_if_quarterly
+
+        	% usage: params.set_betaL_distance(1e-5,'baseline_Q')
+        	% or: params(i).set_betaL_distance(1e-5)
+
+            if nargin == 3
+                change_ind = find(ismember({obj.name},name));
                 obj(change_ind).betaL = obj(change_ind).betaL + val;
             elseif nargin == 2
                 if numel(obj) == 1
@@ -167,6 +184,8 @@ classdef MPCParams < handle
         end
 
         function obj = set_run_parameters(obj,runopts)
+        	% use fields in runopts to set values in MPCParams object
+
             % fast option
             if runopts.fast == 1
                 [obj.nxlong] = deal(10);
@@ -191,12 +210,13 @@ classdef MPCParams < handle
         end
         
         function obj = set_index(obj)
-            % Called twice: before and after selecting which runs to drop
+        	% reset index to count from 1 to numel(params)
             ind = num2cell(1:numel(obj));
             [obj.index] = deal(ind{:});
         end
 
         function obj = set_grid(obj,nx,nxlong,curv)
+        	% convenient way to set grid for grid tests
             obj.nx = nx;
             obj.nxlong = nxlong;
             obj.xgrid_par = curv;
@@ -206,8 +226,10 @@ classdef MPCParams < handle
     methods (Static)
         
         function objs = adjust_if_quarterly(objs)
+        	% adjusts relevant parameters such as r to a quarterly frequency,
+        	% i.e. r = r / 4
+            % must be called after setting all parameterizations
 
-            % Adjust model parameters
             for io = 1:numel(objs)
                 objs(io).R = (1+objs(io).r)^(1/objs(io).freq);
                 objs(io).r = objs(io).R - 1;
@@ -235,7 +257,8 @@ classdef MPCParams < handle
         end
         
         function objs = select_by_names(objs,names_to_run)
-            % Choose parameterizations based on name
+            % discards all experiments with names not included in the
+            % cell array 'names_to_run'
             if ~isempty(names_to_run)
                 % Indices of selected names within params
                 params_to_run = ismember({objs.name},names_to_run);
@@ -250,7 +273,7 @@ classdef MPCParams < handle
         end
   
         function S = to_struct(objs)
-            % save object as structure
+            % save object as structure for later use
             ofields = fields(objs);
             for is = 1:numel(objs)
                 for ifield = 1:numel(ofields)
