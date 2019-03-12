@@ -1,4 +1,4 @@
-function [MPCs,stdev_loggrossy_A,stdev_lognety_A]... 
+function [MPCs,stdev_loggrossy_A,stdev_lognety_A,HtM_one_sixth_Q,HtM_one_twelfth_Q]... 
                                 = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid)
     % This function draws from the stationary distribution of (a,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
@@ -82,12 +82,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
     % Net income
     ynetsim = income.lumptransfer + (1-p.labtaxlow)*ygrosssim...
                         - p.labtaxhigh*max(ygrosssim-income.labtaxthresh,0);
-                    
-    % Find annual income variances
-    stdev_loggrossy_A = std(log(sum(ygrosssim(:,1:p.freq),2)));
-    stdev_lognety_A = std(log(sum(ynetsim(:,1:p.freq),2)));
-    mean_grossy_A = mean(sum(ygrosssim(:,1:p.freq),2));
-    
+  
     
     % Loop over mpcfrac sizes, first running simulation as if there was no
     % shock
@@ -155,6 +150,16 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
         if im == 0
             % No MPC schock
             csim_noshock = csim;
+
+            % get a < y_quarter / 6
+            for iit = 1:3
+                y_quarter = ygrosssim(:,iit) * p.freq / 4;
+
+                HtM_one_sixth_Q(iit) = mean(asim(:,iit+1) < (y_quarter/6));
+                HtM_one_twelfth_Q(iit) = mean(asim(:,iit+1) < (y_quarter/12));
+            end
+            HtM_one_sixth_Q = mean(HtM_one_sixth_Q);
+            HtM_one_twelfth_Q = mean(HtM_one_twelfth_Q);
         else
         	% MPC in period 1 out of period 1 shock
             mpcs_1_1 = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
@@ -200,5 +205,14 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A]...
             end
         end
     end
+
+
+    %% OTHER STATISTICS
+    % annual income variances
+    stdev_loggrossy_A = std(log(sum(ygrosssim(:,1:p.freq),2)));
+    stdev_lognety_A = std(log(sum(ynetsim(:,1:p.freq),2)));
+    mean_grossy_A = mean(sum(ygrosssim(:,1:p.freq),2));
+
+
     
 end

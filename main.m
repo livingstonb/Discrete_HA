@@ -366,8 +366,10 @@ function [results,checks,decomp] = main(p)
     end
 
     constrained_interp = griddedInterpolant(xrange,constrained,'linear');
-    results.direct.HtM_one_sixth_Q = constrained_interp(1/6);
-    results.direct.HtM_one_twelfth_Q = constrained_interp(1/12);
+
+    % the following are innacurate (at < y_{t+1}/6 instead of at < yt /6)
+    % results.direct.HtM_one_sixth_Q = constrained_interp(1/6);
+    % results.direct.HtM_one_twelfth_Q = constrained_interp(1/12);
 
 
  %    % 1/6 quarterly income (1/24 annual income)
@@ -500,9 +502,12 @@ function [results,checks,decomp] = main(p)
     % Model with income risk
     MPCs = struct();
     for i = 1:3
-        [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i)] ...
+        [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i),sixth(i),twelfth(i)] ...
                             = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid);
     end
+    
+    results.direct.onesixth_sim = mean(sixth);
+    results.direct.onetwelfth_sim = mean(twelfth);
     
     MPCs.avg_1_1 = (MPC_trials(1).avg_1_1 + MPC_trials(2).avg_1_1 + MPC_trials(3).avg_1_1)/3;
     MPCs.avg_1_2 = (MPC_trials(1).avg_1_2 + MPC_trials(2).avg_1_2 + MPC_trials(3).avg_1_2)/3;

@@ -294,9 +294,9 @@ function params = parameters(runopts,selection,QIncome)
     params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-2), exp(2)');
 
     % temptation
-    params.set_betaH_distance(3.2e-4,'Q Temptation0.07',4);
+    params.set_betaH_distance(3.2e-4,'Q Temptation0.07');
     % params.set_betaH_distance(-1e-5,'A Temptation0.05',1);
-    params.set_betaH_distance(-2e-5,'Q Temptation0.05',4);
+    params.set_betaH_distance(-2e-5,'Q Temptation0.05');
     
 %     % Epstein-Zin
     % params.set_betaH_distance(-3e-2,'A EZ with IES heterogeneity',1);
