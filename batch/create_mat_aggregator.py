@@ -1,14 +1,31 @@
 import os
 import re
 
-# This script 
+# This script takes .mat files labeled variablesXX.mat with XX any number
+# greather than or equal to 1, and aggregates them into a matlab table
+
+# user should only need to enter options into 'Startup' section
+
+# ---------------------------------------------------------------------
+# Startup
+# ---------------------------------------------------------------------
+
+# location of Discrete_HA code directory
+repos = '/home/brian/Documents/GitHub/Discrete_HA'
+
+# location of variablesXX.mat files
+MWout = '/media/hdd/Other/midway2_output/discrete_time/3_11_19_2'
+
+# option for using table based on simulations if available
+# (may not currently work)
+sim = False 
 
 # ---------------------------------------------------------------------
 # Functions
 # ---------------------------------------------------------------------
 
                     
-def gen_mfile_aggregator(MWout,sim):
+def gen_mfile_aggregator(MWout,sim,repos):
     # create m-file to aggregate .mat files and create a table
 
     matdir = MWout
@@ -25,6 +42,9 @@ def gen_mfile_aggregator(MWout,sim):
 
     # sort by mindex
     matfiles = sorted(matfiles,key=lambda x:mindex[matfiles.index(x)])
+    
+    output_fns_dir = repos + '/Output Functions'
+    soln_fns_dir = repos + '/Solution Functions'
 
     with open(os.path.join(MWout,'aggregate.m'),'w') as newmfile:
         newmfile.write("clear\n% Aggregates specification##.mat's into one .mat file\n\n")
@@ -51,29 +71,19 @@ def gen_mfile_aggregator(MWout,sim):
                  '    checks(im) = S.checks;',
                  'end',
                  '',
-                 "addpath('/home/brian/Documents/GitHub/Discrete_HA/Output Functions');",
-                 "addpath('/home/brian/Documents/GitHub/Discrete_HA/Solution Functions');",
+                 f"addpath({output_fns_dir});",
+                 f"addpath({soln_fns_dir});",
                  '',
                  decomp2,
                  '',
                  f'[T_annual,T_quarter] = {tablefn}']
         newmfile.write('\n'.join(lines))
             
-        
-
-# ---------------------------------------------------------------------
-# Startup
-# ---------------------------------------------------------------------
-
-# location of .mat output files
-MWout = '/media/hdd/Other/midway2_output/discrete_time/3_11_19_2'
-# MWout = '/Users/brianlivingston/Documents/discrete_2_25_19'
-sim = False # True/False
-
+ 
 # ---------------------------------------------------------------------
 # Function calls
 # ---------------------------------------------------------------------
 
 # generate m-file that aggreagates .mat files and creates a table
-gen_mfile_aggregator(MWout,sim)
+gen_mfile_aggregator(MWout,sim,repos)
 
