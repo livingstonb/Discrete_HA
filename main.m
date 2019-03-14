@@ -346,7 +346,7 @@ function [results,checks,decomp] = main(p)
             results.direct.constrained(i) = basemodel.adist(:)' * (agrid==0);
 
             if p.Bequests == 1
-                resuts.direct.s0 = results.direct.constrained(i);
+                results.direct.s0 = results.direct.constrained(i);
             else
                 results.direct.s0 = results.direct.constrained(i) / (1-p.deathrate);
             end
@@ -514,8 +514,8 @@ function [results,checks,decomp] = main(p)
     
     results.direct.a_sixth_sim = mean([inc_constrained.a_sixth_Q]);
     results.direct.a_twelfth_sim = mean([inc_constrained.a_twelfth_Q]);
-    results.direct.s_sixth_sim = mean([inc_constrained.s_sixth_Q]);
-    results.direct.s_twelfth_sim = mean([inc_constrained.s_twelfth_Q]);
+    results.direct.x_sixth_sim = mean([inc_constrained.x_sixth_Q]);
+    results.direct.x_twelfth_sim = mean([inc_constrained.x_twelfth_Q]);
     
     MPCs.avg_1_1 = (MPC_trials(1).avg_1_1 + MPC_trials(2).avg_1_1 + MPC_trials(3).avg_1_1)/3;
     MPCs.avg_1_2 = (MPC_trials(1).avg_1_2 + MPC_trials(2).avg_1_2 + MPC_trials(3).avg_1_2)/3;

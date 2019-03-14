@@ -14,7 +14,7 @@ import re
 repos = '/home/brian/Documents/GitHub/Discrete_HA'
 
 # location of variablesXX.mat files
-MWout = '/media/hdd/Other/midway2_output/discrete_time/3_11_19_2'
+MWout = '/media/hdd/Other/midway2_output/discrete_time/3_12_19'
 
 # option for using table based on simulations if available
 # (may not currently work)
@@ -71,8 +71,8 @@ def gen_mfile_aggregator(MWout,sim,repos):
                  '    checks(im) = S.checks;',
                  'end',
                  '',
-                 f"addpath({output_fns_dir});",
-                 f"addpath({soln_fns_dir});",
+                 f"addpath('{output_fns_dir}');",
+                 f"addpath('{soln_fns_dir}');",
                  '',
                  decomp2,
                  '',
