@@ -348,7 +348,8 @@ function [results,checks,decomp] = main(p)
             if p.Bequests == 1
                 results.direct.s0 = results.direct.constrained(i);
             else
-                results.direct.s0 = results.direct.constrained(i) / (1-p.deathrate);
+            	c = results.direct.constrained(i);
+                results.direct.s0 = (c - p.dieprob) / (1 - p.dieprob);
             end
         else
             results.direct.constrained(i) = wpinterp(p.epsilon(i)*income.meany1*p.freq);

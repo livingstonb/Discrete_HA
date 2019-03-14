@@ -14,7 +14,7 @@ import re
 repos = '/home/brian/Documents/GitHub/Discrete_HA'
 
 # location of variablesXX.mat files
-MWout = '/media/hdd/Other/midway2_output/discrete_time/3_12_19'
+MWout = '/media/hdd/Other/midway2_output/discrete_time/3_14_19'
 
 # option for using table based on simulations if available
 # (may not currently work)
