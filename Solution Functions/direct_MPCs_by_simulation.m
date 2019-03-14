@@ -1,4 +1,4 @@
-function [MPCs,stdev_loggrossy_A,stdev_lognety_A,HtM_one_sixth_Q,HtM_one_twelfth_Q]... 
+function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]... 
                                 = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid)
     % This function draws from the stationary distribution of (a,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
@@ -108,7 +108,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,HtM_one_sixth_Q,HtM_one_twelfth
             if it == 1
                 xsim(:,1) = a1 + ynetsim(:,1) + mpcamount;
             else
-                xsim(:,it) = asim(:,it) + ynetsim(:,it);
+                xsim(:,it) = asim(:,it-1) + ynetsim(:,it);
             end
             
             for ib = 1:p.nb
@@ -136,10 +136,10 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,HtM_one_sixth_Q,HtM_one_twelfth
             ssim(:,it) = max(ssim(:,it),p.borrow_lim);
 
             if it < Tmax
-                asim(:,it+1) = p.R * ssim(:,it);
+                asim(:,it) = p.R * ssim(:,it);
                 if p.Bequests == 0
                     % Assets discarded
-                    asim(diesim(:,it+1)==1,it+1) = 0;
+                    asim(diesim(:,it)==1,it) = 0;
                 end
             end
         end
@@ -155,11 +155,15 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,HtM_one_sixth_Q,HtM_one_twelfth
             for iit = 1:3
                 y_quarter = ygrosssim(:,iit) * p.freq / 4;
 
-                HtM_one_sixth_Q(iit) = mean(asim(:,iit+1) < (y_quarter/6));
-                HtM_one_twelfth_Q(iit) = mean(asim(:,iit+1) < (y_quarter/12));
+                a_sixth_Q(iit) = mean(asim(:,iit) < (y_quarter/6));
+                a_twelfth_Q(iit) = mean(asim(:,iit) < (y_quarter/12));
+                x_sixth_Q(iit) = mean(xsim(:,iit) < (y_quarter/6));
+                x_twelfth_Q(iit) = mean(xsim(:,iit) < (y_quarter/12));
             end
-            HtM_one_sixth_Q = mean(HtM_one_sixth_Q);
-            HtM_one_twelfth_Q = mean(HtM_one_twelfth_Q);
+            inc_constrained.a_sixth_Q = mean(a_sixth_Q);
+            inc_constrained.a_twelfth_Q = mean(a_twelfth_Q);
+            inc_constrained.x_sixth_Q = mean(x_sixth_Q);
+            inc_constrained.x_twelfth_Q = mean(x_twelfth_Q);
         else
         	% MPC in period 1 out of period 1 shock
             mpcs_1_1 = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
