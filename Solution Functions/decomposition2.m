@@ -125,13 +125,25 @@ function [decomp2,decomp3] = decomposition2(params,results)
         decomp2(ip).mpc1_term3 = (m1_a - m0_a)' * (g1_a - g0_a); % Interaction
 
         % Decomposition of distribution effect
+        % create interpolants from assets to integrals of m0g0, m0g1
+        m0g0 = m0_a .* g0_a;
+        m0g0_interp = griddedInterpolant(agrid_short,cumsum(m0g0),'linear');
+        m0g1 = m0_a .* g1_a;
+        m0g1_interp = griddedInterpolant(agrid_short,cumsum(m0g1),'linear');
+
         for ia = 1:numel(params(ip).abars)
             abar = params(ip).abars(ia); % HtM threshold
-            idx = agrid_short <= abar;
-            % HtM households
-            decomp2(ip).mpc1_term2a(ia) = m0_a(idx)' * (g1_a(idx) - g0_a(idx));
-            % Non-HtM households
-            decomp2(ip).mpc1_term2b(ia) = m0_a(~idx)' * (g1_a(~idx) - g0_a(~idx));
+            if abar == 0
+	            idx = agrid_short <= abar;
+	            % HtM households
+	            decomp2(ip).mpc1_term2a(ia) = m0_a(idx)' * (g1_a(idx) - g0_a(idx));
+	            % Non-HtM households
+	            decomp2(ip).mpc1_term2b(ia) = m0_a(~idx)' * (g1_a(~idx) - g0_a(~idx));
+	        else
+	        	decomp2(ip).mpc1_term2a(ia) = m0g1_interp(abar) - m0g0_interp(abar);
+	        	decomp2(ip).mpc1_term2b(ia) = (m0_a'*g1_a - m0g1_interp(abar)) ...
+	        									- (m0_a'*g0_a - m0g0_interp(abar));
+	        end
         end
         
         %% 1-Period MPC decomposition3 (decomp with respect to representative agent model (RA))
@@ -169,6 +181,12 @@ function [decomp2,decomp3] = decomposition2(params,results)
             % P(a) too small to divide by accurately, use arithmetic mean
             m1_4_a(g1small) = mean(m1_4_wide(g1small,:),2);
 
+            % create interpolants from assets to m0g0, m0g1
+	        m0g0_4 = m0_4_a .* g0_a;
+	        m0g0_interp4 = griddedInterpolant(agrid_short,cumsum(m0g0_4),'linear');
+	        m0g1_4 = m0_4_a .* g1_a;
+	        m0g1_interp4 = griddedInterpolant(agrid_short,cumsum(m0g1_4),'linear');
+
             decomp2(ip).mpc4_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_1_1to4 ...
                         - results(baseind).direct.mpcs(5).avg_1_1to4;
             decomp2(ip).mpc4_term1 = g0_a' * (m1_4_a - m0_4_a);
@@ -177,9 +195,15 @@ function [decomp2,decomp3] = decomposition2(params,results)
 
             for ia = 1:numel(params(ip).abars)
                 abar = params(ip).abars(ia);
-                idx = agrid_short <= abar;
-                decomp2(ip).mpc4_term2a(ia) = m0_4_a(idx)' * (g1_a(idx) - g0_a(idx));
-                decomp2(ip).mpc4_term2b(ia) = m0_4_a(~idx)' * (g1_a(~idx) - g0_a(~idx));
+                if abar == 0
+	                idx = agrid_short <= abar;
+	                decomp2(ip).mpc4_term2a(ia) = m0_4_a(idx)' * (g1_a(idx) - g0_a(idx));
+	                decomp2(ip).mpc4_term2b(ia) = m0_4_a(~idx)' * (g1_a(~idx) - g0_a(~idx));
+	            else
+	            	decomp2(ip).mpc4_term2a(ia) = m0g1_interp4(abar) - m0g0_interp4(abar);
+		        	decomp2(ip).mpc4_term2b(ia) = (m0_4_a'*g1_a - m0g1_interp4(abar)) ...
+	        									- (m0_4_a'*g0_a - m0g0_interp4(abar))
+            	end
             end
         end
             
