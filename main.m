@@ -555,17 +555,52 @@ function [results,checks,decomp] = main(p)
  
         % MPC shock of 0.01 * annual income
         m0 = results.direct.mpcs(5).mpcs_1_t{1,1}; % mpcs
+        meanm0 = results.direct.mpcs(5).avg_s_t{1,1};
         g0 = results.direct.adist; % distribution
         g0_norisk = results.direct.agrid_dist;
         mbc  = results.norisk.mpcs1_a_direct{5}; % norisk distribution
+        meanmbc = mbc(:)' * g0_norisk(:);
+
+        % interpolate to get the integral of m0(a) * g0(a) between a = 0 and 0.05
+        m0g0 = m0(:) .* g0(:);
+        m0g0 = reshape(m0g0,[p.nxlong p.nyP*p.nyF*p.nb]);
+        m0g0 = sum(m0g0,2);
+        cum_m0g0 = cumsum(m0g0);
+        mg0interp = griddedInterpolant(agrid_short,cum_m0g0,'linear');
+
+        % interpolate to get the integral of mpc_norisk(a) * g0_norisk(a)
+        mbcg0 = mbc(:) .* g0_norisk(:);
+        mbcg0 = reshape(mbcg0,p.nxlong,[]);
+        mbcg0 = sum(mbcg0,2);
+        cum_mbcg0 = cumsum(mbcg0);
+        mbcg0interp = griddedInterpolant(agrid_short,cum_mbcg0,'linear');
+
+        % get interpolant for cumulative dist of g0_a
+        g0_a = sum(reshape(g0,p.nxlong,[]),2);
+        g0interp = griddedInterpolant(agrid_short,cumsum(g0_a),'linear');
+
+        % get interpolant for cumdist of g0_norisk_a
+        g0_norisk_a = sum(reshape(g0_norisk,p.nxlong,[]),2);
+        g0ninterp = griddedInterpolant(agrid_short,cumsum(g0_norisk_a),'linear');
+
+
         for ia = 1:numel(p.abars)
-            zidx = agrid(:) <= p.abars(ia);
-            norisk_zidx = agrid_short <= p.abars(ia);
-            
             decomp(ia).term1 = m_ra;
-            decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
-            decomp(ia).term3 = (mbc(~norisk_zidx) - m_ra)' * g0_norisk(~norisk_zidx);
-            decomp(ia).term4 = m0(~zidx)' * g0(~zidx)- mbc(~norisk_zidx)' * g0_norisk(~norisk_zidx);
+
+            if p.abars(ia) == 0
+                zidx = agrid(:) <= p.abars(ia);
+                norisk_zidx = agrid_short <= p.abars(ia);
+
+                decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
+                decomp(ia).term3 = (mbc(~norisk_zidx) - m_ra)' * g0_norisk(~norisk_zidx);
+                decomp(ia).term4 = m0(~zidx)' * g0(~zidx)- mbc(~norisk_zidx)' * g0_norisk(~norisk_zidx);
+            else
+                abar = p.abars(ia);
+                decomp(ia).term2 = mg0interp(abar) - m_ra * g0interp(abar);
+                decomp(ia).term3 = meanmbc - mbcg0interp(abar) - m_ra * (1-g0ninterp(abar));
+                decomp(ia).term4 = (meanm0 - mg0interp(abar)) - (meanmbc - mbcg0interp(abar));
+                
+            end
         end
     else
         for ia = 1:numel(p.abars)
