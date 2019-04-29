@@ -331,7 +331,7 @@ function [results,checks,decomp] = main(p)
     % Create values for fraction constrained (HtM) at every pt in asset space,
     % defining constrained as a <= epsilon * mean annual gross labor income 
     % + borrowing limit
-    sort_aspace = sortrows([agrid basemodel.adist(:)],[1 2]);
+    sort_aspace = sortrows([agrid basemodel.adist(:)]);
     sort_agrid = sort_aspace(:,1);
     sort_adist = sort_aspace(:,2);
 
@@ -625,7 +625,7 @@ function [results,checks,decomp] = main(p)
 
     function gini = direct_gini(level,distr)
         % Sort distribution and levels by levels
-        sorted = sortrows([level(:),distr(:)],[1 2]);
+        sorted = sortrows([level(:),distr(:)]);
         level_sort = sorted(:,1);
         dist_sort  = sorted(:,2);
         S = [0;cumsum(dist_sort .* level_sort)];
