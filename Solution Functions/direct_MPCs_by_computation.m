@@ -57,16 +57,12 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     
     % collect mpcs as a function of state space
     MPCs.mpcs_1_t = cell(1,4);
-
-    maxT = p.freq * 4;
     
     % which periods to apply shock
     if (shocksize < 0) || (p.mpcshocks_after_period1 == 0)
         IS = 1;
-    elseif maxT == 4
-        IS = [1 2 3 4];
     else
-        IS = [1 2 3 4 5 9 13];
+        IS = [1 2 5];
     end
     
     for is = IS
@@ -151,7 +147,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         RHScon = basemodel.statetrans * con_baseline(:);
         LHScon = con_baseline(:);
 
-        for it = is+1:maxT % it > is case, policy fcns stay the same in this region
+        for it = is+1:5 % it > is case, policy fcns stay the same in this region
             mpcs = (T1t * LHScon(:) - RHScon(:)) / mpcamount;
 
             MPCs.avg_s_t{is,it} = basemodel.adist(:)' * mpcs(:);
@@ -170,45 +166,9 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     % ---------------------------------------------------------------------
     % shock in period 1
     MPCs.avg_1_1to4 = cellsum(MPCs.avg_s_t,1,1,4);
-    MPCs.avg_1_5to8 = cellsum(MPCs.avg_s_t,1,5,8);
-    MPCs.avg_1_9to12 = cellsum(MPCs.avg_s_t,1,9,12);
-    MPCs.avg_1_13to16 = cellsum(MPCs.avg_s_t,1,13,16);
-
-    % shock in period 2
-    MPCs.avg_2_1to4 = cellsum(MPCs.avg_s_t,2,1,4);
-    MPCs.avg_2_5to8 = cellsum(MPCs.avg_s_t,2,5,8);
-    MPCs.avg_2_9to12 = cellsum(MPCs.avg_s_t,2,9,12);
-    MPCs.avg_2_13to16 = cellsum(MPCs.avg_s_t,2,13,16);
-
-    % shock in period 3
-    MPCs.avg_3_1to4 = cellsum(MPCs.avg_s_t,3,1,4);
-    MPCs.avg_3_5to8 = cellsum(MPCs.avg_s_t,3,5,8);
-    MPCs.avg_3_9to12 = cellsum(MPCs.avg_s_t,3,9,12);
-    MPCs.avg_3_13to16 = cellsum(MPCs.avg_s_t,3,13,16);
-
-    % shock in period 4
-    MPCs.avg_4_1to4 = cellsum(MPCs.avg_s_t,4,1,4);
-    MPCs.avg_4_5to8 = cellsum(MPCs.avg_s_t,4,5,8);
-    MPCs.avg_4_9to12 = cellsum(MPCs.avg_s_t,4,9,12);
-    MPCs.avg_4_13to16 = cellsum(MPCs.avg_s_t,4,13,16);
 
     % shock in period 5
     MPCs.avg_5_1to4 = cellsum(MPCs.avg_s_t,5,1,4);
-    MPCs.avg_5_5to8 = cellsum(MPCs.avg_s_t,5,5,8);
-    MPCs.avg_5_9to12 = cellsum(MPCs.avg_s_t,5,9,12);
-    MPCs.avg_5_13to16 = cellsum(MPCs.avg_s_t,5,13,16);
-
-    % shock in period 9
-    MPCs.avg_9_1to4 = cellsum(MPCs.avg_s_t,9,1,4);
-    MPCs.avg_9_5to8 = cellsum(MPCs.avg_s_t,9,5,8);
-    MPCs.avg_9_9to12 = cellsum(MPCs.avg_s_t,9,9,12);
-    MPCs.avg_9_13to16 = cellsum(MPCs.avg_s_t,9,13,16);
-
-    % shock in period 13
-    MPCs.avg_13_1to4 = cellsum(MPCs.avg_s_t,13,1,4);
-    MPCs.avg_13_5to8 = cellsum(MPCs.avg_s_t,13,5,8);
-    MPCs.avg_13_9to12 = cellsum(MPCs.avg_s_t,13,9,12);
-    MPCs.avg_13_13to16 = cellsum(MPCs.avg_s_t,13,13,16);
 
     %% --------------------------------------------------------------------
     % DISTRIBUTION OVER AGRID, P(a)

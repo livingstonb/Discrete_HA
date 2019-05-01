@@ -440,9 +440,9 @@ function [results,checks,decomp] = main(p)
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
     % ---------------------------------------------------------------------
     if p.mpcshocks_after_period1 == 1
-        maxT = p.freq * 4;
+        maxT = p.freq * 4 + 1;
     else
-        maxT = 1
+        maxT = 1;
     end
     mpcmodels = cell(maxT,maxT);
     

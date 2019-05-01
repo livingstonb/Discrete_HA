@@ -1,5 +1,5 @@
 function [T_annual,T_quarter] = create_table(params,results,...
-                                            decomps,checks,decomp2,decomp3)
+                                            decomps,checks,NoDecomps,decomp2,decomp3)
     %% Rownames
     rows = {'Specification'
             'Lookup Index'
@@ -7,7 +7,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Mean gross annual income'
             'Stdev log annual gross income'
             'Stdev log annual net income'
-            '____WEALTH STATISTICS'
+            '____WEALTH CONSTRAINTS'
             'Mean assets'
             'Fraction with s == 0'
             'Fraction with a == 0'
@@ -20,6 +20,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Fraction with a <= 1/12 own quarterly income'
             'Fraction with x <= 1/6 own quarterly income'
             'Fraction with x <= 1/12 own quarterly income'
+            '____WEALTH DISTRIBUTION'
             'Wealth, 10th percentile'
             'Wealth, 25th percentile'
             'Wealth, 50th percentile'
@@ -32,167 +33,46 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Wealth, top 1% share'
             'Gini coefficient'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK -1e-5)'
-            'IMPC(1,1), shock=-1e-5'
-            'IMPC(1,2), shock=-1e-5'
-            'IMPC(1,3), shock=-1e-5'
-            'IMPC(1,4), shock=-1e-5'
-            'IMPC(1,1-4), shock=-1e-5'
-            'IMPC(1,5-9), shock=-1e-5'
-            'IMPC(1,10-13), shock=-1e-5'
-            'IMPC(1,13-16), shock=-1e-5'
+            'PERIOD 1 MPC, shock = -1e-5'
+            'PERIOD 2 MPC, shock = -1e-5'
+            'PERIOD 3 MPC shock = -1e-5'
+            'PERIOD 4 MPC shock = -1e-5'
+            'FOUR PERIOD MPC, shock = -1e-5'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK -0.01)'
-            'IMPC(1,1), shock=-0.01'
-            'IMPC(1,2), shock=-0.01'
-            'IMPC(1,3), shock=-0.01'
-            'IMPC(1,4), shock=-0.01'
-            'IMPC(1,1-4), shock=-0.01'
-            'IMPC(1,5-9), shock=-0.01'
-            'IMPC(1,10-13), shock=-0.01'
-            'IMPC(1,13-16), shock=-0.01'
+            'PERIOD 1 MPC, shock = -0.01'
+            'PERIOD 2 MPC, shock = -0.01'
+            'PERIOD 3 MPC shock = -0.01'
+            'PERIOD 4 MPC shock = -0.01'
+            'FOUR PERIOD MPC, shock = -0.01'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK -0.1)'
-            'IMPC(1,1), shock=-0.1'
-            'IMPC(1,2), shock=-0.1'
-            'IMPC(1,3), shock=-0.1'
-            'IMPC(1,4), shock=-0.1'
-            'IMPC(1,1-4), shock=-0.1'
-            'IMPC(1,5-9), shock=-0.1'
-            'IMPC(1,10-13), shock=-0.1'
-            'IMPC(1,13-16), shock=-0.1'
+            'PERIOD 1 MPC, shock = -0.1'
+            'PERIOD 2 MPC, shock = -0.1'
+            'PERIOD 3 MPC shock = -0.1'
+            'PERIOD 4 MPC shock = -0.1'
+            'FOUR PERIOD MPC, shock = -0.1'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK 1e-5)'
-            'IMPC(1,1), shock=1e-5'
-            'IMPC(1,2), shock=1e-5'
-            'IMPC(1,3), shock=1e-5'
-            'IMPC(1,4), shock=1e-5'
-            'IMPC(1,1-4), shock=1e-5'
-            'IMPC(1,5-9), shock=1e-5'
-            'IMPC(1,10-13), shock=1e-5'
-            'IMPC(1,13-16), shock=1e-5'
-            'IMPC(2,1), shock=1e-5'
-            'IMPC(2,2), shock=1e-5'
-            'IMPC(2,3), shock=1e-5'
-            'IMPC(2,4), shock=1e-5'
-            'IMPC(2,1-4), shock=1e-5'
-            'IMPC(2,5-9), shock=1e-5'
-            'IMPC(2,10-13), shock=1e-5'
-            'IMPC(2,13-16), shock=1e-5'
-            'IMPC(3,1), shock=1e-5'
-            'IMPC(3,2), shock=1e-5'
-            'IMPC(3,3), shock=1e-5'
-            'IMPC(3,4), shock=1e-5'
-            'IMPC(3,1-4), shock=1e-5'
-            'IMPC(3,5-9), shock=1e-5'
-            'IMPC(3,10-13), shock=1e-5'
-            'IMPC(3,13-16), shock=1e-5'
-            'IMPC(4,1), shock=1e-5'
-            'IMPC(4,2), shock=1e-5'
-            'IMPC(4,3), shock=1e-5'
-            'IMPC(4,4), shock=1e-5'
-            'IMPC(4,1-4), shock=1e-5'
-            'IMPC(4,5-9), shock=1e-5'
-            'IMPC(4,10-13), shock=1e-5'
-            'IMPC(4,13-16), shock=1e-5'
-            'IMPC(5,1-4), shock=1e-5'
-            'IMPC(5,5-9), shock=1e-5'
-            'IMPC(5,10-13), shock=1e-5'
-            'IMPC(5,13-16), shock=1e-5'
-            'IMPC(9,1-4), shock=1e-5'
-            'IMPC(9,5-9), shock=1e-5'
-            'IMPC(9,10-13), shock=1e-5'
-            'IMPC(9,13-16), shock=1e-5'
-            'IMPC(13,1-4), shock=1e-5'
-            'IMPC(13,5-9), shock=1e-5'
-            'IMPC(13,10-13), shock=1e-5'
-            'IMPC(13,13-16), shock=1e-5'
+            'PERIOD 1 MPC, shock = 1e-5'
+            'PERIOD 2 MPC, shock = 1e-5'
+            'PERIOD 3 MPC shock = 1-5'
+            'PERIOD 4 MPC shock = 1e-5'
+            'FOUR PERIOD MPC, shock = 1e-5'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK 0.01)'
-            'IMPC(1,1), shock=0.01'
-            'IMPC(1,2), shock=0.01'
-            'IMPC(1,3), shock=0.01'
-            'IMPC(1,4), shock=0.01'
-            'IMPC(1,1-4), shock=0.01'
-            'IMPC(1,5-9), shock=0.01'
-            'IMPC(1,10-13), shock=0.01'
-            'IMPC(1,13-16), shock=0.01'
-            'IMPC(2,1), shock=0.01'
-            'IMPC(2,2), shock=0.01'
-            'IMPC(2,3), shock=0.01'
-            'IMPC(2,4), shock=0.01'
-            'IMPC(2,1-4), shock=0.01'
-            'IMPC(2,5-9), shock=0.01'
-            'IMPC(2,10-13), shock=0.01'
-            'IMPC(2,13-16), shock=0.01'
-            'IMPC(3,1), shock=0.01'
-            'IMPC(3,2), shock=0.01'
-            'IMPC(3,3), shock=0.01'
-            'IMPC(3,4), shock=0.01'
-            'IMPC(3,1-4), shock=0.01'
-            'IMPC(3,5-9), shock=0.01'
-            'IMPC(3,10-13), shock=0.01'
-            'IMPC(3,13-16), shock=0.01'
-            'IMPC(4,1), shock=0.01'
-            'IMPC(4,2), shock=0.01'
-            'IMPC(4,3), shock=0.01'
-            'IMPC(4,4), shock=0.01'
-            'IMPC(4,1-4), shock=0.01'
-            'IMPC(4,5-9), shock=0.01'
-            'IMPC(4,10-13), shock=0.01'
-            'IMPC(4,13-16), shock=0.01'
-            'IMPC(5,1-4), shock=0.01'
-            'IMPC(5,5-9), shock=0.01'
-            'IMPC(5,10-13), shock=0.01'
-            'IMPC(5,13-16), shock=0.01'
-            'IMPC(9,1-4), shock=0.01'
-            'IMPC(9,5-9), shock=0.01'
-            'IMPC(9,10-13), shock=0.01'
-            'IMPC(9,13-16), shock=0.01'
-            'IMPC(13,1-4), shock=0.01'
-            'IMPC(13,5-9), shock=0.01'
-            'IMPC(13,10-13), shock=0.01'
-            'IMPC(13,13-16), shock=0.01'
+            'PERIOD 1 MPC, shock = 0.01'
+            'PERIOD 2 MPC, shock = 0.01'
+            'PERIOD 3 MPC shock = 0.01'
+            'PERIOD 4 MPC shock = 0.01'
+            'FOUR PERIOD MPC, shock = 0.01'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK 0.1)'
-            'IMPC(1,1), shock=0.1'
-            'IMPC(1,2), shock=0.1'
-            'IMPC(1,3), shock=0.1'
-            'IMPC(1,4), shock=0.1'
-            'IMPC(1,1-4), shock=0.1'
-            'IMPC(1,5-9), shock=0.1'
-            'IMPC(1,10-13), shock=0.1'
-            'IMPC(1,13-16), shock=0.1'
-            'IMPC(2,1), shock=0.1'
-            'IMPC(2,2), shock=0.1'
-            'IMPC(2,3), shock=0.1'
-            'IMPC(2,4), shock=0.1'
-            'IMPC(2,1-4), shock=0.1'
-            'IMPC(2,5-9), shock=0.1'
-            'IMPC(2,10-13), shock=0.1'
-            'IMPC(2,13-16), shock=0.1'
-            'IMPC(3,1), shock=0.1'
-            'IMPC(3,2), shock=0.1'
-            'IMPC(3,3), shock=0.1'
-            'IMPC(3,4), shock=0.1'
-            'IMPC(3,1-4), shock=0.1'
-            'IMPC(3,5-9), shock=0.1'
-            'IMPC(3,10-13), shock=0.1'
-            'IMPC(3,13-16), shock=0.1'
-            'IMPC(4,1), shock=0.1'
-            'IMPC(4,2), shock=0.1'
-            'IMPC(4,3), shock=0.1'
-            'IMPC(4,4), shock=0.1'
-            'IMPC(4,1-4), shock=0.1'
-            'IMPC(4,5-9), shock=0.1'
-            'IMPC(4,10-13), shock=0.1'
-            'IMPC(4,13-16), shock=0.1'
-            'IMPC(5,1-4), shock=0.1'
-            'IMPC(5,5-9), shock=0.1'
-            'IMPC(5,10-13), shock=0.1'
-            'IMPC(5,13-16), shock=0.1'
-            'IMPC(9,1-4), shock=0.1'
-            'IMPC(9,5-9), shock=0.1'
-            'IMPC(9,10-13), shock=0.1'
-            'IMPC(9,13-16), shock=0.1'
-            'IMPC(13,1-4), shock=0.1'
-            'IMPC(13,5-9), shock=0.1'
-            'IMPC(13,10-13), shock=0.1'
-            'IMPC(13,13-16), shock=0.1'
+            'PERIOD 1 MPC, shock = 0.1'
+            'PERIOD 2 MPC, shock = 0.1'
+            'PERIOD 3 MPC shock = 0.1'
+            'PERIOD 4 MPC shock = 0.1'
+            'FOUR PERIOD MPC, shock = 0.1'
+            '____MPC OUT OF NEWS'
+            '(A/Q) MPC, shock = 0.01 next period'
+            '(A/Q) MPC, shock = 0.1 next period'
+            '(A/Q) MPC, shock = 0.01 in four periods'
+            '(A/Q) MPC, shock = 0.1 in four periods'
             '____DECOMP OF IMPC(1,1) (MPC OUT OF FRACTION MEAN ANN INC)'
             '(A/Q) Decomp of Em0 around 0, RA MPC'
             '(A/Q) Decomp of Em0 around 0, HtM Effect'
@@ -276,69 +156,66 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     column = [p.index;NaN(Nrows-1,1)];
             else
                 
-                % decomposition1
-                dec1 = [[decomps{ip}.term1]
-                        [decomps{ip}.term2]
-                        [decomps{ip}.term3]
-                        [decomps{ip}.term4]];
-                    
-                % decomposition2
-                dec2_mpc1 = [decomp2(ip).mpc1_Em1_less_Em0
-                                decomp2(ip).mpc1_term1                       
-                                decomp2(ip).mpc1_term2
-                                decomp2(ip).mpc1_term3
-                                decomp2(ip).mpc1_term2a(1)   
-                                decomp2(ip).mpc1_term2b(1)
-                                decomp2(ip).mpc1_term2a(2)   
-                                decomp2(ip).mpc1_term2b(2)
-                                decomp2(ip).mpc1_term2a(3)   
-                                decomp2(ip).mpc1_term2b(3)];
-                dec2_mpc4 = [decomp2(ip).mpc4_Em1_less_Em0
-                                decomp2(ip).mpc4_term1                       
-                                decomp2(ip).mpc4_term2
-                                decomp2(ip).mpc4_term3
-                                decomp2(ip).mpc4_term2a(1)   
-                                decomp2(ip).mpc4_term2b(1)
-                                decomp2(ip).mpc4_term2a(2)   
-                                decomp2(ip).mpc4_term2b(2)
-                                decomp2(ip).mpc4_term2a(3)   
-                                decomp2(ip).mpc4_term2b(3)];
-                dec3_mpc1 = [decomp3(ip).mpc1_Em1_less_mRA
-                                decomp3(ip).mpc1_term1
-                                decomp3(ip).mpc1_term2
-                                decomp3(ip).mpc1_term3];
-                dec3_mpc4 = [decomp3(ip).mpc4_Em1_less_mRA
-                                decomp3(ip).mpc4_term1
-                                decomp3(ip).mpc4_term2
-                                decomp3(ip).mpc4_term3];
-                            
-                if p.freq == 1
-                    dec2_A = dec2_mpc1;
-                    dec2_Q = NaN(10,1);
+                if ~NoDecomps
+                    % decomposition1
+                    dec1 = [[decomps{ip}.term1]
+                            [decomps{ip}.term2]
+                            [decomps{ip}.term3]
+                            [decomps{ip}.term4]];
+
+                    % decomposition2
+                    dec2_mpc1 = [decomp2(ip).mpc1_Em1_less_Em0
+                                    decomp2(ip).mpc1_term1                       
+                                    decomp2(ip).mpc1_term2
+                                    decomp2(ip).mpc1_term3
+                                    decomp2(ip).mpc1_term2a(1)   
+                                    decomp2(ip).mpc1_term2b(1)
+                                    decomp2(ip).mpc1_term2a(2)   
+                                    decomp2(ip).mpc1_term2b(2)
+                                    decomp2(ip).mpc1_term2a(3)   
+                                    decomp2(ip).mpc1_term2b(3)];
+                    dec2_mpc4 = [decomp2(ip).mpc4_Em1_less_Em0
+                                    decomp2(ip).mpc4_term1                       
+                                    decomp2(ip).mpc4_term2
+                                    decomp2(ip).mpc4_term3
+                                    decomp2(ip).mpc4_term2a(1)   
+                                    decomp2(ip).mpc4_term2b(1)
+                                    decomp2(ip).mpc4_term2a(2)   
+                                    decomp2(ip).mpc4_term2b(2)
+                                    decomp2(ip).mpc4_term2a(3)   
+                                    decomp2(ip).mpc4_term2b(3)];
+                    dec3_mpc1 = [decomp3(ip).mpc1_Em1_less_mRA
+                                    decomp3(ip).mpc1_term1
+                                    decomp3(ip).mpc1_term2
+                                    decomp3(ip).mpc1_term3];
+                    dec3_mpc4 = [decomp3(ip).mpc4_Em1_less_mRA
+                                    decomp3(ip).mpc4_term1
+                                    decomp3(ip).mpc4_term2
+                                    decomp3(ip).mpc4_term3];
+
+                    if p.freq == 1
+                        dec2_A = dec2_mpc1;
+                        dec2_Q = NaN(10,1);
+                    else
+                        dec2_A = dec2_mpc4;
+                        dec2_Q = dec2_mpc1;
+                    end
                 else
-                    dec2_A = dec2_mpc4;
-                    dec2_Q = dec2_mpc1;
+                	dec2_A = NaN(10,1);
+                	dec2_Q = NaN(10,1);
+                	dec3_mpc1 = NaN(4,1);
+                	dec3_mpc4 = NaN(4,1);
+                    dec1 = NaN(12,1);
                 end
 
                 s_t_mpcs = cell(1,6);
 
                 for i = 1:3
-%                     s_t_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}         % IMPC(1,1)
-%                                     results(ip).direct.mpcs(i).avg_s_t{1,2}        % IMPC(1,2)
-%                                     results(ip).direct.mpcs(i).avg_s_t{1,3}        % IMPC(1,3)
-%                                     results(ip).direct.mpcs(i).avg_s_t{1,4}        % IMPC(1,4)
-%                                     results(ip).direct.mpcs(i).avg_1_1to4          % IMPC(1,1-4)
-%                                     results(ip).direct.mpcs(i).avg_1_5to8          % IMPC(1,5-8)
-%                                     results(ip).direct.mpcs(i).avg_1_9to12         % IMPC(1,9-12)
-%                                     results(ip).direct.mpcs(i).avg_1_13to16];
                     s_t_mpcs{i} = [results(ip).direct.mpcs_sim.avg_1_1(i)
                                     results(ip).direct.mpcs_sim.avg_1_2(i)
                                     results(ip).direct.mpcs_sim.avg_1_3(i)
                                     results(ip).direct.mpcs_sim.avg_1_4(i)
-                                    results(ip).direct.mpcs_sim.avg_1_1to4(i)
-                                    results(ip).direct.mpcs_sim.avg_1_5to8(i)
-                                    results(ip).direct.mpcs_sim.avg_1_9to12(i)
-                                    results(ip).direct.mpcs_sim.avg_1_13to16(i)];
+                                    results(ip).direct.mpcs_sim.avg_1_1to4(i)];
                 end
 
                 for i = 4:6
@@ -346,46 +223,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                                     results(ip).direct.mpcs(i).avg_s_t{1,2}        % IMPC(1,2)
                                     results(ip).direct.mpcs(i).avg_s_t{1,3}        % IMPC(1,3)
                                     results(ip).direct.mpcs(i).avg_s_t{1,4}        % IMPC(1,4)
-                                    results(ip).direct.mpcs(i).avg_1_1to4          % IMPC(1,1-4)
-                                    results(ip).direct.mpcs(i).avg_1_5to8          % IMPC(1,5-8)
-                                    results(ip).direct.mpcs(i).avg_1_9to12         % IMPC(1,9-12)
-                                    results(ip).direct.mpcs(i).avg_1_13to16        % IMPC(1,13-16)
-                                    results(ip).direct.mpcs(i).avg_s_t{2,1}        % IMPC(2,1)
-                                    results(ip).direct.mpcs(i).avg_s_t{2,2}        % IMPC(2,2)
-                                    results(ip).direct.mpcs(i).avg_s_t{2,3}        % IMPC(2,3)
-                                    results(ip).direct.mpcs(i).avg_s_t{2,4}        % IMPC(2,4)
-                                    results(ip).direct.mpcs(i).avg_2_1to4          % IMPC(2,1-4)
-                                    results(ip).direct.mpcs(i).avg_2_5to8          % IMPC(2,5-8)
-                                    results(ip).direct.mpcs(i).avg_2_9to12         % IMPC(2,9-12)
-                                    results(ip).direct.mpcs(i).avg_2_13to16        % IMPC(2,13-16)
-                                    results(ip).direct.mpcs(i).avg_s_t{3,1}        % IMPC(3,1)
-                                    results(ip).direct.mpcs(i).avg_s_t{3,2}        % IMPC(3,2)
-                                    results(ip).direct.mpcs(i).avg_s_t{3,3}        % IMPC(3,3)
-                                    results(ip).direct.mpcs(i).avg_s_t{3,4}        % IMPC(3,4)
-                                    results(ip).direct.mpcs(i).avg_3_1to4          % IMPC(3,1-4)
-                                    results(ip).direct.mpcs(i).avg_3_5to8          % IMPC(3,5-8)
-                                    results(ip).direct.mpcs(i).avg_3_9to12         % IMPC(3,9-12)
-                                    results(ip).direct.mpcs(i).avg_3_13to16        % IMPC(3,13-16)
-                                    results(ip).direct.mpcs(i).avg_s_t{4,1}        % IMPC(4,1)
-                                    results(ip).direct.mpcs(i).avg_s_t{4,2}        % IMPC(4,2)
-                                    results(ip).direct.mpcs(i).avg_s_t{4,3}        % IMPC(4,3)
-                                    results(ip).direct.mpcs(i).avg_s_t{4,4}        % IMPC(4,4)
-                                    results(ip).direct.mpcs(i).avg_4_1to4          % IMPC(4,1-4)
-                                    results(ip).direct.mpcs(i).avg_4_5to8          % IMPC(4,5-8)
-                                    results(ip).direct.mpcs(i).avg_4_9to12         % IMPC(4,9-12)
-                                    results(ip).direct.mpcs(i).avg_4_13to16        % IMPC(4,13-16)
-                                    results(ip).direct.mpcs(i).avg_5_1to4          % IMPC(5,13-16)
-                                    results(ip).direct.mpcs(i).avg_5_5to8          % IMPC(5,5-8)
-                                    results(ip).direct.mpcs(i).avg_5_9to12         % IMPC(5,9-12)
-                                    results(ip).direct.mpcs(i).avg_5_13to16        % IMPC(5,13-16)
-                                    results(ip).direct.mpcs(i).avg_9_1to4          % IMPC(9,1-4)
-                                    results(ip).direct.mpcs(i).avg_9_5to8          % IMPC(9,5-8)
-                                    results(ip).direct.mpcs(i).avg_9_9to12         % IMPC(9,9-12)
-                                    results(ip).direct.mpcs(i).avg_9_13to16        % IMPC(9,13-16)
-                                    results(ip).direct.mpcs(i).avg_13_1to4         % IMPC(13,1-4)
-                                    results(ip).direct.mpcs(i).avg_13_5to8         % IMPC(13,5-8)
-                                    results(ip).direct.mpcs(i).avg_13_9to12        % IMPC(13,9-12)
-                                    results(ip).direct.mpcs(i).avg_13_13to16];     % IMPC(13,13-16)
+                                    results(ip).direct.mpcs(i).avg_1_1to4];          % IMPC(1,1-4)
                 end
 
                 column = [
@@ -402,6 +240,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     results(ip).direct.a_twelfth_sim       % Fraction with a < 1/12 quarterly income
                     results(ip).direct.x_sixth_sim
                     results(ip).direct.x_twelfth_sim
+                    NaN
                     results(ip).direct.wpercentiles(:)      % Wealth percentiles
                     results(ip).direct.top10share           % Top 10% wealth share
                     results(ip).direct.top1share            % Top 1% wealth share
@@ -418,6 +257,11 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     s_t_mpcs{5}
                     NaN
                     s_t_mpcs{6}
+                    NaN
+                    results(ip).direct.mpcs(5).avg_s_t{2,1}
+                    results(ip).direct.mpcs(6).avg_s_t{2,1}
+                    results(ip).direct.mpcs(5).avg_s_t{5,1}
+                    results(ip).direct.mpcs(6).avg_s_t{5,1}
                     NaN
                     dec1(:)                                 % Decomp1
                     NaN
