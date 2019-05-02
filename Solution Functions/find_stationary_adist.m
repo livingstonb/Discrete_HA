@@ -1,16 +1,20 @@
-function [adist,xdist,xvals,incvals,netincvals,statetrans,diff] = find_stationary_adist(p,model,...
-                                        income,prefs,agridinput)
+function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     % Finds the stationary distribution and transition matrix for a given
-    % agridinput
+    % grids.a.vec
+    
+    modelupdate = model;
 
     if p.Display == 1
         fprintf(' Computing state-to-state transition probabilities... \n');
     end
 
-    gridsize = size(agridinput,1);
- 
-    NN = gridsize * p.nyP * p.nyF * p.nb;
-    nn = gridsize;
+    nx = size(grids.a.vec,1);
+    if nx == p.nx
+        netymat = income.netymatHJB;
+    elseif nx == p.nx_KFE
+        netymat = income.netymatKFE;
+    end
+
     
     % transition matrix between (yP,yF,beta) states cond'l on dying
     yPtrans_stationary = repmat(income.yPdist',p.nyP,1);
@@ -23,22 +27,18 @@ function [adist,xdist,xvals,incvals,netincvals,statetrans,diff] = find_stationar
         trans_live = kron(prefs.IEStrans,kron(eye(p.nyF),income.yPtrans));
         trans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_stationary));
     end
-    
-    agrid_full = repmat(agridinput,[1 p.nyP p.nyF p.nyT]);
-    netymat_full = reshape(income.netymat,[1 p.nyP p.nyF p.nyT]);
-    netymat_full = repmat(netymat_full,[p.nxlong 1 1 1]);
-    
+
     % cash-on-hand as function of (a,yP,yF,yT)
-    x = agrid_full + netymat_full;
+    x = grids.a.matrix + netymat;
     
     % saving interpolated onto this grid
-    sav = zeros(gridsize,p.nyP,p.nyF,p.nb,p.nyT);
+    sav = zeros(nx,p.nyP,p.nyF,p.nb,p.nyT);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
         x_iyP_iyF = x(:,iyP,iyF,:);
         sav_iyP_iyF_ib = model.savinterp{iyP,iyF,ib}(x_iyP_iyF(:));
-        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_ib,[p.nxlong 1 1 1 p.nyT]);
+        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_ib,[nx 1 1 1 p.nyT]);
     end
     end
     end
@@ -46,32 +46,32 @@ function [adist,xdist,xvals,incvals,netincvals,statetrans,diff] = find_stationar
     aprime_live = p.R * sav;
 
     % transition matrix over (x,yP,yF,beta) full asset space
-    statetrans = sparse(NN,NN);
+    modelupdate.statetrans = sparse(nx*p.nyP*p.nyF*p.nb,nx*p.nyP*p.nyF*p.nb);
     % create spline object
-    fspace = fundef({'spli',agridinput,0,1});
+    fspace = fundef({'spli',grids.a.vec,0,1});
     % get interpolated probabilities and take expectation over yT
     interp_live = funbas(fspace,aprime_live(:));
-    interp_live = reshape(interp_live,NN,nn*p.nyT);
-    interp_live = interp_live * kron(speye(nn),income.yTdist);
+    interp_live = reshape(interp_live,nx*p.nyP*p.nyF*p.nb,nx*p.nyT);
+    interp_live = interp_live * kron(speye(nx),income.yTdist);
     if p.Bequests == 1
         interp_death = interp_live;
     else
-        interp_death = sparse(NN,nn);
-        interp_death(:,1) = ones(NN,1);
+        interp_death = sparse(nx,nx);
+        interp_death(:,1) = ones(nx,1);
     end
 
     col = 1;
     for ib2 = 1:p.nb
     for iyF2 = 1:p.nyF
     for iyP2 = 1:p.nyP
-        transcol_live = kron(trans_live(:,col),ones(gridsize,1));
-        transcol_death = kron(trans_death(:,col),ones(gridsize,1));
+        transcol_live = kron(trans_live(:,col),ones(nx,1));
+        transcol_death = kron(trans_death(:,col),ones(nx,1));
         
-        transcol_live = bsxfun(@times,transcol_live,interp_live);
-        transcol_death = bsxfun(@times,transcol_death,interp_death);
+        transcol_live = transcol_live .* interp_live;
+        transcol_death = transcol_death .* interp_death;
 
         % add new column to transition matrix
-        statetrans(:,nn*(col-1)+1:nn*col) = ...
+        modelupdate.statetrans(:,nx*(col-1)+1:nx*col) = ...
             (1-p.dieprob)*transcol_live + p.dieprob*transcol_death;
         col = col + 1;
     end
@@ -85,42 +85,43 @@ function [adist,xdist,xvals,incvals,netincvals,statetrans,diff] = find_stationar
     end
 
 %     % No fixed heterogeneity
-%     opts.v0 = zeros(NN,1);
+%     opts.v0 = zeros(nx,1);
 %     opts.v0(1) = 1;
 %     [adist,~] = eigs(statetrans',1,1,opts);
 %     adist = adist/sum(adist);
 
-    q=zeros(1,NN);
+    q=zeros(1,nx*p.nyP*p.nyF*p.nb);
     % Create valid initial distribution for both yF & beta
     % Repmat automatically puts equal weight on each beta
-    q(1,1:nn*p.nyP:end)=repmat(income.yFdist,p.nb,1) / p.nb;
+    q(1,1:nx*p.nyP:end)=repmat(income.yFdist,p.nb,1) / p.nb;
     diff=1; 
     iter = 1;
     while diff>1e-8 && iter < 5e4
-        z=q*statetrans;
-        diff=norm(z-q);
-        q=z;
-        if p.Display==1 && mod(iter,100)==0
+        z = q*modelupdate.statetrans;
+        diff = norm(z-q);
+        q = z;
+        if p.Display == 1 && mod(iter,100) == 0
             fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
         end
         iter = iter + 1;
     end
     if iter >= 5e4
-        error('No conv to statdist, diff = %5.3e',diff)
+        error('No conv to statdist, diff = %5.3e',adiff)
     end
 
-    adist = reshape(full(q'),[nn,p.nyP,p.nyF,p.nb]);
+    modelupdate.adiff = diff;
+    modelupdate.adist = reshape(full(q'),[nx,p.nyP,p.nyF,p.nb]);
     
     % get distribution over (x,yP,yF,beta)
-    xdist = kron(income.yTdist,reshape(adist,nn,[]));
-    xdist = reshape(xdist,[nn*p.nyT p.nyP p.nyF p.nb]);
+    xdist = kron(income.yTdist,reshape(modelupdate.adist,nx,[]));
+    modelupdate.xdist = reshape(xdist,[nx*p.nyT p.nyP p.nyF p.nb]);
     
-    % Extend xvals to (p.nxlong*p.nyT,p.nyP,p.nyF,p.nyT)
+    % Extend xvals to (nx*p.nyT,p.nyP,p.nyF,p.nyT)
     incvals = reshape(income.ymat,[p.nyP*p.nyF p.nyT]);
     incvals = permute(incvals,[2 1]);
-    incvals = kron(incvals,ones(nn,1));
-    incvals = reshape(incvals,[nn*p.nyT p.nyP p.nyF]);
-    incvals = repmat(incvals,[1 1 1 p.nb]);
-    netincvals = income.lumptransfer + (1-p.labtaxlow)*incvals - p.labtaxhigh*max(incvals-income.labtaxthresh,0);
-    xvals = repmat(agridinput,[p.nyT p.nyP p.nyF p.nb]) + netincvals;
+    incvals = kron(incvals,ones(nx,1));
+    incvals = reshape(incvals,[nx*p.nyT p.nyP p.nyF]);
+    modelupdate.y_x = repmat(incvals,[1 1 1 p.nb]);
+    modelupdate.nety_x = income.lumptransfer + (1-p.labtaxlow)*incvals - p.labtaxhigh*max(incvals-income.labtaxthresh,0);
+    modelupdate.xvals = repmat(grids.a.vec,[p.nyT p.nyP p.nyF p.nb]) + modelupdate.nety_x;
 end

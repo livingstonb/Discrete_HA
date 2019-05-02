@@ -1,6 +1,8 @@
-function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,agrid_short)
+function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,grids)
 
  %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITHOUT INCOME RISK)
+    norisk_mpcs1_a_direct = cell(1,6);
+ 
     for im = 0:numel(p.mpcfrac)
         if im == 0
             mpcamount = 0;
@@ -8,8 +10,8 @@ function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,inco
             mpcamount = p.mpcfrac(im)*income.meany1*p.freq;
         end
         
-        x_mpc = agrid_short + income.meany1 + mpcamount;
-        con = zeros(p.nxlong,p.nb);
+        x_mpc = grids.a.vec + income.meany1 + mpcamount;
+        con = zeros(p.nx_KFE,p.nb);
         for ib = 1:p.nb
             con(:,ib) = norisk.coninterp{ib}(x_mpc);
         end

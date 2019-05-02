@@ -1,15 +1,11 @@
-function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,direct_results)
+function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
     % This function uses the method of endogenous grid points to find the
     % policy functions of the deterministic model. Output is in the
     % 'norisk' structure.
 
-    mucnext = zeros(p.nx,p.nb);
     coninterp = cell(1,p.nb);
     sav = zeros(p.nx,p.nb);
     mucnext= zeros(p.nx,p.nb);
-    muc1= zeros(p.nx,p.nb);
-    con1= zeros(p.nx,p.nb);
-    cash1= zeros(p.nx,p.nb);
     
     betagrid = direct_results.beta + prefs.betagrid0;
     
@@ -29,7 +25,7 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,direct_resu
         extra = 0;
     end
     
-    con = (p.r + extra) * repmat(sgrid.short,1,p.nb) + income.meany1;
+    con = (p.r + extra) * repmat(grids.s.vec,1,p.nb) + income.meany1;
 
     iter = 0;
     cdiff = 1000;
@@ -39,15 +35,15 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,direct_resu
         conlast = con;
         
         for ib = 1:p.nb
-            coninterp{ib} = griddedInterpolant(xgrid.norisk_short,conlast(:,ib),'linear');
+            coninterp{ib} = griddedInterpolant(grids.x.vec_norisk,conlast(:,ib),'linear');
             
             % cash-on-hand is just Rs + meany
             if numel(p.risk_aver) == 1
-                mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R.*sgrid.short + income.meany1))...
-                                - p.temptation/(1+p.temptation) * prefs.u1(p.R.*sgrid.short + income.meany1);
+                mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R.*grids.s.vec + income.meany1))...
+                                - p.temptation/(1+p.temptation) * prefs.u1(p.R.*grids.s.vec + income.meany1);
             else
-                mucnext(:,ib) = prefs.u1(risk_aver_mat(:,ib),coninterp{ib}(p.R.*sgrid.short + income.meany1))...
-                                - p.temptation/(1+p.temptation) * prefs.u1(risk_aver_mat(:,ib),p.R.*sgrid.short + income.meany1);
+                mucnext(:,ib) = prefs.u1(risk_aver_mat(:,ib),coninterp{ib}(p.R.*grids.s.vec + income.meany1))...
+                                - p.temptation/(1+p.temptation) * prefs.u1(risk_aver_mat(:,ib),p.R.*grids.s.vec + income.meany1);
             end
         end
         
@@ -60,8 +56,8 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,direct_resu
             betastacked = repmat(betagrid',p.nx,p.nb);
         end
         muc1 = (1-p.dieprob) * p.R * betastacked .* emuc ...
-                ./ (1+p.savtax*(repmat(sgrid.short,1,p.nb)>=p.savtaxthresh))...
-                + p.dieprob * prefs.beq1(repmat(sgrid.short,1,p.nb));
+                ./ (1+p.savtax*(repmat(grids.s.vec,1,p.nb)>=p.savtaxthresh))...
+                + p.dieprob * prefs.beq1(repmat(grids.s.vec,1,p.nb));
         
         if numel(p.risk_aver) == 1
             con1 = prefs.u1inv(muc1);
@@ -69,15 +65,15 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,direct_resu
             con1 = prefs.u1inv(risk_aver_mat,muc1);
         end
         
-        cash1 = con1 + repmat(sgrid.short,1,p.nb)...
-            + p.savtax * max(repmat(sgrid.short,1,p.nb) - p.savtaxthresh,0);
+        cash1 = con1 + repmat(grids.s.vec,1,p.nb)...
+            + p.savtax * max(repmat(grids.s.vec,1,p.nb) - p.savtaxthresh,0);
         
         for ib = 1:p.nb
-            savinterp = griddedInterpolant(cash1(:,ib),sgrid.short,'linear');
-            sav(:,ib) = savinterp(xgrid.norisk_short);
+            savinterp = griddedInterpolant(cash1(:,ib),grids.s.vec,'linear');
+            sav(:,ib) = savinterp(grids.x.vec_norisk);
         end
         sav(sav<p.borrow_lim) = p.borrow_lim;
-        con = repmat(xgrid.norisk_short,1,p.nb) - sav...
+        con = repmat(grids.x.vec_norisk,1,p.nb) - sav...
                                 - p.savtax * max(sav - p.savtaxthresh,0);
         
         cdiff = max(abs(con(:)-conlast(:)));
@@ -91,8 +87,8 @@ function norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,direct_resu
     
     % Store consumption and savings function interpolants
     for ib = 1:p.nb
-        norisk.coninterp{ib} = griddedInterpolant(xgrid.norisk_short,con(:,ib),'linear');
-        norisk.savinterp{ib} = griddedInterpolant(xgrid.norisk_short,sav(:,ib),'linear');
+        norisk.coninterp{ib} = griddedInterpolant(grids.x.vec_norisk,con(:,ib),'linear');
+        norisk.savinterp{ib} = griddedInterpolant(grids.x.vec_norisk,sav(:,ib),'linear');
     end
     
    

@@ -94,84 +94,89 @@ function [results,checks,decomp] = main(p)
     % ASSET GRIDS
     % ---------------------------------------------------------------------
     
+    grdHJB = struct('s',struct(),'x',struct());
+    grdKFE = struct('x',struct());
+    
     % savings grids
-    sgrid.orig = linspace(0,1,p.nx)';
-    sgrid.orig = sgrid.orig.^(1./p.xgrid_par);
-    sgrid.orig = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid.orig;
-    sgrid.short = sgrid.orig;
+    sgrid = linspace(0,1,p.nx)';
+    sgrid = sgrid.^(1./p.xgrid_par);
+    sgrid = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid;
     
     % Force grid spacing >= gridspace_min near 0
     for ix = 1:p.nx-1
-        if sgrid.short(ix+1) - sgrid.short(ix) < p.gridspace_min
-            sgrid.short(ix+1) = sgrid.short(ix) + p.gridspace_min;
+        if sgrid(ix+1) - sgrid(ix) < p.gridspace_min
+            sgrid(ix+1) = sgrid(ix) + p.gridspace_min;
         else
             break
         end
     end
     
-    sgrid.full = repmat(sgrid.short,[1 p.nyP p.nyF]);
+    grdHJB.s.vec = sgrid;
+    grdHJB.s.matrix = repmat(sgrid,[1 p.nyP p.nyF]);
 
     % xgrids (cash on hand), different min points for each value of (iyP,iyF)
-    minyT               = kron(min(income.netymat,[],2),ones(p.nx,1));
-    xgrid.orig          = p.R * sgrid.full(:) + minyT;
-    xgrid.full          = reshape(xgrid.orig,[p.nx p.nyP p.nyF]);
+    minyT = kron(min(income.netymat,[],2),ones(p.nx,1));
+    xgrid = p.R * grdHJB.s.matrix(:) + minyT;
+    grdHJB.x.matrix = reshape(xgrid,[p.nx p.nyP p.nyF]);
     
     % xgrid for model without income risk
-    xgrid.norisk_short  = sgrid.short + income.meany1;
+    xgrid_norisk  = grdHJB.s.vec + income.meany1;
     for ix = 1:p.nx-1
-        if xgrid.norisk_short(ix+1) - xgrid.norisk_short(ix) < p.gridspace_min
-            xgrid.norisk_short(ix+1) = xgrid.norisk_short(ix) + p.gridspace_min;
+        if xgrid_norisk(ix+1) - xgrid_norisk(ix) < p.gridspace_min
+            xgrid_norisk(ix+1) = xgrid_norisk(ix) + p.gridspace_min;
         else
             break
         end
     end
-    xgrid.norisk_longgrid = linspace(0,1,p.nxlong);
-    xgrid.norisk_longgrid = xgrid.norisk_longgrid.^(1/p.xgrid_par);
+    grdHJB.x.vec_norisk = xgrid_norisk;
+    
+    xgrid_norisk = linspace(0,1,p.nx_KFE);
+    xgrid_norisk = xgrid_norisk.^(1/p.xgrid_par);
     % Force grid spacing >= gridspace_min near 0
-    for ix = 1:p.nxlong-1
-        if xgrid.norisk_longgrid(ix+1) - xgrid.norisk_longgrid(ix) < p.gridspace_min
-            xgrid.norisk_longgrid(ix+1) = xgrid.norisk_longgrid(ix) + p.gridspace_min;
+    for ix = 1:p.nx_KFE-1
+        if xgrid_norisk(ix+1) - xgrid_norisk(ix) < p.gridspace_min
+            xgrid_norisk(ix+1) = xgrid_norisk(ix) + p.gridspace_min;
         else
             break
         end
     end
-    xgrid.norisk_longgrid = p.borrow_lim + (p.xmax-p.borrow_lim).*xgrid.norisk_longgrid;
-    xgrid.norisk_longgrid = xgrid.norisk_longgrid + income.meany1;
+    xgrid_norisk = p.borrow_lim + (p.xmax-p.borrow_lim).*xgrid_norisk;
+    grdKFE.x.vec_norisk = xgrid_norisk + income.meany1;
     
     % create longer xgrid
-    minyT = kron(min(income.netymat,[],2),ones(p.nxlong,1));
-    xgrid.longgrid = linspace(0,1,p.nxlong)';
-    xgrid.longgrid = xgrid.longgrid.^(1/p.xgrid_par);
-    xgrid.longgrid = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid.longgrid;
+    minyT = kron(min(income.netymat,[],2),ones(p.nx_KFE,1));
+    xgrid= linspace(0,1,p.nx_KFE)';
+    xgrid = xgrid.^(1/p.xgrid_par);
+    xgrid = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid;
     % Force grid spacing >= gridspace_min near 0
-    for ix = 1:p.nxlong-1
-        if xgrid.longgrid(ix+1) - xgrid.longgrid(ix) < p.gridspace_min
-            xgrid.longgrid(ix+1) = xgrid.longgrid(ix) + p.gridspace_min;
+    for ix = 1:p.nx_KFE-1
+        if xgrid(ix+1) - xgrid(ix) < p.gridspace_min
+            xgrid(ix+1) = xgrid(ix) + p.gridspace_min;
         else
             break
         end
     end
-    xgrid.longgrid = repmat(xgrid.longgrid,p.nyP*p.nyF,1);
-    xgrid.longgrid = xgrid.longgrid + minyT;
-    xgrid.longgrid = reshape(xgrid.longgrid,[p.nxlong p.nyP p.nyF]);
+    xgrid = repmat(xgrid,p.nyP*p.nyF,1);
+    xgrid = xgrid + minyT;
+    grdKFE.x.matrix = reshape(xgrid,[p.nx_KFE p.nyP p.nyF]);
     
     % Create common agrid to compute mpcs along same agrid for all
-    % parameterizations. Dimension nxlong x 1
-    % Decomp2 only valid between specs with same nxlong, xgrid_par,
+    % parameterizations. Dimension nx_KFE x 1
+    % Decomp2 only valid between specs with same nx_KFE, xgrid_par,
     % borrow_lim, and xmax
-    agrid = linspace(0,1,p.nxlong)';
+    agrid = linspace(0,1,p.nx_KFE)';
     agrid = agrid.^(1/p.xgrid_par);
     agrid = p.borrow_lim + (p.xmax - p.borrow_lim) * agrid;
     % Force grid spacing >= gridspace_min near 0
-    for ia = 1:p.nxlong-1
+    for ia = 1:p.nx_KFE-1
         if agrid(ia+1) - agrid(ia) < p.gridspace_min
             agrid(ia+1) = agrid(ia) + p.gridspace_min;
         else
             break
         end
     end
-    agrid_short = agrid;
-    agrid = repmat(agrid,p.nyP*p.nyF*p.nb,1);
+    grdKFE.a.vec = agrid;
+    grdKFE.a.matrix = repmat(agrid,[1,p.nyP,p.nyF,p.nb]);
     
     %% --------------------------------------------------------------------
     % UTILITY FUNCTION, BEQUEST FUNCTION
@@ -221,9 +226,9 @@ function [results,checks,decomp] = main(p)
         mpcshock = 0;
         Iterating = 1;
         if p.EpsteinZin == 1
-            iterate_EGP = @(x) solve_EGP_EZ(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+            iterate_EGP = @(x) solve_EGP_EZ(x,p,grdHJB,grdKFE,prefs,income);
         else
-            iterate_EGP = @(x) solve_EGP(x,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock,[]);
+            iterate_EGP = @(x) solve_EGP(x,p,grdHJB,grdKFE,prefs,income,mpcshock,[]);
         end
 
         if p.nb == 1
@@ -252,10 +257,10 @@ function [results,checks,decomp] = main(p)
     % 'basemodel' structure
     Iterating = 0;
     if p.EpsteinZin == 1
-        [~,basemodel] = solve_EGP_EZ(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating);
+        [~,basemodel] = solve_EGP_EZ(beta_final,p,grdHJB,grdKFE,prefs,income);
     else
         mpcshock = 0;
-        [~,basemodel] = solve_EGP(beta_final,p,xgrid,sgrid,agrid_short,prefs,income,Iterating,mpcshock,[]);
+        [~,basemodel] = solve_EGP(beta_final,p,grdHJB,grdKFE,prefs,income,mpcshock,[]);
     end
     results.direct.adist = basemodel.adist;
 
@@ -290,9 +295,9 @@ function [results,checks,decomp] = main(p)
    
     % Reconstruct yPdist and yFdist from computed stationary distribution 
     % for sanity check
-    yPdist_check = reshape(basemodel.adist,[p.nxlong p.nyP p.nyF*p.nb]);
+    yPdist_check = reshape(basemodel.adist,[p.nx_KFE p.nyP p.nyF*p.nb]);
     yPdist_check = sum(sum(yPdist_check,3),1)';
-    yFdist_check = reshape(basemodel.adist,[p.nxlong*p.nyP p.nyF p.nb]);
+    yFdist_check = reshape(basemodel.adist,[p.nx_KFE*p.nyP p.nyF p.nb]);
     yFdist_check = sum(sum(yFdist_check,3),1)';
     
     %% --------------------------------------------------------------------
@@ -331,7 +336,7 @@ function [results,checks,decomp] = main(p)
     % Create values for fraction constrained (HtM) at every pt in asset space,
     % defining constrained as a <= epsilon * mean annual gross labor income 
     % + borrowing limit
-    sort_aspace = sortrows([agrid basemodel.adist(:)]);
+    sort_aspace = sortrows([grdKFE.a.matrix(:) basemodel.adist(:)]);
     sort_agrid = sort_aspace(:,1);
     sort_adist = sort_aspace(:,2);
 
@@ -343,7 +348,7 @@ function [results,checks,decomp] = main(p)
         % create interpolant to find fraction of constrained households
         if p.epsilon(i) == 0
             % Get exact figure
-            results.direct.constrained(i) = basemodel.adist(:)' * (agrid==0);
+            results.direct.constrained(i) = basemodel.adist(:)' * (grdKFE.a.matrix(:)==0);
 
             if p.Bequests == 1
                 results.direct.s0 = results.direct.constrained(i);
@@ -356,38 +361,20 @@ function [results,checks,decomp] = main(p)
         end
     end
 
-    % HtM with different income frequency
-    ymat_large = kron(income.netymat,ones(p.nxlong,1));
-    ymat_large = repmat(ymat_large,p.nb,1);
-
     % fraction constrained in terms of own quarterly income
-    xrange = 0:0.01:0.5;
-    constrained = zeros(numel(xrange),1);
-    ic = 0;
-    for c = xrange
-        ic = ic + 1;
-
-        ind = agrid < (ymat_large * (p.freq/4) * c);
-        probabilities = (ind .* basemodel.adist(:)) .* income.yTdist(:)';
-        constrained(ic) = sum(probabilities(:));
-    end
-
-    constrained_interp = griddedInterpolant(xrange,constrained,'linear');
-
-    % the following are innacurate (at < y_{t+1}/6 instead of at < yt /6)
-    % results.direct.HtM_one_sixth_Q = constrained_interp(1/6);
-    % results.direct.HtM_one_twelfth_Q = constrained_interp(1/12);
-
-
- %    % 1/6 quarterly income (1/24 annual income)
-	% one_sixth_quarterly = agrid < (ymat_large * p.freq / 24);
- %    probabilities = (one_sixth_quarterly .* basemodel.adist(:)) .* income.yTdist(:)';
- %    results.direct.HtM_one_sixth_Q = sum(probabilities(:));
-
-	% % 1/12 quarterly income (1/48 annual income)
- %    one_twelfth_quarterly = agrid < (ymat_large * p.freq / 48);
- %    probabilities = (one_twelfth_quarterly .* basemodel.adist(:)) .* income.yTdist(:)';
- %    results.direct.HtM_one_twelfth_Q = sum(probabilities(:));
+%     
+%     xrange = 0:0.01:0.5;
+%     constrained = zeros(numel(xrange),1);
+%     ic = 0;
+%     for c = xrange
+%         ic = ic + 1;
+% 
+%         ind = agrid < (ymat_large * (p.freq/4) * c);
+%         probabilities = (ind .* basemodel.adist(:)) .* income.yTdist(:)';
+%         constrained(ic) = sum(probabilities(:));
+%     end
+% 
+%     constrained_interp = griddedInterpolant(xrange,constrained,'linear');
 
     
     % Wealth percentiles
@@ -414,7 +401,7 @@ function [results,checks,decomp] = main(p)
     % ---------------------------------------------------------------------
     
     % Deterministic model
-    norisk = solve_EGP_deterministic(p,xgrid,sgrid,prefs,income,results.direct);
+    norisk = solve_EGP_deterministic(p,grdHJB,prefs,income,results.direct);
     if norisk.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         checks{end+1} = 'NoRiskNoEGPConv';
@@ -425,7 +412,7 @@ function [results,checks,decomp] = main(p)
     % SIMULATIONS
     % ---------------------------------------------------------------------
     if p.Simulate == 1
-        [results.sim,assetmeans] = simulate(p,income,basemodel,xgrid,agrid_short,prefs);
+        [results.sim,assetmeans] = simulate(p,income,basemodel,grdKFE,prefs);
     else
         assetmeans = [];
     end
@@ -434,7 +421,7 @@ function [results,checks,decomp] = main(p)
     % MPCS FOR NO-RISK MODEL
     % ---------------------------------------------------------------------
     
-    results.norisk.mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,agrid_short);
+    results.norisk.mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,grdKFE);
 
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
@@ -480,7 +467,7 @@ function [results,checks,decomp] = main(p)
                     end
 
                     [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
-                                    agrid_short,prefs,income,Iterating,nextmpcshock,nextmodel);
+                                    grdKFE.a.vec,prefs,income,Iterating,nextmpcshock,nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s
@@ -493,13 +480,13 @@ function [results,checks,decomp] = main(p)
 
             shocksize = shocks(ishock) * income.meany1 * p.freq;
             [results.direct.mpcs(ishock),results.direct.agrid_dist] ...
-                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,xgrid,agrid_short,shocksize);
+                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,grdKFE,shocksize);
         else
             % epstein-zin preferences, only do (is,it) for is == 1
             
             shocksize = shocks(ishock) * income.meany1 * p.freq;
             [results.direct.mpcs(ishock),~] ...
-                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,xgrid,agrid_short,shocksize);
+                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,grdKFE,shocksize);
         end
     end
     
@@ -510,7 +497,7 @@ function [results,checks,decomp] = main(p)
     MPCs = struct();
     for i = 1:3
         [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i),inc_constrained(i)] ...
-                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid);
+                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,grdKFE);
     end
     
     results.direct.a_sixth_sim = mean([inc_constrained.a_sixth_Q]);
@@ -563,25 +550,25 @@ function [results,checks,decomp] = main(p)
 
         % interpolate to get the integral of m0(a) * g0(a) between a = 0 and 0.05
         m0g0 = m0(:) .* g0(:);
-        m0g0 = reshape(m0g0,[p.nxlong p.nyP*p.nyF*p.nb]);
+        m0g0 = reshape(m0g0,[p.nx_KFE p.nyP*p.nyF*p.nb]);
         m0g0 = sum(m0g0,2);
         cum_m0g0 = cumsum(m0g0);
-        mg0interp = griddedInterpolant(agrid_short,cum_m0g0,'linear');
+        mg0interp = griddedInterpolant(grdKFE.a.vec,cum_m0g0,'linear');
 
         % interpolate to get the integral of mpc_norisk(a) * g0_norisk(a)
         mbcg0 = mbc(:) .* g0_norisk(:);
-        mbcg0 = reshape(mbcg0,p.nxlong,[]);
+        mbcg0 = reshape(mbcg0,p.nx_KFE,[]);
         mbcg0 = sum(mbcg0,2);
         cum_mbcg0 = cumsum(mbcg0);
-        mbcg0interp = griddedInterpolant(agrid_short,cum_mbcg0,'linear');
+        mbcg0interp = griddedInterpolant(grdKFE.a.vec,cum_mbcg0,'linear');
 
         % get interpolant for cumulative dist of g0_a
-        g0_a = sum(reshape(g0,p.nxlong,[]),2);
-        g0interp = griddedInterpolant(agrid_short,cumsum(g0_a),'linear');
+        g0_a = sum(reshape(g0,p.nx_KFE,[]),2);
+        g0interp = griddedInterpolant(grdKFE.a.vec,cumsum(g0_a),'linear');
 
         % get interpolant for cumdist of g0_norisk_a
-        g0_norisk_a = sum(reshape(g0_norisk,p.nxlong,[]),2);
-        g0ninterp = griddedInterpolant(agrid_short,cumsum(g0_norisk_a),'linear');
+        g0_norisk_a = sum(reshape(g0_norisk,p.nx_KFE,[]),2);
+        g0ninterp = griddedInterpolant(grdKFE.a.vec,cumsum(g0_norisk_a),'linear');
 
 
         for ia = 1:numel(p.abars)
@@ -589,7 +576,7 @@ function [results,checks,decomp] = main(p)
 
             if p.abars(ia) == 0
                 zidx = agrid(:) <= p.abars(ia);
-                norisk_zidx = agrid_short <= p.abars(ia);
+                norisk_zidx = grdKFE.a.vec <= p.abars(ia);
 
                 decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
                 decomp(ia).term3 = (mbc(~norisk_zidx) - m_ra)' * g0_norisk(~norisk_zidx);
@@ -615,7 +602,7 @@ function [results,checks,decomp] = main(p)
     % GINI
     % ---------------------------------------------------------------------
     % Wealth
-    results.direct.wealthgini = direct_gini(agrid,basemodel.adist);
+    results.direct.wealthgini = direct_gini(grdKFE.a.matrix,basemodel.adist);
     
     % Gross income
     results.direct.grossincgini = direct_gini(income.ysort,income.ysortdist);

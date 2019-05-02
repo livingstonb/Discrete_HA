@@ -123,12 +123,17 @@ function income = gen_income_variables(p)
     netymat = lumptransfer + (1-p.labtaxlow)*ymat - p.labtaxhigh*max(ymat-labtaxthresh,0);
     meannety1 = netymat(:)'*ymatdist(:);
     
+    % net y values on HJB grid
+    netymat_temp = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
+    netymatHJB = repmat(netymat_temp,[p.nx 1 1 1]);
+    netymatKFE = repmat(netymat_temp,[p.nx_KFE 1 1 1]);
+    
         % Store income variables in a structure
     newfields = {'ymat','netymat','meany1','yPgrid',...
         'yTgrid','yFgrid','yPdist','yTdist','yFdist','yPcumtrans',...
         'yPtrans','yPcumdist','yFcumdist','yTcumdist','ytrans',...
         'meannety1','labtaxthresh','lumptransfer','ysortdist','ysort',...
-        'ymatdist'};
+        'ymatdist','netymatHJB','netymatKFE'};
     for i = 1:numel(newfields)
         income.(newfields{i}) = eval(newfields{i});
     end

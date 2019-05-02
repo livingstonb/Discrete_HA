@@ -1,5 +1,5 @@
 function MPCs = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
-                                                                    betaindsim,income,basemodel,xgrid)
+                                                                    betaindsim,income,basemodel,grids)
     % This function is called by simulate.m to compute MPCs. Outputs are
     % cell arrays, each cell associated with one mpcamount.
     
@@ -33,13 +33,13 @@ function MPCs = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
             for iyF = 1:p.nyF
             for ib = 1:p.nb
             for iyP = 1:p.nyP
-                below_grid = xsim_mpc(:,it)<xgrid.longgrid(1,iyP,iyF);
+                below_grid = xsim_mpc(:,it)<grids.a.matrix(1,iyP,iyF);
                 idx = yPindsim_mpc(:,it)==iyP & betaindsim_mpc(:,it)==ib & yFindsim(:)==iyF;
                 % if shock is negative, deal with households that wind up
                 % below the bottom of their asset grid
                 if mpcamount{im} < 0 && it == 1
                     idx_below = idx & below_grid;
-                    xsim_mpc(idx_below,it) = xgrid.longgrid(1,iyP,iyF);
+                    xsim_mpc(idx_below,it) = grids.a.matrix(1,iyP,iyF);
                     % will need to set their MPCs to one
                     set_mpc_one = set_mpc_one | idx_below;
                 end

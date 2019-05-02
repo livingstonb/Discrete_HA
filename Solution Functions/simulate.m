@@ -1,4 +1,4 @@
-function [sim_results,assetmeans] = simulate(p,income,model,xgrid,agrid_short,prefs)
+function [sim_results,assetmeans] = simulate(p,income,model,grids,prefs)
 
     % This function runs simulations based on the paratmers in 'p' and the
     % policy functions in 'model'.
@@ -22,17 +22,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,xgrid,agrid_short,pr
     yTindsim = zeros(p.Nsim,p.Tsim,'int8');
     yPindsim = zeros(p.Nsim,p.Tsim,'int8');
 
-    [~,yFindsim] = max(bsxfun(@le,yFrand,income.yFcumdist'),[],2);
-    
-    % simulate yP upon death outside of time loop for speed
-%     for iyP = 1:p.nyP
-%         if iyP == 1
-%             idx = yPrand<income.yPcumdist(iyP);
-%         else
-%             idx = (yPrand<income.yPcumdist(iyP)) & (yPrand>=income.yPcumdist(iyP-1));
-%         end
-%         yPindsim(diesim & idx) = iyP;
-%     end
+    [~,yFindsim] = max(yFrand<=income.yFcumdist',[],2);
     
     % simulate yT outside of time loop
     if p.yTContinuous == 1 && p.nyT > 1
@@ -55,19 +45,19 @@ function [sim_results,assetmeans] = simulate(p,income,model,xgrid,agrid_short,pr
         
     % iterate over time periods
     for it = 1:p.Tsim
-        [~,yPindsim(diesim(:,it)==1,it)] = max(bsxfun(@le,yPrand(diesim(:,it)==1,it),income.yPcumdist'),[],2);
+        [~,yPindsim(diesim(:,it)==1,it)] = max(yPrand(diesim(:,it)==1,it)<=income.yPcumdist',[],2);
         if it ==1
-            [~,yPindsim(diesim(:,it)==0,it)] = max(bsxfun(@le,yPrand(diesim(:,it)==0,it),income.yPcumdist'),[],2);
+            [~,yPindsim(diesim(:,it)==0,it)] = max(yPrand(diesim(:,it)==0,it)<=income.yPcumdist',[],2);
         else
-            [~,yPindsim(diesim(:,it)==0,it)] = max(bsxfun(@le,yPrand(diesim(:,it)==0,it),income.yPcumtrans(yPindsim(diesim(:,it)==0,it-1),:)),[],2);
+            [~,yPindsim(diesim(:,it)==0,it)] = max(yPrand(diesim(:,it)==0,it)<=income.yPcumtrans(yPindsim(diesim(:,it)==0,it-1),:),[],2);
         end
     end
     
     % gross income
     if (p.yTContinuous==1) || (p.nyT==0)
-        ygrosssim = bsxfun(@times,income.yPgrid(yPindsim).*exp(logyTsim),income.yFgrid(yFindsim));
+        ygrosssim = income.yPgrid(yPindsim).*exp(logyTsim) .* income.yFgrid(yFindsim);
     else
-        ygrosssim = bsxfun(@times,income.yPgrid(yPindsim).*income.yTgrid(yTindsim),income.yFgrid(yFindsim));
+        ygrosssim = income.yPgrid(yPindsim).*income.yTgrid(yTindsim) .* income.yFgrid(yFindsim);
     end
     
     % net income
@@ -76,10 +66,10 @@ function [sim_results,assetmeans] = simulate(p,income,model,xgrid,agrid_short,pr
     %% Simulate beta
     betarand = rand(p.Nsim,p.Tsim);
     betaindsim = zeros(p.Nsim,p.Tsim,'int8');
-    [~,betaindsim(:,1)] = max(bsxfun(@le,betarand(:,1),prefs.betacumdist'),[],2);
+    [~,betaindsim(:,1)] = max(betarand(:,1)<=prefs.betacumdist',[],2);
     
     for it = 2:p.Tsim
-        [~,betaindsim(:,it)] = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
+        [~,betaindsim(:,it)] = max(betarand(:,it)<=prefs.betacumtrans(betaindsim(:,it-1),:),[],2);
         % ilive = diesim(:,it)==0;
         % [~,betaindsim(ilive,it)] = max(bsxfun(@le,betarand(ilive,it),prefs.betacumtrans(betaindsim(ilive,it-1),:)),[],2);
         % [~,betaindsim(~ilive,it)] = max(bsxfun(@le,betarand(~ilive,it),prefs.betacumdist'),[],2);
@@ -123,7 +113,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,xgrid,agrid_short,pr
     end
 
     %% Get distribution over asset grid
-    fspace = fundef({'spli',agrid_short,0,1});
+    fspace = fundef({'spli',grids.a.vec,0,1});
     agrid_dist = full(funbas(fspace,asim(:,end)));
     sim_results.agrid_dist = sum(agrid_dist,1)' / sum(agrid_dist(:));
     
@@ -178,7 +168,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,xgrid,agrid_short,pr
     %% MPCs
     
     sim_results.mpcs = simulation_MPCs(p,xsim,csim,diesim,ynetsim,...
-                            yPindsim,yFindsim,betaindsim,income,model,xgrid);
+                            yPindsim,yFindsim,betaindsim,income,model,grids);
     sim_results.assetmeans = assetmeans;
 
 end

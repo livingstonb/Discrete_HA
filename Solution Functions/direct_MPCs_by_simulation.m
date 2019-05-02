@@ -1,5 +1,5 @@
 function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]... 
-                                = direct_MPCs_by_simulation(p,prefs,income,basemodel,xgrid,agrid)
+                                = direct_MPCs_by_simulation(p,prefs,income,basemodel,grids)
     % This function draws from the stationary distribution of (a,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
     
@@ -14,15 +14,15 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
     Tmax = p.freq * 4;
 
     % Vector of indexes for (yP,yF,beta) consistent with of mean ann inc
-    yPind_trans = repmat(kron((1:p.nyP)',ones(p.nxlong,1)),p.nyF*p.nb,1);
-    yFind_trans = repmat(kron((1:p.nyF)',ones(p.nxlong*p.nyP,1)),p.nb,1);
+    yPind_trans = repmat(kron((1:p.nyP)',ones(p.nx_KFE,1)),p.nyF*p.nb,1);
+    yFind_trans = repmat(kron((1:p.nyF)',ones(p.nx_KFE*p.nyP,1)),p.nb,1);
     
     if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) 
-        betaind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
-        IESind_trans = kron(ones(p.nb,1),ones(p.nxlong*p.nyP*p.nyF,1));
+        betaind_trans = kron((1:p.nb)',ones(p.nx_KFE*p.nyP*p.nyF,1));
+        IESind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
     else
-        betaind_trans = kron(ones(p.nb,1),ones(p.nxlong*p.nyP*p.nyF,1));
-        IESind_trans = kron((1:p.nb)',ones(p.nxlong*p.nyP*p.nyF,1));
+        betaind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
+        IESind_trans = kron((1:p.nb)',ones(p.nx_KFE*p.nyP*p.nyF,1));
     end
 
     % Construct stationary distribution
@@ -50,7 +50,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
     for ip = 1:Npartition
         partition = partitionsize*(ip-1)+1:partitionsize*ip;
         % Location of each draw in SSdist
-        [~,ind] = max(bsxfun(@lt,state_rand(partition),cumdist'),[],2);
+        [~,ind] = max(state_rand(partition)<=cumdist',[],2);
         
         % (yPgrid,yFgrid,betagrid) iindices
         yPindsim(partition,1)	= yPind_trans(ind);
@@ -59,20 +59,20 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
         IESindsim(partition,1)  = IESind_trans(ind);
         
         % Initial assets from stationary distribution
-        a1(partition) = agrid(ind);
+        a1(partition) = grids.a.matrix(ind);
     end
     
     %% SIMULATE INCOME AND BETA
     % Simulate frequency * 4 periods
     for it = 1:Tmax
         live = (diesim(:,it)==0);
-        [~,yTindsim(:,it)]      = max(bsxfun(@le,yTrand(:,it),income.yTcumdist'),[],2);
+        [~,yTindsim(:,it)]      = max(yTrand(:,it)<=income.yTcumdist',[],2);
         
         if it > 1
-            [~,yPindsim(live,it)]   = max(bsxfun(@le,yPrand(live,it),income.yPcumtrans(yPindsim(live,it-1),:)),[],2);
-            [~,yPindsim(~live,it)]  = max(bsxfun(@le,yPrand(~live,it),income.yPcumdist'),[],2);
-            [~,betaindsim(:,it)]    = max(bsxfun(@le,betarand(:,it),prefs.betacumtrans(betaindsim(:,it-1),:)),[],2);
-            [~,IESindsim(:,it)] = max(bsxfun(@le,IESrand(:,it),prefs.IEScumtrans(IESindsim(:,it-1),:)),[],2);
+            [~,yPindsim(live,it)]   = max(yPrand(live,it)<=income.yPcumtrans(yPindsim(live,it-1),:),[],2);
+            [~,yPindsim(~live,it)]  = max(yPrand(~live,it)<=income.yPcumdist',[],2);
+            [~,betaindsim(:,it)]    = max(betarand(:,it)<=prefs.betacumtrans(betaindsim(:,it-1),:),[],2);
+            [~,IESindsim(:,it)] = max(IESrand(:,it)<=prefs.IEScumtrans(IESindsim(:,it-1),:),[],2);
         end
     end
     
@@ -121,10 +121,10 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
                 end
                 
                 if mpcamount < 0 && it == 1
-                    below_grid = xsim(:,it)<xgrid.full(1,iyP,iyF);
+                    below_grid = xsim(:,it)<grids.x.matrix(1,iyP,iyF);
                     % Bring households pushed below grid back up to grid
                     idx_below = idx & below_grid;
-                    xsim(idx_below,it) = xgrid.full(1,iyP,iyF);
+                    xsim(idx_below,it) = grids.x.matrix(1,iyP,iyF);
                     % Update set_mpc_one
                     set_mpc_one = set_mpc_one | idx_below;
                 end

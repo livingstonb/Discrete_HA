@@ -1,12 +1,10 @@
-function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
-                                    prefs,income,Iterating,nextmpcshock,prevmodel)
+function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcshock,prevmodel)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
     % via direct methods (rather than simulations) and stores the results 
     % in the 'model' structure.
 
-    agrid = repmat(agrid_short,p.nyP*p.nyF*p.nb,1);
     
     %% CONSTRUCT EXPECTATIONS MATRIX                                     
     betagrid = beta + prefs.betagrid0;
@@ -28,7 +26,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
         extra = 0;
     end
     
-    con = (p.r + extra) * repmat(xgrid.full(:),p.nb,1);
+    con = (p.r + extra) * repmat(grids.x.matrix(:),p.nb,1);
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
@@ -70,7 +68,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
         c_xp = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
         
         % x'(s)
-        temp_sav = repmat(sgrid.full(:),p.nb,p.nyT);
+        temp_sav = repmat(grids.s.matrix(:),p.nb,p.nyT);
         temp_inc = repmat(kron(income.netymat,ones(p.nx,1)),p.nb,1);
         xp_s = (1+p.r)*temp_sav + temp_inc + nextmpcshock;
         xp_s = reshape(xp_s,[p.nx p.nyP p.nyF p.nb p.nyT]);
@@ -80,7 +78,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
         for iyP = 1:p.nyP
             if isempty(prevmodel)
                 % usual method of EGP
-                coninterp = griddedInterpolant(xgrid.full(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
+                coninterp = griddedInterpolant(grids.x.matrix(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
                 xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
                 c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
             else
@@ -112,9 +110,9 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
         % now find muc this period as a function of s:
         % variables defined for each (x,yP,yF,beta) in state space,
         % column vecs of length p.nx*p.nyP*p.nyF*p.nb
-        savtaxrate  = (1+p.savtax.*(repmat(sgrid.full(:),p.nb,1)>=p.savtaxthresh));
+        savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
         mu_consumption = (1+p.r)*betastacked*Emat*(mucnext*income.yTdist);
-        mu_bequest     = prefs.beq1(repmat(sgrid.full(:),p.nb,1));
+        mu_bequest     = prefs.beq1(repmat(grids.s.matrix(:),p.nb,1));
         
         % muc(s(x,yP,yF,beta))
         muc_s = (1-p.dieprob) * mu_consumption ./ savtaxrate...
@@ -128,8 +126,8 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
         end
         
         % x(s) = s + stax + c(s)
-        x_s = repmat(sgrid.full(:),p.nb,1)...
-                        + p.savtax * max(repmat(sgrid.full(:),p.nb,1)-p.savtaxthresh,0)...
+        x_s = repmat(grids.s.matrix(:),p.nb,1)...
+                        + p.savtax * max(repmat(grids.s.matrix(:),p.nb,1)-p.savtaxthresh,0)...
                         + con_s;
         x_s = reshape(x_s,[p.nx p.nyP p.nyF p.nb]);
 
@@ -138,8 +136,8 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            savinterp = griddedInterpolant(x_s(:,iyP,iyF,ib),sgrid.full(:,iyP,iyF),'linear');
-            sav(:,iyP,iyF,ib) = savinterp(xgrid.full(:,iyP,iyF)); 
+            savinterp = griddedInterpolant(x_s(:,iyP,iyF,ib),grids.s.matrix(:,iyP,iyF),'linear');
+            sav(:,iyP,iyF,ib) = savinterp(grids.x.matrix(:,iyP,iyF)); 
         end
         end
         end
@@ -149,7 +147,7 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
 
         % updated consumption function, column vec length of
         % length p.nx*p.nyP*p.nyF*p.nb
-        conupdate = repmat(xgrid.full(:),p.nb,1) - sav(:)...
+        conupdate = repmat(grids.x.matrix(:),p.nb,1) - sav(:)...
                             - p.savtax * max(sav(:)-p.savtaxthresh,0);
 
         cdiff = max(abs(conupdate(:)-conlast(:)));
@@ -178,57 +176,51 @@ function [AYdiff,model] = solve_EGP(beta,p,xgrid,sgrid,agrid_short,...
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
         model.savinterp{iyP,iyF,ib} = ...
-            griddedInterpolant(xgrid.full(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
+            griddedInterpolant(grids.x.matrix(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
         model.coninterp{iyP,iyF,ib} = ...
-            griddedInterpolant(xgrid.full(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');    
+            griddedInterpolant(grids.x.matrix(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');    
     end
     end
     end
 
     %% DISTRIBUTION
     
+    model = find_stationary_adist(p,model,income,prefs,gridsKFE);
     
-    if Iterating == 1
-        % only get distribution over assets
-        model.adist = find_stationary_adist(p,model,income,prefs,agrid_short);
-    else
-        
-        [model.adist,model.xdist,model.xvals,model.y_x,model.nety_x,model.statetrans,model.adiff]...
-                    = find_stationary_adist(p,model,income,prefs,agrid_short);
-        for ib = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP 
-            model.sav_x(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(model.xvals(:,iyP,iyF,ib));
-        end
-        end
-        end
-        model.sav_x = max(model.sav_x,p.borrow_lim);
-        
-        % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
-        % model, and from (x,yP,yF,beta) to (x,beta)
-        if p.nyP>1 && p.nyF>1
-            % a
-            model.adist_noincrisk =  sum(sum(model.adist,3),2);
-            % x
-            model.xdist_noincrisk    = sum(sum(model.xdist,3),2);
-        elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
-            model.adist_noincrisk =  sum(model.adist,2);
-            model.xdist_noincrisk    = sum(model.xdist,2);
-        elseif p.nyP==1 && p.nyF==1
-            model.adist_noincrisk = model.adist;
-            model.xdist_noincrisk    = model.xdist;
-        end
-    
-        % Policy functions associated with xdist
-        model.con_x= model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
+    % get saving policy function defined on xgrid
+    for ib = 1:p.nb
+    for iyF = 1:p.nyF
+    for iyP = 1:p.nyP 
+        model.sav_x(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(model.xvals(:,iyP,iyF,ib));
     end
+    end
+    end
+    model.sav_x = max(model.sav_x,p.borrow_lim);
+
+    % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
+    % model, and from (x,yP,yF,beta) to (x,beta)
+    if p.nyP>1 && p.nyF>1
+        % a
+        model.adist_noincrisk =  sum(sum(model.adist,3),2);
+        % x
+        model.xdist_noincrisk    = sum(sum(model.xdist,3),2);
+    elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
+        model.adist_noincrisk =  sum(model.adist,2);
+        model.xdist_noincrisk    = sum(model.xdist,2);
+    elseif p.nyP==1 && p.nyF==1
+        model.adist_noincrisk = model.adist;
+        model.xdist_noincrisk    = model.xdist;
+    end
+
+    % Policy functions associated with xdist
+    model.con_x= model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
     
     % mean saving, mean assets
-    model.mean_a = model.adist(:)' * agrid(:);
+    model.mean_a = model.adist(:)' * gridsKFE.a.matrix(:);
     
     if p.GRIDTEST == 2
         % use simulation results in objective function
-        sim = simulate(p,income,model,xgrid,prefs);
+        sim = simulate(p,income,model,gridsKFE.x.matrix,prefs);
         mean_assets = sim.mean_a;
     else
         % use distribution results

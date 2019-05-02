@@ -1,11 +1,11 @@
-function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,income,prefs,xgrid,agrid_short,shocksize)
+function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,income,prefs,grids,shocksize)
     % This function computes IMPC(s,t) using transition probabilities,
     % where IMPC(s,t) is the MPC in period t out of a period-s shock that
     % is learned about in period 1
 
     % mpc out of negative shock is slightly innacurate for large shock
     
-    NN = p.nxlong*p.nyP*p.nyF*p.nb;
+    NN = p.nx_KFE*p.nyP*p.nyF*p.nb;
     
     if p.Display == 1
         disp('Computing MPCs')
@@ -17,12 +17,10 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     
     % Each (a,yP,yF) is associated with nyT possible x values, create this
     % grid here
-    netymat_reshape = reshape(income.netymat,[1 p.nyP p.nyF p.nyT]);
-    netymat_reshape = repmat(netymat_reshape,[p.nxlong 1 1 1]);
-    xgrid_yT = repmat(agrid_short,[1 p.nyP p.nyF p.nyT]) + netymat_reshape;
+    xgrid_yT = repmat(grids.a.vec,[1 p.nyP p.nyF p.nyT]) + income.netymatKFE;
 
     % for interpolating back onto agrid
-    fspace = fundef({'spli',agrid_short,0,1});
+    fspace = fundef({'spli',grids.a.vec,0,1});
     
     % transition matrix between (yP,yF,beta) states cond'l on dying
     yPtrans_stationary = repmat(income.yPdist',p.nyP,1);
@@ -37,7 +35,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     end
     
     % baseline consumption
-    con_baseline_yT = get_policy(p,xgrid_yT,basemodel,income);
+    con_baseline_yT = get_policy(p,xgrid_yT,basemodel);
     % take expectation wrt yT
     con_baseline = reshape(con_baseline_yT,[],p.nyT) * income.yTdist;
     
@@ -105,17 +103,17 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             	% record which states are pushed below asset grid after negative shock
                 below_xgrid = false(size(x_mpc));
                 for iyT = 1:p.nyT
-                    below_xgrid(:,:,:,iyT) = x_mpc(:,:,:,iyT) < xgrid.full(1,:,:);
+                    below_xgrid(:,:,:,iyT) = x_mpc(:,:,:,iyT) < grids.x.matrix(1,:,:);
 
                     x_mpc(:,:,:,iyT) = ~below_xgrid(:,:,:,iyT) .* x_mpc(:,:,:,iyT)...
-                                        + below_xgrid(:,:,:,iyT) .* xgrid.full(1,:,:);
+                                        + below_xgrid(:,:,:,iyT) .* grids.x.matrix(1,:,:);
                 end
-                below_xgrid = reshape(below_xgrid,[p.nxlong p.nyP p.nyF 1 p.nyT]);
+                below_xgrid = reshape(below_xgrid,[p.nx_KFE p.nyP p.nyF 1 p.nyT]);
                 below_xgrid = repmat(below_xgrid,[1 1 1 p.nb 1]);
             end
 
             % consumption choice given the shock
-            con = get_policy(p,x_mpc,models{is,it},income);
+            con = get_policy(p,x_mpc,models{is,it});
 
             if shocksize < 0 && (it == is)
                 % make mpc = 1 for households pushed below grid in shock period
@@ -180,22 +178,22 @@ end
 % SUBFUNCTIONS
 % -------------------------------------------------------------------------
 
-function con = get_policy(p,x_mpc,model,income)
+function con = get_policy(p,x_mpc,model)
     % Computes consumption policy function after taking expectation to get
     % rid of yT dependence
     
-    sav = zeros(p.nxlong,p.nyP,p.nyF,p.nb,p.nyT);
+    sav = zeros(p.nx_KFE,p.nyP,p.nyF,p.nb,p.nyT);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
         x_iyP_iyF_iyT = x_mpc(:,iyP,iyF,:);
         sav_iyP_iyF_iyT = model.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
-        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,[p.nxlong 1 1 1 p.nyT]);
+        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,[p.nx_KFE 1 1 1 p.nyT]);
     end
     end
     end
     sav = max(sav,p.borrow_lim);
-    x_mpc = reshape(x_mpc,[p.nxlong p.nyP p.nyF 1 p.nyT]);
+    x_mpc = reshape(x_mpc,[p.nx_KFE p.nyP p.nyF 1 p.nyT]);
     con = repmat(x_mpc,[1 1 1 p.nb 1]) - sav - p.savtax * max(sav-p.savtaxthresh,0);
 end
 
@@ -203,10 +201,10 @@ function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
                                             fspace,trans_live,trans_death,mpcshock)
     % Computes the transition matrix between t=ii and t=ii + 1 given shock in
     % period 'is'
-    NN = p.nxlong*p.nyP*p.nyF*p.nb;
+    NN = p.nx_KFE*p.nyP*p.nyF*p.nb;
     x_mpc = xgrid_yT + mpcshock; % cash on hand after receiving shock
    
-    sav = zeros(p.nxlong,p.nyP,p.nyF,p.nb,p.nyT);
+    sav = zeros(p.nx_KFE,p.nyP,p.nyF,p.nb,p.nyT);
 
     for ib = 1:p.nb
     for iyF = 1:p.nyF
@@ -223,7 +221,7 @@ function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
             sav_iyP_iyF_iyT(below_xgrid) = 0;
         end
 
-        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,[p.nxlong 1 1 1 p.nyT]);
+        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,[p.nx_KFE 1 1 1 p.nyT]);
 
     end
     end
@@ -235,20 +233,20 @@ function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
 
     % interpolate next period's assets back onto asset grid
     interp = funbas(fspace,aprime_live(:));
-    interp = reshape(interp,NN,p.nxlong*p.nyT) * kron(speye(p.nxlong),income.yTdist);
+    interp = reshape(interp,NN,p.nx_KFE*p.nyT) * kron(speye(p.nx_KFE),income.yTdist);
     if p.Bequests == 1
         interp_death = interp;
     else
-        interp_death = sparse(NN,p.nxlong);
+        interp_death = sparse(NN,p.nx_KFE);
         interp_death(:,1) = 1;
     end
 
     % Transition matrix from 'ii' to 'ii'+1
     T1 = sparse(NN,NN);
     for col = 1:p.nyP*p.nyF*p.nb
-        newblock_live = bsxfun(@times,kron(trans_live(:,col),ones(p.nxlong,1)),interp);
-        newblock_death = bsxfun(@times,kron(trans_death(:,col),ones(p.nxlong,1)),interp_death);
-        T1(:,p.nxlong*(col-1)+1:p.nxlong*col) = (1-p.dieprob)*newblock_live + p.dieprob*newblock_death;
+        newblock_live = bsxfun(@times,kron(trans_live(:,col),ones(p.nx_KFE,1)),interp);
+        newblock_death = bsxfun(@times,kron(trans_death(:,col),ones(p.nx_KFE,1)),interp_death);
+        T1(:,p.nx_KFE*(col-1)+1:p.nx_KFE*col) = (1-p.dieprob)*newblock_live + p.dieprob*newblock_death;
     end
 end
 

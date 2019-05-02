@@ -16,7 +16,7 @@ classdef MPCParams < handle
         max_iter    = 1e5; % EGP
         tol_iter    = 1.0e-6; % EGP
         Nsim        = 100000; % For optional simulation
-        nxlong      = 400;
+        nx_KFE      = 400;
 
         % beta iteration
         maxiterAY   = 50;
