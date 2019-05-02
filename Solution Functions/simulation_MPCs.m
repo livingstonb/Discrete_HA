@@ -1,14 +1,15 @@
-function MPCs = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
-                                                                    betaindsim,income,basemodel,grids)
+function MPCs = simulation_MPCs(p,simvals,income,basemodel,grids)
     % This function is called by simulate.m to compute MPCs. Outputs are
     % cell arrays, each cell associated with one mpcamount.
     
     Tmax  = p.freq * 4;
-    ynetsim_mpc = ynetsim(:,end-Tmax+1:end);
-    diesim_mpc = diesim(:,end-Tmax+1:end);
-    csim_baseline = csim(:,end-Tmax+1:end);
-    yPindsim_mpc = yPindsim(:,end-Tmax+1:end);
-    betaindsim_mpc = betaindsim(:,end-Tmax+1:end);
+    ynetsim_mpc = simvals.ynetsim;
+    diesim_mpc = simvals.diesim;
+    csim_baseline = simvals.csim;
+    yPindsim_mpc = simvals.yPindsim;
+    betaindsim_mpc = simvals.betaindsim;
+    yFindsim = simvals.yFindsim;
+    xsim = simvals.xsim;
     
     %% MPCs
     Nmpcamount = numel(p.mpcfrac);
@@ -22,7 +23,7 @@ function MPCs = simulation_MPCs(p,xsim,csim,diesim,ynetsim,yPindsim,yFindsim,...
         xsim_mpc        = zeros(p.Nsim,4);
         ssim_mpc        = zeros(p.Nsim,4);
         asim_mpc        = zeros(p.Nsim,4);
-        xsim_mpc(:,1)   = xsim(:,p.Tsim-Tmax+1) + mpcamount{im};
+        xsim_mpc(:,1)   = xsim + mpcamount{im};
         csim_mpc        = zeros(p.Nsim,4);
         
         for it = 1:Tmax

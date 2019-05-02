@@ -166,9 +166,16 @@ function [sim_results,assetmeans] = simulate(p,income,model,grids,prefs)
     sim_results.top1share  = sum(asim(idxtop1,p.Tsim))/sum(asim(:,p.Tsim));
     
     %% MPCs
+    Tmax  = p.freq * 4;
+    simvals.ynetsim = ynetsim(:,end-Tmax+1:end);
+    simvals.diesim = diesim(:,end-Tmax+1:end);
+    simvals.csim = csim(:,end-Tmax+1:end);
+    simvals.yPindsim = yPindsim(:,end-Tmax+1:end);
+    simvals.betaindsim = betaindsim(:,end-Tmax+1:end);
+    simvals.yFindsim = yFindsim;
+    simvals.xsim = xsim(:,p.Tsim-Tmax+1);
     
-    sim_results.mpcs = simulation_MPCs(p,xsim,csim,diesim,ynetsim,...
-                            yPindsim,yFindsim,betaindsim,income,model,grids);
+    sim_results.mpcs = simulation_MPCs(p,simvals,income,model,grids);
     sim_results.assetmeans = assetmeans;
 
 end
