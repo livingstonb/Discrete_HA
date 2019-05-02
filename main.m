@@ -224,7 +224,6 @@ function [results,checks,decomp] = main(p)
     if p.IterateBeta == 1
         
         mpcshock = 0;
-        Iterating = 1;
         if p.EpsteinZin == 1
             iterate_EGP = @(x) solve_EGP_EZ(x,p,grdHJB,grdKFE,prefs,income);
         else
@@ -255,7 +254,6 @@ function [results,checks,decomp] = main(p)
     
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
-    Iterating = 0;
     if p.EpsteinZin == 1
         [~,basemodel] = solve_EGP_EZ(beta_final,p,grdHJB,grdKFE,prefs,income);
     else
@@ -454,8 +452,6 @@ function [results,checks,decomp] = main(p)
             % 'lag' is number of periods before shock
             if shocks(ishock) > 0 && (maxT > 1)
                 for lag = 1:maxT-1
-                    Iterating = 0;
-
                     if lag == 1
                         % shock is next period
                         nextmpcshock = shocks(ishock) * income.meany1 * p.freq;
@@ -467,7 +463,7 @@ function [results,checks,decomp] = main(p)
                     end
 
                     [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
-                                    grdKFE.a.vec,prefs,income,Iterating,nextmpcshock,nextmodel);
+                                    grdKFE.a.vec,prefs,income,nextmpcshock,nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s
