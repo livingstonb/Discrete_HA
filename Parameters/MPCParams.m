@@ -46,8 +46,7 @@ classdef MPCParams < handle
         Simulate = 0;
         GRIDTEST;
         mpcshocks_after_period1;
-    end
-    properties
+
         % returns
         r = 0.02; % default annual, adjusted if frequency = 4;
         R;
@@ -63,7 +62,7 @@ classdef MPCParams < handle
     	beta0       = 0.98;
     	temptation  = 0;
     	betaL       = 0.80;
-        betaH0;
+        betaH0; % will subtract a constant from this, after scaling for freq
         betaH;
         
         % warm glow bequests: bequest weight = 0 is accidental
@@ -126,52 +125,6 @@ classdef MPCParams < handle
             else
                 error('Frequency must be 1 or 4')
             end             
-        end
-        
-        function obj = set_betaH_distance(obj,val,name)
-        	% change the value of beta upper bound by the value 'val'
-        	% for the experiment 'name'
-
-        	% use BEFORE calling adjust_if_quarterly
-
-        	% usage: params.set_betaH_distance(1e-5,'baseline_Q')
-        	% or: params(i).set_betaH_distance(1e-5)
-
-            if nargin == 3
-                change_ind = find(ismember({obj.name},name));
-                obj(change_ind).betaH = obj(change_ind).betaH0 + val;
-            elseif nargin == 2
-                if numel(obj) == 1
-                    obj.betaH = obj.betaH0 + val;
-                else
-                    error('cannot pass array to method unless passing name,freq')
-                end
-            else 
-                error('must pass 1 or 3 arguments')
-            end
-        end
-        
-        function obj = set_betaL_distance(obj,val,name)
-        	% change the value of beta lower bound by the value 'val'
-        	% for the experiment 'name'
-
-        	% use BEFORE calling adjust_if_quarterly
-
-        	% usage: params.set_betaL_distance(1e-5,'baseline_Q')
-        	% or: params(i).set_betaL_distance(1e-5)
-
-            if nargin == 3
-                change_ind = find(ismember({obj.name},name));
-                obj(change_ind).betaL = obj(change_ind).betaL + val;
-            elseif nargin == 2
-                if numel(obj) == 1
-                    obj.betaL = obj.betaL + val;
-                else
-                    error('cannot pass array to method unless passing name,freq')
-                end
-            else 
-                error('must pass 1 or 3 arguments')
-            end
         end
         
         function obj = annuities_on(obj)
@@ -239,11 +192,11 @@ classdef MPCParams < handle
                 objs(io).beta0 = objs(io).beta0^(1/objs(io).freq);
                 objs(io).dieprob = 1 - (1-objs(io).dieprob)^(1/objs(io).freq);
                 objs(io).betaswitch = 1 - (1-objs(io).betaswitch)^(1/objs(io).freq);
+
                 objs(io).betaL = objs(io).betaL^(1/objs(io).freq);
-                
-                objs(io).betaH0 = 1/((objs(io).R)*(1-objs(io).dieprob));
-                objs(io).betaH = objs(io).betaH0 - 1e-3;
-                
+	            objs(io).betaH0 = 1/((objs(io).R)*(1-objs(io).dieprob));
+	            objs(io).betaH = objs(io).betaH0 - 1e-3;
+	                
                 if objs(io).annuities == true
                     objs(io).Bequests = 0;
                     objs(io).r = objs(io).r + objs(io).dieprob;

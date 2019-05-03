@@ -20,9 +20,9 @@ function MPCs = simulation_MPCs(p,simvals,income,basemodel,grids)
             set_mpc_one = false(p.Nsim,1);
         end
 
-        xsim_mpc        = zeros(p.Nsim,4);
-        ssim_mpc        = zeros(p.Nsim,4);
-        asim_mpc        = zeros(p.Nsim,4);
+        xsim_mpc        = zeros(p.Nsim,4,'single');
+        ssim_mpc        = zeros(p.Nsim,4,'single');
+        asim_mpc        = zeros(p.Nsim,4,'single');
         xsim_mpc(:,1)   = xsim + mpcamount{im};
         csim_mpc        = zeros(p.Nsim,4);
         
@@ -80,21 +80,6 @@ function MPCs = simulation_MPCs(p,simvals,income,basemodel,grids)
         MPCs.avg_1_3(im) = mean(mpcs_1_3);
         MPCs.avg_1_4(im) = mean(mpcs_1_4);
         MPCs.avg_1_1to4(im) = mean(mpcs_1_1+mpcs_1_2+mpcs_1_3+mpcs_1_4);
-        
-        if p.freq == 4
-            mpcs_1_x = cell(1,16);
-            for ip = 5:16
-                mpcs_1_x{ip} = (csim_mpc(:,ip) - csim_baseline(:,ip))/mpcamount{im};
-            end
-            
-            MPCs.avg_1_5to8(im) = mean(mpcs_1_x{5}+mpcs_1_x{6}+mpcs_1_x{7}+mpcs_1_x{8});
-            MPCs.avg_1_9to12(im) = mean(mpcs_1_x{9}+mpcs_1_x{10}+mpcs_1_x{11}+mpcs_1_x{12});
-            MPCs.avg_1_13to16(im) = mean(mpcs_1_x{13}+mpcs_1_x{14}+mpcs_1_x{15}+mpcs_1_x{16});
-        else
-            MPCs.avg_1_5to8(im) = NaN;
-            MPCs.avg_1_9to12(im) = NaN;
-            MPCs.avg_1_13to16(im) = NaN;
-        end
         
         MPCs.var_1_1(im) = var(mpcs_1_1);
         MPCs.var_1_4(im) = var(mpcs_1_4);

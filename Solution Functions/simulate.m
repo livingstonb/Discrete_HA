@@ -19,8 +19,8 @@ function [sim_results,assetmeans] = simulate(p,income,model,grids,prefs)
     
     diesim = dierand < p.dieprob;
     
-    yTindsim = zeros(p.Nsim,p.Tsim,'int8');
-    yPindsim = zeros(p.Nsim,p.Tsim,'int8');
+    yTindsim = zeros(p.Nsim,p.Tsim,'uint8');
+    yPindsim = zeros(p.Nsim,p.Tsim,'uint8');
 
     [~,yFindsim] = max(yFrand<=income.yFcumdist',[],2);
     
@@ -76,9 +76,9 @@ function [sim_results,assetmeans] = simulate(p,income,model,grids,prefs)
     end
     
     %% Simulate savings decisions
-    xsim = zeros(p.Nsim,p.Tsim); 
-    ssim = zeros(p.Nsim,p.Tsim);
-    asim = zeros(p.Nsim,p.Tsim);
+    xsim = zeros(p.Nsim,p.Tsim,'single'); 
+    ssim = zeros(p.Nsim,p.Tsim,'single');
+    asim = zeros(p.Nsim,p.Tsim,'single');
     csim = zeros(p.Nsim,p.Tsim);
     
     for it = 1:p.Tsim
@@ -174,6 +174,8 @@ function [sim_results,assetmeans] = simulate(p,income,model,grids,prefs)
     simvals.betaindsim = betaindsim(:,end-Tmax+1:end);
     simvals.yFindsim = yFindsim;
     simvals.xsim = xsim(:,p.Tsim-Tmax+1);
+
+    clearvars -except p simvals income model grids assetmeans sim_results
     
     sim_results.mpcs = simulation_MPCs(p,simvals,income,model,grids);
     sim_results.assetmeans = assetmeans;

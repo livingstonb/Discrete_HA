@@ -60,6 +60,7 @@ function params = parameters(runopts,selection,QIncome)
         name = [lfreq ' Annuities'];
         params(end+1) = MPCParams(ifreq,name,IncomeProcess);
         params(end).annuities_on();
+        params(end).betaH0 = params(end).betaH0 - 5e-3;
 
 %         % bequest curvature
 %         for bcurv = [0.1 0.5 1 2 5]
@@ -68,8 +69,7 @@ function params = parameters(runopts,selection,QIncome)
 %             params(end).bequest_weight = 0.02;
 %             params(end).bequest_luxury = 0.01;
 %             params(end).bequest_curv   = bcurv;
-%         end
-
+%         endR
        
         for deathp = 1/50 %[0 1/50]
             if deathp == 0
@@ -96,25 +96,43 @@ function params = parameters(runopts,selection,QIncome)
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
                     params(end).dieprob = deathp;
+                    if (bs == 1/50) && (deathp == 1/50)
+                        params(end).betaH0 = params(end).betaH0 + 1.3e-2;
+                    elseif (deathp == 1/50)
+                        params(end).betaH0 = params(end).betaH0 + 5e-3;
+                    end
                 end
             end
         end
+
         
         % CRRA with IES heterogeneity
         params(end+1) = MPCParams(ifreq,[lfreq ' CRRA w/IES betw exp(-1), exp(1)'],IncomeProcess);
         params(end).risk_aver = 1./ exp([-1 -0.5 0 0.5 1]);
+        if params(end).freq == 4
+            params(end).betaH0 =  params(end).betaH0 - 5e-3;
+        end
         
         params(end+1) = MPCParams(ifreq,[lfreq ' CRRA w/IES betw exp(-2), exp(2)'],IncomeProcess);
         params(end).risk_aver = 1./ exp([-2 -1 0 1 2]);
+        if params(end).freq == 4
+            params(end).betaH0 =  params(end).betaH0 - 5e-3;
+        end
 
         % EZ with IES heterogeneity
         params(end+1) = MPCParams(ifreq,[lfreq ' EZ w/IES betw exp(-1), exp(1)'],IncomeProcess);
         params(end).invies = 1 ./ exp([-1 -0.5 0 0.5 1]);
         params(end).EpsteinZin = 1;
+        if (ifreq == 4)
+            params(end).betaH0 = params(end).betaH0 - 8e-3;
+        end
         
         params(end+1) = MPCParams(ifreq,[lfreq ' EZ w/IES betw exp(-2), exp(2)'],IncomeProcess);
         params(end).invies = 1 ./ exp([-2 -1 0 1 2]);
         params(end).EpsteinZin = 1;
+        if (ifreq == 4)
+            params(end).betaH0 = params(end).betaH0 - 8e-3;
+        end
     end
 
     %----------------------------------------------------------------------
@@ -210,6 +228,10 @@ function params = parameters(runopts,selection,QIncome)
         if (ifreq==4 && ira==4) || ira==6
             params(end).betaL = 0.5;
         end
+
+        if ira == 6
+            params(end).betaH0 = params(end).betaH0 - 1e-2;
+        end
     end
     
     % i quarterly_a
@@ -247,6 +269,11 @@ function params = parameters(runopts,selection,QIncome)
         for itempt = [0.01 0.05 0.07]
             params(end+1) = MPCParams(ifreq,[lfreq ' Temptation' num2str(itempt)],IncomeProcess);
             params(end).temptation = itempt;
+            if (ifreq==4) && (itempt==0.07)
+                params(end).betaH0 = params(end).betaH0 + 3.2e-4;
+            elseif (ifreq==4) && (itempt==0.05)
+                params(end).betaH0 = params(end).betaH0 - 2e-5;
+            end
         end
     end
         
@@ -258,6 +285,11 @@ function params = parameters(runopts,selection,QIncome)
         params(end).risk_aver = ras(i);
         params(end).invies = 1 / ies(i);
         params(end).EpsteinZin = 1;
+        if i <= 3
+            params(end).betaH0 = params(end).betaH0 - 8e-3;
+        else
+            params(end).betaH0 = params(end).betaH0 - 6.5e-3;
+        end
     end
         
 %         % epstein-zin: vary risk_aver
@@ -279,202 +311,7 @@ function params = parameters(runopts,selection,QIncome)
     %----------------------------------------------------------------------
     % ADJUST TO QUARTERLY VALUES
     %----------------------------------------------------------------------
-
     params = MPCParams.adjust_if_quarterly(params);
-    
-    %----------------------------------------------------------------------
-    % SET BETA UPPER BOUND FOR SPECIAL CASES
-    %----------------------------------------------------------------------
-    % This section adjusts the beta upper bound for specific cases
-    % to ensure convergence
-
-    % CRRA heterogeneity
-    % params.set_betaH_distance(-2e-2,'A CRRA with IES heterogeneity',1);
-    params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-1), exp(1)');
-    params.set_betaH_distance(-5e-3,'Q CRRA w/IES betw exp(-2), exp(2)');
-
-    % temptation
-    params.set_betaH_distance(3.2e-4,'Q Temptation0.07');
-    % params.set_betaH_distance(-1e-5,'A Temptation0.05',1);
-    params.set_betaH_distance(-2e-5,'Q Temptation0.05');
-    
-%     % Epstein-Zin
-    % params.set_betaH_distance(-3e-2,'A EZ with IES heterogeneity',1);
-    params.set_betaH_distance(-8e-3,'Q EZ w/IES betw exp(-1), exp(1)');
-    params.set_betaH_distance(-8e-3,'Q EZ w/IES betw exp(-2), exp(2)');
-    
-%     params.set_betaH_distance(-3e-2,'A EZ ra0.5 ies1',1);
-    params.set_betaH_distance(-8e-3,'Q EZ ra0.5 ies1');
-%     params.set_betaH_distance(-3e-2,'A EZ ra8 ies1',1);
-    params.set_betaH_distance(-8e-3,'Q EZ ra8 ies1');
-%     params.set_betaH_distance(-3e-2,'A EZ ra1 ies0.25',1);
-    params.set_betaH_distance(-8e-3,'Q EZ ra1 ies0.25');
-%     params.set_betaH_distance(-2.5e-2,'A EZ ra1 ies2',1);
-    params.set_betaH_distance(-6.5e-3,'Q EZ ra1 ies2');
-%     params.set_betaH_distance(-2.5e-2,'A EZ ra8 ies2',1);
-    params.set_betaH_distance(-6.5e-3,'Q EZ ra8 ies2');
-
-%     % varying risk_aver
-%     EZ = find([params.EpsteinZin]==1 & [params.freq]==1);
-%     params.set_betaH_distance(-3e-2,name,1);
-% 
-%     EZ = find([params.EpsteinZin]==1 & [params.freq]==4);
-%     params.set_betaH_distance(-6e-3,name,4);
-    
-    
-%     % --------- annual, varying invies -------------
-%     freq = 1;
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(1/4)];
-%     params.set_betaH_distance(-3e-2,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(1/2)];
-%     params.set_betaH_distance(-3e-2,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(3/4)];
-%     params.set_betaH_distance(-3e-2,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(1.5)];
-%     params.set_betaH_distance(-2.1e-2,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(2)];
-%     params.set_betaH_distance(-2.1e-2,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(5)];
-%     params.set_betaH_distance(-2.1e-2,change_betaH,freq);
-%     
-%     % --------- quarterly, varying invies -------------
-%     freq = 4;
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(1/4)];
-%     params.set_betaH_distance(-1.5e-2,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(1/2)];
-%     params.set_betaH_distance(-1.5e-2,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(3/4)];
-%     params.set_betaH_distance(-1e-2,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(1.5)];
-%     params.set_betaH_distance(-5.5e-3,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(2)];
-%     params.set_betaH_distance(-5.5e-3,change_betaH,freq);
-%     
-%     change_betaH = ['EZ ra1 ies' num2str(5)];
-%     params.set_betaH_distance(-5.4e-3,change_betaH,freq);
-    
-    
-    %----------------------------------------------------------------------
-    % SET BETA UPPER BOUND FOR BETA HETEROGENEITY CASES
-    %----------------------------------------------------------------------
-    
-    change_betaH = [' RandomBetaHet5 Width' num2str(0.01)...
-                        ' SwitchProb' num2str(1/10) ' Death'];
-    % params.set_betaH_distance(1e-2,['A' change_betaH],1);
-    params.set_betaH_distance(1.3e-2,['Q' change_betaH]);
-    
-    change_betaH = [' RandomBetaHet5 Width' num2str(0.01)...
-                        ' SwitchProb' num2str(1/50) ' Death'];
-    % params.set_betaH_distance(1e-2,['A' change_betaH],1);
-    params.set_betaH_distance(5e-3,['Q' change_betaH]);
-    
-%     % --------- annual, random ----------
-%     freq = 1;
-% 
-%     % no death
-%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
-%     params.set_betaH_distance(-3e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 NoDeath';
-%     params.set_betaH_distance(-3e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath';
-%     params.set_betaH_distance(-3e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath';
-%     params.set_betaH_distance(-1e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath';
-%     params.set_betaH_distance(-8e-4,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
-%     params.set_betaH_distance(5e-3,change_betaH,freq);
-% 
-%     % death
-%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
-%     params.set_betaH_distance(-1.3e-2,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 Death';
-%     params.set_betaH_distance(-9e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 Death';
-%     params.set_betaH_distance(-7e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death';
-%     params.set_betaH_distance(-4e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death';
-%     params.set_betaH_distance(-1e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death';
-%     params.set_betaH_distance(3e-3,change_betaH,freq);
-% 
-%     % --------- quarterly, random -----------
-%     freq = 4;
-% 
-%     % no death
-%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 NoDeath';
-%     params.set_betaH_distance(-1e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 NoDeath';
-%     params.set_betaH_distance(-1e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 NoDeath';
-%     params.set_betaH_distance(3e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 NoDeath';
-%     params.set_betaH_distance(5e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 NoDeath';
-%     params.set_betaH_distance(4e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 NoDeath';
-%     params.set_betaH_distance(1.5e-2,change_betaH,freq);
-% 
-%     % death
-%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.02 Death';
-%     params.set_betaH_distance(-1e-4,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.001 SwitchProb0.1 Death';
-%     params.set_betaH_distance(-1e-4,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.02 Death';
-%     params.set_betaH_distance(2e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.005 SwitchProb0.1 Death';
-%     params.set_betaH_distance(5.1e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.02 Death';
-%     params.set_betaH_distance(4.7e-3,change_betaH,freq);
-% 
-%     change_betaH = '2 RandomBetaHet5 Width0.01 SwitchProb0.1 Death';
-%     params.set_betaH_distance(1.2e-2,change_betaH,freq);
-    
-    %----------------------------------------------------------------------
-    % SET BETA UPPER BOUND FOR OTHER CASES
-    %----------------------------------------------------------------------
-    
-%     change_betaH = '2 BeqWt0.02 BeqLux0.01 BeqCurv0.1';
-%     params.set_betaH_distance(-5e-3,['A' change_betaH],1);
-%     change_betaH = ' Temptation0.05';
-%     params.set_betaH_distance(-1e-4,['Q' change_betaH],4);S
-
-    change_betaH = ' RiskAver6';
-    params.set_betaH_distance(-1e-2,['Q' change_betaH]);
-
-    change_betaH = ' Annuities';
-    params.set_betaH_distance(-5e-3,['Q' change_betaH]);
 
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS
