@@ -6,7 +6,7 @@ want to run simulations in addition to direct methods. QIncome locates the incom
 income process files, although the code defaults to generating the income processes 
 automatically.
 
-To run all parameterizations in get_params, leave selection.names_to_run = {}. 
+To run all parameterizations in get_params, leave runopts.names_to_run = {}. 
 Otherwise, enter one or more strings in a cell array containing the names of the 
 parameterizations you would like to run. The results for the i-th parameterization 
 that you run will be stored in results(i).

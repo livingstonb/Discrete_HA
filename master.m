@@ -29,18 +29,18 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-selection.names_to_run = {'baseline_A'};
+runopts.names_to_run = {'baseline_A'};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS
 % -------------------------------------------------------------------------
 if runopts.Server == 0
     runopts.path = runopts.localdir;
-    selection.number = [];
+    runopts.number = [];
 else
-    selection.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
+    runopts.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
     runopts.path = runopts.serverdir;
-    runopts.savematpath = [runopts.serverdir '/Output/variables' num2str(selection.number) '.mat'];
+    runopts.savematpath = [runopts.serverdir '/Output/variables' num2str(runopts.number) '.mat'];
     if exist(runopts.savematpath, 'file') == 2
         % Delete old results
         delete runopts.savematpath;
@@ -57,11 +57,11 @@ if runopts.GRIDTEST == 1
     % only setup to run locally
     params = parameters_grid_tests(runopts,QIncome);
 elseif runopts.GRIDTEST == 2 % simulations
-    params = parameters_grid_tests2(runopts,selection,QIncome);
+    params = parameters_grid_tests2(runopts,QIncome);
 elseif runopts.GRIDTEST == 3
     params = parameters_grid_tests3(runopts,QIncome);
 else
-    params = parameters(runopts,selection,QIncome);
+    params = parameters(runopts,QIncome);
 end
 
 %% ------------------------------------------------------------------------
