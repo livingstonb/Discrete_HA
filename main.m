@@ -507,10 +507,6 @@ function [results,decomp] = main(p)
     MPCs.avg_1_2 = (MPC_trials(1).avg_1_2 + MPC_trials(2).avg_1_2 + MPC_trials(3).avg_1_2)/3;
     MPCs.avg_1_3 = (MPC_trials(1).avg_1_3 + MPC_trials(2).avg_1_3 + MPC_trials(3).avg_1_3)/3;
     MPCs.avg_1_4 = (MPC_trials(1).avg_1_4 + MPC_trials(2).avg_1_4 + MPC_trials(3).avg_1_4)/3;
-    MPCs.avg_1_1to4 = (MPC_trials(1).avg_1_1to4 + MPC_trials(2).avg_1_1to4 + MPC_trials(3).avg_1_1to4)/3;
-    MPCs.avg_1_5to8 = (MPC_trials(1).avg_1_5to8 + MPC_trials(2).avg_1_5to8 + MPC_trials(3).avg_1_5to8)/3;
-    MPCs.avg_1_9to12 = (MPC_trials(1).avg_1_9to12 + MPC_trials(2).avg_1_9to12 + MPC_trials(3).avg_1_9to12)/3;
-    MPCs.avg_1_13to16 = (MPC_trials(1).avg_1_13to16 + MPC_trials(2).avg_1_13to16 + MPC_trials(3).avg_1_13to16)/3;
     results.direct.mpcs_sim = MPCs;
     
     stdev_loggrossy_A = mean(stdev_loggrossy_A);

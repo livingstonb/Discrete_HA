@@ -4,14 +4,14 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
     % and simulates 1-4 periods to find MPCs.
     
     if p.Display == 1
-        disp([' Simulating ' num2str(p.freq*4) ' period(s) to get MPCs'])
+        disp([' Simulating 4 period(s) to get MPCs'])
     end
     
     % Number of draws from distribution
     Nsim = p.Nmpcsim;
 
     % Number of periods to simulate
-    Tmax = p.freq * 4;
+    Tmax = 4;
 
     % Vector of indexes for (yP,yF,beta) consistent with of mean ann inc
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nx_KFE,1)),p.nyF*p.nb,1);
@@ -63,7 +63,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
     end
     
     %% SIMULATE INCOME AND BETA
-    % Simulate frequency * 4 periods
+    % Simulate 4 periods
     for it = 1:Tmax
         live = (diesim(:,it)==0);
         [~,yTindsim(:,it)]      = max(yTrand(:,it)<=income.yTcumdist',[],2);
@@ -192,25 +192,6 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
             % Cumulative MPCs over first 4 periods
             mpcs_1_1to4 = mpcs_1_1+mpcs_1_2+mpcs_1_3+mpcs_1_4;
             MPCs.avg_1_1to4(im) = mean(mpcs_1_1to4);
-
-            if p.freq == 4
-            	% MPC in period ip out of period 1 shock
-                mpcs_1_x = cell(1,16);
-            	for ip = 5:16
-            		mpcs_1_x{ip} = (csim(:,ip) - csim_noshock(:,ip)) / mpcamount;
-            		mpcs_1_x{ip}(set_mpc_one) = 0;
-            	end
-
-            	% Cumulative mean MPC over years 2-4 for quarterly model
-            	MPCs.avg_1_5to8(im) = mean(mpcs_1_x{5}+mpcs_1_x{6}+mpcs_1_x{7}+mpcs_1_x{8});
-            	MPCs.avg_1_9to12(im) = mean(mpcs_1_x{9}+mpcs_1_x{10}+mpcs_1_x{11}+mpcs_1_x{12});
-            	MPCs.avg_1_13to16(im) = mean(mpcs_1_x{13}+mpcs_1_x{14}+mpcs_1_x{15}+mpcs_1_x{16});
-                clear mpcs_1_x
-            else
-            	MPCs.avg_1_5to8(im) = NaN;
-            	MPCs.avg_1_9to12(im) = NaN;
-            	MPCs.avg_1_13to16(im) = NaN;
-            end
         end
     end
 

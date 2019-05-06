@@ -216,7 +216,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
     model.con_x= model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
     
     % mean saving, mean assets
-    model.mean_a = model.adist(:)' * gridsKFE.a.matrix(:);
+	model.mean_a = model.adist(:)' * gridsKFE.a.matrix(:);
     
     if p.GRIDTEST == 2
         % use simulation results in objective function
@@ -228,7 +228,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
     end
            
     if p.Display == 1
-        fprintf(' A/Y = %2.3f\n',mean_assets/(income.meany1*p.freq));
+        fprintf(' A/Y = %2.5f\n',mean_assets/(income.meany1*p.freq));
     end
     AYdiff = mean_assets/(income.meany1*p.freq) -  p.targetAY;
 
