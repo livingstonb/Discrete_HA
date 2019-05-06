@@ -62,8 +62,8 @@ classdef MPCParams < handle
     	beta0       = 0.98;
     	temptation  = 0;
     	betaL       = 0.80;
-        betaH0; % will subtract a constant from this, after scaling for freq
-        betaH;
+        betaH0      = - 1e-3; % adjustment factor if not using theoretical upper bound
+        betaH; % theoretical upper bound if not adjusting
         
         % warm glow bequests: bequest weight = 0 is accidental
         bequest_weight  = 0;
@@ -198,8 +198,9 @@ classdef MPCParams < handle
                 objs(io).betaswitch = 1 - (1-objs(io).betaswitch)^(1/objs(io).freq);
 
                 objs(io).betaL = objs(io).betaL^(1/objs(io).freq);
-	            objs(io).betaH0 = 1/((objs(io).R)*(1-objs(io).dieprob));
-	            objs(io).betaH = objs(io).betaH0 - 1e-3;
+                
+                objs(io).betaH = 1/((objs(io).R)*(1-objs(io).dieprob));
+                objs(io).betaH = objs(io).betaH + objs(io).betaH0;
 	                
                 if objs(io).annuities == true
                     objs(io).Bequests = 0;

@@ -152,7 +152,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
 
         cdiff = max(abs(conupdate(:)-conlast(:)));
         if mod(iter,50) ==0 && p.Display == 1
-            disp([' EGP Iteration ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
+            disp(['  EGP Iteration ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
 
     end
@@ -188,6 +188,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
     model = find_stationary_adist(p,model,income,prefs,gridsKFE);
     
     % get saving policy function defined on xgrid
+    model.sav_x = zeros(p.nx_KFE*p.nyT,p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP 

@@ -29,7 +29,7 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'Q FixedBetaHet5 Width0.001 Death'};
+runopts.names_to_run = {'Q RiskAver0.5'};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS

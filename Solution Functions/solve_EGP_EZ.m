@@ -203,6 +203,8 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
     %% DISTRIBUTION
      
     model = find_stationary_adist(p,model,income,prefs,gridsKFE);
+    
+    model.sav_x = zeros(p.nx_KFE*p.nyT,p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP 
@@ -231,7 +233,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
     model.con_x = model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
            
     % mean saving, mean assets
-    model.mean_a = model.adist(:)' * grids.a.matrix(:);
+    model.mean_a = model.adist(:)' * gridsKFE.a.matrix(:);
  
     
     if p.Display == 1

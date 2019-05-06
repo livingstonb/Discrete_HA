@@ -60,7 +60,7 @@ function params = parameters(runopts,QIncome)
         name = [lfreq ' Annuities'];
         params(end+1) = MPCParams(ifreq,name,IncomeProcess);
         params(end).annuities_on();
-        params(end).betaH0 = params(end).betaH0 - 5e-3;
+        params(end).betaH0 = - 5e-3;
 
 %         % bequest curvature
 %         for bcurv = [0.1 0.5 1 2 5]
@@ -96,10 +96,10 @@ function params = parameters(runopts,QIncome)
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
                     params(end).dieprob = deathp;
-                    if (bs == 1/50) && (deathp == 1/50)
-                        params(end).betaH0 = params(end).betaH0 + 1.3e-2;
-                    elseif (deathp == 1/50)
-                        params(end).betaH0 = params(end).betaH0 + 5e-3;
+                    if strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.02 Death")
+                        params(end).betaH0 = 5e-3;
+                    elseif strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.1 Death")
+                        params(end).betaH0 = 1.5e-2;
                     end
                 end
             end
@@ -110,13 +110,13 @@ function params = parameters(runopts,QIncome)
         params(end+1) = MPCParams(ifreq,[lfreq ' CRRA w/IES betw exp(-1), exp(1)'],IncomeProcess);
         params(end).risk_aver = 1./ exp([-1 -0.5 0 0.5 1]);
         if params(end).freq == 4
-            params(end).betaH0 =  params(end).betaH0 - 5e-3;
+            params(end).betaH0 =  - 5e-3;
         end
         
         params(end+1) = MPCParams(ifreq,[lfreq ' CRRA w/IES betw exp(-2), exp(2)'],IncomeProcess);
         params(end).risk_aver = 1./ exp([-2 -1 0 1 2]);
         if params(end).freq == 4
-            params(end).betaH0 =  params(end).betaH0 - 5e-3;
+            params(end).betaH0 =  - 5e-3;
         end
 
         % EZ with IES heterogeneity
@@ -124,14 +124,14 @@ function params = parameters(runopts,QIncome)
         params(end).invies = 1 ./ exp([-1 -0.5 0 0.5 1]);
         params(end).EpsteinZin = 1;
         if (ifreq == 4)
-            params(end).betaH0 = params(end).betaH0 - 8e-3;
+            params(end).betaH0 = - 8e-3;
         end
         
         params(end+1) = MPCParams(ifreq,[lfreq ' EZ w/IES betw exp(-2), exp(2)'],IncomeProcess);
         params(end).invies = 1 ./ exp([-2 -1 0 1 2]);
         params(end).EpsteinZin = 1;
         if (ifreq == 4)
-            params(end).betaH0 = params(end).betaH0 - 8e-3;
+            params(end).betaH0 = - 8e-3;
         end
     end
 
@@ -230,7 +230,7 @@ function params = parameters(runopts,QIncome)
         end
 
         if ira == 6
-            params(end).betaH0 = params(end).betaH0 - 1e-2;
+            params(end).betaH0 = -1e-3;
         end
     end
     
@@ -270,9 +270,9 @@ function params = parameters(runopts,QIncome)
             params(end+1) = MPCParams(ifreq,[lfreq ' Temptation' num2str(itempt)],IncomeProcess);
             params(end).temptation = itempt;
             if (ifreq==4) && (itempt==0.07)
-                params(end).betaH0 = params(end).betaH0 + 3.2e-4;
+                params(end).betaH0 = 3.2e-4;
             elseif (ifreq==4) && (itempt==0.05)
-                params(end).betaH0 = params(end).betaH0 - 2e-5;
+                params(end).betaH0 = - 2e-5;
             end
         end
     end
@@ -286,9 +286,9 @@ function params = parameters(runopts,QIncome)
         params(end).invies = 1 / ies(i);
         params(end).EpsteinZin = 1;
         if i <= 3
-            params(end).betaH0 = params(end).betaH0 - 8e-3;
+            params(end).betaH0 = - 8e-3;
         else
-            params(end).betaH0 = params(end).betaH0 - 6.5e-3;
+            params(end).betaH0 = - 6.5e-3;
         end
     end
         
