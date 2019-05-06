@@ -45,11 +45,20 @@ function [sim_results,assetmeans] = simulate(p,income,model,grids,prefs)
         
     % iterate over time periods
     for it = 1:p.Tsim
-        [~,yPindsim(diesim(:,it)==1,it)] = max(yPrand(diesim(:,it)==1,it)<=income.yPcumdist',[],2);
-        if it ==1
-            [~,yPindsim(diesim(:,it)==0,it)] = max(yPrand(diesim(:,it)==0,it)<=income.yPcumdist',[],2);
+        if p.ResetIncomeUponDeath == 0
+            if it ==1
+                [~,yPindsim(:,it)] = max(yPrand(:,it)<=income.yPcumdist',[],2);
+            else
+                [~,yPindsim(:,it)] = max(yPrand(:,it)<=income.yPcumtrans(yPindsim(:,it-1),:),[],2);
+            end
         else
-            [~,yPindsim(diesim(:,it)==0,it)] = max(yPrand(diesim(:,it)==0,it)<=income.yPcumtrans(yPindsim(diesim(:,it)==0,it-1),:),[],2);
+            [~,yPindsim(diesim(:,it)==1,it)] = max(yPrand(diesim(:,it)==1,it)<=income.yPcumdist',[],2);
+
+            if it ==1
+                [~,yPindsim(diesim(:,it)==0,it)] = max(yPrand(diesim(:,it)==0,it)<=income.yPcumdist',[],2);
+            else
+                [~,yPindsim(diesim(:,it)==0,it)] = max(yPrand(diesim(:,it)==0,it)<=income.yPcumtrans(yPindsim(diesim(:,it)==0,it-1),:),[],2);
+            end
         end
     end
     

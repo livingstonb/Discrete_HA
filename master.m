@@ -10,13 +10,13 @@ close all;
 % options
 runopts.Display = 1;
 runopts.Server = 0; % use server paths
-runopts.IterateBeta = 0;
+runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 1; % also solve distribution via simulation
 runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
 % directories
-runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % grid tests, 0 to turn off

@@ -13,14 +13,11 @@ function [results,decomp] = main(p)
     results.checks = {};
     
     %% --------------------------------------------------------------------
-    % LOAD INCOME VARIABLES, CONSTRUCT BETA DISTRIBUTION
+    % CONSTRUCT BETA DISTRIBUTION
     % ---------------------------------------------------------------------
-
-    % Create income structure
-    income = gen_income_variables(p);
     
-    % savtaxthresh should be a multiple of mean gross labor income
-    p.savtaxthresh  = p.savtaxthresh * income.meany1 * p.freq;
+    % savtaxthresh should be a multiple of mean annual gross labor income
+    p.savtaxthresh  = p.savtaxthresh * (1/4) * p.freq;
 
     if (p.nb > 1) && (numel(p.risk_aver) > 1)
     	error('cannot have both beta and risk aversion heterogeneity')
@@ -89,6 +86,11 @@ function [results,decomp] = main(p)
         prefs.IEScumdist = 1;
         prefs.IEScumtrans = 0;
     end
+    
+    %% --------------------------------------------------------------------
+    % INCOME
+    % ---------------------------------------------------------------------
+    income = gen_income_variables(p,prefs);
 
     %% --------------------------------------------------------------------
     % ASSET GRIDS

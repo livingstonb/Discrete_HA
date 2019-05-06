@@ -1,4 +1,4 @@
-function income = gen_income_variables(p)
+function income = gen_income_variables(p,prefs)
     % Given a structure of parameters, p, this function generates a
     % structure variable called 'income' with fields associated with the
     % specified income distribution
@@ -127,13 +127,28 @@ function income = gen_income_variables(p)
     netymat_temp = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
     netymatHJB = repmat(netymat_temp,[p.nx 1 1 1]);
     netymatKFE = repmat(netymat_temp,[p.nx_KFE 1 1 1]);
+
+    % full transition matrix with beta and IES transitions, excluding and including death
+    if p.ResetIncomeUponDeath == 1
+        yPtrans_death = repmat(yPdist',p.nyP,1);
+    else
+        yPtrans_death = yPtrans;
+    end
+
+    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1)
+        ytrans_live = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans));
+        ytrans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_death));
+    else
+        ytrans_live = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans));
+        ytrans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_death));
+    end
     
         % Store income variables in a structure
     newfields = {'ymat','netymat','meany1','yPgrid',...
         'yTgrid','yFgrid','yPdist','yTdist','yFdist','yPcumtrans',...
         'yPtrans','yPcumdist','yFcumdist','yTcumdist','ytrans',...
         'meannety1','labtaxthresh','lumptransfer','ysortdist','ysort',...
-        'ymatdist','netymatHJB','netymatKFE'};
+        'ymatdist','netymatHJB','netymatKFE','ytrans_live','ytrans_death'};
     for i = 1:numel(newfields)
         income.(newfields{i}) = eval(newfields{i});
     end

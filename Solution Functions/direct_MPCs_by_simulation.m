@@ -69,8 +69,12 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
         [~,yTindsim(:,it)]      = max(yTrand(:,it)<=income.yTcumdist',[],2);
         
         if it > 1
-            [~,yPindsim(live,it)]   = max(yPrand(live,it)<=income.yPcumtrans(yPindsim(live,it-1),:),[],2);
-            [~,yPindsim(~live,it)]  = max(yPrand(~live,it)<=income.yPcumdist',[],2);
+            if p.ResetIncomeUponDeath == 1
+                [~,yPindsim(live,it)]   = max(yPrand(live,it)<=income.yPcumtrans(yPindsim(live,it-1),:),[],2);
+                [~,yPindsim(~live,it)]  = max(yPrand(~live,it)<=income.yPcumdist',[],2);
+            else
+                [~,yPindsim(:,it)]   = max(yPrand(:,it)<=income.yPcumtrans(yPindsim(:,it-1),:),[],2);
+            end
             [~,betaindsim(:,it)]    = max(betarand(:,it)<=prefs.betacumtrans(betaindsim(:,it-1),:),[],2);
             [~,IESindsim(:,it)] = max(IESrand(:,it)<=prefs.IEScumtrans(IESindsim(:,it-1),:),[],2);
         end

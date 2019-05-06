@@ -81,6 +81,7 @@ classdef MPCParams < handle
         rho_logyP;
         nyF = 1;
         sd_logyF = 0;
+        ResetIncomeUponDeath = 1;
         
         % government
         labtaxlow       = 0; %proportional tax

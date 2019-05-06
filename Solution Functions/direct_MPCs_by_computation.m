@@ -22,18 +22,6 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     % for interpolating back onto agrid
     fspace = fundef({'spli',grids.a.vec,0,1});
     
-    % transition matrix between (yP,yF,beta) states cond'l on dying
-    yPtrans_stationary = repmat(income.yPdist',p.nyP,1);
-    
-    % transition matrix between (yP,yF,beta) states, cond'l on living
-    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1)
-        trans_live = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
-        trans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_stationary));
-    else
-        trans_live = kron(prefs.IEStrans,kron(eye(p.nyF),income.yPtrans));
-        trans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_stationary));
-    end
-    
     % baseline consumption
     con_baseline_yT = get_policy(p,xgrid_yT,basemodel);
     % take expectation wrt yT
@@ -86,7 +74,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 %Ti is transition from t=ii-1 to t=ii
                 mpcshock = 0;
                 Ti = transition_t_less_s(p,income,xgrid_yT,...
-                    models,is,it-1,fspace,trans_live,trans_death,mpcshock);
+                            models,is,it-1,fspace,mpcshock);
                 T1t = Ti * T1t;
             end
 
@@ -138,7 +126,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         % transition probabilities from it = is to it = is + 1
         mpcshock = mpcamount;
         T_s1_s = transition_t_less_s(p,income,xgrid_yT,models,is,is,...
-                                    fspace,trans_live,trans_death,mpcshock);
+                                    fspace,mpcshock);
         T1t = T_s1_s * T1t;
         clear T_s1_s
 
@@ -198,7 +186,7 @@ function con = get_policy(p,x_mpc,model)
 end
 
 function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
-                                            fspace,trans_live,trans_death,mpcshock)
+                                            fspace,mpcshock)
     % Computes the transition matrix between t=ii and t=ii + 1 given shock in
     % period 'is'
     NN = p.nx_KFE*p.nyP*p.nyF*p.nb;
@@ -244,8 +232,8 @@ function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
     % Transition matrix from 'ii' to 'ii'+1
     T1 = sparse(NN,NN);
     for col = 1:p.nyP*p.nyF*p.nb
-        newblock_live = bsxfun(@times,kron(trans_live(:,col),ones(p.nx_KFE,1)),interp);
-        newblock_death = bsxfun(@times,kron(trans_death(:,col),ones(p.nx_KFE,1)),interp_death);
+        newblock_live = bsxfun(@times,kron(income.ytrans_live(:,col),ones(p.nx_KFE,1)),interp);
+        newblock_death = bsxfun(@times,kron(income.ytrans_death(:,col),ones(p.nx_KFE,1)),interp_death);
         T1(:,p.nx_KFE*(col-1)+1:p.nx_KFE*col) = (1-p.dieprob)*newblock_live + p.dieprob*newblock_death;
     end
 end

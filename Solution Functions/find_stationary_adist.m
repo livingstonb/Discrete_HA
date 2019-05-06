@@ -15,19 +15,6 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
         netymat = income.netymatKFE;
     end
 
-    
-    % transition matrix between (yP,yF,beta) states cond'l on dying
-    yPtrans_stationary = repmat(income.yPdist',p.nyP,1);
-    
-    % transition matrix between (yP,yF,beta) states, cond'l on living
-    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1)
-        trans_live = kron(prefs.betatrans,kron(eye(p.nyF),income.yPtrans));
-        trans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_stationary));
-    else
-        trans_live = kron(prefs.IEStrans,kron(eye(p.nyF),income.yPtrans));
-        trans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_stationary));
-    end
-
     % cash-on-hand as function of (a,yP,yF,yT)
     x = grids.a.matrix + netymat;
     
@@ -64,8 +51,8 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     for ib2 = 1:p.nb
     for iyF2 = 1:p.nyF
     for iyP2 = 1:p.nyP
-        transcol_live = kron(trans_live(:,col),ones(nx,1));
-        transcol_death = kron(trans_death(:,col),ones(nx,1));
+        transcol_live = kron(income.ytrans_live(:,col),ones(nx,1));
+        transcol_death = kron(income.ytrans_death(:,col),ones(nx,1));
         
         transcol_live = transcol_live .* interp_live;
         transcol_death = transcol_death .* interp_death;
