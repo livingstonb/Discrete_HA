@@ -1,5 +1,5 @@
 function [T_annual,T_quarter] = create_table(params,results,...
-                                            decomps,NoDecomps,decomp2,decomp3)
+                                            decomps,decomp2,decomp3)
     %% Rownames
     rows = {'Specification'
             'Lookup Index'
@@ -150,8 +150,8 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     column = [p.index;NaN(Nrows-1,1)];
             else
                 
-                if ~NoDecomps
-                    % decomposition1
+%                 if ~NoDecomps
+%                     % decomposition1
                     dec1 = [[decomps{ip}.term1]
                             [decomps{ip}.term2]
                             [decomps{ip}.term3]
@@ -194,13 +194,6 @@ function [T_annual,T_quarter] = create_table(params,results,...
                         dec2_A = dec2_mpc4;
                         dec2_Q = dec2_mpc1;
                     end
-                else
-                	dec2_A = NaN(10,1);
-                	dec2_Q = NaN(10,1);
-                	dec3_mpc1 = NaN(4,1);
-                	dec3_mpc4 = NaN(4,1);
-                    dec1 = NaN(12,1);
-                end
 
                 s_t_mpcs = cell(1,6);
 

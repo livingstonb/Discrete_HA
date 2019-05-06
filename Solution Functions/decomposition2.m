@@ -202,7 +202,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
 	            else
 	            	decomp2(ip).mpc4_term2a(ia) = m0g1_interp4(abar) - m0g0_interp4(abar);
 		        	decomp2(ip).mpc4_term2b(ia) = (m0_4_a'*g1_a - m0g1_interp4(abar)) ...
-	        									- (m0_4_a'*g0_a - m0g0_interp4(abar))
+	        									- (m0_4_a'*g0_a - m0g0_interp4(abar));
             	end
             end
         end
