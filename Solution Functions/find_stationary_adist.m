@@ -16,7 +16,7 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     end
 
     % cash-on-hand as function of (a,yP,yF,yT)
-    x = grids.a.matrix + netymat;
+    x = squeeze(grids.a.matrix(:,:,:,1)) + netymat;
     
     % saving interpolated onto this grid
     sav = zeros(nx,p.nyP,p.nyF,p.nb,p.nyT);
@@ -110,5 +110,6 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     incvals = reshape(incvals,[nx*p.nyT p.nyP p.nyF]);
     modelupdate.y_x = repmat(incvals,[1 1 1 p.nb]);
     modelupdate.nety_x = income.lumptransfer + (1-p.labtaxlow)*incvals - p.labtaxhigh*max(incvals-income.labtaxthresh,0);
+    modelupdate.nety_x = repmat(modelupdate.nety_x,[1 1 1 p.nb]);
     modelupdate.xvals = repmat(grids.a.vec,[p.nyT p.nyP p.nyF p.nb]) + modelupdate.nety_x;
 end
