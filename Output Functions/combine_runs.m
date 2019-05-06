@@ -15,7 +15,6 @@ if FROM_MATFILE
     params = struct();
     results = struct();
     decomps = struct();
-    checks = struct();
     decomp2 = struct();
     decomp3 = struct();
     
@@ -30,7 +29,6 @@ if FROM_MATFILE
             params(ind) = S.Sparams;
             results(ind) = S.results;
             decomps(ind) = S.decomps;
-            checks(ind) = S.checks;
             
             [decomp2(ind),decomp3(ind)] = decomposition2(params,results);
         else
@@ -42,5 +40,5 @@ else
     
     NoDecomps = true;
     [T_annual,T_quarter] = create_table(params,results,...
-                                            decomps,checks,NoDecomps,[],[]);
+                                            decomps,NoDecomps,[],[]);
 end

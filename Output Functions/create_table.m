@@ -1,5 +1,5 @@
 function [T_annual,T_quarter] = create_table(params,results,...
-                                            decomps,checks,NoDecomps,decomp2,decomp3)
+                                            decomps,NoDecomps,decomp2,decomp3)
     %% Rownames
     rows = {'Specification'
             'Lookup Index'
@@ -139,15 +139,9 @@ function [T_annual,T_quarter] = create_table(params,results,...
             
             % Check if column of NaNs must be used
             NaNcol = false;
-            if numel(checks{ip}) > 0
-                if sum(ismember({'NoEGPConv','NoBetaConv'},checks{ip})) > 0
+            if numel(results(ip).checks) > 0
+                if sum(ismember({'NoEGPConv','NoBetaConv'},results(ip).checks)) > 0
                     % Critical code failure
-                    NaNcol = true;
-                end
-            end
-            if numel(checks{ip}) == 1
-                if ismember('EXCEPTION_THROWN',checks{ip})
-                    % Exception was thrown for this parameterization
                     NaNcol = true;
                 end
             end
@@ -270,7 +264,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     dec2_Q
                     NaN
                     dec3_mpc1                                  	% Decomposition3
-                    numel(checks{ip})>0 ];
+                    numel(results(ip).checks)>0 ];
             end
 
             % Add this column to table

@@ -68,7 +68,6 @@ end
 % CALL MAIN FUNCTION
 % -------------------------------------------------------------------------
 Nparams = size(params,2);
-checks     = cell(1,Nparams); % Information on failed sanity checks
 decomps    = cell(1,Nparams); 
 
 % iterate through specifications (or run 1)
@@ -81,7 +80,7 @@ for ip = 1:Nparams
     fprintf('\n Trying %s parameterization "%s"\n',msgfreq,params(ip).name)
 
     tic
-    [results(ip),checks{ip},decomps{ip}] = main(params(ip));
+    [results(ip),decomps{ip}] = main(params(ip));
     toc
     disp(['Finished parameterization ' params(ip).name])
     
@@ -95,11 +94,11 @@ if runopts.Server == 0
 %     [decomp2,decomp3] = decomposition2(params,results);
 %     % Create table
 %     [T_annual,T_quarter] = create_table(params,results,...
-%                                     decomps,checks,decomp2,decomp3)
+%                                     decomps,decomp2,decomp3)
 	disp('Check the results structure for detailed results')
 else
     % convert MPCParams object to structure for saving
 	Sparams = MPCParams.to_struct(params);
-    save(runopts.savematpath,'Sparams','results','decomps','checks')
+    save(runopts.savematpath,'Sparams','results','decomps')
     exit
 end

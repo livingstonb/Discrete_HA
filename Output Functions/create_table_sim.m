@@ -1,5 +1,5 @@
 function [T_annual,T_quarter] = create_table_sim(params,results,...
-                                            decomps,checks)
+                                            decomps)
     %% Rownames
     rows = {'Specification'
             'Lookup Index'
@@ -101,14 +101,14 @@ function [T_annual,T_quarter] = create_table_sim(params,results,...
             
             % Check if column of NaNs must be used
             NaNcol = false;
-            if numel(checks{ip}) > 0
-                if sum(ismember({'NoEGPConv','NoBetaConv'},checks{ip})) > 0
+            if numel(results(ip).checks) > 0
+                if sum(ismember({'NoEGPConv','NoBetaConv'},results(ip).checks)) > 0
                     % Critical code failure
                     NaNcol = true;
                 end
             end
-            if numel(checks{ip}) == 1
-                if ismember('EXCEPTION_THROWN',checks{ip})
+            if numel(results(ip).checks) == 1
+                if ismember('EXCEPTION_THROWN',results(ip).checks)
                     % Exception was thrown for this parameterization
                     NaNcol = true;
                 end
@@ -140,7 +140,7 @@ function [T_annual,T_quarter] = create_table_sim(params,results,...
                     results(ip).sim.mpcs.avg_1_5to8(:)          % IMPC(1,5-8)
                     results(ip).sim.mpcs.avg_1_9to12(:)          % IMPC(1,9-12)
                     results(ip).sim.mpcs.avg_1_13to16(:)          % IMPC(1,13-16)
-                    numel(checks{ip})>0];                
+                    numel(results(ip).checks)>0];                
             end
 
             % Add this column to table
