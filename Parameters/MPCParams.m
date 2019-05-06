@@ -101,7 +101,7 @@ classdef MPCParams < handle
     	Tsim        = 400; % Simulation
 
         % beta iteration
-        IterateBeta = 1;
+        IterateBeta;
     	targetAY    = 3.5; 
     end
 
@@ -141,7 +141,7 @@ classdef MPCParams < handle
 
             % fast option
             if runopts.fast == 1
-                [obj.nxlong] = deal(10);
+                [obj.nx_KFE] = deal(10);
                 [obj.nx] = deal(10);
                 [obj.Nmpcsim] = deal(1e2);
                 [obj.nyT] = deal(3);
@@ -151,6 +151,9 @@ classdef MPCParams < handle
 
             % display option
             [obj.Display] = deal(runopts.Display);
+            
+            % iterate option
+            [obj.IterateBeta] = deal(runopts.IterateBeta);
 
             % simulate option
             [obj.Simulate] = deal(runopts.Simulate);

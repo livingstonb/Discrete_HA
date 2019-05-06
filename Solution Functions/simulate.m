@@ -112,10 +112,10 @@ function [sim_results,assetmeans] = simulate(p,income,model,grids,prefs)
         end
     end
 
-    %% Get distribution over asset grid
-    fspace = fundef({'spli',grids.a.vec,0,1});
-    agrid_dist = full(funbas(fspace,asim(:,end)));
-    sim_results.agrid_dist = sum(agrid_dist,1)' / sum(agrid_dist(:));
+%     %% Get distribution over asset grid
+%     fspace = fundef({'spli',grids.a.vec,0,1});
+%     agrid_dist = full(funbas(fspace,asim(:,end)));
+%     sim_results.agrid_dist = sum(agrid_dist,1)' / sum(agrid_dist(:));
     
     %% Moments/important quantities
     sim_results.mean_s          = mean(ssim(:,p.Tsim));
