@@ -464,8 +464,7 @@ function [results,decomp] = main(p)
                         nextmodel = model_lagged{lag-1};
                     end
 
-                    [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,xgrid,sgrid,...                   
-                                    grdKFE.a.vec,prefs,income,nextmpcshock,nextmodel);
+                    [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,grdHJB,grdKFE,prefs,income,nextmpcshock,nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s
