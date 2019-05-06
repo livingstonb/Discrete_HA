@@ -205,14 +205,14 @@ function [T_annual,T_quarter] = create_table(params,results,...
                 s_t_mpcs = cell(1,6);
 
                 for i = 1:3
-                    s_t_mpcs{i} = [results(ip).direct.mpcs_sim.avg_1_1(i)
-                                    results(ip).direct.mpcs_sim.avg_1_2(i)
-                                    results(ip).direct.mpcs_sim.avg_1_3(i)
-                                    results(ip).direct.mpcs_sim.avg_1_4(i)
-                                    results(ip).direct.mpcs_sim.avg_1_1to4(i)];
+%                     s_t_mpcs{i} = [results(ip).direct.mpcs_sim.avg_1_1(i)
+%                                     results(ip).direct.mpcs_sim.avg_1_2(i)
+%                                     results(ip).direct.mpcs_sim.avg_1_3(i)
+%                                     results(ip).direct.mpcs_sim.avg_1_4(i)
+%                                     results(ip).direct.mpcs_sim.avg_1_1to4(i)];
                 end
 
-                for i = 4:6
+                for i = 1:6
                     s_t_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t{1,1}          % IMPC(1,1)
                                     results(ip).direct.mpcs(i).avg_s_t{1,2}        % IMPC(1,2)
                                     results(ip).direct.mpcs(i).avg_s_t{1,3}        % IMPC(1,3)
