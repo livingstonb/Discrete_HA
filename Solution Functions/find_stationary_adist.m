@@ -43,8 +43,8 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     if p.Bequests == 1
         interp_death = interp_live;
     else
-        interp_death = sparse(nx,nx);
-        interp_death(:,1) = ones(nx,1);
+        interp_death = sparse(nx*p.nyP*p.nyF*p.nb,nx);
+        interp_death(:,1) = 1;
     end
 
     col = 1;

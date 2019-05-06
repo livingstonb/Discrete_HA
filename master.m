@@ -12,8 +12,8 @@ runopts.Display = 1;
 runopts.Server = 1; % use server paths
 runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for speed
-runopts.Simulate = 1; % also solve distribution via simulation
-runopts.mpcshocks_after_period1 = 1; % compute mpcs for ishock > 1
+runopts.Simulate = 0; % also solve distribution via simulation
+runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
 % directories
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
@@ -29,7 +29,7 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {};
+runopts.names_to_run = {'Q NoBequests'};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS
