@@ -112,8 +112,8 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 % make consumption for cases pushed below xgrid equal to consumption
                 % at bottom of xgrid - the amount borrowed
                 x_before_shock = reshape(grids.x.matrix,[p.nx_KFE p.nyP p.nyF]);
-                x_before_shock = repmat(x_before_shock,[1 1 1 p.nb p.nyT]);
-            	con = ~below_xgrid.*con + below_xgrid.*(con_baseline_yT(1,:,:,:,:) + shocksize);
+                x_minus_xmin = x_before_shock - grids.x.matrix(1,:,:);
+            	con = ~below_xgrid.*con + below_xgrid.*(con_baseline_yT(1,:,:,:,:) + shocksize + x_minus_xmin);
             end
 
             % expectation over yT
