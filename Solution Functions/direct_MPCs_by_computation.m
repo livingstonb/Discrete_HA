@@ -33,10 +33,10 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     % ITERATION OVER (s,t)
     % ---------------------------------------------------------------------
     % period t MPC out of shock in period s, learned about in period 1
-    MPCs.avg_s_t = cell(16,16);
+    MPCs.avg_s_t = cell(5,5);
     
-    for is = 1:16
-    for it = 1:16
+    for is = 1:5
+    for it = 1:5
         MPCs.avg_s_t{is,it} = NaN;
     end
     end
@@ -65,6 +65,10 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 disp(['    --Time ' datestr(now,'HH:MM:SS')])
             end
 
+            if (shocksize < 0) && (it > 1)
+                continue
+            end
+
             % Create transition matrix from period 1 to period
             % t (for last iteration, this is transition from period t to
             % period s)
@@ -87,8 +91,9 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 x_mpc = xgrid_yT;
             end
 
-            if shocksize < 0 && it == is
+            if shocksize < 0
             	% record which states are pushed below asset grid after negative shock
+                % bring back up to asset grid for interpolation
                 below_xgrid = false(size(x_mpc));
                 for iyT = 1:p.nyT
                     below_xgrid(:,:,:,iyT) = x_mpc(:,:,:,iyT) < grids.x.matrix(1,:,:);
@@ -103,12 +108,12 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
             % consumption choice given the shock
             con = get_policy(p,x_mpc,models{is,it});
 
-            if shocksize < 0 && (it == is)
+            if (shocksize < 0) && (it == is)
                 % make consumption for cases pushed below xgrid equal to consumption
-                % at bottom of xgrid + the amount borrowed
+                % at bottom of xgrid - the amount borrowed
                 x_before_shock = reshape(grids.x.matrix,[p.nx_KFE p.nyP p.nyF]);
                 x_before_shock = repmat(x_before_shock,[1 1 1 p.nb p.nyT]);
-            	con = ~below_xgrid.*con + below_xgrid.*(con_baseline_yT + (x_before_shock + shocksize));
+            	con = ~below_xgrid.*con + below_xgrid.*(con_baseline_yT(1,:,:,:,:) + shocksize);
             end
 
             % expectation over yT

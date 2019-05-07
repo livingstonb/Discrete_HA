@@ -3,6 +3,8 @@
 FROM_MATFILE = true;
 if ~FROM_MATFILE
     clearvars -except params results decomps FROM_MATFILE
+else
+    clearvars -except FROM_MATFILE
 end
 
 if FROM_MATFILE
@@ -11,7 +13,7 @@ if FROM_MATFILE
 
     %% Select directories
     basedir = '/media/hdd/Other/midway2_output/discrete_time';
-    date = '5_6_19';
+    date = '5_7_19';
 
     %% Read .mat files into a cell array
     fulldir = [basedir '/' date '/'];
