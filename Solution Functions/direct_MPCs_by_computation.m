@@ -108,7 +108,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 % at bottom of xgrid + the amount borrowed
                 x_before_shock = reshape(grids.x.matrix,[p.nx_KFE p.nyP p.nyF]);
                 x_before_shock = repmat(x_before_shock,[1 1 1 p.nb p.nyT]);
-            	con = ~below_xgrid.*con + below_xgrid.*(con_baseline_yT(1,:,:,:,:) + (x_before_shock + shocksize));
+            	con = ~below_xgrid.*con + below_xgrid.*(con_baseline_yT + (x_before_shock + shocksize));
             end
 
             % expectation over yT
