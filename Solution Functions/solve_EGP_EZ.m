@@ -10,7 +10,12 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
     
     % initial guess for consumption function, stacked state combinations
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
-    con = (1/p.R) * repmat(grids.x.matrix(:),p.nb,1);
+    if p.r < 0.001
+        extra = 0.002;
+    else
+        extra = 0;
+    end
+    con = (p.r + extra) * repmat(grids.x.matrix(:),p.nb,1);
     
     % initial guess for value function
     V = con;
@@ -117,8 +122,10 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         end
         end
         sav = max(sav,p.borrow_lim);
+
+        index_to_extend = 1*(p.nyF==1) + 2*(p.nyF>1);
         xp = p.R * repmat(sav(:),1,p.nyT) ... 
-                    + repmat(kron(income.netymat,ones(p.nx,1)),p.nb,1);
+                    + repmat(kron(income.netymat,ones(p.nx,1)),p.nb,index_to_extend);
         xp = reshape(xp,[p.nx p.nyP p.nyF p.nb p.nyT]);
         
         conupdate = repmat(grids.x.matrix,[1 1 1 p.nb]) - sav - p.savtax * max(sav-p.savtaxthresh,0);

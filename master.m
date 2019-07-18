@@ -9,14 +9,14 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Display = 1;
-runopts.Server = 1; % use server paths
+runopts.Server = 0; % use server paths
 runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
 runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
 % directories
-runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % grid tests, 0 to turn off
@@ -29,6 +29,7 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
+% runopts.names_to_run = {['Q EZ ra' num2str(1/1.001) ' ies' num2str(1.001)]};
 runopts.names_to_run = {'baseline_Q'};
 
 %% ------------------------------------------------------------------------
