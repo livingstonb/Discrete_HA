@@ -14,6 +14,21 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         disp([' Trying betagrid =' msg])
     end
 
+    % Expectations operator (conditional on yT)
+    % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
+    if numel(p.r) > 1
+        Emat = kron(prefs.rtrans,kron(income.ytrans,speye(p.nx)));
+        r_col = kron(p.r',ones(p.nx*p.nyP*p.nyF,1));
+        r_mat = reshape(r_col,[p.nx,p.nyP,p.nyF,numel(p.r)]);
+    elseif numel(p.risk_aver) > 1
+        Emat = kron(prefs.IEStrans,kron(income.ytrans,speye(p.nx)));
+        risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
+        r_mat = p.r;
+    else
+        Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+        r_mat = p.r;
+    end
+
     % initial guess for consumption function, stacked state combinations
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
     if p.temptation > 0.05
@@ -26,27 +41,18 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         extra = 0;
     end
     
-    con = (p.r + extra) * repmat(grids.x.matrix(:),p.nb,1);
+    con = (r_mat(:) + extra) .* repmat(grids.x.matrix(:),p.nb,1);
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    if numel(p.risk_aver) > 1
-        % IES heterogeneity - nb is number of IES values
+    if (numel(p.risk_aver) > 1) || (numel(p.r) > 1)
+        % IES heterogeneity or returns heterogeneity - nb is number of IES or r values
         % betagrid is just beta
         betastacked = speye(p.nyP*p.nyF*p.nx*p.nb) * betagrid;
     else
         % beta heterogeneity
         betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
         betastacked = sparse(diag(betastacked));
-    end
-
-    % Expectations operator (conditional on yT)
-    % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    if numel(p.risk_aver) == 1
-        Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
-    else
-        Emat = kron(prefs.IEStrans,kron(income.ytrans,speye(p.nx)));
-        risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
     end
 
     %% EGP ITERATION
@@ -69,10 +75,11 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         
         % x'(s)
         temp_sav = repmat(grids.s.matrix(:),p.nb,p.nyT);
+        temp_sav = reshape(temp_sav,[p.nx p.nyP p.nyF p.nb p.nyT]);
         index_to_extend = 1*(p.nyF==1) + 2*(p.nyF>1);
         temp_inc = repmat(kron(income.netymat,ones(p.nx,1)),p.nb,index_to_extend);
-        xp_s = (1+p.r)*temp_sav + temp_inc + nextmpcshock;
-        xp_s = reshape(xp_s,[p.nx p.nyP p.nyF p.nb p.nyT]);
+        temp_inc = reshape(temp_inc,[p.nx p.nyP p.nyF p.nb p.nyT]);
+        xp_s = (1+r_mat) .* temp_sav + temp_inc + nextmpcshock;
 
         for ib  = 1:p.nb
         for iyF = 1:p.nyF
@@ -99,12 +106,13 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         xp_s = reshape(xp_s,[],p.nyT);
 
         % matrix of next period muc, muc(x',yP',yF)
-        if numel(p.risk_aver) == 1
-            mucnext = prefs.u1(c_xp) - p.temptation/(1+p.temptation) * prefs.u1(xp_s);
-        else
+        if numel(p.risk_aver) > 1
             risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
             mucnext = prefs.u1(risk_aver_col_yT,c_xp)...
                 - p.temptation/(1+p.temptation) * prefs.u1(risk_aver_col_yT,xp_s);
+        else
+            mucnext = prefs.u1(c_xp) - p.temptation/(1+p.temptation) * prefs.u1(xp_s);
+
         end
             
         
@@ -112,7 +120,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         % variables defined for each (x,yP,yF,beta) in state space,
         % column vecs of length p.nx*p.nyP*p.nyF*p.nb
         savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
-        mu_consumption = (1+p.r)*betastacked*Emat*(mucnext*income.yTdist);
+        mu_consumption = (1+r_mat(:)).*betastacked*Emat*(mucnext*income.yTdist);
         mu_bequest     = prefs.beq1(repmat(grids.s.matrix(:),p.nb,1));
         
         % muc(s(x,yP,yF,beta))

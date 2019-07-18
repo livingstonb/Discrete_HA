@@ -135,9 +135,12 @@ function income = gen_income_variables(p,prefs)
         yPtrans_death = yPtrans;
     end
 
-    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1)
+    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) && (numel(p.r)==1)
         ytrans_live = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans));
         ytrans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_death));
+    elseif numel(p.r) > 1
+        ytrans_live = kron(prefs.rtrans,kron(eye(p.nyF),yPtrans));
+        ytrans_death = kron(prefs.rtrans,kron(eye(p.nyF),yPtrans_death));
     else
         ytrans_live = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans));
         ytrans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_death));

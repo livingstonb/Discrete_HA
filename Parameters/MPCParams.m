@@ -188,7 +188,7 @@ classdef MPCParams < handle
             % must be called after setting all parameterizations
 
             for io = 1:numel(objs)
-                objs(io).R = (1+objs(io).r)^(1/objs(io).freq);
+                objs(io).R = (1+objs(io).r).^(1/objs(io).freq);
                 objs(io).r = objs(io).R - 1;
 
                 objs(io).savtax = objs(io).savtax/objs(io).freq;
@@ -199,7 +199,7 @@ classdef MPCParams < handle
 
                 objs(io).betaL = objs(io).betaL^(1/objs(io).freq);
                 
-                objs(io).betaH = 1/((objs(io).R)*(1-objs(io).dieprob));
+                objs(io).betaH = 1./((max(objs(io).R))*(1-objs(io).dieprob));
                 objs(io).betaH = objs(io).betaH + objs(io).betaH0;
 	                
                 if objs(io).annuities == true

@@ -15,6 +15,13 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
         netymat = income.netymatKFE;
     end
 
+    if numel(p.r) > 1
+        r_col = kron(p.r',ones(p.nx*p.nyP*p.nyF,1));
+        r_mat = reshape(r_col,[p.nx,p.nyP,p.nyF,numel(p.r)]);
+    else
+        r_mat = p.r;
+    end
+
     % cash-on-hand as function of (a,yP,yF,yT)
     x = squeeze(grids.a.matrix(:,:,:,1)) + netymat;
     
@@ -30,7 +37,7 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     end
     end
     
-    aprime_live = p.R * sav;
+    aprime_live = (1+repmat(r_mat,[1,1,1,1,p.nyT])) .* sav;
 
     % transition matrix over (x,yP,yF,beta) full asset space
     modelupdate.statetrans = sparse(nx*p.nyP*p.nyF*p.nb,nx*p.nyP*p.nyF*p.nb);

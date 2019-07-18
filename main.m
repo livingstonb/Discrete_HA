@@ -11,6 +11,11 @@ function [results,decomp] = main(p)
 
     results = struct('direct',[],'norisk',[],'sim',[]);
     results.checks = {};
+
+    % throw error if more than one type of heterogeneity are added
+    if (p.nb > 1) + (numel(p.risk_aver)>1) + (numel(p.r)>1) > 1
+        error('only one form of heterogeneity allowed')
+    end
     
     %% --------------------------------------------------------------------
     % CONSTRUCT BETA DISTRIBUTION
@@ -18,10 +23,6 @@ function [results,decomp] = main(p)
     
     % savtaxthresh should be a multiple of mean annual gross labor income
     p.savtaxthresh  = p.savtaxthresh * (1/4) * p.freq;
-
-    if (p.nb > 1) && (numel(p.risk_aver) > 1)
-    	error('cannot have both beta and risk aversion heterogeneity')
-    end
 
     % discount factor distribution
     if  p.nb == 1
@@ -86,6 +87,32 @@ function [results,decomp] = main(p)
         prefs.IEScumdist = 1;
         prefs.IEScumtrans = 0;
     end
+
+    %% --------------------------------------------------------------------
+    % RETURNS HETEROGENEITY
+    % ---------------------------------------------------------------------
+    % same way as introducing beta heterogeneity
+    if numel(p.r) > 1
+        % use nb as grid size for interest rate
+        p.nb = numel(p.r);
+
+        prefs.rdist = ones(p.nb,1) / p.nb;
+        rswitch = 0;
+
+        diagonal = (1-rswitch) * ones(p.nb,1);
+        off_diag = rswitch * ones(p.nb);
+        off_diag = off_diag - diag(diag(off_diag));
+        prefs.rtrans = off_diag + diag(diagonal);
+        
+        prefs.rcumdist = cumsum(prefs.rdist);
+        prefs.rcumtrans = cumsum(prefs.rtrans,2);
+    else
+        prefs.rdist = 1;
+        prefs.rtrans = 0;
+        prefs.rcumdist = 1;
+        prefs.rcumtrans = 0;
+    end
+
     
     %% --------------------------------------------------------------------
     % INCOME
@@ -118,7 +145,7 @@ function [results,decomp] = main(p)
 
     % xgrids (cash on hand), different min points for each value of (iyP,iyF)
     minyT = kron(min(income.netymat,[],2),ones(p.nx,1));
-    xgrid = p.R * grdHJB.s.matrix(:) + minyT;
+    xgrid = min(p.R) * grdHJB.s.matrix(:) + minyT;
     grdHJB.x.matrix = reshape(xgrid,[p.nx p.nyP p.nyF]);
     
     % xgrid for model without income risk
@@ -232,7 +259,7 @@ function [results,decomp] = main(p)
             iterate_EGP = @(x) solve_EGP(x,p,grdHJB,grdKFE,prefs,income,mpcshock,[]);
         end
 
-        if p.nb == 1
+        if numel(prefs.betadist) == 1
             beta_ub = p.betaH;
         else
             % Don't let highest beta be such that (1-dieprob)*R*beta >= 1
@@ -490,46 +517,48 @@ function [results,decomp] = main(p)
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
-    % Model with income risk
-    MPCs = struct();
-    for i = 1:3
-        [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i),inc_constrained(i)] ...
-                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,grdKFE);
-    end
-    
-    results.direct.a_sixth_sim = mean([inc_constrained.a_sixth_Q]);
-    results.direct.a_twelfth_sim = mean([inc_constrained.a_twelfth_Q]);
-    results.direct.x_sixth_sim = mean([inc_constrained.x_sixth_Q]);
-    results.direct.x_twelfth_sim = mean([inc_constrained.x_twelfth_Q]);
-    
-    MPCs.avg_1_1 = (MPC_trials(1).avg_1_1 + MPC_trials(2).avg_1_1 + MPC_trials(3).avg_1_1)/3;
-    MPCs.avg_1_2 = (MPC_trials(1).avg_1_2 + MPC_trials(2).avg_1_2 + MPC_trials(3).avg_1_2)/3;
-    MPCs.avg_1_3 = (MPC_trials(1).avg_1_3 + MPC_trials(2).avg_1_3 + MPC_trials(3).avg_1_3)/3;
-    MPCs.avg_1_4 = (MPC_trials(1).avg_1_4 + MPC_trials(2).avg_1_4 + MPC_trials(3).avg_1_4)/3;
-    results.direct.mpcs_sim = MPCs;
-    
-    stdev_loggrossy_A = mean(stdev_loggrossy_A);
-    stdev_lognety_A = mean(stdev_lognety_A);
+    if numel(p.r) == 1
+        % Model with income risk
+        MPCs = struct();
+        for i = 1:3
+            [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i),inc_constrained(i)] ...
+                                = direct_MPCs_by_simulation(p,prefs,income,basemodel,grdKFE);
+        end
+        
+        results.direct.a_sixth_sim = mean([inc_constrained.a_sixth_Q]);
+        results.direct.a_twelfth_sim = mean([inc_constrained.a_twelfth_Q]);
+        results.direct.x_sixth_sim = mean([inc_constrained.x_sixth_Q]);
+        results.direct.x_twelfth_sim = mean([inc_constrained.x_twelfth_Q]);
+        
+        MPCs.avg_1_1 = (MPC_trials(1).avg_1_1 + MPC_trials(2).avg_1_1 + MPC_trials(3).avg_1_1)/3;
+        MPCs.avg_1_2 = (MPC_trials(1).avg_1_2 + MPC_trials(2).avg_1_2 + MPC_trials(3).avg_1_2)/3;
+        MPCs.avg_1_3 = (MPC_trials(1).avg_1_3 + MPC_trials(2).avg_1_3 + MPC_trials(3).avg_1_3)/3;
+        MPCs.avg_1_4 = (MPC_trials(1).avg_1_4 + MPC_trials(2).avg_1_4 + MPC_trials(3).avg_1_4)/3;
+        results.direct.mpcs_sim = MPCs;
+        
+        stdev_loggrossy_A = mean(stdev_loggrossy_A);
+        stdev_lognety_A = mean(stdev_lognety_A);
 
-    % Find annual mean and standard deviations of income
-    if p.freq == 4
-        % Direct computations
-        results.direct.mean_grossy_A = results.direct.mean_grossy1 * 4;
-        % Simulations
-        results.direct.stdev_loggrossy_A = stdev_loggrossy_A;
-        results.direct.stdev_lognety_A = stdev_lognety_A;     
-    else
-        % Use direct computations
-        results.direct.mean_grossy_A = results.direct.mean_grossy1;
-        results.direct.stdev_loggrossy_A = sqrt(results.direct.var_loggrossy1);
-        results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
+        % Find annual mean and standard deviations of income
+        if p.freq == 4
+            % Direct computations
+            results.direct.mean_grossy_A = results.direct.mean_grossy1 * 4;
+            % Simulations
+            results.direct.stdev_loggrossy_A = stdev_loggrossy_A;
+            results.direct.stdev_lognety_A = stdev_lognety_A;     
+        else
+            % Use direct computations
+            results.direct.mean_grossy_A = results.direct.mean_grossy1;
+            results.direct.stdev_loggrossy_A = sqrt(results.direct.var_loggrossy1);
+            results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
+        end
     end
 
     %% --------------------------------------------------------------------
     % DECOMPOSITION 1 (DECOMP OF EM)
     % ---------------------------------------------------------------------
 	decomp = struct([]);
-    if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0 && p.temptation == 0
+    if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0 && p.temptation == 0 && (numel(p.r)==1)
     	% RA MPC
         m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
  

@@ -9,9 +9,19 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
     
     betagrid = direct_results.beta + prefs.betagrid0;
     
+    if numel(p.r) > 1
+        Emat = kron(prefs.rtrans,kron(income.ytrans,speye(p.nx)));
+        r_col = kron(p.r',ones(p.nx,1));
+        r_mat = reshape(r_col,[p.nx,numel(p.r)]);
+    else
+        r_mat = p.r
+    end
+
     if numel(p.risk_aver) > 1
         risk_aver_mat = kron(p.risk_aver,ones(p.nx,1));
     end
+
+
 
     % initial guess for consumption function, stacked state combinations
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
@@ -25,7 +35,7 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
         extra = 0;
     end
     
-    con = (p.r + extra) * repmat(grids.s.vec,1,p.nb) + income.meany1;
+    con = (min(p.r) + extra) * repmat(grids.s.vec,1,p.nb) + income.meany1;
 
     iter = 0;
     cdiff = 1000;
@@ -38,24 +48,30 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
             coninterp{ib} = griddedInterpolant(grids.x.vec_norisk,conlast(:,ib),'linear');
             
             % cash-on-hand is just Rs + meany
-            if numel(p.risk_aver) == 1
-                mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R.*grids.s.vec + income.meany1))...
-                                - p.temptation/(1+p.temptation) * prefs.u1(p.R.*grids.s.vec + income.meany1);
-            else
+            if numel(p.r) > 1
+                mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R(ib)*grids.s.vec + income.meany1))...
+                                - p.temptation/(1+p.temptation) * prefs.u1(p.R(ib)*grids.s.vec + income.meany1);
+            elseif numel(p.risk_aver) > 1
                 mucnext(:,ib) = prefs.u1(risk_aver_mat(:,ib),coninterp{ib}(p.R.*grids.s.vec + income.meany1))...
                                 - p.temptation/(1+p.temptation) * prefs.u1(risk_aver_mat(:,ib),p.R.*grids.s.vec + income.meany1);
+            else
+                mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R*grids.s.vec + income.meany1))...
+                                - p.temptation/(1+p.temptation) * prefs.u1(p.R.*grids.s.vec + income.meany1);
             end
         end
         
         % take expectation over beta
-        if numel(p.risk_aver) == 1
-            emuc = mucnext * prefs.betatrans';
-            betastacked = repmat(betagrid',p.nx,1);
-        else
+        if numel(p.r) > 1
+            emuc = mucnext * prefs.rtrans';
+            betastacked = repmat(betagrid',p.nx,p.nb);
+        elseif numel(p.risk_aver) > 1
             emuc = mucnext * prefs.IEStrans';
             betastacked = repmat(betagrid',p.nx,p.nb);
+        else
+            emuc = mucnext * prefs.betatrans';
+            betastacked = repmat(betagrid',p.nx,1);
         end
-        muc1 = (1-p.dieprob) * p.R * betastacked .* emuc ...
+        muc1 = (1-p.dieprob) * r_mat .* betastacked .* emuc ...
                 ./ (1+p.savtax*(repmat(grids.s.vec,1,p.nb)>=p.savtaxthresh))...
                 + p.dieprob * prefs.beq1(repmat(grids.s.vec,1,p.nb));
         

@@ -10,6 +10,13 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     if p.Display == 1
         disp('Computing MPCs')
     end
+
+    if numel(p.r) > 1
+        r_col = kron(p.r',ones(p.nx*p.nyP*p.nyF,1));
+        r_mat = reshape(r_col,[p.nx,p.nyP,p.nyF,numel(p.r)]);
+    else
+        r_mat = p.r;
+    end
     
     %% --------------------------------------------------------------------
     % TRANSITION PROBABILITES AND BASELINE CONSUMPTION
@@ -78,7 +85,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
                 %Ti is transition from t=ii-1 to t=ii
                 mpcshock = 0;
                 Ti = transition_t_less_s(p,income,xgrid_yT,...
-                            models,is,it-1,fspace,mpcshock);
+                            models,is,it-1,fspace,mpcshock,r_mat);
                 T1t = Ti * T1t;
             end
 
@@ -134,7 +141,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         % transition probabilities from it = is to it = is + 1
         mpcshock = mpcamount;
         T_s1_s = transition_t_less_s(p,income,xgrid_yT,models,is,is,...
-                                    fspace,mpcshock);
+                                    fspace,mpcshock,r_mat);
         T1t = T_s1_s * T1t;
         clear T_s1_s
 
@@ -194,7 +201,7 @@ function con = get_policy(p,x_mpc,model)
 end
 
 function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
-                                            fspace,mpcshock)
+                                            fspace,mpcshock,r_mat)
     % Computes the transition matrix between t=ii and t=ii + 1 given shock in
     % period 'is'
     NN = p.nx_KFE*p.nyP*p.nyF*p.nb;
@@ -225,7 +232,7 @@ function T1 = transition_t_less_s(p,income,xgrid_yT,models,is,ii,...
 
     sav = max(sav,p.borrow_lim);
 
-    aprime_live = p.R * sav; % next period's assets
+    aprime_live = (1+repmat(r_mat,[1,1,1,1,p.nyT])) .* sav; % next period's assets
 
     % interpolate next period's assets back onto asset grid
     interp = funbas(fspace,aprime_live(:));
