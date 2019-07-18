@@ -93,7 +93,7 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
         iter = iter + 1;
     end
     if iter >= 5e4
-        error('No conv to statdist, diff = %5.3e',adiff)
+        error('No conv to statdist, diff = %5.3e',diff)
     end
 
     modelupdate.adiff = diff;

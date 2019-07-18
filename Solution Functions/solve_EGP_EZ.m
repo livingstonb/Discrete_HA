@@ -92,7 +92,9 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         
         % expected muc
         savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
-        emuc = (1+p.r)*betastacked*Emat*mucnext*income.yTdist ./ savtaxrate;
+        mu_cons = (1+p.r)*betastacked*Emat*mucnext*income.yTdist ./ savtaxrate;
+        mu_bequest = prefs.beq1(repmat(grids.s.matrix(:),p.nb,1));
+        emuc = (1-p.dieprob) * mu_cons + p.dieprob * mu_bequest;
         if p.risk_aver == 1
             ezvalnext = exp(Emat * log(V_xp) * income.yTdist);
         else
@@ -167,10 +169,9 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
                 if p.invies(ib) == 1
                     Vupdate(:,:,:,ib) = conupdate(:,:,:,ib) .^ (1-betagrid) .* ezval(:,:,:,ib) .^ betagrid;
                 else
-                    invies_mat = repmat(p.invies(ib),[p.nx p.nyP p.nyF 1]);
-                    Vupdate(:,:,:,ib) = (1-betagrid) * conupdate(:,:,:,ib) .^ (1-invies_mat) ...
-                                    + betagrid * ezval(:,:,:,ib) .^ (1-invies_mat);
-                    Vupdate(:,:,:,ib) = Vupdate(:,:,:,ib) .^ (1./(1-invies_mat));
+                    Vupdate(:,:,:,ib) = (1-betagrid) * conupdate(:,:,:,ib) .^ (1-p.invies(ib)) ...
+                                    + betagrid * ezval(:,:,:,ib) .^ (1-p.invies(ib));
+                    Vupdate(:,:,:,ib) = Vupdate(:,:,:,ib) .^ (1/(1-p.invies(ib)));
                 end
             end
         end

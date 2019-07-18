@@ -292,15 +292,15 @@ function params = parameters(runopts,QIncome)
         end
     end
     
-    ras = [1.001 1/1.001];
-    ies = [1/1.001 1.001];
-    for i = 1:2
+    ras = [1 1.001 1/1.001];
+    ies = [1 1/1.001 1.001];
+    for i = 1:3
         params(end+1) = MPCParams(4,['Q EZ ra' num2str(ras(i)) ' ies' num2str(ies(i))],QIncome);
         params(end).risk_aver = ras(i);
         params(end).invies = 1 / ies(i);
         params(end).EpsteinZin = 1;
         if i <= 3
-            params(end).betaH0 = - 8e-3;
+            params(end).betaH0 = - 1e-3;
         else
             params(end).betaH0 = - 6.5e-3;
         end

@@ -29,8 +29,8 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-% runopts.names_to_run = {['Q EZ ra' num2str(1/1.001) ' ies' num2str(1.001)]};
-runopts.names_to_run = {'baseline_Q'};
+runopts.names_to_run = {['Q EZ ra' num2str(1/1.001) ' ies' num2str(1.001)]};
+% runopts.names_to_run = {'baseline_Q'};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS
