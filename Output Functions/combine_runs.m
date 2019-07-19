@@ -13,7 +13,7 @@ if FROM_MATFILE
 
     %% Select directories
     basedir = '/media/hdd/Other/midway2_output/discrete_time';
-    date = '5_7_19';
+    date = '7_19_19';
 
     %% Read .mat files into a cell array
     fulldir = [basedir '/' date '/'];

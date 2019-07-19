@@ -43,15 +43,11 @@ function params = parameters(runopts,QIncome)
         name = [lfreq ' Permanent r het, r in {1,2,3} p.a.'];
         params(end+1) = MPCParams(ifreq,name,IncomeProcess);
         params(end).r = [1,2,3] / 100;
-        params(end).nx = 200;
-        params(end).nx_KFE = 200;
         params(end).betaH0 = -1e-3;
         
         name = [lfreq ' Permanent r het, r in {0,2,6} p.a.'];
         params(end+1) = MPCParams(ifreq,name,IncomeProcess);
         params(end).r = [0,2,6] / 100;
-        params(end).nx = 200;
-        params(end).nx_KFE = 200;
 
 %         % different tax rates
 %         for itax = [0.05, 0.1, 0.15, 0.25]
