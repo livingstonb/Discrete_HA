@@ -42,7 +42,14 @@ function params = parameters(runopts,QIncome)
         % interest rate heterogeneity
         name = [lfreq ' Permanent r het, r in {1,2,3} p.a.'];
         params(end+1) = MPCParams(ifreq,name,IncomeProcess);
-        params(end).r = [1,3] / 100;
+        params(end).r = [1,2,3] / 100;
+        params(end).nx = 200;
+        params(end).nx_KFE = 200;
+        params(end).betaH0 = -1e-3;
+        
+        name = [lfreq ' Permanent r het, r in {0,2,6} p.a.'];
+        params(end+1) = MPCParams(ifreq,name,IncomeProcess);
+        params(end).r = [0,2,6] / 100;
         params(end).nx = 200;
         params(end).nx_KFE = 200;
 
@@ -131,14 +138,14 @@ function params = parameters(runopts,QIncome)
         params(end).invies = 1 ./ exp([-1 -0.5 0 0.5 1]);
         params(end).EpsteinZin = 1;
         if (ifreq == 4)
-            params(end).betaH0 = - 8e-3;
+            params(end).betaH0 = - 3e-3;
         end
         
         params(end+1) = MPCParams(ifreq,[lfreq ' EZ w/IES betw exp(-2), exp(2)'],IncomeProcess);
         params(end).invies = 1 ./ exp([-2 -1 0 1 2]);
         params(end).EpsteinZin = 1;
         if (ifreq == 4)
-            params(end).betaH0 = - 8e-3;
+            params(end).betaH0 = - 3e-3;
         end
     end
 
@@ -292,10 +299,17 @@ function params = parameters(runopts,QIncome)
         params(end).risk_aver = ras(i);
         params(end).invies = 1 / ies(i);
         params(end).EpsteinZin = 1;
-        if i <= 3
-            params(end).betaH0 = - 8e-3;
-        else
-            params(end).betaH0 = - 6.5e-3;
+        switch i
+            case 1
+                params(end).betaH0 = - 3e-3;
+            case 2
+                params(end).betaH0 = - 3e-3;
+            case 3
+                params(end).betaH0 = - 3e-3;
+            case 4
+                params(end).betaH0 = - 1e-3;
+            case 5
+                params(end).betaH0 = - 1e-3;
         end
     end
         

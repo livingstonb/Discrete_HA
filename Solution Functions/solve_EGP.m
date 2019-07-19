@@ -33,15 +33,11 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
     if p.temptation > 0.05
         extra = 0.5;
-    elseif p.r < 0.001
-        % Add income so consumption guess is not all zeros
-        %extracon = repmat(kron(min(income.netymat,[],2),ones(p.nx,1)),p.nb,1);
-        extra = 0.02;
     else
         extra = 0;
     end
     
-    con = (r_mat(:) + extra) .* repmat(grids.x.matrix(:),p.nb,1);
+    con = (r_mat(:) + 0.02 * (r_mat(:)<0.001) + extra) .* repmat(grids.x.matrix(:),p.nb,1);
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb

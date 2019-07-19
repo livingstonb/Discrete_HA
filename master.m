@@ -9,7 +9,7 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Display = 1;
-runopts.Server = 0; % use server paths
+runopts.Server = 1; % use server paths
 runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
@@ -29,7 +29,7 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'Q Permanent r het, r in {1,2,3} p.a.'};
+runopts.names_to_run = {['Q EZ ra' num2str(8) ' ies' num2str(2)]};
 % runopts.names_to_run = {'baseline_Q'};
 
 %% ------------------------------------------------------------------------
