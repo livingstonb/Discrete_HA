@@ -73,7 +73,9 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         temp_sav = repmat(grids.s.matrix(:),p.nb,p.nyT);
         temp_sav = reshape(temp_sav,[p.nx p.nyP p.nyF p.nb p.nyT]);
         index_to_extend = 1*(p.nyF==1) + 2*(p.nyF>1);
-        temp_inc = repmat(kron(income.netymat,ones(p.nx,1)),p.nb,index_to_extend);
+        repscheme = ones(1,2);
+        repscheme(index_to_extend) = p.nb;
+        temp_inc = repmat(kron(income.netymat,ones(p.nx,1)),repscheme);
         temp_inc = reshape(temp_inc,[p.nx p.nyP p.nyF p.nb p.nyT]);
         xp_s = (1+r_mat) .* temp_sav + temp_inc + nextmpcshock;
 
