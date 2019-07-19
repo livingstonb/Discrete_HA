@@ -152,7 +152,11 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
             ssim(:,it) = max(ssim(:,it),p.borrow_lim);
 
             if it < Tmax
-                asim(:,it) = p.R(r_indsim(:,it)) * ssim(:,it);
+                if numel(p.r) > 1
+                    asim(:,it) = p.R(r_indsim(:,it)) * ssim(:,it);
+                else
+                    asim(:,it) = p.R * ssim(:,it);
+                end
                 if p.Bequests == 0
                     % Assets discarded
                     asim(diesim(:,it)==1,it) = 0;
