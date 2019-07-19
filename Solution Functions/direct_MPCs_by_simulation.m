@@ -17,11 +17,17 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nx_KFE,1)),p.nyF*p.nb,1);
     yFind_trans = repmat(kron((1:p.nyF)',ones(p.nx_KFE*p.nyP,1)),p.nb,1);
     
-    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) 
+    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) && (numel(p.r) == 1)
         betaind_trans = kron((1:p.nb)',ones(p.nx_KFE*p.nyP*p.nyF,1));
+        r_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
+        IESind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
+    elseif numel(p.r) > 1
+        betaind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
+        r_trans = kron((1:p.nb)',ones(p.nx_KFE*p.nyP*p.nyF,1));
         IESind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
     else
         betaind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
+        r_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
         IESind_trans = kron((1:p.nb)',ones(p.nx_KFE*p.nyP*p.nyF,1));
     end
 
@@ -31,9 +37,11 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
     dierand     = rand(Nsim,Tmax,'single');
     betarand    = rand(Nsim,Tmax,'single');
     IESrand     = rand(Nsim,Tmax,'single');
+    r_rand      = rand(Nsim,Tmax,'single');
     yTrand      = rand(Nsim,Tmax,'single');
     betaindsim  = ones(Nsim,Tmax,'int8');
     IESindsim   = ones(Nsim,Tmax,'int8');
+    r_indsim    = ones(Nsim,Tmax,'int8');
     yPindsim    = ones(Nsim,Tmax,'int8');
     yTindsim    = ones(Nsim,Tmax,'int8');
     yFindsim    = ones(Nsim,1,'int8');
@@ -57,6 +65,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
         yFindsim(partition)     = yFind_trans(ind);
         betaindsim(partition,1)	= betaind_trans(ind);
         IESindsim(partition,1)  = IESind_trans(ind);
+        r_indsim(partition,1)   = r_trans(ind);
         
         % Initial assets from stationary distribution
         a1(partition) = grids.a.matrix(ind);
@@ -77,6 +86,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
             end
             [~,betaindsim(:,it)]    = max(betarand(:,it)<=prefs.betacumtrans(betaindsim(:,it-1),:),[],2);
             [~,IESindsim(:,it)] = max(IESrand(:,it)<=prefs.IEScumtrans(IESindsim(:,it-1),:),[],2);
+            [~,r_indsim(:,it)] = max(r_rand(:,it)<=prefs.rcumtrans(r_indsim(:,it-1),:),[],2);
         end
     end
     
@@ -118,8 +128,10 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
             for ib = 1:p.nb
             for iyF = 1:p.nyF
             for iyP = 1:p.nyP
-                if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) 
+                if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) && (numel(p.r) == 1)
                     idx = yPindsim(:,it)==iyP & yFindsim==iyF & betaindsim(:,it)==ib;
+                elseif numel(p.r) > 1
+                    idx = yPindsim(:,it)==iyP & yFindsim==iyF & r_indsim(:,it)==ib;
                 else
                     idx = yPindsim(:,it)==iyP & yFindsim==iyF & IESindsim(:,it)==ib;
                 end
@@ -140,7 +152,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
             ssim(:,it) = max(ssim(:,it),p.borrow_lim);
 
             if it < Tmax
-                asim(:,it) = p.R * ssim(:,it);
+                asim(:,it) = p.R(r_indsim(:,it)) * ssim(:,it);
                 if p.Bequests == 0
                     % Assets discarded
                     asim(diesim(:,it)==1,it) = 0;

@@ -517,41 +517,39 @@ function [results,decomp] = main(p)
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
-    if numel(p.r) == 1
-        % Model with income risk
-        MPCs = struct();
-        for i = 1:3
-            [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i),inc_constrained(i)] ...
-                                = direct_MPCs_by_simulation(p,prefs,income,basemodel,grdKFE);
-        end
-        
-        results.direct.a_sixth_sim = mean([inc_constrained.a_sixth_Q]);
-        results.direct.a_twelfth_sim = mean([inc_constrained.a_twelfth_Q]);
-        results.direct.x_sixth_sim = mean([inc_constrained.x_sixth_Q]);
-        results.direct.x_twelfth_sim = mean([inc_constrained.x_twelfth_Q]);
-        
-        MPCs.avg_1_1 = (MPC_trials(1).avg_1_1 + MPC_trials(2).avg_1_1 + MPC_trials(3).avg_1_1)/3;
-        MPCs.avg_1_2 = (MPC_trials(1).avg_1_2 + MPC_trials(2).avg_1_2 + MPC_trials(3).avg_1_2)/3;
-        MPCs.avg_1_3 = (MPC_trials(1).avg_1_3 + MPC_trials(2).avg_1_3 + MPC_trials(3).avg_1_3)/3;
-        MPCs.avg_1_4 = (MPC_trials(1).avg_1_4 + MPC_trials(2).avg_1_4 + MPC_trials(3).avg_1_4)/3;
-        results.direct.mpcs_sim = MPCs;
-        
-        stdev_loggrossy_A = mean(stdev_loggrossy_A);
-        stdev_lognety_A = mean(stdev_lognety_A);
+    % Model with income risk
+    MPCs = struct();
+    for i = 1:3
+        [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i),inc_constrained(i)] ...
+                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,grdKFE);
+    end
 
-        % Find annual mean and standard deviations of income
-        if p.freq == 4
-            % Direct computations
-            results.direct.mean_grossy_A = results.direct.mean_grossy1 * 4;
-            % Simulations
-            results.direct.stdev_loggrossy_A = stdev_loggrossy_A;
-            results.direct.stdev_lognety_A = stdev_lognety_A;     
-        else
-            % Use direct computations
-            results.direct.mean_grossy_A = results.direct.mean_grossy1;
-            results.direct.stdev_loggrossy_A = sqrt(results.direct.var_loggrossy1);
-            results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
-        end
+    results.direct.a_sixth_sim = mean([inc_constrained.a_sixth_Q]);
+    results.direct.a_twelfth_sim = mean([inc_constrained.a_twelfth_Q]);
+    results.direct.x_sixth_sim = mean([inc_constrained.x_sixth_Q]);
+    results.direct.x_twelfth_sim = mean([inc_constrained.x_twelfth_Q]);
+
+    MPCs.avg_1_1 = (MPC_trials(1).avg_1_1 + MPC_trials(2).avg_1_1 + MPC_trials(3).avg_1_1)/3;
+    MPCs.avg_1_2 = (MPC_trials(1).avg_1_2 + MPC_trials(2).avg_1_2 + MPC_trials(3).avg_1_2)/3;
+    MPCs.avg_1_3 = (MPC_trials(1).avg_1_3 + MPC_trials(2).avg_1_3 + MPC_trials(3).avg_1_3)/3;
+    MPCs.avg_1_4 = (MPC_trials(1).avg_1_4 + MPC_trials(2).avg_1_4 + MPC_trials(3).avg_1_4)/3;
+    results.direct.mpcs_sim = MPCs;
+
+    stdev_loggrossy_A = mean(stdev_loggrossy_A);
+    stdev_lognety_A = mean(stdev_lognety_A);
+
+    % Find annual mean and standard deviations of income
+    if p.freq == 4
+        % Direct computations
+        results.direct.mean_grossy_A = results.direct.mean_grossy1 * 4;
+        % Simulations
+        results.direct.stdev_loggrossy_A = stdev_loggrossy_A;
+        results.direct.stdev_lognety_A = stdev_lognety_A;     
+    else
+        % Use direct computations
+        results.direct.mean_grossy_A = results.direct.mean_grossy1;
+        results.direct.stdev_loggrossy_A = sqrt(results.direct.var_loggrossy1);
+        results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
     end
 
     %% --------------------------------------------------------------------
