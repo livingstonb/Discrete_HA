@@ -14,7 +14,7 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
         r_col = kron(p.r',ones(p.nx,1));
         r_mat = reshape(r_col,[p.nx,numel(p.r)]);
     else
-        r_mat = p.r
+        r_mat = p.r;
     end
 
     if numel(p.risk_aver) > 1
@@ -27,10 +27,10 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
     if p.temptation > 0.005
         extra = 0.5;
-    elseif p.r < 0.001
+    elseif min(p.r) < 0.001
         % Add income so consumption guess is not all zeros
         %extracon = repmat(kron(min(income.netymat,[],2),ones(p.nx,1)),p.nb,1);
-        extra = 0.02;
+        extra = 0.002;
     else
         extra = 0;
     end
@@ -71,7 +71,7 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
             emuc = mucnext * prefs.betatrans';
             betastacked = repmat(betagrid',p.nx,1);
         end
-        muc1 = (1-p.dieprob) * r_mat .* betastacked .* emuc ...
+        muc1 = (1-p.dieprob) * (1+r_mat) .* betastacked .* emuc ...
                 ./ (1+p.savtax*(repmat(grids.s.vec,1,p.nb)>=p.savtaxthresh))...
                 + p.dieprob * prefs.beq1(repmat(grids.s.vec,1,p.nb));
         

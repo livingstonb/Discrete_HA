@@ -37,7 +37,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         extra = 0;
     end
     
-    con = (r_mat(:) + 0.02 * (r_mat(:)<0.001) + extra) .* repmat(grids.x.matrix(:),p.nb,1);
+    con = (r_mat(:) + 0.002 * (r_mat(:)<0.001) + extra) .* repmat(grids.x.matrix(:),p.nb,1);
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb

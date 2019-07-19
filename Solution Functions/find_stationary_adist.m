@@ -16,8 +16,8 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     end
 
     if numel(p.r) > 1
-        r_col = kron(p.r',ones(p.nx*p.nyP*p.nyF,1));
-        r_mat = reshape(r_col,[p.nx,p.nyP,p.nyF,numel(p.r)]);
+        r_col = kron(p.r',ones(nx*p.nyP*p.nyF,1));
+        r_mat = reshape(r_col,[nx,p.nyP,p.nyF,numel(p.r)]);
     else
         r_mat = p.r;
     end

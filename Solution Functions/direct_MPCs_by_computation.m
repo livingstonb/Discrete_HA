@@ -12,8 +12,8 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     end
 
     if numel(p.r) > 1
-        r_col = kron(p.r',ones(p.nx*p.nyP*p.nyF,1));
-        r_mat = reshape(r_col,[p.nx,p.nyP,p.nyF,numel(p.r)]);
+        r_col = kron(p.r',ones(p.nx_KFE*p.nyP*p.nyF,1));
+        r_mat = reshape(r_col,[p.nx_KFE,p.nyP,p.nyF,numel(p.r)]);
     else
         r_mat = p.r;
     end
