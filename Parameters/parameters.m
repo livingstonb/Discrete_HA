@@ -37,6 +37,9 @@ function params = parameters(runopts,QIncome)
             name = [lfreq ' IntRate' num2str(ii)];
             params(end+1) = MPCParams(ifreq,name,IncomeProcess);
             params(end).r = ii/100;
+            if ii == 5
+                params(end).betaH0 = -3e-3;
+            end
         end
         
         % interest rate heterogeneity
@@ -48,6 +51,7 @@ function params = parameters(runopts,QIncome)
         name = [lfreq ' Permanent r het, r in {0,2,6} p.a.'];
         params(end+1) = MPCParams(ifreq,name,IncomeProcess);
         params(end).r = [0,2,6] / 100;
+        params(end).betaH0 = -1e-3;
 
 %         % different tax rates
 %         for itax = [0.05, 0.1, 0.15, 0.25]
@@ -95,6 +99,12 @@ function params = parameters(runopts,QIncome)
                 params(end).betawidth = ibw;
                 params(end).betaswitch = 0;
                 params(end).dieprob = deathp;
+                
+                if ibw == 0.005
+                    params(end).betaH0 = -1e-3;
+                elseif ibw == 0.01
+                    params(end).betaH0 = -1e-3;
+                end
             end
 
             % random beta heterogeneity
