@@ -27,7 +27,6 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
     else
         betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
         betastacked = sparse(diag(betastacked));
-    end
 
     % Expectations operator (conditional on yT)
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb

@@ -179,11 +179,15 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
                 a_twelfth_Q(iit) = mean(asim(:,iit) < (y_quarter/12));
                 x_sixth_Q(iit) = mean(xsim(:,iit) < (y_quarter/6));
                 x_twelfth_Q(iit) = mean(xsim(:,iit) < (y_quarter/12));
+
+                a_lt_015_annual(iit) = mean(asim(:,iit) < (y_quarter*p.freq*0.15));
+
             end
             inc_constrained.a_sixth_Q = mean(a_sixth_Q);
             inc_constrained.a_twelfth_Q = mean(a_twelfth_Q);
             inc_constrained.x_sixth_Q = mean(x_sixth_Q);
             inc_constrained.x_twelfth_Q = mean(x_twelfth_Q);
+            inc_constrained.a_lt_015_annual = mean(a_lt_015_annual);
         else
         	% MPC in period 1 out of period 1 shock
             mpcs_1_1 = (csim(:,1) - csim_noshock(:,1)) / mpcamount;
