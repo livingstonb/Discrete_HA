@@ -43,15 +43,16 @@ function params = parameters(runopts,QIncome)
         end
         
         % interest rate heterogeneity
-        name = [lfreq ' Permanent r het, r in {1,2,3} p.a.'];
+        name = [lfreq ' Permanent r het, r in {0,2,4} p.a.'];
         params(end+1) = MPCParams(ifreq,name,IncomeProcess);
-        params(end).r = [1,2,3] / 100;
+        params(end).r = [0,2,4] / 100;
         params(end).betaH0 = -1e-3;
         
-        name = [lfreq ' Permanent r het, r in {0,2,6} p.a.'];
+        name = [lfreq ' Permanent r het, r in {-2,2,6} p.a.'];
         params(end+1) = MPCParams(ifreq,name,IncomeProcess);
-        params(end).r = [0,2,6] / 100;
+        params(end).r = [-2,2,6] / 100;
         params(end).betaH0 = -1e-3;
+        params(end).betaL = 1.05;
 
 %         % different tax rates
 %         for itax = [0.05, 0.1, 0.15, 0.25]
@@ -153,6 +154,12 @@ function params = parameters(runopts,QIncome)
         if (ifreq == 4)
             params(end).betaH0 = - 3e-3;
         end
+
+        % EZ with risk aversion heterogeneity
+        params(end+1) = MPCParams(ifreq,[lfreq ' EZ w/riskaver betw exp(-2), exp(2)'],IncomeProcess);
+        params(end).invies = 1;
+        params(end).riskaver = exp([-2 -1 0 1 2]);
+        params(end).EpsteinZin = 1;
     end
 
     %----------------------------------------------------------------------
