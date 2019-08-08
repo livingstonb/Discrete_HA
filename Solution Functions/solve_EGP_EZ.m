@@ -22,20 +22,27 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
     
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    if numel(p.invies) > 1
+    if (numel(p.invies) > 1) || (numel(p.risk_aver) > 1)
         betastacked = speye(p.nyP*p.nyF*p.nx*p.nb) * betagrid;
     else
         betastacked = kron(betagrid,ones(p.nyP*p.nyF*p.nx,1));
         betastacked = sparse(diag(betastacked));
+    end
 
     % Expectations operator (conditional on yT)
-    % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    if numel(p.invies) == 1
-        Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
-    else
-        Emat = kron(prefs.IEStrans,kron(income.ytrans,speye(p.nx)));
+    % square matrix of dim p.nx*p.nyP*p.nyF*p.nb   
+    if numel(p.invies) > 1
+        Emat = kron(prefs.ztrans,kron(income.ytrans,speye(p.nx)));
         invies_col = kron(p.invies',ones(p.nx*p.nyP*p.nyF,1));
+        risk_aver_col = p.risk_aver;
         invies_col_yT = repmat(invies_col,1,p.nyT);
+    elseif numel(p.risk_aver) > 1
+        Emat = kron(prefs.ztrans,kron(income.ytrans,speye(p.nx)));
+        risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
+        invies_col = p.invies;
+        risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
+    else
+        Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
     end
     
     %% EGP Iteration
@@ -83,10 +90,12 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         V_xp = reshape(V_xp,[],p.nyT);
 
         % matrix of next period muc, muc(x',yP',yF)
-        if numel(p.invies) == 1
-            mucnext = c_xp.^(-p.invies) .* V_xp.^(p.invies-p.risk_aver);
-        else
+        if numel(p.invies) > 1
             mucnext = c_xp.^(-invies_col_yT) .* V_xp.^(invies_col_yT-p.risk_aver);
+        elseif numel(p.risk_aver) > 1
+            mucnext = c_xp.^(-p.invies) .* V_xp.^(p.invies-risk_aver_col_yT);
+        else
+            mucnext = c_xp.^(-p.invies) .* V_xp.^(p.invies-p.risk_aver);
         end
         
         % expected muc
@@ -94,19 +103,19 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         mu_cons = (1+p.r)*betastacked*Emat*mucnext*income.yTdist ./ savtaxrate;
         mu_bequest = prefs.beq1(repmat(grids.s.matrix(:),p.nb,1));
         emuc = (1-p.dieprob) * mu_cons + p.dieprob * mu_bequest;
-        if p.risk_aver == 1
-            ezvalnext = exp(Emat * log(V_xp) * income.yTdist);
-        else
-            ezvalnext = (Emat * V_xp.^(1-p.risk_aver) * income.yTdist).^(1/(1-p.risk_aver));
-        end
         
-        if numel(p.invies) == 1
-            muc_s = emuc .* ezvalnext .^(p.risk_aver-p.invies);
-            con_s = muc_s .^ (-1/p.invies);
-        else
-            muc_s = emuc .* ezvalnext .^(p.risk_aver-invies_col);
-            con_s = muc_s .^ (-1./invies_col);
-        end
+        ezvalnext_ra_equal1 = (risk_aver_col==1)...
+            .* exp(Emat * log(V_xp) * income.yTdist);
+        
+        ezvalnext_ra_nequal1 = (risk_aver_col~=1)...
+            .* (Emat * V_xp.^(1-risk_aver_col) * income.yTdist)...
+            .^ (1./(1-risk_aver_col));
+        ezvalnext_ra_nequal1(isnan(ezvalnext_ra_nequal1)) = 0;
+
+        ezvalnext = ezvalnext_ra_equal1 + ezvalnext_ra_nequal1;
+        
+        muc_s = emuc .* ezvalnext .^(risk_aver_col-invies_col);
+        con_s = muc_s .^ (-1./invies_col);
         
         x_s = con_s + repmat(grids.s.matrix(:),p.nb,1)...
                         + p.savtax * max(repmat(grids.s.matrix(:),p.nb,1)-p.savtaxthresh,0);
@@ -137,7 +146,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
             xp_iyP_iyF_ib = xp(:,iyP,iyF,ib,:);
-            temp_iyP_iyF_ib = Vinterp{iyP,iyF,ib}(xp_iyP_iyF_ib(:)) .^ (1-p.risk_aver);
+            temp_iyP_iyF_ib = Vinterp{iyP,iyF,ib}(xp_iyP_iyF_ib(:)) .^ (1-p.risk_aver(ib));
             ezval_integrand(:,iyP,iyF,ib,:) = reshape(temp_iyP_iyF_ib,[p.nx 1 1 1 p.nyT]);
         end
         end
@@ -146,25 +155,32 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         ezval_integrand = reshape(ezval_integrand,[],p.nyT) * income.yTdist;
         % Take expectation over (yP,yF,beta)
         ezval = Emat * ezval_integrand;
-        if p.risk_aver == 1
-            ezval = exp(ezval);
-        else
-            ezval = ezval .^ (1/(1-p.risk_aver));
-        end
+
+        ezval_ra_equal1 = (risk_aver_col==1) .* exp(ezval);
+        ezval_ra_nequal1 = (risk_aver_col~=1) .* ezval .^ (1./(1-risk_aver_col));
+        ezval_ra_nequal1(isnan(ezval_ra_nequal1)) = 0;
+        ezval = ezval_ra_equal1 + ezval_ra_nequal1;
 
         % update value function
         ezval = reshape(ezval,p.nx,p.nyP,p.nyF,p.nb);
         Vupdate = zeros(p.nx,p.nyP,p.nyF,p.nb);
         for ib = 1:p.nb
             if numel(p.invies) == 1
-                if p.invies == 1
-                    Vupdate(:,:,:,ib) = conupdate(:,:,:,ib) .^ (1-betagrid(ib)) .* ezval(:,:,:,ib) .^ betagrid(ib);
+
+                if numel(p.risk_aver) == 1
+                    ibeta = ib; % possible beta heterogeneity
                 else
-                	Vupdate(:,:,:,ib) = (1-betagrid(ib)) * conupdate(:,:,:,ib) .^ (1-p.invies) ...
-                                    + betagrid(ib) * ezval(:,:,:,ib) .^ (1-p.invies);
+                    ibeta = 1;
+                end
+
+                if p.invies == 1
+                    Vupdate(:,:,:,ib) = conupdate(:,:,:,ib) .^ (1-betagrid(ibeta)) .* ezval(:,:,:,ib) .^ betagrid(ibeta);
+                else
+                	Vupdate(:,:,:,ib) = (1-betagrid(ibeta)) * conupdate(:,:,:,ib) .^ (1-p.invies) ...
+                                    + betagrid(ibeta) * ezval(:,:,:,ib) .^ (1-p.invies);
                     Vupdate(:,:,:,ib) = Vupdate(:,:,:,ib) .^ (1/(1-p.invies));
                 end
-            else
+            elseif numel(p.invies) > 1
                 if p.invies(ib) == 1
                     Vupdate(:,:,:,ib) = conupdate(:,:,:,ib) .^ (1-betagrid) .* ezval(:,:,:,ib) .^ betagrid;
                 else

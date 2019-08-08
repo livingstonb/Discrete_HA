@@ -85,7 +85,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
                 [~,yPindsim(:,it)]   = max(yPrand(:,it)<=income.yPcumtrans(yPindsim(:,it-1),:),[],2);
             end
             [~,betaindsim(:,it)]    = max(betarand(:,it)<=prefs.betacumtrans(betaindsim(:,it-1),:),[],2);
-            [~,IESindsim(:,it)] = max(IESrand(:,it)<=prefs.IEScumtrans(IESindsim(:,it-1),:),[],2);
+            [~,IESindsim(:,it)] = max(IESrand(:,it)<=prefs.zcumtrans(IESindsim(:,it-1),:),[],2);
             [~,r_indsim(:,it)] = max(r_rand(:,it)<=prefs.rcumtrans(r_indsim(:,it-1),:),[],2);
         end
     end

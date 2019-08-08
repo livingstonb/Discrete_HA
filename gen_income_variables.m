@@ -142,8 +142,8 @@ function income = gen_income_variables(p,prefs)
         ytrans_live = kron(prefs.rtrans,kron(eye(p.nyF),yPtrans));
         ytrans_death = kron(prefs.rtrans,kron(eye(p.nyF),yPtrans_death));
     else
-        ytrans_live = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans));
-        ytrans_death = kron(prefs.IEStrans,kron(eye(p.nyF),yPtrans_death));
+        ytrans_live = kron(prefs.ztrans,kron(eye(p.nyF),yPtrans));
+        ytrans_death = kron(prefs.ztrans,kron(eye(p.nyF),yPtrans_death));
     end
     
         % Store income variables in a structure

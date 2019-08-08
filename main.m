@@ -71,21 +71,21 @@ function [results,decomp] = main(p)
             p.nb = numel(p.invies);
         end
 
-    	prefs.IESdist = ones(p.nb,1) / p.nb;
-    	IESswitch_ij = p.IESswitch / (p.nb-1);
+    	prefs.zdist = ones(p.nb,1) / p.nb;
+    	zswitch_ij = p.IESswitch / (p.nb-1);
 
     	diagonal = (1-p.IESswitch) * ones(p.nb,1);
-    	off_diag = IESswitch_ij * ones(p.nb);
+    	off_diag = zswitch_ij * ones(p.nb);
     	off_diag = off_diag - diag(diag(off_diag));
-    	prefs.IEStrans = off_diag + diag(diagonal);
+    	prefs.ztrans = off_diag + diag(diagonal);
         
-        prefs.IEScumdist = cumsum(prefs.IESdist);
-        prefs.IEScumtrans = cumsum(prefs.IEStrans,2);
+        prefs.zcumdist = cumsum(prefs.zdist);
+        prefs.zcumtrans = cumsum(prefs.ztrans,2);
     else
-        prefs.IESdist = 1;
-        prefs.IEStrans = 0;
-        prefs.IEScumdist = 1;
-        prefs.IEScumtrans = 0;
+        prefs.zdist = 1;
+        prefs.ztrans = 0;
+        prefs.zcumdist = 1;
+        prefs.zcumtrans = 0;
     end
 
     %% --------------------------------------------------------------------

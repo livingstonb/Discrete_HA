@@ -21,7 +21,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         r_col = kron(p.r',ones(p.nx*p.nyP*p.nyF,1));
         r_mat = reshape(r_col,[p.nx,p.nyP,p.nyF,numel(p.r)]);
     elseif numel(p.risk_aver) > 1
-        Emat = kron(prefs.IEStrans,kron(income.ytrans,speye(p.nx)));
+        Emat = kron(prefs.ztrans,kron(income.ytrans,speye(p.nx)));
         risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
         r_mat = p.r;
     else

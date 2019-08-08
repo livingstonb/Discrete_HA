@@ -65,7 +65,7 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
             emuc = mucnext * prefs.rtrans';
             betastacked = repmat(betagrid',p.nx,p.nb);
         elseif numel(p.risk_aver) > 1
-            emuc = mucnext * prefs.IEStrans';
+            emuc = mucnext * prefs.ztrans';
             betastacked = repmat(betagrid',p.nx,p.nb);
         else
             emuc = mucnext * prefs.betatrans';
