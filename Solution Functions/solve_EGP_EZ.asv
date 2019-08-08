@@ -104,13 +104,17 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         mu_bequest = prefs.beq1(repmat(grids.s.matrix(:),p.nb,1));
         emuc = (1-p.dieprob) * mu_cons + p.dieprob * mu_bequest;
         
-        ezvalnext_ra_equal1 = exp(Emat * log(V_xp) * income.yTdist);
-        ezvalnext_ra_nequal1 = Emat * V_xp.^(1-risk_aver_col) * income.yTdist;
-
-        ezvalnext = (risk_aver_col==1) .* ezvalnext_ra_equal1.^(risk_aver_col-invies_col)...
-            + (risk_aver_col~=1) .* ezvalnext_ra_nequal1.^((risk_aver_col-invies_col)./(1-risk_aver_col));
+        ezvalnext_ra_equal1 = (risk_aver_col==1)...
+            .* exp(Emat * log(V_xp) * income.yTdist);
         
-        muc_s = emuc .* ezvalnext;
+        ezvalnext_ra_nequal1 = (risk_aver_col~=1)...
+            .* (Emat * V_xp.^(1-risk_aver_col) * income.yTdist)...
+            .^ (1./(1-risk_aver_col));
+        ezvalnext_ra_nequal1(isnan(ezvalnext_ra_nequal1)) = 0;
+
+        ezvalnext = ezvalnext_ra_equal1 + ezvalnext_ra_nequal1;
+        
+        muc_s = emuc .* ezvalnext .^(risk_aver_col-invies_col);
         con_s = muc_s .^ (-1./invies_col);
         
         x_s = con_s + repmat(grids.s.matrix(:),p.nb,1)...
@@ -151,6 +155,11 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         ezval_integrand = reshape(ezval_integrand,[],p.nyT) * income.yTdist;
         % Take expectation over (yP,yF,beta)
         ezval = Emat * ezval_integrand;
+        
+        if numel(p.invies) == 1
+            if p.invies == 1
+                ezval_ra_equal1 = (risk_aver_col==1) .* exp(ezval);
+                ezval_ra_nequal1 = (risk_aver_col~=1) .* ezval .^ (1./(1-risk_aver_col));
 
         ezval_ra_equal1 = (risk_aver_col==1) .* exp(ezval);
         ezval_ra_nequal1 = (risk_aver_col~=1) .* ezval .^ (1./(1-risk_aver_col));

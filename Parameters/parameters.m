@@ -159,7 +159,7 @@ function params = parameters(runopts,QIncome)
         params(end+1) = MPCParams(ifreq,[lfreq ' EZ w/riskaver betw exp(-2), exp(2)'],IncomeProcess);
         params(end).invies = 1;
 %         params(end).risk_aver = exp([-2 -1 0 1 2]);
-        params(end).risk_aver = [0.5 1 1.5];
+        params(end).risk_aver = [0.5,1.1,9];
         params(end).EpsteinZin = 1;
     end
 
