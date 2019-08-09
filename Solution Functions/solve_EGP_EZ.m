@@ -106,15 +106,25 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         mu_bequest = prefs.beq1(repmat(grids.s.matrix(:),p.nb,1));
         emuc = (1-p.dieprob) * mu_cons + p.dieprob * mu_bequest;
         
-        ezvalnext_ra_equal1 = exp(Emat * log(V_xp) * income.yTdist)...
-            .^ (risk_aver_col-invies_col);
-        
-        ezvalnext_ra_nequal1 = (Emat * V_xp.^(1-risk_aver_col) * income.yTdist)...
-            .^ ((risk_aver_col-invies_col)./(1-risk_aver_col));
-        
-        ezvalnext = zeros(p.nx*p.nyP*p.nyF*p.nb,1);
-        ezvalnext(risk_aver_col==1) = ezvalnext_ra_equal1(risk_aver_col==1);
-        ezvalnext(risk_aver_col~=1) = ezvalnext_ra_nequal1(risk_aver_col~=1);
+        if numel(p.risk_aver) > 1
+            ezvalnext_ra_equal1 = exp(Emat * log(V_xp) * income.yTdist)...
+                .^ (risk_aver_col-invies_col);
+
+            ezvalnext_ra_nequal1 = (Emat * V_xp.^(1-risk_aver_col) * income.yTdist)...
+                .^ ((risk_aver_col-invies_col)./(1-risk_aver_col));
+
+            ezvalnext = zeros(p.nx*p.nyP*p.nyF*p.nb,1);
+            ezvalnext(risk_aver_col==1) = ezvalnext_ra_equal1(risk_aver_col==1);
+            ezvalnext(risk_aver_col~=1) = ezvalnext_ra_nequal1(risk_aver_col~=1);
+        else
+            if p.risk_aver == 1
+                ezvalnext = exp(Emat * log(V_xp) * income.yTdist)...
+                    .^ (risk_aver_col - invies_col);
+            else
+                ezvalnext = (Emat * V_xp .^ (1-risk_aver_col) * income.yTdist)...
+                    .^ ((risk_aver_col - invies_col)./(1 - risk_aver_col));
+            end
+        end
         
         muc_s = emuc .* ezvalnext;
         con_s = muc_s .^ (-1./invies_col);
