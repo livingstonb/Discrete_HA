@@ -114,7 +114,6 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Decomp of Em1-EmRA, effect of MPC fcn'
             'Decomp of Em1-EmRA, effect of distr'
             'Decomp of Em1-EmRA, interaction'
-            'Failed one or more checks'
             };
     Nrows = numel(rows) - 1;
 
@@ -137,18 +136,10 @@ function [T_annual,T_quarter] = create_table(params,results,...
         ncolumn = 1;
         for ip = this_freq
             p = params(ip);
-            
-            % Check if column of NaNs must be used
-            NaNcol = false;
-            if numel(results(ip).checks) > 0
-                if sum(ismember({'NoEGPConv','NoBetaConv'},results(ip).checks)) > 0
-                    % Critical code failure
-                    NaNcol = true;
-                end
-            end
 
-            if NaNcol == true
-                    column = [p.index;NaN(Nrows-1,1)];
+            if ~results(ip).Finished
+                % code failed to run
+                column = [p.index;NaN(Nrows-1,1)];
             else
                 
 %                 if ~NoDecomps
@@ -258,8 +249,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     NaN
                     dec2_Q
                     NaN
-                    dec3_mpc1                                  	% Decomposition3
-                    numel(results(ip).checks)>0 ];
+                    dec3_mpc1];                             % Decomposition3
             end
 
             % Add this column to table

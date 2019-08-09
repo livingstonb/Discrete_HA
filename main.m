@@ -10,7 +10,7 @@ function [results,decomp] = main(p)
     % and to find the implied stationary distribution over the state space.
 
     results = struct('direct',[],'norisk',[],'sim',[]);
-    results.checks = {};
+    results.Finished = false;
 
     % throw error if more than one type of heterogeneity are added
     if (p.nb > 1) + (numel(p.risk_aver)>1) + (numel(p.r)>1) > 1
@@ -273,7 +273,6 @@ function [results,decomp] = main(p)
         options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
         [beta_final,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
         if exitflag ~= 1
-            results.checks{end+1} = 'NoBetaConv';
             return
         end
     else
@@ -297,7 +296,6 @@ function [results,decomp] = main(p)
     
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
-        results.checks{end+1} = 'NoEGPConv';
         return
     end
     
@@ -326,35 +324,6 @@ function [results,decomp] = main(p)
     yPdist_check = sum(sum(yPdist_check,3),1)';
     yFdist_check = reshape(basemodel.adist,[p.nx_KFE*p.nyP p.nyF p.nb]);
     yFdist_check = sum(sum(yFdist_check,3),1)';
-    
-    %% --------------------------------------------------------------------
-    % RECORD PROBLEMS
-    % ---------------------------------------------------------------------
-    if  abs((p.targetAY - results.direct.mean_a/(income.meany1*p.freq))/p.targetAY) > 1e-3
-        results.checks{end+1} = 'BadAY';
-    end
-    if abs((results.direct.mean_x-results.direct.mean_x_check)/results.direct.mean_x)> 1e-3
-        results.checks{end+1} = 'DistNotStationary';
-    end
-    if abs((income.meannety1-results.direct.mean_nety1)/income.meannety1) > 1e-3
-        results.checks{end+1} = 'BadNetIncomeMean';
-    end
-    if norm(yPdist_check-income.yPdist) > 1e-3
-        results.checks{end+1} = 'Bad_yP_Dist';
-    end
-    if norm(yFdist_check-income.yFdist) > 1e-3
-        results.checks{end+1} = 'Bad_yF_Dist';
-    end
-    if basemodel.adiff > 1e-8
-        results.checks{end+1} = sprintf('NoStatConv, adiff = %5.3e',basemodel.adiff);
-    end
-    if min(basemodel.adist(:)) < - 1e-3
-        results.checks{end+1} = 'LargeNegativeStateProbability';
-    elseif min(basemodel.adist(:)) < -1e-8
-        results.checks{end+1} = 'MedNegativeStateProbability';
-    elseif min(basemodel.adist(:)) < -1e-13
-        results.checks{end+1} = 'SmallNegativeStateProbability';
-    end
 
     %% --------------------------------------------------------------------
     % WEALTH DISTRIBUTION
@@ -431,7 +400,6 @@ function [results,decomp] = main(p)
     norisk = solve_EGP_deterministic(p,grdHJB,prefs,income,results.direct);
     if norisk.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
-        results.checks{end+1} = 'NoRiskNoEGPConv';
         return
     end
     
@@ -629,7 +597,9 @@ function [results,decomp] = main(p)
     results.direct.grossincgini = direct_gini(income.ysort,income.ysortdist);
     
     % Net income
-    results.direct.netincgini = direct_gini(income.netymat,income.ymatdist);   
+    results.direct.netincgini = direct_gini(income.netymat,income.ymatdist);  
+
+    results.Finished = true; 
 
     function gini = direct_gini(level,distr)
         % Sort distribution and levels by levels

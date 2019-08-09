@@ -1,4 +1,4 @@
-function print_statistics(direct_results,sim_results,norisk_results,checks,p,decomp)
+function print_statistics(direct_results,sim_results,norisk_results,p,decomp)
     % THIS FUNCTION IS OUTDATED AND DOES NOT WORK
     
     if p.Simulate == 0
@@ -176,10 +176,4 @@ function print_statistics(direct_results,sim_results,norisk_results,checks,p,dec
         disp([label betamsg ' set in parameters']);
     end
 
-    
-    %% ISSUES
-    fprintf('\nERRORS: \n')
-    for i = 1:numel(checks)
-        fprintf('    %s\n',checks{i})
-    end
 end

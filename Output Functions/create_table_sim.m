@@ -75,7 +75,6 @@ function [T_annual,T_quarter] = create_table_sim(params,results,...
             'IMPC(1,13-16) (size = 1e-5)'
             'IMPC(1,13-16) (size = 0.01)'
             'IMPC(1,13-16) (size = 0.1)'
-            'Failed one or more checks'
             };
     Nrows = numel(rows) - 1;
 
@@ -99,22 +98,8 @@ function [T_annual,T_quarter] = create_table_sim(params,results,...
         for ip = this_freq
             p = params(ip);
             
-            % Check if column of NaNs must be used
-            NaNcol = false;
-            if numel(results(ip).checks) > 0
-                if sum(ismember({'NoEGPConv','NoBetaConv'},results(ip).checks)) > 0
-                    % Critical code failure
-                    NaNcol = true;
-                end
-            end
-            if numel(results(ip).checks) == 1
-                if ismember('EXCEPTION_THROWN',results(ip).checks)
-                    % Exception was thrown for this parameterization
-                    NaNcol = true;
-                end
-            end
-
-            if NaNcol == true
+            if ~results(ip).Finished
+                % code failed to run
                 column = [p.index;NaN(Nrows-1,1)];
             else
                 
@@ -139,8 +124,7 @@ function [T_annual,T_quarter] = create_table_sim(params,results,...
                     results(ip).sim.mpcs.avg_1_1to4(:)          % IMPC(1,1-4)
                     results(ip).sim.mpcs.avg_1_5to8(:)          % IMPC(1,5-8)
                     results(ip).sim.mpcs.avg_1_9to12(:)          % IMPC(1,9-12)
-                    results(ip).sim.mpcs.avg_1_13to16(:)          % IMPC(1,13-16)
-                    numel(results(ip).checks)>0];                
+                    results(ip).sim.mpcs.avg_1_13to16(:)];          % IMPC(1,13-16)
             end
 
             % Add this column to table
