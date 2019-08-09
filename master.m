@@ -30,7 +30,7 @@ QIncome = 'IncomeGrids/quarterly_b.mat';
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
 % runopts.names_to_run = {'Q Permanent r het, r in {-2,2,6} p.a.'};
-runopts.names_to_run = {'Q EZ w/IES betw exp(-1), exp(1)'};
+runopts.names_to_run = {'Q Permanent r het, r in {-2,2,6} p.a.'};
 
 %% ------------------------------------------------------------------------
 % APPLY OPTIONS AND LOAD PARAMETERS

@@ -77,13 +77,7 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     if p.Display == 1
         fprintf(' Finding ergodic distribution...\n');
     end
-
-%     % No fixed heterogeneity
-%     opts.v0 = zeros(nx,1);
-%     opts.v0(1) = 1;
-%     [adist,~] = eigs(statetrans',1,1,opts);
-%     adist = adist/sum(adist);
-
+    
     q=zeros(1,nx*p.nyP*p.nyF*p.nb);
     % Create valid initial distribution for both yF & beta
     % Repmat automatically puts equal weight on each beta
@@ -102,8 +96,13 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     if iter >= 5e4
         error('No conv to statdist, diff = %5.3e',diff)
     end
+    
+%     [q,~] = eigs(modelupdate.statetrans',[],1,1);
+%     q = q / sum(q(:));
 
     modelupdate.adiff = diff;
+%     modelupdate.adist = reshape(full(q),[nx,p.nyP,p.nyF,p.nb]);
+%     modelupdate.adiff = 1e-8;
     modelupdate.adist = reshape(full(q'),[nx,p.nyP,p.nyF,p.nb]);
     
     % get distribution over (x,yP,yF,beta)

@@ -52,7 +52,7 @@ function params = parameters(runopts,QIncome)
         params(end+1) = MPCParams(ifreq,name,IncomeProcess);
         params(end).r = [-2,2,6] / 100;
         params(end).betaH0 = -1e-3;
-        params(end).betaL = 1.05;
+        params(end).nx = 100;
 
 %         % different tax rates
 %         for itax = [0.05, 0.1, 0.15, 0.25]
