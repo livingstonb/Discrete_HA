@@ -4,6 +4,7 @@
 *.*~
 *.mat
 *.sublime-workspace
+*.asv
 
 # directories
 IncomeGrids

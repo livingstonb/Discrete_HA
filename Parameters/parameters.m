@@ -158,9 +158,11 @@ function params = parameters(runopts,QIncome)
         % EZ with risk aversion heterogeneity
         params(end+1) = MPCParams(ifreq,[lfreq ' EZ w/riskaver betw exp(-2), exp(2)'],IncomeProcess);
         params(end).invies = 1;
-%         params(end).risk_aver = exp([-2 -1 0 1 2]);
-        params(end).risk_aver = [0.5,1.1,9];
+        params(end).risk_aver = exp([-2 -1 0 1 2]);
         params(end).EpsteinZin = 1;
+        params(end).betaH0 = - 3e-3;
+        params(end).betaL = 0.96;
+        params(end).beta0 = 0.99^4;
     end
 
     %----------------------------------------------------------------------

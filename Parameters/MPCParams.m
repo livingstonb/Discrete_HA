@@ -11,6 +11,8 @@ classdef MPCParams < handle
 
         % source for income process (file, or empty string for gen in code)
         IncomeProcess ='';
+        
+        path;
 
         % computation
         max_iter    = 1e5; % EGP
@@ -164,6 +166,8 @@ classdef MPCParams < handle
 
             % compute mpcs for is > 1?
             [obj.mpcshocks_after_period1] = deal(runopts.mpcshocks_after_period1);
+            
+            [obj.path] = deal(runopts.path);
         end
         
         function obj = set_index(obj)
