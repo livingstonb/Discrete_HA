@@ -5,7 +5,7 @@ close all;
 % need to set runopts in "SET OPTIONS" prior to running
 
 %% ------------------------------------------------------------------------
-% SET OPTIONS 
+% SET OPTIONS
 % -------------------------------------------------------------------------
 % options
 runopts.Display = 1;
