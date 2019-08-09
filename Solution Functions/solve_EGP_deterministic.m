@@ -27,15 +27,9 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
     if p.temptation > 0.005
         extra = 0.5;
-    elseif min(p.r) < 0.001
-        % Add income so consumption guess is not all zeros
-        %extracon = repmat(kron(min(income.netymat,[],2),ones(p.nx,1)),p.nb,1);
-        extra = 0.002;
-    else
-        extra = 0;
     end
     
-    con = (min(p.r) + extra) * repmat(grids.s.vec,1,p.nb) + income.meany1;
+    con = (r_mat(:) .* (r_mat(:)>=0.001) + 0.001 * (r_mat(:)<0.001) + extra) * repmat(grids.s.vec,1,p.nb) + income.meany1;
 
     iter = 0;
     cdiff = 1000;
