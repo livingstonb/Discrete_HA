@@ -154,7 +154,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         
         % interpolate adjusted expected value function on x grid
         ezval_integrand = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
-        for ib = 1:p.nb
+        for ib = 1:numel(p.risk_aver)
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
             xp_iyP_iyF_ib = xp(:,iyP,iyF,ib,:);
@@ -168,12 +168,20 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         % Take expectation over (yP,yF,beta)
         ezval = Emat * ezval_integrand;
 
-        ezval_ra_equal1 = (risk_aver_col==1) .* exp(ezval);
-        ezval_ra_nequal1 = (risk_aver_col~=1) .* ezval .^ (1./(1-risk_aver_col));
-        
-        ezval = zeros(p.nx*p.nyP*p.nyF*p.nb,1);
-        ezval(risk_aver_col==1) = ezval_ra_equal1(risk_aver_col==1);
-        ezval(risk_aver_col~=1) = ezval_ra_nequal1(risk_aver_col~=1);
+        if numel(p.risk_aver) > 1
+            ezval_ra_equal1 = (risk_aver_col==1) .* exp(ezval);
+            ezval_ra_nequal1 = (risk_aver_col~=1) .* ezval .^ (1./(1-risk_aver_col));
+
+            ezval = zeros(p.nx*p.nyP*p.nyF*p.nb,1);
+            ezval(risk_aver_col==1) = ezval_ra_equal1(risk_aver_col==1);
+            ezval(risk_aver_col~=1) = ezval_ra_nequal1(risk_aver_col~=1);
+        else
+            if p.risk_aver == 1
+                ezval = exp(ezval);
+            else
+                ezval = ezval .^(1./(1-p.risk_aver));
+            end
+        end
 
         % update value function
         ezval = reshape(ezval,p.nx,p.nyP,p.nyF,p.nb);
@@ -206,6 +214,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         end
         
         assert(sum(~isfinite(Vupdate(:)))==0)
+        assert(all(Vupdate(:)>=0))
         
         cdiff = max(abs(conupdate(:)-conlast(:)));
         if p.Display >=1 && mod(iter,50) ==0
