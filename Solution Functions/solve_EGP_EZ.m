@@ -43,6 +43,8 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
     else
         Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+        risk_aver_col = p.risk_aver;
+        invies_col = p.invies;
     end
     
     %% EGP Iteration
