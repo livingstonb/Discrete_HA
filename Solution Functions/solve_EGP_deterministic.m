@@ -21,15 +21,15 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
         risk_aver_mat = kron(p.risk_aver,ones(p.nx,1));
     end
 
-
-
     % initial guess for consumption function, stacked state combinations
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
     if p.temptation > 0.005
         extra = 0.5;
+    else
+        extra = 0;
     end
     
-    con = (r_mat(:) .* (r_mat(:)>=0.001) + 0.001 * (r_mat(:)<0.001) + extra) * repmat(grids.s.vec,1,p.nb) + income.meany1;
+    con = (r_mat .* (r_mat>=0.001) + 0.001 * (r_mat<0.001) + extra) .* repmat(grids.s.vec,1,p.nb) + income.meany1;
 
     iter = 0;
     cdiff = 1000;
