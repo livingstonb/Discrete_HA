@@ -12,8 +12,8 @@ if FROM_MATFILE
     % are stored in <basedir>/<date>
 
     %% Select directories
-    basedir = '/media/hdd/Other/midway2_output/discrete_time';
-    date = '7_19_19';
+    basedir = '/Users/Brian-laptop/Documents/midway2_output/discrete_time';
+    date = '8_9_19';
 
     %% Read .mat files into a cell array
     fulldir = [basedir '/' date '/'];
