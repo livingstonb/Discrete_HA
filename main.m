@@ -123,89 +123,8 @@ function [results,decomp] = main(p)
     % ASSET GRIDS
     % ---------------------------------------------------------------------
     
-    grdHJB = struct('s',struct(),'x',struct());
-    grdKFE = struct('x',struct());
-    
-    % savings grids
-    sgrid = linspace(0,1,p.nx)';
-    sgrid = sgrid.^(1./p.xgrid_par);
-    sgrid = p.borrow_lim + (p.xmax-p.borrow_lim).*sgrid;
-    
-    % Force grid spacing >= gridspace_min near 0
-    for ix = 1:p.nx-1
-        if sgrid(ix+1) - sgrid(ix) < p.gridspace_min
-            sgrid(ix+1) = sgrid(ix) + p.gridspace_min;
-        else
-            break
-        end
-    end
-    
-    grdHJB.s.vec = sgrid;
-    grdHJB.s.matrix = repmat(sgrid,[1 p.nyP p.nyF]);
-
-    % xgrids (cash on hand), different min points for each value of (iyP,iyF)
-    minyT = kron(min(income.netymat,[],2),ones(p.nx,1));
-    xgrid = min(p.R) * grdHJB.s.matrix(:) + minyT;
-    grdHJB.x.matrix = reshape(xgrid,[p.nx p.nyP p.nyF]);
-    
-    % xgrid for model without income risk
-    xgrid_norisk  = grdHJB.s.vec + income.meany1;
-    for ix = 1:p.nx-1
-        if xgrid_norisk(ix+1) - xgrid_norisk(ix) < p.gridspace_min
-            xgrid_norisk(ix+1) = xgrid_norisk(ix) + p.gridspace_min;
-        else
-            break
-        end
-    end
-    grdHJB.x.vec_norisk = xgrid_norisk;
-    
-    xgrid_norisk = linspace(0,1,p.nx_KFE);
-    xgrid_norisk = xgrid_norisk.^(1/p.xgrid_par);
-    % Force grid spacing >= gridspace_min near 0
-    for ix = 1:p.nx_KFE-1
-        if xgrid_norisk(ix+1) - xgrid_norisk(ix) < p.gridspace_min
-            xgrid_norisk(ix+1) = xgrid_norisk(ix) + p.gridspace_min;
-        else
-            break
-        end
-    end
-    xgrid_norisk = p.borrow_lim + (p.xmax-p.borrow_lim).*xgrid_norisk;
-    grdKFE.x.vec_norisk = xgrid_norisk + income.meany1;
-    
-    % create longer xgrid
-    minyT = kron(min(income.netymat,[],2),ones(p.nx_KFE,1));
-    xgrid= linspace(0,1,p.nx_KFE)';
-    xgrid = xgrid.^(1/p.xgrid_par);
-    xgrid = p.borrow_lim + (p.xmax - p.borrow_lim)*xgrid;
-    % Force grid spacing >= gridspace_min near 0
-    for ix = 1:p.nx_KFE-1
-        if xgrid(ix+1) - xgrid(ix) < p.gridspace_min
-            xgrid(ix+1) = xgrid(ix) + p.gridspace_min;
-        else
-            break
-        end
-    end
-    xgrid = repmat(xgrid,p.nyP*p.nyF,1);
-    xgrid = xgrid + minyT;
-    grdKFE.x.matrix = reshape(xgrid,[p.nx_KFE p.nyP p.nyF]);
-    
-    % Create common agrid to compute mpcs along same agrid for all
-    % parameterizations. Dimension nx_KFE x 1
-    % Decomp2 only valid between specs with same nx_KFE, xgrid_par,
-    % borrow_lim, and xmax
-    agrid = linspace(0,1,p.nx_KFE)';
-    agrid = agrid.^(1/p.xgrid_par);
-    agrid = p.borrow_lim + (p.xmax - p.borrow_lim) * agrid;
-    % Force grid spacing >= gridspace_min near 0
-    for ia = 1:p.nx_KFE-1
-        if agrid(ia+1) - agrid(ia) < p.gridspace_min
-            agrid(ia+1) = agrid(ia) + p.gridspace_min;
-        else
-            break
-        end
-    end
-    grdKFE.a.vec = agrid;
-    grdKFE.a.matrix = repmat(agrid,[1,p.nyP,p.nyF,p.nb]);
+    grdHJB = Grid(p,income,'EGP');
+    grdKFE = Grid(p,income,'DST');
     
     %% --------------------------------------------------------------------
     % UTILITY FUNCTION, BEQUEST FUNCTION
@@ -317,13 +236,6 @@ function [results,decomp] = main(p)
     results.direct.var_lognety1 = basemodel.xdist(:)' * (log(basemodel.nety_x(:)) - results.direct.mean_lognety1).^2;
     
     results.direct.mean_x_check = results.direct.mean_a + results.direct.mean_nety1;
-   
-    % Reconstruct yPdist and yFdist from computed stationary distribution 
-    % for sanity check
-    yPdist_check = reshape(basemodel.adist,[p.nx_KFE p.nyP p.nyF*p.nb]);
-    yPdist_check = sum(sum(yPdist_check,3),1)';
-    yFdist_check = reshape(basemodel.adist,[p.nx_KFE*p.nyP p.nyF p.nb]);
-    yFdist_check = sum(sum(yFdist_check,3),1)';
 
     %% --------------------------------------------------------------------
     % WEALTH DISTRIBUTION
@@ -356,22 +268,6 @@ function [results,decomp] = main(p)
             results.direct.constrained(i) = wpinterp(p.epsilon(i)*income.meany1*p.freq);
         end
     end
-
-    % fraction constrained in terms of own quarterly income
-%     
-%     xrange = 0:0.01:0.5;
-%     constrained = zeros(numel(xrange),1);
-%     ic = 0;
-%     for c = xrange
-%         ic = ic + 1;
-% 
-%         ind = agrid < (ymat_large * (p.freq/4) * c);
-%         probabilities = (ind .* basemodel.adist(:)) .* income.yTdist(:)';
-%         constrained(ic) = sum(probabilities(:));
-%     end
-% 
-%     constrained_interp = griddedInterpolant(xrange,constrained,'linear');
-
     
     % Wealth percentiles
     [acumdist_unique,uniqueind] = unique(sort_acumdist,'last');
@@ -564,7 +460,7 @@ function [results,decomp] = main(p)
             decomp(ia).term1 = m_ra;
 
             if p.abars(ia) == 0
-                zidx = agrid(:) <= p.abars(ia);
+                zidx = grdKFE.a.matrix(:) <= p.abars(ia);
                 norisk_zidx = grdKFE.a.vec <= p.abars(ia);
 
                 decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
