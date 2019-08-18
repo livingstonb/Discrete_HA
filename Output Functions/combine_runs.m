@@ -1,4 +1,10 @@
 
+basedir = '/home/livingstonb/GitHub/Discrete_HA';
+addpath([runopts.path '/Auxiliary Functions']);
+addpath([runopts.path '/Solution Functions']);
+addpath([runopts.path '/Output Functions']);
+addpath([runopts.path '/Parameters']);
+addpath([runopts.path '/Classes']);
 
 FROM_MATFILE = true;
 if ~FROM_MATFILE
@@ -12,11 +18,12 @@ if FROM_MATFILE
     % are stored in <basedir>/<date>
 
     %% Select directories
-    basedir = '/Users/Brian-laptop/Documents/midway2_output/discrete_time';
-    date = '8_9_19';
+    % basedir = '/Users/Brian-laptop/Documents/midway2_output/discrete_time';
+    % date = '8_9_19';
 
     %% Read .mat files into a cell array
-    fulldir = [basedir '/' date '/'];
+    % fulldir = [basedir '/' date '/'];
+    fulldir = [basedir '/Output/'];
     
 %     params = struct();
 %     results = struct();
@@ -51,3 +58,6 @@ else
     [T_annual,T_quarter] = create_table(params,results,...
                                             decomps,[],[]);
 end
+
+writetable(T_quarter,[fulldir 'T_quarter.xlsx'],'WriteRowNames',true);
+writetable(T_annual,[fulldir 'T_annual.xlsx'],'WriteRowNames',true);

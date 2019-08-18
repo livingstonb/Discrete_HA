@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH --job-name=disc_combine_runs
+#SBATCH --output=/home/livingstonb/GitHub/Discrete_HA/Output/combine_runs.out
+#SBATCH --error=/home/livingstonb/GitHub/Discrete_HA/Output/combine_runs.err
+#SBATCH --partition=broadwl
+#SBATCH --time=00:20:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem-per-cpu=8000
+
+module load matlab
+
+matlab -nodisplay < "/home/livingstonb/GitHub/Discrete_HA/Output Functions/combine_runs.m"

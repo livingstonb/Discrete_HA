@@ -1,4 +1,4 @@
-function [sim_results,assetmeans] = simulate(p,income,model,grids,prefs)
+function sim_results = simulate(p,income,model,grids,prefs)
 
     % This function runs simulations based on the paratmers in 'p' and the
     % policy functions in 'model'.
@@ -154,7 +154,7 @@ function [sim_results,assetmeans] = simulate(p,income,model,grids,prefs)
         sim_results.netincgini_A     = ginicoeff(sum(ynetsim(:,p.Tsim-3:p.Tsim),2));
     end
 
-    assetmeans = p.R * mean(ssim);
+    % assetmeans = p.R * mean(ssim);
     
     % fraction constrained
     for i = 1:numel(p.epsilon)

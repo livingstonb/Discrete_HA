@@ -303,9 +303,7 @@ function [results,decomp] = main(p)
     % SIMULATIONS
     % ---------------------------------------------------------------------
     if p.Simulate == 1
-        [results.sim,assetmeans] = simulate(p,income,basemodel,grdKFE,prefs);
-    else
-        assetmeans = [];
+        results.sim = simulate(p,income,basemodel,grdKFE,prefs);
     end
     
     %% --------------------------------------------------------------------
