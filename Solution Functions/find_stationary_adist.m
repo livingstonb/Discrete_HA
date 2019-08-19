@@ -1,4 +1,4 @@
-function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
+function modelupdate = find_stationary_adist(p,model,income,heterogeneity,grids)
     % Finds the stationary distribution and transition matrix for a given
     % grids.a.vec
     

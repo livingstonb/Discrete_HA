@@ -1,4 +1,4 @@
-function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,grids)
+function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,heterogeneity,grids)
 
  %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITHOUT INCOME RISK)
     norisk_mpcs1_a_direct = cell(1,6);
@@ -25,7 +25,7 @@ function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,inco
             % Compute m(x) = E(m(x,beta)|x)
             %       = sum of P(beta|x) * m(x,beta) over all beta
             % beta is exogenous so P(beta|x) = P(beta)
-            norisk_mpcs1_a_direct{im} = mpcs1_a_beta * prefs.betadist;
+            norisk_mpcs1_a_direct{im} = mpcs1_a_beta * heterogeneity.betadist;
         end
     end
 

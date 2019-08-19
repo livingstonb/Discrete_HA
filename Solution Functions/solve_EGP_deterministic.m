@@ -1,4 +1,4 @@
-function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
+function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_results)
     % This function uses the method of endogenous grid points to find the
     % policy functions of the deterministic model. Output is in the
     % 'norisk' structure.
@@ -7,10 +7,10 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
     sav = zeros(p.nx,p.nb);
     mucnext= zeros(p.nx,p.nb);
     
-    betagrid = direct_results.beta + prefs.betagrid0;
+    betagrid = direct_results.beta + heterogeneity.betagrid0;
     
     if numel(p.r) > 1
-        Emat = kron(prefs.rtrans,kron(income.ytrans,speye(p.nx)));
+        Emat = kron(heterogeneity.rtrans,kron(income.ytrans,speye(p.nx)));
         r_col = kron(p.r',ones(p.nx,1));
         r_mat = reshape(r_col,[p.nx,numel(p.r)]);
     else
@@ -43,36 +43,37 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
             
             % cash-on-hand is just Rs + meany
             if numel(p.r) > 1
-                mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R(ib)*grids.s.vec + income.meany1))...
-                                - p.temptation/(1+p.temptation) * prefs.u1(p.R(ib)*grids.s.vec + income.meany1);
+                mucnext(:,ib) = utility1(p.risk_aver,coninterp{ib}(p.R(ib)*grids.s.vec + income.meany1))...
+                                - p.temptation/(1+p.temptation) * utility1(p.risk_aver,p.R(ib)*grids.s.vec + income.meany1);
             elseif numel(p.risk_aver) > 1
-                mucnext(:,ib) = prefs.u1(risk_aver_mat(:,ib),coninterp{ib}(p.R.*grids.s.vec + income.meany1))...
-                                - p.temptation/(1+p.temptation) * prefs.u1(risk_aver_mat(:,ib),p.R.*grids.s.vec + income.meany1);
+                mucnext(:,ib) = utility1(risk_aver_mat(:,ib),coninterp{ib}(p.R.*grids.s.vec + income.meany1))...
+                                - p.temptation/(1+p.temptation) * utility1(risk_aver_mat(:,ib),p.R.*grids.s.vec + income.meany1);
             else
-                mucnext(:,ib) = prefs.u1(coninterp{ib}(p.R*grids.s.vec + income.meany1))...
-                                - p.temptation/(1+p.temptation) * prefs.u1(p.R.*grids.s.vec + income.meany1);
+                mucnext(:,ib) = utility1(p.risk_aver,coninterp{ib}(p.R*grids.s.vec + income.meany1))...
+                                - p.temptation/(1+p.temptation) * utility1(p.risk_aver,p.R.*grids.s.vec + income.meany1);
             end
         end
         
         % take expectation over beta
         if numel(p.r) > 1
-            emuc = mucnext * prefs.rtrans';
+            emuc = mucnext * heterogeneity.rtrans';
             betastacked = repmat(betagrid',p.nx,p.nb);
         elseif numel(p.risk_aver) > 1
-            emuc = mucnext * prefs.ztrans';
+            emuc = mucnext * heterogeneity.ztrans';
             betastacked = repmat(betagrid',p.nx,p.nb);
         else
-            emuc = mucnext * prefs.betatrans';
+            emuc = mucnext * heterogeneity.betatrans';
             betastacked = repmat(betagrid',p.nx,1);
         end
         muc1 = (1-p.dieprob) * (1+r_mat) .* betastacked .* emuc ...
                 ./ (1+p.savtax*(repmat(grids.s.vec,1,p.nb)>=p.savtaxthresh))...
-                + p.dieprob * prefs.beq1(repmat(grids.s.vec,1,p.nb));
+                + p.dieprob * utility_bequests1(p.bequest_curv,p.bequest_weight,...
+                p.bequest_luxury,repmat(grids.s.vec,1,p.nb));
         
         if numel(p.risk_aver) == 1
-            con1 = prefs.u1inv(muc1);
+            con1 = u1inv(p.risk_aver,muc1);
         else
-            con1 = prefs.u1inv(risk_aver_mat,muc1);
+            con1 = u1inv(risk_aver_mat,muc1);
         end
         
         cash1 = con1 + repmat(grids.s.vec,1,p.nb)...

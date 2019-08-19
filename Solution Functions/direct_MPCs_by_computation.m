@@ -1,4 +1,5 @@
-function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,income,prefs,grids,shocksize)
+function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,...
+    income,grids,shocksize)
     % This function computes IMPC(s,t) using transition probabilities,
     % where IMPC(s,t) is the MPC in period t out of a period-s shock that
     % is learned about in period 1

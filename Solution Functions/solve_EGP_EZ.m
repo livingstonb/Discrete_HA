@@ -1,7 +1,7 @@
-function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
+function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,heterogeneity,income)
     
     %% CONSTRUCT EXPECTATIONS MATRIX                                     
-    betagrid = beta + prefs.betagrid0;
+    betagrid = beta + heterogeneity.betagrid0;
     
     if p.IterateBeta == 1
         msg = sprintf(' %3.3f',betagrid);
@@ -32,17 +32,17 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
     % Expectations operator (conditional on yT)
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb   
     if numel(p.invies) > 1
-        Emat = kron(prefs.ztrans,kron(income.ytrans,speye(p.nx)));
+        Emat = kron(heterogeneity.ztrans,kron(income.ytrans,speye(p.nx)));
         invies_col = kron(p.invies',ones(p.nx*p.nyP*p.nyF,1));
         risk_aver_col = p.risk_aver;
         invies_col_yT = repmat(invies_col,1,p.nyT);
     elseif numel(p.risk_aver) > 1
-        Emat = kron(prefs.ztrans,kron(income.ytrans,speye(p.nx)));
+        Emat = kron(heterogeneity.ztrans,kron(income.ytrans,speye(p.nx)));
         risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
         invies_col = p.invies;
         risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
     else
-        Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+        Emat = kron(heterogeneity.betatrans,kron(income.ytrans,speye(p.nx)));
         risk_aver_col = p.risk_aver;
         invies_col = p.invies;
     end
@@ -103,7 +103,8 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
         % expected muc
         savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
         mu_cons = (1+p.r)*betastacked*Emat*mucnext*income.yTdist ./ savtaxrate;
-        mu_bequest = prefs.beq1(repmat(grids.s.matrix(:),p.nb,1));
+        mu_bequest = utility_bequests1(p.bequest_curv,p.bequest_weight,...
+    p.      bequest_luxury,repmat(grids.s.matrix(:),p.nb,1));
         emuc = (1-p.dieprob) * mu_cons + p.dieprob * mu_bequest;
         
         if numel(p.risk_aver) > 1
@@ -251,7 +252,7 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,prefs,income)
     
     %% DISTRIBUTION
      
-    model = find_stationary_adist(p,model,income,prefs,gridsKFE);
+    model = find_stationary_adist(p,model,income,heterogeneity,gridsKFE);
     
     model.sav_x = zeros(p.nx_KFE*p.nyT,p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb

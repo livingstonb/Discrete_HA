@@ -1,4 +1,4 @@
-function income = gen_income_variables(p,prefs)
+function income = gen_income_variables(p,heterogeneity)
     % Given a structure of parameters, p, this function generates a
     % structure variable called 'income' with fields associated with the
     % specified income distribution
@@ -136,14 +136,14 @@ function income = gen_income_variables(p,prefs)
     end
 
     if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) && (numel(p.r)==1)
-        ytrans_live = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans));
-        ytrans_death = kron(prefs.betatrans,kron(eye(p.nyF),yPtrans_death));
+        ytrans_live = kron(heterogeneity.betatrans,kron(eye(p.nyF),yPtrans));
+        ytrans_death = kron(heterogeneity.betatrans,kron(eye(p.nyF),yPtrans_death));
     elseif numel(p.r) > 1
-        ytrans_live = kron(prefs.rtrans,kron(eye(p.nyF),yPtrans));
-        ytrans_death = kron(prefs.rtrans,kron(eye(p.nyF),yPtrans_death));
+        ytrans_live = kron(heterogeneity.rtrans,kron(eye(p.nyF),yPtrans));
+        ytrans_death = kron(heterogeneity.rtrans,kron(eye(p.nyF),yPtrans_death));
     else
-        ytrans_live = kron(prefs.ztrans,kron(eye(p.nyF),yPtrans));
-        ytrans_death = kron(prefs.ztrans,kron(eye(p.nyF),yPtrans_death));
+        ytrans_live = kron(heterogeneity.ztrans,kron(eye(p.nyF),yPtrans));
+        ytrans_death = kron(heterogeneity.ztrans,kron(eye(p.nyF),yPtrans_death));
     end
     
         % Store income variables in a structure

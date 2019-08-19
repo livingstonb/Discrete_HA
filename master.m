@@ -55,7 +55,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {}; % {'baseline_Q'}
+runopts.names_to_run = {'baseline_Q'}; % {'baseline_Q'}
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -63,7 +63,7 @@ runopts.names_to_run = {}; % {'baseline_Q'}
 if runopts.Server == 0
     runopts.path = runopts.localdir;
     runopts.number = [];
-    runopts.savemathpath = [runopts.localdir '/Output/variables' num2str(runopts.number) '.mat'];
+    runopts.savematpath = [runopts.localdir '/Output/variables' num2str(runopts.number) '.mat'];
 else
     runopts.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
     runopts.path = runopts.serverdir;

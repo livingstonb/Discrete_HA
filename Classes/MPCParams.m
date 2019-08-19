@@ -92,9 +92,12 @@ classdef MPCParams < handle
         savtaxthresh    = 0; %multiple of mean gross labor income
 
         % discount factor shocks
-        nb = 1;
+        nbeta = 1;
         betawidth = 0.005;
         betaswitch = 0;
+
+        % used for different het cases, need to recode this
+        nb = 1;
 
         % IES shocks
         IESswitch = 0;
@@ -156,9 +159,6 @@ classdef MPCParams < handle
 
             % simulate option
             [obj.Simulate] = deal(runopts.Simulate);
-            
-            % gridtest option
-            [obj.GRIDTEST] = deal(runopts.GRIDTEST);
 
             % compute mpcs for is > 1?
             [obj.mpcshocks_after_period1] = deal(runopts.mpcshocks_after_period1);

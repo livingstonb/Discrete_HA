@@ -13,154 +13,32 @@ function [results,decomp] = main(p)
     results.Finished = false;
 
     % throw error if more than one type of heterogeneity are added
-    if (p.nb > 1) + (numel(p.risk_aver)>1) + (numel(p.r)>1) > 1
+    if (p.nbeta > 1) + (numel(p.risk_aver)>1) + (numel(p.r)>1) > 1
         error('only one form of heterogeneity allowed')
+    else
+        % find a better way to do this...
+        p.nb = max([numel(p.nbeta),numel(p.risk_aver),numel(p.r)]);
     end
     
     %% --------------------------------------------------------------------
-    % CONSTRUCT BETA DISTRIBUTION
+    % HETEROGENEITY IN PREFERENCES/RETURNS
     % ---------------------------------------------------------------------
-
-    % discount factor distribution
-    if  p.nb == 1
-        prefs.betadist = 1;
-        prefs.betatrans = 1;
-    elseif p.nb > 1
-        % Equal probability in stationary distribution
-        prefs.betadist = ones(p.nb,1) / p.nb; 
-        % Probability of switching from beta_i to beta_j, for i=/=j
-        betaswitch_ij = p.betaswitch / (p.nb-1);
-        % Create matrix with (1-betaswitch) on diag and betaswitch_ij
-        % elsewhere
-        diagonal = (1-p.betaswitch) * ones(p.nb,1);
-        off_diag = betaswitch_ij * ones(p.nb);
-        off_diag = off_diag - diag(diag(off_diag));
-        prefs.betatrans = off_diag + diag(diagonal);
-    end
-    prefs.betacumdist = cumsum(prefs.betadist);
-    prefs.betacumtrans = cumsum(prefs.betatrans,2);
-    
-    % Create grid - add beta to grid later since we may iterate
-    bw = p.betawidth;
-    switch p.nb
-        case 1
-            prefs.betagrid0 = 0;
-        case 2
-            prefs.betagrid0 = [-bw/2 bw/2]';
-        case 3
-            prefs.betagrid0 = [-bw 0 bw]';
-        case 4
-            prefs.betagrid0 = [-3*bw/2 -bw/2 bw/2 3*bw/2]';
-        case 5
-            prefs.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
-    end
-
-    %% --------------------------------------------------------------------
-    % IES Heterogeneity
-    % ---------------------------------------------------------------------
-    % same way as introducing beta heterogeneity
-
-    if numel(p.risk_aver) > 1 || ((numel(p.invies) > 1) && (p.EpsteinZin == 1))
-    	% use nb as grid size for risk aversion
-        if numel(p.risk_aver) > 1
-            p.nb = numel(p.risk_aver);
-        else
-            p.nb = numel(p.invies);
-        end
-
-    	prefs.zdist = ones(p.nb,1) / p.nb;
-    	zswitch_ij = p.IESswitch / (p.nb-1);
-
-    	diagonal = (1-p.IESswitch) * ones(p.nb,1);
-    	off_diag = zswitch_ij * ones(p.nb);
-    	off_diag = off_diag - diag(diag(off_diag));
-    	prefs.ztrans = off_diag + diag(diagonal);
-        
-        prefs.zcumdist = cumsum(prefs.zdist);
-        prefs.zcumtrans = cumsum(prefs.ztrans,2);
-    else
-        prefs.zdist = 1;
-        prefs.ztrans = 0;
-        prefs.zcumdist = 1;
-        prefs.zcumtrans = 0;
-    end
-
-    %% --------------------------------------------------------------------
-    % RETURNS HETEROGENEITY
-    % ---------------------------------------------------------------------
-    % same way as introducing beta heterogeneity
-    if numel(p.r) > 1
-        % use nb as grid size for interest rate
-        p.nb = numel(p.r);
-
-        prefs.rdist = ones(p.nb,1) / p.nb;
-        rswitch = 0;
-
-        diagonal = (1-rswitch) * ones(p.nb,1);
-        off_diag = rswitch * ones(p.nb);
-        off_diag = off_diag - diag(diag(off_diag));
-        prefs.rtrans = off_diag + diag(diagonal);
-        
-        prefs.rcumdist = cumsum(prefs.rdist);
-        prefs.rcumtrans = cumsum(prefs.rtrans,2);
-    else
-        prefs.rdist = 1;
-        prefs.rtrans = 0;
-        prefs.rcumdist = 1;
-        prefs.rcumtrans = 0;
-    end
-
+    heterogeneity = Prefs_R_Heterogeneity(p);
     
     %% --------------------------------------------------------------------
     % INCOME
     % ---------------------------------------------------------------------
-    income = gen_income_variables(p,prefs);
+    income = gen_income_variables(p,heterogeneity);
 
     %% --------------------------------------------------------------------
     % ASSET GRIDS
     % ---------------------------------------------------------------------
     
+    % grids for method of EGP
     grdEGP = Grid(p,income,'EGP');
+
+    % grids for finding stationary distribution
     grdDST = Grid(p,income,'DST');
-    
-    %% --------------------------------------------------------------------
-    % UTILITY FUNCTION, BEQUEST FUNCTION
-    % ---------------------------------------------------------------------
-    % utility function
-    if numel(p.risk_aver) == 1
-	    if p.risk_aver==1
-	        prefs.u = @(c)log(c);
-	    else    
-	        prefs.u = @(c)(c.^(1-p.risk_aver)-1)./(1-p.risk_aver);
-        end    
-	else
-		% risk_aver heterogeneity, preferences defined in utility.m
-		prefs.u = @(risk_aver,c) utility(risk_aver,c);
-	end
-    
-    % bequest utility
-    if p.bequest_curv == 1
-        prefs.beq = @(a) p.bequest_weight.* log(a+ p.bequest_luxury);
-    else
-        prefs.beq = @(a) p.bequest_weight.*((a+p.bequest_luxury).^(1-p.bequest_curv)-1)./(1-p.bequest_curv);
-    end
-
-    % 1st derivative of utility wrt c
-    if numel(p.risk_aver) == 1
-    	prefs.u1 = @(c) c.^(-p.risk_aver);
-    else
-    	prefs.u1 = @(risk_aver,c) c.^(-risk_aver);
-    end
-
-    % inverse of 1st derivative
-    if numel(p.risk_aver) == 1
-    	prefs.u1inv = @(u) u.^(-1./p.risk_aver);
-    else
-    	prefs.u1inv = @(risk_aver,u) u.^(-1./risk_aver);
-    end
-
-    % first derivative of bequest utility
-    prefs.beq1 = @(a) p.bequest_weight.*(a+p.bequest_luxury).^(-p.bequest_curv);
 
     %% --------------------------------------------------------------------
     % MODEL SOLUTION
@@ -170,16 +48,16 @@ function [results,decomp] = main(p)
         
         mpcshock = 0;
         if p.EpsteinZin == 1
-            iterate_EGP = @(x) solve_EGP_EZ(x,p,grdEGP,grdDST,prefs,income);
+            iterate_EGP = @(x) solve_EGP_EZ(x,p,grdEGP,grdDST,heterogeneity,income);
         else
-            iterate_EGP = @(x) solve_EGP(x,p,grdEGP,grdDST,prefs,income,mpcshock,[]);
+            iterate_EGP = @(x) solve_EGP(x,p,grdEGP,grdDST,heterogeneity,income,mpcshock,[]);
         end
 
-        if numel(prefs.betadist) == 1
+        if numel(heterogeneity.betadist) == 1
             beta_ub = p.betaH;
         else
             % Don't let highest beta be such that (1-dieprob)*R*beta >= 1
-            beta_ub = p.betaH  - max(prefs.betagrid0);
+            beta_ub = p.betaH  - max(heterogeneity.betagrid0);
         end
         beta_lb = p.betaL;
 
@@ -199,10 +77,10 @@ function [results,decomp] = main(p)
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
     if p.EpsteinZin == 1
-        [~,basemodel] = solve_EGP_EZ(beta_final,p,grdEGP,grdDST,prefs,income);
+        [~,basemodel] = solve_EGP_EZ(beta_final,p,grdEGP,grdDST,heterogeneity,income);
     else
         mpcshock = 0;
-        [~,basemodel] = solve_EGP(beta_final,p,grdEGP,grdDST,prefs,income,mpcshock,[]);
+        [~,basemodel] = solve_EGP(beta_final,p,grdEGP,grdDST,heterogeneity,income,mpcshock,[]);
     end
     results.direct.adist = basemodel.adist;
 
@@ -290,7 +168,7 @@ function [results,decomp] = main(p)
     % ---------------------------------------------------------------------
     
     % Deterministic model
-    norisk = solve_EGP_deterministic(p,grdEGP,prefs,income,results.direct);
+    norisk = solve_EGP_deterministic(p,grdEGP,heterogeneity,income,results.direct);
     if norisk.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         return
@@ -300,14 +178,15 @@ function [results,decomp] = main(p)
     % SIMULATIONS
     % ---------------------------------------------------------------------
     if p.Simulate == 1
-        results.sim = simulate(p,income,basemodel,grdDST,prefs);
+        results.sim = simulate(p,income,basemodel,grdDST,heterogeneity);
     end
     
     %% --------------------------------------------------------------------
     % MPCS FOR NO-RISK MODEL
     % ---------------------------------------------------------------------
     
-    results.norisk.mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,grdDST);
+    results.norisk.mpcs1_a_direct = ...
+        direct_MPCs_by_computation_norisk(p,norisk,income,heterogeneity,grdDST);
 
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
@@ -350,7 +229,8 @@ function [results,decomp] = main(p)
                         nextmodel = model_lagged{lag-1};
                     end
 
-                    [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,grdEGP,grdDST,prefs,income,nextmpcshock,nextmodel);
+                    [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,grdEGP,...
+                        grdDST,heterogeneity,income,nextmpcshock,nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s
@@ -363,13 +243,15 @@ function [results,decomp] = main(p)
 
             shocksize = shocks(ishock) * income.meany1 * p.freq;
             [results.direct.mpcs(ishock),results.direct.agrid_dist] ...
-                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,grdDST,shocksize);
+                = direct_MPCs_by_computation(p,basemodel,mpcmodels,...
+                    income,grdDST,shocksize);
         else
             % epstein-zin preferences, only do (is,it) for is == 1
             
             shocksize = shocks(ishock) * income.meany1 * p.freq;
             [results.direct.mpcs(ishock),~] ...
-                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,grdDST,shocksize);
+                = direct_MPCs_by_computation(p,basemodel,mpcmodels,...
+                    income,heterogeneity,grdDST,shocksize);
         end
     end
     
@@ -380,7 +262,7 @@ function [results,decomp] = main(p)
     MPCs = struct();
     for i = 1:3
         [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i),inc_constrained(i)] ...
-                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,grdDST);
+            = direct_MPCs_by_simulation(p,heterogeneity,income,basemodel,grdDST);
     end
 
     results.direct.a_sixth_sim = mean([inc_constrained.a_sixth_Q]);

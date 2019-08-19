@@ -1,4 +1,4 @@
-function sim_results = simulate(p,income,model,grids,prefs)
+function sim_results = simulate(p,income,model,grids,heterogeneity)
 
     % This function runs simulations based on the paratmers in 'p' and the
     % policy functions in 'model'.
@@ -75,13 +75,13 @@ function sim_results = simulate(p,income,model,grids,prefs)
     %% Simulate beta
     betarand = rand(p.Nsim,p.Tsim);
     betaindsim = zeros(p.Nsim,p.Tsim,'int8');
-    [~,betaindsim(:,1)] = max(betarand(:,1)<=prefs.betacumdist',[],2);
+    [~,betaindsim(:,1)] = max(betarand(:,1)<=heterogeneity.betacumdist',[],2);
     
     for it = 2:p.Tsim
-        [~,betaindsim(:,it)] = max(betarand(:,it)<=prefs.betacumtrans(betaindsim(:,it-1),:),[],2);
+        [~,betaindsim(:,it)] = max(betarand(:,it)<=heterogeneity.betacumtrans(betaindsim(:,it-1),:),[],2);
         % ilive = diesim(:,it)==0;
-        % [~,betaindsim(ilive,it)] = max(bsxfun(@le,betarand(ilive,it),prefs.betacumtrans(betaindsim(ilive,it-1),:)),[],2);
-        % [~,betaindsim(~ilive,it)] = max(bsxfun(@le,betarand(~ilive,it),prefs.betacumdist'),[],2);
+        % [~,betaindsim(ilive,it)] = max(bsxfun(@le,betarand(ilive,it),heterogeneity.betacumtrans(betaindsim(ilive,it-1),:)),[],2);
+        % [~,betaindsim(~ilive,it)] = max(bsxfun(@le,betarand(~ilive,it),heterogeneity.betacumdist'),[],2);
     end
     
     %% Simulate savings decisions

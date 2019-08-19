@@ -1,4 +1,5 @@
-function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcshock,prevmodel)
+function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,heterogeneity,...
+    income,nextmpcshock,prevmodel)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
@@ -7,7 +8,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
 
     
     %% CONSTRUCT EXPECTATIONS MATRIX                                     
-    betagrid = beta + prefs.betagrid0;
+    betagrid = beta + heterogeneity.betagrid0;
     
     if p.IterateBeta == 1
         msg = sprintf(' %3.3f',betagrid);
@@ -17,15 +18,15 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
     % Expectations operator (conditional on yT)
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
     if numel(p.r) > 1
-        Emat = kron(prefs.rtrans,kron(income.ytrans,speye(p.nx)));
+        Emat = kron(heterogeneity.rtrans,kron(income.ytrans,speye(p.nx)));
         r_col = kron(p.r',ones(p.nx*p.nyP*p.nyF,1));
         r_mat = reshape(r_col,[p.nx,p.nyP,p.nyF,numel(p.r)]);
     elseif numel(p.risk_aver) > 1
-        Emat = kron(prefs.ztrans,kron(income.ytrans,speye(p.nx)));
+        Emat = kron(heterogeneity.ztrans,kron(income.ytrans,speye(p.nx)));
         risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
         r_mat = p.r;
     else
-        Emat = kron(prefs.betatrans,kron(income.ytrans,speye(p.nx)));
+        Emat = kron(heterogeneity.betatrans,kron(income.ytrans,speye(p.nx)));
         r_mat = p.r;
     end
 
@@ -106,10 +107,11 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         % matrix of next period muc, muc(x',yP',yF)
         if numel(p.risk_aver) > 1
             risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
-            mucnext = prefs.u1(risk_aver_col_yT,c_xp)...
-                - p.temptation/(1+p.temptation) * prefs.u1(risk_aver_col_yT,xp_s);
+            mucnext = utility1(risk_aver_col_yT,c_xp)...
+                - p.temptation/(1+p.temptation) * utility1(risk_aver_col_yT,xp_s);
         else
-            mucnext = prefs.u1(c_xp) - p.temptation/(1+p.temptation) * prefs.u1(xp_s);
+            mucnext = utility1(p.risk_aver,c_xp) ...
+                - p.temptation/(1+p.temptation) * utility1(p.risk_aver,xp_s);
 
         end
             
@@ -119,7 +121,8 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         % column vecs of length p.nx*p.nyP*p.nyF*p.nb
         savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
         mu_consumption = (1+r_mat(:)).*betastacked*Emat*(mucnext*income.yTdist);
-        mu_bequest     = prefs.beq1(repmat(grids.s.matrix(:),p.nb,1));
+        mu_bequest = utility_bequests1(p.bequest_curv,p.bequest_weight,...
+                        p.bequest_luxury,repmat(grids.s.matrix(:),p.nb,1));
         
         % muc(s(x,yP,yF,beta))
         muc_s = (1-p.dieprob) * mu_consumption ./ savtaxrate...
@@ -127,9 +130,9 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
                 
         % c(s)
         if numel(p.risk_aver) == 1
-            con_s = prefs.u1inv(muc_s);
+            con_s = u1inv(p.risk_aver,muc_s);
         else
-            con_s = prefs.u1inv(risk_aver_col,muc_s);
+            con_s = u1inv(risk_aver_col,muc_s);
         end
         
         % x(s) = s + stax + c(s)
@@ -192,7 +195,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
 
     %% DISTRIBUTION
     
-    model = find_stationary_adist(p,model,income,prefs,gridsKFE);
+    model = find_stationary_adist(p,model,income,heterogeneity,gridsKFE);
     
     % get saving policy function defined on xgrid
     model.sav_x = zeros(p.nx_KFE*p.nyT,p.nyP,p.nyF,p.nb);
@@ -228,7 +231,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
     
     if p.GRIDTEST == 2
         % use simulation results in objective function
-        sim = simulate(p,income,model,gridsKFE.x.matrix,prefs);
+        sim = simulate(p,income,model,gridsKFE.x.matrix,heterogeneity);
         mean_assets = sim.mean_a;
     else
         % use distribution results

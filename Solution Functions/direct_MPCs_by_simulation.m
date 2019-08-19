@@ -1,5 +1,5 @@
 function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]... 
-                                = direct_MPCs_by_simulation(p,prefs,income,basemodel,grids)
+            = direct_MPCs_by_simulation(p,heterogeneity,income,basemodel,grids)
     % This function draws from the stationary distribution of (a,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
     
@@ -82,9 +82,9 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
             else
                 [~,yPindsim(:,it)]   = max(yPrand(:,it)<=income.yPcumtrans(yPindsim(:,it-1),:),[],2);
             end
-            [~,betaindsim(:,it)]    = max(betarand(:,it)<=prefs.betacumtrans(betaindsim(:,it-1),:),[],2);
-            [~,IESindsim(:,it)] = max(IESrand(:,it)<=prefs.zcumtrans(IESindsim(:,it-1),:),[],2);
-            [~,r_indsim(:,it)] = max(r_rand(:,it)<=prefs.rcumtrans(r_indsim(:,it-1),:),[],2);
+            [~,betaindsim(:,it)]    = max(betarand(:,it)<=heterogeneity.betacumtrans(betaindsim(:,it-1),:),[],2);
+            [~,IESindsim(:,it)] = max(IESrand(:,it)<=heterogeneity.zcumtrans(IESindsim(:,it-1),:),[],2);
+            [~,r_indsim(:,it)] = max(r_rand(:,it)<=heterogeneity.rcumtrans(r_indsim(:,it-1),:),[],2);
         end
     end
     
