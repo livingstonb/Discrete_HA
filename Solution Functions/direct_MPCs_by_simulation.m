@@ -3,9 +3,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
     % This function draws from the stationary distribution of (a,yP,yF,beta) 
     % and simulates 1-4 periods to find MPCs.
     
-    if p.Display == 1
-        disp([' Simulating 4 period(s) to get MPCs'])
-    end
+    disp([' Simulating 4 period(s) to get MPCs'])
     
     % Number of draws from distribution
     Nsim = p.Nmpcsim;

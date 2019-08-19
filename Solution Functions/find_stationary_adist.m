@@ -4,9 +4,7 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     
     modelupdate = model;
 
-    if p.Display == 1
-        fprintf(' Computing state-to-state transition probabilities... \n');
-    end
+    fprintf(' Computing state-to-state transition probabilities... \n');
 
     nx = size(grids.a.vec,1);
     if nx == p.nx
@@ -74,9 +72,7 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
     clear transcol_live transcol_death interp_live interp_death
 
     % stationary distribution over states
-    if p.Display == 1
-        fprintf(' Finding ergodic distribution...\n');
-    end
+    fprintf(' Finding ergodic distribution...\n');
     
     q=zeros(1,nx*p.nyP*p.nyF*p.nb);
     % Create valid initial distribution for both yF & beta
@@ -88,9 +84,8 @@ function modelupdate = find_stationary_adist(p,model,income,prefs,grids)
         z = q*modelupdate.statetrans;
         diff = norm(z-q);
         q = z;
-        if p.Display == 1 && mod(iter,100) == 0
-            fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
-        end
+        
+        fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
         iter = iter + 1;
     end
     if iter >= 5e4

@@ -9,7 +9,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
     %% CONSTRUCT EXPECTATIONS MATRIX                                     
     betagrid = beta + prefs.betagrid0;
     
-    if p.IterateBeta == 1 && p.Display == 1
+    if p.IterateBeta == 1
         msg = sprintf(' %3.3f',betagrid);
         disp([' Trying betagrid =' msg])
     end
@@ -158,7 +158,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
                             - p.savtax * max(sav(:)-p.savtaxthresh,0);
 
         cdiff = max(abs(conupdate(:)-conlast(:)));
-        if mod(iter,50) ==0 && p.Display == 1
+        if mod(iter,50) ==0
             disp(['  EGP Iteration ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
 
@@ -235,9 +235,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,prefs,income,nextmpcsh
         mean_assets = model.mean_a;
     end
            
-    if p.Display == 1
-        fprintf(' A/Y = %2.5f\n',mean_assets/(income.meany1*p.freq));
-    end
+    fprintf(' A/Y = %2.5f\n',mean_assets/(income.meany1*p.freq));
     AYdiff = mean_assets/(income.meany1*p.freq) -  p.targetAY;
 
 end

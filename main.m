@@ -20,9 +20,6 @@ function [results,decomp] = main(p)
     %% --------------------------------------------------------------------
     % CONSTRUCT BETA DISTRIBUTION
     % ---------------------------------------------------------------------
-    
-    % savtaxthresh should be a multiple of mean annual gross labor income
-    p.savtaxthresh  = p.savtaxthresh * (1/4) * p.freq;
 
     % discount factor distribution
     if  p.nb == 1
@@ -123,8 +120,8 @@ function [results,decomp] = main(p)
     % ASSET GRIDS
     % ---------------------------------------------------------------------
     
-    grdHJB = Grid(p,income,'EGP');
-    grdKFE = Grid(p,income,'DST');
+    grdEGP = Grid(p,income,'EGP');
+    grdDST = Grid(p,income,'DST');
     
     %% --------------------------------------------------------------------
     % UTILITY FUNCTION, BEQUEST FUNCTION
@@ -173,9 +170,9 @@ function [results,decomp] = main(p)
         
         mpcshock = 0;
         if p.EpsteinZin == 1
-            iterate_EGP = @(x) solve_EGP_EZ(x,p,grdHJB,grdKFE,prefs,income);
+            iterate_EGP = @(x) solve_EGP_EZ(x,p,grdEGP,grdDST,prefs,income);
         else
-            iterate_EGP = @(x) solve_EGP(x,p,grdHJB,grdKFE,prefs,income,mpcshock,[]);
+            iterate_EGP = @(x) solve_EGP(x,p,grdEGP,grdDST,prefs,income,mpcshock,[]);
         end
 
         if numel(prefs.betadist) == 1
@@ -202,10 +199,10 @@ function [results,decomp] = main(p)
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
     if p.EpsteinZin == 1
-        [~,basemodel] = solve_EGP_EZ(beta_final,p,grdHJB,grdKFE,prefs,income);
+        [~,basemodel] = solve_EGP_EZ(beta_final,p,grdEGP,grdDST,prefs,income);
     else
         mpcshock = 0;
-        [~,basemodel] = solve_EGP(beta_final,p,grdHJB,grdKFE,prefs,income,mpcshock,[]);
+        [~,basemodel] = solve_EGP(beta_final,p,grdEGP,grdDST,prefs,income,mpcshock,[]);
     end
     results.direct.adist = basemodel.adist;
 
@@ -244,7 +241,7 @@ function [results,decomp] = main(p)
     % Create values for fraction constrained (HtM) at every pt in asset space,
     % defining constrained as a <= epsilon * mean annual gross labor income 
     % + borrowing limit
-    sort_aspace = sortrows([grdKFE.a.matrix(:) basemodel.adist(:)]);
+    sort_aspace = sortrows([grdDST.a.matrix(:) basemodel.adist(:)]);
     sort_agrid = sort_aspace(:,1);
     sort_adist = sort_aspace(:,2);
 
@@ -256,7 +253,7 @@ function [results,decomp] = main(p)
         % create interpolant to find fraction of constrained households
         if p.epsilon(i) == 0
             % Get exact figure
-            results.direct.constrained(i) = basemodel.adist(:)' * (grdKFE.a.matrix(:)==0);
+            results.direct.constrained(i) = basemodel.adist(:)' * (grdDST.a.matrix(:)==0);
 
             if p.Bequests == 1
                 results.direct.s0 = results.direct.constrained(i);
@@ -293,7 +290,7 @@ function [results,decomp] = main(p)
     % ---------------------------------------------------------------------
     
     % Deterministic model
-    norisk = solve_EGP_deterministic(p,grdHJB,prefs,income,results.direct);
+    norisk = solve_EGP_deterministic(p,grdEGP,prefs,income,results.direct);
     if norisk.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         return
@@ -303,14 +300,14 @@ function [results,decomp] = main(p)
     % SIMULATIONS
     % ---------------------------------------------------------------------
     if p.Simulate == 1
-        results.sim = simulate(p,income,basemodel,grdKFE,prefs);
+        results.sim = simulate(p,income,basemodel,grdDST,prefs);
     end
     
     %% --------------------------------------------------------------------
     % MPCS FOR NO-RISK MODEL
     % ---------------------------------------------------------------------
     
-    results.norisk.mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,grdKFE);
+    results.norisk.mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,prefs,grdDST);
 
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
@@ -353,7 +350,7 @@ function [results,decomp] = main(p)
                         nextmodel = model_lagged{lag-1};
                     end
 
-                    [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,grdHJB,grdKFE,prefs,income,nextmpcshock,nextmodel);
+                    [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,grdEGP,grdDST,prefs,income,nextmpcshock,nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s
@@ -366,13 +363,13 @@ function [results,decomp] = main(p)
 
             shocksize = shocks(ishock) * income.meany1 * p.freq;
             [results.direct.mpcs(ishock),results.direct.agrid_dist] ...
-                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,grdKFE,shocksize);
+                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,grdDST,shocksize);
         else
             % epstein-zin preferences, only do (is,it) for is == 1
             
             shocksize = shocks(ishock) * income.meany1 * p.freq;
             [results.direct.mpcs(ishock),~] ...
-                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,grdKFE,shocksize);
+                = direct_MPCs_by_computation(p,basemodel,mpcmodels,income,prefs,grdDST,shocksize);
         end
     end
     
@@ -383,7 +380,7 @@ function [results,decomp] = main(p)
     MPCs = struct();
     for i = 1:3
         [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i),inc_constrained(i)] ...
-                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,grdKFE);
+                            = direct_MPCs_by_simulation(p,prefs,income,basemodel,grdDST);
     end
 
     results.direct.a_sixth_sim = mean([inc_constrained.a_sixth_Q]);
@@ -436,30 +433,30 @@ function [results,decomp] = main(p)
         m0g0 = reshape(m0g0,[p.nx_KFE p.nyP*p.nyF*p.nb]);
         m0g0 = sum(m0g0,2);
         cum_m0g0 = cumsum(m0g0);
-        mg0interp = griddedInterpolant(grdKFE.a.vec,cum_m0g0,'linear');
+        mg0interp = griddedInterpolant(grdDST.a.vec,cum_m0g0,'linear');
 
         % interpolate to get the integral of mpc_norisk(a) * g0_norisk(a)
         mbcg0 = mbc(:) .* g0_norisk(:);
         mbcg0 = reshape(mbcg0,p.nx_KFE,[]);
         mbcg0 = sum(mbcg0,2);
         cum_mbcg0 = cumsum(mbcg0);
-        mbcg0interp = griddedInterpolant(grdKFE.a.vec,cum_mbcg0,'linear');
+        mbcg0interp = griddedInterpolant(grdDST.a.vec,cum_mbcg0,'linear');
 
         % get interpolant for cumulative dist of g0_a
         g0_a = sum(reshape(g0,p.nx_KFE,[]),2);
-        g0interp = griddedInterpolant(grdKFE.a.vec,cumsum(g0_a),'linear');
+        g0interp = griddedInterpolant(grdDST.a.vec,cumsum(g0_a),'linear');
 
         % get interpolant for cumdist of g0_norisk_a
         g0_norisk_a = sum(reshape(g0_norisk,p.nx_KFE,[]),2);
-        g0ninterp = griddedInterpolant(grdKFE.a.vec,cumsum(g0_norisk_a),'linear');
+        g0ninterp = griddedInterpolant(grdDST.a.vec,cumsum(g0_norisk_a),'linear');
 
 
         for ia = 1:numel(p.abars)
             decomp(ia).term1 = m_ra;
 
             if p.abars(ia) == 0
-                zidx = grdKFE.a.matrix(:) <= p.abars(ia);
-                norisk_zidx = grdKFE.a.vec <= p.abars(ia);
+                zidx = grdDST.a.matrix(:) <= p.abars(ia);
+                norisk_zidx = grdDST.a.vec <= p.abars(ia);
 
                 decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
                 decomp(ia).term3 = (mbc(~norisk_zidx) - m_ra)' * g0_norisk(~norisk_zidx);
@@ -485,7 +482,7 @@ function [results,decomp] = main(p)
     % GINI
     % ---------------------------------------------------------------------
     % Wealth
-    results.direct.wealthgini = direct_gini(grdKFE.a.matrix,basemodel.adist);
+    results.direct.wealthgini = direct_gini(grdDST.a.matrix,basemodel.adist);
     
     % Gross income
     results.direct.grossincgini = direct_gini(income.ysort,income.ysortdist);

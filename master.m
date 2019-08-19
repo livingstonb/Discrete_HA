@@ -1,14 +1,45 @@
+%% ONE-ASSET HOUSEHOLD MODEL
+% This is the main script for this code repository
+% HA model
+
+% Prior to running this script:
+
+% (1) Set options in the section below. Directory only needs to be set for
+% either the server or the local directory, depending on whether
+% runopts.Server = 0 or 1
+
+% (2) Modify the parameters script 'parameters.m' and make sure that 
+% runopts.mode is equal to 'parameters'. Alternatively, create a new
+% parameters script using parameters.m as a guide. Note that the current
+% 'parameters.m' script assumes that the main income process is in
+% IncomeGrids/quarterly_b.mat. Also note that if frequency is set to 4
+% (quarterly), then annual parameter values should be used and they will
+% be automatically adjusted in MPCParams.adjust_if_quarterly()
+%
+% Note that all parameter defaults
+% are set in the class file Classes/MPCParams.m, and parameters.m overrides
+% these defaults. Any parameters not in parameters.m are set to their
+% defaults. See the properties of Classes/MPCParams.m for a list of all
+% parameters.
+
+% (3) Set runopts.names_to_run equal to a cell array containing the name
+% of the parameterization to run, or use an empty cell array to loop
+% over all parameterizations.
+
+% RUNNING ON THE SERVER: To run in batch on the server, use 
+% batch/server.sbatch as a template. That script sends an array to SLURM 
+% that runs all of the requested parameters in parameters.m. Make sure
+% that the range of numbers in the slurm array match the number of 
+% parameters in the parameters script. Output files
+% are stored in the Output directory
+
 clear;
 close all;
-
-% master script for discrete HA model
-% need to set runopts in "SET OPTIONS" prior to running
 
 %% ------------------------------------------------------------------------
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Display = 1;
 runopts.Server = 0; % use server paths
 runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for speed
@@ -19,34 +50,31 @@ runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 runopts.localdir = '/Users/Brian-laptop/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
-% grid tests, 0 to turn off
-% 1-3 to select grid test parameters
-% 2 is for simulations
-runopts.GRIDTEST = 0; % 
-
-% location of quarterly income file
-QIncome = 'IncomeGrids/quarterly_b.mat';
+% name of parameters script
+runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-% runopts.names_to_run = {'Q Permanent r het, r in {-2,2,6} p.a.'};
-runopts.names_to_run = {};
+runopts.names_to_run = {}; % {'baseline_Q'}
 
 %% ------------------------------------------------------------------------
-% APPLY OPTIONS AND LOAD PARAMETERS
+% HOUSEKEEPING, DO NOT CHANGE BELOW
 % -------------------------------------------------------------------------
 if runopts.Server == 0
     runopts.path = runopts.localdir;
     runopts.number = [];
+    runopts.savemathpath = [runopts.localdir '/Output/variables' num2str(runopts.number) '.mat'];
 else
     runopts.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
     runopts.path = runopts.serverdir;
     runopts.savematpath = [runopts.serverdir '/Output/variables' num2str(runopts.number) '.mat'];
-    if exist(runopts.savematpath, 'file') == 2
-        % Delete old results
-        delete runopts.savematpath;
-    end
 end
+
+if exist(runopts.savematpath, 'file') == 2
+    % Delete old results
+    delete runopts.savematpath;
+end
+
 addpath([runopts.path '/Auxiliary Functions']);
 addpath([runopts.path '/Solution Functions']);
 addpath([runopts.path '/Output Functions']);
@@ -55,15 +83,17 @@ addpath([runopts.path '/Classes']);
 cd(runopts.path);
 
 % Load parameters
-if runopts.GRIDTEST == 1
-    % only setup to run locally
-    params = parameters_grid_tests(runopts,QIncome);
-elseif runopts.GRIDTEST == 2 % simulations
-    params = parameters_grid_tests2(runopts,QIncome);
-elseif runopts.GRIDTEST == 3
-    params = parameters_grid_tests3(runopts,QIncome);
-else
-    params = parameters(runopts,QIncome);
+switch runopts.mode
+    case 'parameters'
+        params = parameters(runopts);
+    case 'grid_tests1'
+        params = parameters_grid_tests1(runopts,'IncomeGrids/quarterly_b.mat');
+    case 'grid_tests2'
+        params = parameters_grid_tests2(runopts,'IncomeGrids/quarterly_b.mat');
+    case 'grid_tests3'
+        params = parameters_grid_tests3(runopts,'IncomeGrids/quarterly_b.mat');
+    otherwise
+        error('Parameters script not found')
 end
 
 %% ------------------------------------------------------------------------
@@ -92,15 +122,11 @@ end
 % DECOMPOSITION 2 AND SAVING/TABLE CREATING
 % -------------------------------------------------------------------------
 
-if runopts.Server == 0
-%     [decomp2,decomp3] = decomposition2(params,results);
-%     % Create table
-%     [T_annual,T_quarter] = create_table(params,results,...
-%                                     decomps,decomp2,decomp3)
-	disp('Check the results structure for detailed results')
-else
-    % convert MPCParams object to structure for saving
-	Sparams = MPCParams.to_struct(params);
-    save(runopts.savematpath,'Sparams','results','decomps')
+disp('Check the results structure for detailed results')
+% convert MPCParams object to structure for saving
+Sparams = MPCParams.to_struct(params);
+save(runopts.savematpath,'Sparams','results','decomps')
+
+if runopts.Server == 1
     exit
 end

@@ -87,7 +87,7 @@ function norisk = solve_EGP_deterministic(p,grids,prefs,income,direct_results)
                                 - p.savtax * max(sav - p.savtaxthresh,0);
         
         cdiff = max(abs(con(:)-conlast(:)));
-        if p.Display ==1 && mod(iter,100) ==0
+        if mod(iter,100) ==0
             disp([' EGP Iteration (no risk) ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
     end

@@ -1,4 +1,7 @@
-function params = parameters(runopts,QIncome)
+function params = parameters(runopts)
+
+    % location of baseline income process for quarterly case
+    QIncome = 'IncomeGrids/quarterly_b.mat';
     
     %----------------------------------------------------------------------
     % BASELINES

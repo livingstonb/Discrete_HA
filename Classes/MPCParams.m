@@ -44,7 +44,6 @@ classdef MPCParams < handle
         
         % OPTIONS
         MakePlots = 0;
-        Display = 0;
         Simulate = 0;
         GRIDTEST;
         mpcshocks_after_period1;
@@ -151,9 +150,6 @@ classdef MPCParams < handle
                 [obj.nyP] = deal(3);
                 [obj.Tsim] = deal(100);
             end
-
-            % display option
-            [obj.Display] = deal(runopts.Display);
             
             % iterate option
             [obj.IterateBeta] = deal(runopts.IterateBeta);

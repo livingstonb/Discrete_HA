@@ -7,9 +7,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
     
     NN = p.nx_KFE*p.nyP*p.nyF*p.nb;
     
-    if p.Display == 1
-        disp('Computing MPCs')
-    end
+    disp('Computing MPCs')
 
     if numel(p.r) > 1
         r_col = kron(p.r',ones(p.nx_KFE*p.nyP*p.nyF,1));
@@ -67,10 +65,7 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,incom
         end
 
         for it = 1:is % in this block, look at t <= s
-            if p.Display == 1
-                fprintf('    Processing (s,t) = (%d,%d)\n',is,it)
-                disp(['    --Time ' datestr(now,'HH:MM:SS')])
-            end
+            fprintf('    Processing (s,t) = (%d,%d)\n',is,it)
 
             if (shocksize < 0) && (it > 1)
                 continue
