@@ -26,6 +26,8 @@
 % of the parameterization to run, or use an empty cell array to loop
 % over all parameterizations.
 
+% (4) If convergence fails, betaH0 and/or betaL may need to be adjusted.
+
 % RUNNING ON THE SERVER: To run in batch on the server, use 
 % batch/server.sbatch as a template. That script sends an array to SLURM 
 % that runs all of the requested parameters in parameters.m. Make sure
@@ -40,7 +42,7 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = 0; % use server paths
+runopts.Server = 1; % use server paths
 runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
@@ -55,7 +57,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'baseline_Q'}; % {'baseline_Q'}
+runopts.names_to_run = {'Q EZ ra1 ies0.25'}; % {'baseline_Q'}
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW

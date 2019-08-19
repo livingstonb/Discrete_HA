@@ -94,12 +94,13 @@ classdef Prefs_R_Heterogeneity < handle
 	    % Returns Heterogeneity
 	    % --------------------------------------------------------
 		function initialize_returns_heterogeneity(obj,params)
-			if numel(params.r) > 1
-		        obj.rdist = ones(params.r,1) / params.r;
+            nr = numel(params.r);
+			if nr > 1
+		        obj.rdist = ones(nr,1) / nr;
 		        rswitch = 0;
 
-		        diagonal = (1-rswitch) * ones(params.r,1);
-		        off_diag = rswitch * ones(p.r);
+		        diagonal = (1-rswitch) * ones(nr,1);
+		        off_diag = rswitch * ones(nr);
 		        off_diag = off_diag - diag(diag(off_diag));
 		        obj.rtrans = off_diag + diag(diagonal);
 		        

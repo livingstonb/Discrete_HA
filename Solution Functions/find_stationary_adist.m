@@ -85,7 +85,9 @@ function modelupdate = find_stationary_adist(p,model,income,heterogeneity,grids)
         diff = norm(z-q);
         q = z;
         
-        fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
+        if mod(iter,50) == 0
+            fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
+        end
         iter = iter + 1;
     end
     if iter >= 5e4
