@@ -162,6 +162,7 @@ function [results,decomp] = main(p)
     
     % save adist from model
     results.direct.adist = basemodel.adist;
+    results.direct.agrid_dist = sum(sum(sum(basemodel.adist,4),3),2);
     
     %% --------------------------------------------------------------------
     % EGP FOR MODEL WITHOUT INCOME RISK
@@ -196,7 +197,7 @@ function [results,decomp] = main(p)
     else
         maxT = 1;
     end
-    mpcmodels = cell(maxT,maxT);
+    mpcmodels = cell(6,maxT,maxT);
     
     shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
     
@@ -206,14 +207,14 @@ function [results,decomp] = main(p)
     for ishock = 1:6
         
         for is = 1:maxT
-            mpcmodels{is,is} = basemodel;
+            mpcmodels{ishock,is,is} = basemodel;
         end
 
         if p.EpsteinZin == 0
-            % mpcmodels(s,t) stores the policy functions associated with the case
+            % mpcmodels{ishock,s,t} stores the policy functions associated with the case
             % where the household is currently in period t, but recieved news about
-            % the period-s shock in period 1
-            model_lagged = cell(maxT-1);
+            % the period-s shock in period 1. Shock was of size shocks(ishock)
+            model_lagged = cell(6,maxT-1);
 
             % get consumption functions conditional on future shock
             % 'lag' is number of periods before shock
@@ -221,39 +222,33 @@ function [results,decomp] = main(p)
                 for lag = 1:maxT-1
                     if lag == 1
                         % shock is next period
-                        nextmpcshock = shocks(ishock) * income.meany1 * p.freq;
+                        nextmpcshock = shocks(ishock);
                         nextmodel = basemodel;
                     else
                         % no shock next period
                         nextmpcshock = 0;
-                        nextmodel = model_lagged{lag-1};
+                        nextmodel = model_lagged{ishock,lag-1};
                     end
 
-                    [~,model_lagged{lag}] = solve_EGP(results.direct.beta,p,grdEGP,...
+                    [~,model_lagged{ishock,lag}] = solve_EGP(results.direct.beta,p,grdEGP,...
                         grdDST,heterogeneity,income,nextmpcshock,nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s
                 for is = 2:maxT
                 for it = is-1:-1:1
-                    mpcmodels{is,it} = model_lagged{is-it};
+                    mpcmodels{ishock,is,it} = model_lagged{ishock,is-it};
                 end
                 end
             end
-
-            shocksize = shocks(ishock) * income.meany1 * p.freq;
-            [results.direct.mpcs(ishock),results.direct.agrid_dist] ...
-                = direct_MPCs_by_computation(p,basemodel,mpcmodels,...
-                    income,grdDST,shocksize);
-        else
-            % epstein-zin preferences, only do (is,it) for is == 1
-            
-            shocksize = shocks(ishock) * income.meany1 * p.freq;
-            [results.direct.mpcs(ishock),~] ...
-                = direct_MPCs_by_computation(p,basemodel,mpcmodels,...
-                    income,heterogeneity,grdDST,shocksize);
         end
     end
+
+    disp('Computing MPCs')
+    mpc_finder = MPCFinder(p,income,grdDST,basemodel,mpcmodels);
+    mpc_finder.solve(p,grdDST);
+    results.direct.mpcs = mpc_finder.mpcs;
+    clear mpc_finder
     
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
@@ -304,7 +299,7 @@ function [results,decomp] = main(p)
  
         % MPC shock of 0.01 * annual income
         m0 = results.direct.mpcs(5).mpcs_1_t{1,1}; % mpcs
-        meanm0 = results.direct.mpcs(5).avg_s_t{1,1};
+        meanm0 = results.direct.mpcs(5).avg_s_t(1,1);
         g0 = results.direct.adist; % distribution
         g0_norisk = results.direct.agrid_dist;
         mbc  = results.norisk.mpcs1_a_direct{5}; % norisk distribution

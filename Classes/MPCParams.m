@@ -108,6 +108,9 @@ classdef MPCParams < handle
         % beta iteration
         IterateBeta;
     	targetAY    = 3.5; 
+
+    	% mpc shock sizes
+    	shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
     end
 
     methods

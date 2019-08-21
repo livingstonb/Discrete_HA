@@ -156,7 +156,6 @@ function [MPCs,agrid_dist] = direct_MPCs_by_computation(p,basemodel,models,...
             end
         end
     end
-    
 
     %% --------------------------------------------------------------------
     % FIND CUMULATIVE MPCs 1-4, 5-8, 9-12, 13-16
