@@ -1,4 +1,18 @@
 classdef MPCFinder < handle
+	% This class is used for computing MPCs after solving for
+	% the policy functions and stationary distribution.
+
+	% Results are storied in 'mpcs', which is filled with NaNs
+	% after instantiation. Next, the solve() method is called
+	% and the results can be retrieved.
+
+	% 'basemodel' is a structure containing the policy functions
+	% and the stationary distribution of the model
+
+	% 'models' is a cell array indexed by (1) the shock index,
+	% (2) the shock period, and (3) the current period. This
+	% array contains the policy functions based on expectation
+	% of a future shock.
 
 	properties (SetAccess = private)
 		Nstates; % total number of states
@@ -45,6 +59,9 @@ classdef MPCFinder < handle
 		end
 
 		function solve(obj,p,grids)
+			% This function calls the appropriate methods to find
+			% the MPCs.
+
 			obj.get_baseline_consumption(p);
 
 			for ishock = 1:6

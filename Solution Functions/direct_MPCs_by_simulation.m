@@ -219,7 +219,5 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
     stdev_loggrossy_A = std(log(sum(ygrosssim(:,1:p.freq),2)));
     stdev_lognety_A = std(log(sum(ynetsim(:,1:p.freq),2)));
     mean_grossy_A = mean(sum(ygrosssim(:,1:p.freq),2));
-
-
     
 end

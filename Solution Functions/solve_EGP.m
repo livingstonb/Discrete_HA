@@ -7,7 +7,9 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,heterogeneity,...
     % in the 'model' structure.
 
     
-    %% CONSTRUCT EXPECTATIONS MATRIX                                     
+    %% ----------------------------------------------------
+    % CONSTRUCT EXPECTATIONS MATRIX
+    % -----------------------------------------------------                                  
     betagrid = beta + heterogeneity.betagrid0;
     
     if p.IterateBeta == 1
