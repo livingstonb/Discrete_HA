@@ -47,11 +47,7 @@ function [results,decomp] = main(p)
     if p.IterateBeta == 1
         
         mpcshock = 0;
-        if p.EpsteinZin == 1
-            iterate_EGP = @(x) solve_EGP_EZ(x,p,grdEGP,grdDST,heterogeneity,income);
-        else
-            iterate_EGP = @(x) solve_EGP(x,p,grdEGP,grdDST,heterogeneity,income,mpcshock,[]);
-        end
+        iterate_EGP_x = @(x) iterate_EGP(x,p,grdEGP,grdDST,heterogeneity,income,mpcshock);
 
         if numel(heterogeneity.betadist) == 1
             beta_ub = p.betaH;
@@ -65,7 +61,7 @@ function [results,decomp] = main(p)
         check_evals = @(x,y,z) fzero_checkiter(x,y,z,p.maxiterAY);
         
         options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
-        [beta_final,~,exitflag] = fzero(iterate_EGP,[beta_lb,beta_ub],options);
+        [beta_final,~,exitflag] = fzero(iterate_EGP_x,[beta_lb,beta_ub],options);
         if exitflag ~= 1
             return
         end
@@ -77,11 +73,12 @@ function [results,decomp] = main(p)
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
     if p.EpsteinZin == 1
-        [~,basemodel] = solve_EGP_EZ(beta_final,p,grdEGP,grdDST,heterogeneity,income);
+        basemodel = solve_EGP_EZ(beta_final,p,grdEGP,heterogeneity,income);
     else
         mpcshock = 0;
-        [~,basemodel] = solve_EGP(beta_final,p,grdEGP,grdDST,heterogeneity,income,mpcshock,[]);
+        basemodel = solve_EGP(beta_final,p,grdEGP,heterogeneity,income,mpcshock,[]);
     end
+    [~,basemodel] = find_stationary_adist(p,basemodel,income,heterogeneity,grdDST);
     results.direct.adist = basemodel.adist;
 
     % Report beta and annualized beta
@@ -230,8 +227,8 @@ function [results,decomp] = main(p)
                         nextmodel = model_lagged{ishock,lag-1};
                     end
 
-                    [~,model_lagged{ishock,lag}] = solve_EGP(results.direct.beta,p,grdEGP,...
-                        grdDST,heterogeneity,income,nextmpcshock,nextmodel);
+                    model_lagged{ishock,lag} = solve_EGP(results.direct.beta,p,grdEGP,...
+                        heterogeneity,income,nextmpcshock,nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s

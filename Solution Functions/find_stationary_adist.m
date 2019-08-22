@@ -1,7 +1,10 @@
-function modelupdate = find_stationary_adist(p,model,income,heterogeneity,grids)
+function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,heterogeneity,grids)
     % Finds the stationary distribution and transition matrix for a given
     % grids.a.vec
     
+    %% ----------------------------------------------------------------
+    % FIND STATIONARY DISTRIBUTION
+    % -----------------------------------------------------------------
     modelupdate = model;
 
     fprintf(' Computing state-to-state transition probabilities... \n');
@@ -98,8 +101,6 @@ function modelupdate = find_stationary_adist(p,model,income,heterogeneity,grids)
 %     q = q / sum(q(:));
 
     modelupdate.adiff = diff;
-%     modelupdate.adist = reshape(full(q),[nx,p.nyP,p.nyF,p.nb]);
-%     modelupdate.adiff = 1e-8;
     modelupdate.adist = reshape(full(q'),[nx,p.nyP,p.nyF,p.nb]);
     
     % get distribution over (x,yP,yF,beta)
@@ -115,4 +116,44 @@ function modelupdate = find_stationary_adist(p,model,income,heterogeneity,grids)
     modelupdate.nety_x = income.lumptransfer + (1-p.labtaxlow)*incvals - p.labtaxhigh*max(incvals-income.labtaxthresh,0);
     modelupdate.nety_x = repmat(modelupdate.nety_x,[1 1 1 p.nb]);
     modelupdate.xvals = repmat(grids.a.vec,[p.nyT p.nyP p.nyF p.nb]) + modelupdate.nety_x;
+
+    %% ----------------------------------------------------------------
+    % POLICY FUNCTIONS ETC...
+    % -----------------------------------------------------------------
+    % get saving policy function defined on xgrid
+    modelupdate.sav_x = zeros(p.nx_KFE*p.nyT,p.nyP,p.nyF,p.nb);
+    for ib = 1:p.nb
+    for iyF = 1:p.nyF
+    for iyP = 1:p.nyP 
+        modelupdate.sav_x(:,iyP,iyF,ib) = modelupdate.savinterp{iyP,iyF,ib}(modelupdate.xvals(:,iyP,iyF,ib));
+    end
+    end
+    end
+    modelupdate.sav_x = max(modelupdate.sav_x,p.borrow_lim);
+
+    % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
+    % model, and from (x,yP,yF,beta) to (x,beta)
+    if p.nyP>1 && p.nyF>1
+        % a
+        modelupdate.adist_noincrisk =  sum(sum(modelupdate.adist,3),2);
+        % x
+        modelupdate.xdist_noincrisk    = sum(sum(modelupdate.xdist,3),2);
+    elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
+        modelupdate.adist_noincrisk =  sum(modelupdate.adist,2);
+        modelupdate.xdist_noincrisk    = sum(modelupdate.xdist,2);
+    elseif p.nyP==1 && p.nyF==1
+        modelupdate.adist_noincrisk = modelupdate.adist;
+        modelupdate.xdist_noincrisk    = modelupdate.xdist;
+    end
+
+    % Policy functions associated with xdist
+    modelupdate.con_x = modelupdate.xvals - modelupdate.sav_x ...
+    	- p.savtax*max(modelupdate.sav_x-p.savtaxthresh,0);
+    
+    % mean saving, mean assets
+	modelupdate.mean_a = modelupdate.adist(:)' * grids.a.matrix(:);
+    
+    mean_assets = modelupdate.mean_a;
+    fprintf(' A/Y = %2.5f\n',mean_assets/(income.meany1*p.freq));
+    AYdiff = mean_assets/(income.meany1*p.freq) -  p.targetAY;
 end

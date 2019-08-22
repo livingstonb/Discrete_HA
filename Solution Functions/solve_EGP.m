@@ -1,4 +1,4 @@
-function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,heterogeneity,...
+function model = solve_EGP(beta,p,grids,heterogeneity,...
     income,nextmpcshock,prevmodel)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
@@ -6,9 +6,13 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,heterogeneity,...
     % via direct methods (rather than simulations) and stores the results 
     % in the 'model' structure.
 
+    % To compute the MPCs out of news, it is necessary for the policy function
+    % to reflect the expectation of a future shock. For these cases,
+    % the policy functions in 'prevmodel' are used. The variable 'nextmpcshock'
+    % is nonzero when a shock is expected next period.
     
     %% ----------------------------------------------------
-    % CONSTRUCT EXPECTATIONS MATRIX
+    % CONSTRUCT EXPECTATIONS MATRIX, ETC...
     % -----------------------------------------------------                                  
     betagrid = beta + heterogeneity.betagrid0;
     
@@ -40,7 +44,8 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,heterogeneity,...
         extra = 0;
     end
     
-    con = (r_mat(:) .* (r_mat(:)>=0.001) + 0.001 * (r_mat(:)<0.001) + extra) .* repmat(grids.x.matrix(:),p.nb,1);
+    con = (r_mat(:) .* (r_mat(:)>=0.001) + 0.001 * (r_mat(:)<0.001) + extra) ...
+    	.* repmat(grids.x.matrix(:),p.nb,1);
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
@@ -54,7 +59,9 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,heterogeneity,...
         betastacked = sparse(diag(betastacked));
     end
 
-    %% EGP ITERATION
+    %% ----------------------------------------------------
+    % EGP ITERATION
+    % ----------------------------------------------------- 
     iter = 1;
     cdiff = 1;
     while iter<p.max_iter && cdiff>p.tol_iter
@@ -69,67 +76,21 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,heterogeneity,...
         
         % c(x)
         conlast = reshape(conlast,[p.nx p.nyP p.nyF p.nb]);
-        % c(x')
-        c_xp = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
         
         % x'(s)
-        temp_sav = repmat(grids.s.matrix(:),p.nb,p.nyT);
-        temp_sav = reshape(temp_sav,[p.nx p.nyP p.nyF p.nb p.nyT]);
-        index_to_extend = 1*(p.nyF==1) + 2*(p.nyF>1);
-        repscheme = ones(1,2);
-        repscheme(index_to_extend) = p.nb;
-        temp_inc = repmat(kron(income.netymat,ones(p.nx,1)),repscheme);
-        temp_inc = reshape(temp_inc,[p.nx p.nyP p.nyF p.nb p.nyT]);
-        xp_s = (1+r_mat) .* temp_sav + temp_inc + nextmpcshock;
+        xp_s = get_xprime_s(p,income,grids,r_mat,nextmpcshock);
 
-        for ib  = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP
-            if isempty(prevmodel)
-                % usual method of EGP
-                coninterp = griddedInterpolant(grids.x.matrix(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
-                xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
-                c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
-            else
-                % need to compute IMPC(s,t) for s > 1, where IMPC(s,t) is MPC in period t out of period
-                % s shock that was learned about in period 1 < s
-                % coninterp = griddedInterpolant(xgrid.full(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
-                xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
-                %c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
-                c_xp(:,iyP,iyF,ib,:) = reshape(prevmodel.coninterp{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
-            end
-        end
-        end
-        end
+        % c(x')
+        c_xp = get_c_xprime(p,grids,xp_s,prevmodel,conlast);
         
         % reshape to take expecation over yT first
         c_xp = reshape(c_xp,[],p.nyT);
         xp_s = reshape(xp_s,[],p.nyT);
 
-        % matrix of next period muc, muc(x',yP',yF)
-        if numel(p.risk_aver) > 1
-            risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
-            mucnext = utility1(risk_aver_col_yT,c_xp)...
-                - p.temptation/(1+p.temptation) * utility1(risk_aver_col_yT,xp_s);
-        else
-            mucnext = utility1(p.risk_aver,c_xp) ...
-                - p.temptation/(1+p.temptation) * utility1(p.risk_aver,xp_s);
-
-        end
-            
-        
-        % now find muc this period as a function of s:
-        % variables defined for each (x,yP,yF,beta) in state space,
-        % column vecs of length p.nx*p.nyP*p.nyF*p.nb
-        savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
-        mu_consumption = (1+r_mat(:)).*betastacked*Emat*(mucnext*income.yTdist);
-        mu_bequest = utility_bequests1(p.bequest_curv,p.bequest_weight,...
-                        p.bequest_luxury,repmat(grids.s.matrix(:),p.nb,1));
-        
-        % muc(s(x,yP,yF,beta))
-        muc_s = (1-p.dieprob) * mu_consumption ./ savtaxrate...
-                                                + p.dieprob * mu_bequest;
-                
+        % MUC in current period, from Euler equation
+        muc_s = get_marginal_util_cons(...
+        	p,income,grids,c_xp,xp_s,r_mat,Emat,betastacked);
+     
         % c(s)
         if numel(p.risk_aver) == 1
             con_s = u1inv(p.risk_aver,muc_s);
@@ -144,18 +105,7 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,heterogeneity,...
         x_s = reshape(x_s,[p.nx p.nyP p.nyF p.nb]);
 
         % interpolate from x(s) to get s(x)
-        sav = zeros(p.nx,p.nyP,p.nyF,p.nb);
-        for ib  = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP
-            savinterp = griddedInterpolant(x_s(:,iyP,iyF,ib),grids.s.matrix(:,iyP,iyF),'linear');
-            sav(:,iyP,iyF,ib) = savinterp(grids.x.matrix(:,iyP,iyF)); 
-        end
-        end
-        end
-
-        % deal with borrowing limit
-        sav(sav<p.borrow_lim) = p.borrow_lim;
+        sav = get_saving_policy(p,grids,x_s);
 
         % updated consumption function, column vec length of
         % length p.nx*p.nyP*p.nyF*p.nb
@@ -194,53 +144,82 @@ function [AYdiff,model] = solve_EGP(beta,p,grids,gridsKFE,heterogeneity,...
     end
     end
     end
+end
 
-    %% DISTRIBUTION
-    
-    model = find_stationary_adist(p,model,income,heterogeneity,gridsKFE);
-    
-    % get saving policy function defined on xgrid
-    model.sav_x = zeros(p.nx_KFE*p.nyT,p.nyP,p.nyF,p.nb);
-    for ib = 1:p.nb
+function xprime_s = get_xprime_s(p,income,grids,r_mat,nextmpcshock)
+	% find xprime as a function of s
+
+	temp_sav = repmat(grids.s.matrix(:),p.nb,p.nyT);
+    temp_sav = reshape(temp_sav,[p.nx p.nyP p.nyF p.nb p.nyT]);
+
+    index_to_extend = 1*(p.nyF==1) + 2*(p.nyF>1);
+    repscheme = ones(1,2);
+    repscheme(index_to_extend) = p.nb;
+    temp_inc = repmat(kron(income.netymat,ones(p.nx,1)),repscheme);
+    temp_inc = reshape(temp_inc,[p.nx p.nyP p.nyF p.nb p.nyT]);
+
+    xprime_s = (1+r_mat) .* temp_sav + temp_inc + nextmpcshock;
+end
+
+function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast);
+	% find c as a function of x'
+	c_xprime = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
+
+	for ib  = 1:p.nb
     for iyF = 1:p.nyF
-    for iyP = 1:p.nyP 
-        model.sav_x(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(model.xvals(:,iyP,iyF,ib));
+    for iyP = 1:p.nyP
+    	xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
+        if isempty(prevmodel)
+            % usual method of EGP
+            coninterp = griddedInterpolant(grids.x.matrix(:,iyP,iyF),conlast(:,iyP,iyF,ib),'linear');
+            c_xprime(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+        else
+            % need to compute IMPC(s,t) for s > 1, where IMPC(s,t) is MPC in period t out of period
+            % s shock that was learned about in period 1 < s
+            c_xprime(:,iyP,iyF,ib,:) = reshape(prevmodel.coninterp{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+        end
     end
     end
     end
-    model.sav_x = max(model.sav_x,p.borrow_lim);
+end
 
-    % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
-    % model, and from (x,yP,yF,beta) to (x,beta)
-    if p.nyP>1 && p.nyF>1
-        % a
-        model.adist_noincrisk =  sum(sum(model.adist,3),2);
-        % x
-        model.xdist_noincrisk    = sum(sum(model.xdist,3),2);
-    elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
-        model.adist_noincrisk =  sum(model.adist,2);
-        model.xdist_noincrisk    = sum(model.xdist,2);
-    elseif p.nyP==1 && p.nyF==1
-        model.adist_noincrisk = model.adist;
-        model.xdist_noincrisk    = model.xdist;
-    end
+function muc_s = get_marginal_util_cons(...
+	p,income,grids,c_xp,xp_s,r_mat,Emat,betastacked)
 
-    % Policy functions associated with xdist
-    model.con_x= model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
-    
-    % mean saving, mean assets
-	model.mean_a = model.adist(:)' * gridsKFE.a.matrix(:);
-    
-    if p.GRIDTEST == 2
-        % use simulation results in objective function
-        sim = simulate(p,income,model,gridsKFE.x.matrix,heterogeneity);
-        mean_assets = sim.mean_a;
+	% first get marginal utility of consumption next period
+	if numel(p.risk_aver) > 1
+		risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
+        risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
+        mucnext = utility1(risk_aver_col_yT,c_xp)...
+            - p.temptation/(1+p.temptation) * utility1(risk_aver_col_yT,xp_s);
     else
-        % use distribution results
-        mean_assets = model.mean_a;
+        mucnext = utility1(p.risk_aver,c_xp) ...
+            - p.temptation/(1+p.temptation) * utility1(p.risk_aver,xp_s);
     end
-           
-    fprintf(' A/Y = %2.5f\n',mean_assets/(income.meany1*p.freq));
-    AYdiff = mean_assets/(income.meany1*p.freq) -  p.targetAY;
 
+    % now get MUC this period as a function of s
+    savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
+    mu_consumption = (1+r_mat(:)).*betastacked*Emat*(mucnext*income.yTdist);
+    mu_bequest = utility_bequests1(p.bequest_curv,p.bequest_weight,...
+                    p.bequest_luxury,repmat(grids.s.matrix(:),p.nb,1));
+    muc_s = (1-p.dieprob) * mu_consumption ./ savtaxrate...
+                                            + p.dieprob * mu_bequest;
+end
+
+function sav = get_saving_policy(p,grids,x_s)
+	% finds s(x), the saving policy function on the
+	% cash-on-hand grid
+
+	sav = zeros(p.nx,p.nyP,p.nyF,p.nb);
+    for ib  = 1:p.nb
+    for iyF = 1:p.nyF
+    for iyP = 1:p.nyP
+        savinterp = griddedInterpolant(x_s(:,iyP,iyF,ib),grids.s.matrix(:,iyP,iyF),'linear');
+        sav(:,iyP,iyF,ib) = savinterp(grids.x.matrix(:,iyP,iyF)); 
+    end
+    end
+    end
+
+    % deal with borrowing limit
+    sav(sav<p.borrow_lim) = p.borrow_lim;
 end

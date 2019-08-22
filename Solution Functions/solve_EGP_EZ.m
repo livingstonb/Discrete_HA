@@ -1,4 +1,4 @@
-function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,heterogeneity,income)
+function model = solve_EGP_EZ(beta,p,grids,heterogeneity,income)
     
     %% CONSTRUCT EXPECTATIONS MATRIX                                     
     betagrid = beta + heterogeneity.betagrid0;
@@ -249,44 +249,4 @@ function [AYdiff,model] = solve_EGP_EZ(beta,p,grids,gridsKFE,heterogeneity,incom
     end
     end
     end
-    
-    %% DISTRIBUTION
-     
-    model = find_stationary_adist(p,model,income,heterogeneity,gridsKFE);
-    
-    model.sav_x = zeros(p.nx_KFE*p.nyT,p.nyP,p.nyF,p.nb);
-    for ib = 1:p.nb
-    for iyF = 1:p.nyF
-    for iyP = 1:p.nyP 
-        model.sav_x(:,iyP,iyF,ib) = model.savinterp{iyP,iyF,ib}(model.xvals(:,iyP,iyF,ib));
-    end
-    end
-    end
-    model.sav_x = max(model.sav_x,p.borrow_lim);
-
-    % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
-    % model, and from (x,yP,yF,beta) to (x,beta)
-    if p.nyP>1 && p.nyF>1
-        % a
-        model.adist_noincrisk =  sum(sum(model.adist,3),2);
-        % x
-        model.xdist_noincrisk = sum(sum(model.xdist,3),2);
-    elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
-        model.adist_noincrisk =  sum(model.adist,2);
-        model.xdist_noincrisk = sum(model.xdist,2);
-    elseif p.nyP==1 && p.nyF==1
-        model.adist_noincrisk = model.adist;
-        model.xdist_noincrisk = model.xdist;
-    end
-
-    % consumption policy function on xgrid
-    model.con_x = model.xvals - model.sav_x - p.savtax*max(model.sav_x-p.savtaxthresh,0);
-           
-    % mean saving, mean assets
-    model.mean_a = model.adist(:)' * gridsKFE.a.matrix(:);
- 
-    
-    fprintf(' A/Y = %2.3f\n',model.mean_a/(income.meany1*p.freq));
-    AYdiff = model.mean_a/(income.meany1*p.freq) -  p.targetAY;
-    
 end
