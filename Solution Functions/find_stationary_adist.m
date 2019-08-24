@@ -37,42 +37,9 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,heterogenei
     end
     end
     end
-    
-    aprime_live = (1+repmat(r_mat,[1,1,1,1,p.nyT])) .* sav;
 
     % transition matrix over (x,yP,yF,beta) full asset space
-    modelupdate.statetrans = sparse(nx*p.nyP*p.nyF*p.nb,nx*p.nyP*p.nyF*p.nb);
-    % create spline object
-    fspace = fundef({'spli',grids.a.vec,0,1});
-    % get interpolated probabilities and take expectation over yT
-    interp_live = funbas(fspace,aprime_live(:));
-    interp_live = reshape(interp_live,nx*p.nyP*p.nyF*p.nb,nx*p.nyT);
-    interp_live = interp_live * kron(speye(nx),income.yTdist);
-    if p.Bequests == 1
-        interp_death = interp_live;
-    else
-        interp_death = sparse(nx*p.nyP*p.nyF*p.nb,nx);
-        interp_death(:,1) = 1;
-    end
-
-    col = 1;
-    for ib2 = 1:p.nb
-    for iyF2 = 1:p.nyF
-    for iyP2 = 1:p.nyP
-        transcol_live = kron(income.ytrans_live(:,col),ones(nx,1));
-        transcol_death = kron(income.ytrans_death(:,col),ones(nx,1));
-        
-        transcol_live = transcol_live .* interp_live;
-        transcol_death = transcol_death .* interp_death;
-
-        % add new column to transition matrix
-        modelupdate.statetrans(:,nx*(col-1)+1:nx*col) = ...
-            (1-p.dieprob)*transcol_live + p.dieprob*transcol_death;
-        col = col + 1;
-    end
-    end
-    end
-    clear transcol_live transcol_death interp_live interp_death
+    modelupdate.statetrans = get_transition_matrix(p,income,grids,nx,sav,r_mat);
 
     % stationary distribution over states
     fprintf(' Finding ergodic distribution...\n');
@@ -80,8 +47,8 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,heterogenei
     q=zeros(1,nx*p.nyP*p.nyF*p.nb);
     % Create valid initial distribution for both yF & beta
     % Repmat automatically puts equal weight on each beta
-    q(1,1:nx*p.nyP:end)=repmat(income.yFdist,p.nb,1) / p.nb;
-    diff=1; 
+    q(1,1:nx*p.nyP:end) = repmat(income.yFdist,p.nb,1) / p.nb;
+    diff = 1; 
     iter = 1;
     while diff>1e-8 && iter < 5e4
         z = q*modelupdate.statetrans;
@@ -156,4 +123,43 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,heterogenei
     mean_assets = modelupdate.mean_a;
     fprintf(' A/Y = %2.5f\n',mean_assets/(income.meany1*p.freq));
     AYdiff = mean_assets/(income.meany1*p.freq) -  p.targetAY;
+end
+
+%% ----------------------------------------------------------------
+% TRANSITION MATRIX
+% -----------------------------------------------------------------
+function trans = get_transition_matrix(p,income,grids,nx,sav,r_mat)
+	aprime_live = (1+repmat(r_mat,[1,1,1,1,p.nyT])) .* sav;
+
+	% create interpolant object
+    fspace = fundef({'spli',grids.a.vec,0,1});
+    % get interpolated probabilities and take expectation over yT
+    interp_live = funbas(fspace,aprime_live(:));
+    interp_live = reshape(interp_live,nx*p.nyP*p.nyF*p.nb,nx*p.nyT);
+    interp_live = interp_live * kron(speye(nx),income.yTdist);
+    if p.Bequests == 1
+        interp_death = interp_live;
+    else
+        interp_death = sparse(nx*p.nyP*p.nyF*p.nb,nx);
+        interp_death(:,1) = 1;
+    end
+
+    trans = sparse(nx*p.nyP*p.nyF*p.nb,nx*p.nyP*p.nyF*p.nb);
+    col = 1;
+    for ib = 1:p.nb
+    for iyF = 1:p.nyF
+    for iyP = 1:p.nyP
+        transcol_live = kron(income.ytrans_live(:,col),ones(nx,1));
+        transcol_death = kron(income.ytrans_death(:,col),ones(nx,1));
+        
+        transcol_live = transcol_live .* interp_live;
+        transcol_death = transcol_death .* interp_death;
+
+        % add new column to transition matrix
+        trans(:,nx*(col-1)+1:nx*col) = ...
+            (1-p.dieprob)*transcol_live + p.dieprob*transcol_death;
+        col = col + 1;
+    end
+    end
+    end
 end

@@ -43,7 +43,7 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Server = 0; % use server paths
-runopts.IterateBeta = 1;
+runopts.IterateBeta = 0;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
 runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
@@ -57,7 +57,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'Q EZ ra1 ies2'}; % {'baseline_Q'}
+runopts.names_to_run = {'baseline_Q'}; % {'baseline_Q'}
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW

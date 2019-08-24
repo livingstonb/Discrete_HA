@@ -11,7 +11,7 @@ function [MPCs,stdev_loggrossy_A,stdev_lognety_A,inc_constrained]...
     % Number of periods to simulate
     Tmax = 4;
 
-    % Vector of indexes for (yP,yF,beta) consistent with of mean ann inc
+    % Vector of indexes for (yP,yF,beta)
     yPind_trans = repmat(kron((1:p.nyP)',ones(p.nx_KFE,1)),p.nyF*p.nb,1);
     yFind_trans = repmat(kron((1:p.nyF)',ones(p.nx_KFE*p.nyP,1)),p.nb,1);
     
