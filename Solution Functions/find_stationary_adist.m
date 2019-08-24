@@ -1,4 +1,4 @@
-function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,heterogeneity,grids)
+function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids)
     % Finds the stationary distribution and transition matrix for a given
     % grids.a.vec
     
@@ -43,31 +43,10 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,heterogenei
 
     % stationary distribution over states
     fprintf(' Finding ergodic distribution...\n');
-    
-    q=zeros(1,nx*p.nyP*p.nyF*p.nb);
-    % Create valid initial distribution for both yF & beta
-    % Repmat automatically puts equal weight on each beta
-    q(1,1:nx*p.nyP:end) = repmat(income.yFdist,p.nb,1) / p.nb;
-    diff = 1; 
-    iter = 1;
-    while diff>1e-8 && iter < 5e4
-        z = q*modelupdate.statetrans;
-        diff = norm(z-q);
-        q = z;
-        
-        if mod(iter,50) == 0
-            fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
-        end
-        iter = iter + 1;
-    end
-    if iter >= 5e4
-        error('No conv to statdist, diff = %5.3e',diff)
-    end
-    
+    q = get_distribution(p,income,nx,modelupdate.statetrans);
 %     [q,~] = eigs(modelupdate.statetrans',[],1,1);
 %     q = q / sum(q(:));
 
-    modelupdate.adiff = diff;
     modelupdate.adist = reshape(full(q'),[nx,p.nyP,p.nyF,p.nb]);
     
     % get distribution over (x,yP,yF,beta)
@@ -161,5 +140,32 @@ function trans = get_transition_matrix(p,income,grids,nx,sav,r_mat)
         col = col + 1;
     end
     end
+    end
+end
+
+%% ----------------------------------------------------------------
+% iTERATIVE METHOD TO FIND STATIONARY DISTRIBUTION
+% -----------------------------------------------------------------
+function q = get_distribution(p,income,nx,statetrans)
+	q=zeros(1,nx*p.nyP*p.nyF*p.nb);
+
+    % create valid initial distribution for both yF & beta
+    % repmat automatically puts equal weight on each beta
+    q(1,1:nx*p.nyP:end) = repmat(income.yFdist,p.nb,1) / p.nb;
+    diff = 1; 
+    iter = 1;
+    while diff>1e-9 && iter < 5e4
+        z = q * statetrans;
+        diff = norm(z-q);
+        q = z;
+        
+        if mod(iter,50) == 0
+            fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
+        end
+        iter = iter + 1;
+    end
+
+    if iter >= 5e4
+        error('No conv to statdist, diff = %5.3e',diff)
     end
 end

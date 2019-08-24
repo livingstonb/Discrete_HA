@@ -78,7 +78,7 @@ function [results,decomp] = main(p)
         mpcshock = 0;
         basemodel = solve_EGP(beta_final,p,grdEGP,heterogeneity,income,mpcshock,[]);
     end
-    [~,basemodel] = find_stationary_adist(p,basemodel,income,heterogeneity,grdDST);
+    [~,basemodel] = find_stationary_adist(p,basemodel,income,grdDST);
     results.direct.adist = basemodel.adist;
 
     % Report beta and annualized beta
