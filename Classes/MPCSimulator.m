@@ -1,6 +1,6 @@
 classdef MPCSimulator < handle
 
-	properties
+	properties (SetAccess = private)
 		Nsim;
 		Tmax = 4;
 

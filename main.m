@@ -71,9 +71,12 @@ function [results,decomp] = main(p)
     end
     
     % Get policy functions and stationary distribution for final beta, in
-    % 'basemodel' structure
+    % 'basemofdel' structure
     if p.EpsteinZin == 1
-        basemodel = solve_EGP_EZ(beta_final,p,grdEGP,heterogeneity,income);
+%         basemodel = solve_EGP_EZ(beta_final,p,grdEGP,heterogeneity,income);
+        egp_ez_solver = EGP_EZ_Solver(beta_final,p,grdEGP,heterogeneity,income);
+        egp_ez_solver.solve(income,grdEGP);
+        basemodel = egp_ez_solver.return_model(grdEGP);
     else
         mpcshock = 0;
         basemodel = solve_EGP(beta_final,p,grdEGP,heterogeneity,income,mpcshock,[]);

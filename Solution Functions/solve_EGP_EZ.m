@@ -104,7 +104,7 @@ function model = solve_EGP_EZ(beta,p,grids,heterogeneity,income)
         savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
         mu_cons = (1+p.r)*betastacked*Emat*mucnext*income.yTdist ./ savtaxrate;
         mu_bequest = utility_bequests1(p.bequest_curv,p.bequest_weight,...
-    p.      bequest_luxury,repmat(grids.s.matrix(:),p.nb,1));
+    		p.bequest_luxury,repmat(grids.s.matrix(:),p.nb,1));
         emuc = (1-p.dieprob) * mu_cons + p.dieprob * mu_bequest;
         
         if numel(p.risk_aver) > 1
