@@ -75,8 +75,8 @@ function [results,decomp] = main(p)
     if p.EpsteinZin == 1
 %         basemodel = solve_EGP_EZ(beta_final,p,grdEGP,heterogeneity,income);
         egp_ez_solver = EGP_EZ_Solver(beta_final,p,grdEGP,heterogeneity,income);
-        egp_ez_solver.solve(income,grdEGP);
-        basemodel = egp_ez_solver.return_model(grdEGP);
+        egp_ez_solver.solve(income);
+        basemodel = egp_ez_solver.return_model();
     else
         mpcshock = 0;
         basemodel = solve_EGP(beta_final,p,grdEGP,heterogeneity,income,mpcshock,[]);
