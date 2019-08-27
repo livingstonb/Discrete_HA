@@ -34,18 +34,18 @@ classdef MPCFinder < handle
 
 	methods
 		function obj = MPCFinder(p,income,grids,basemodel,models)
-			obj.Nstates = p.nx_KFE*p.nyP*p.nyF*p.nb;
+			obj.Nstates = p.nx_DST*p.nyP*p.nyF*p.nb;
 			obj.basemodel = basemodel;
 			obj.models = models;
 			obj.fspace = fundef({'spli',grids.a.vec,0,1});
 			obj.income = income;
 
 			obj.xgrid_yT = repmat(grids.a.vec,[1 p.nyP p.nyF p.nyT])...
-				+ income.netymatKFE;
+				+ income.netymatDST;
 
 			if numel(p.r) > 1
-		        r_col = kron(p.r',ones(p.nx_KFE*p.nyP*p.nyF,1));
-		        obj.r_mat = reshape(r_col,[p.nx_KFE,p.nyP,p.nyF,numel(p.r)]);
+		        r_col = kron(p.r',ones(p.nx_DST*p.nyP*p.nyF,1));
+		        obj.r_mat = reshape(r_col,[p.nx_DST,p.nyP,p.nyF,numel(p.r)]);
 		    else
 		        obj.r_mat = p.r;
 		    end
@@ -91,18 +91,18 @@ classdef MPCFinder < handle
 		function con = get_policy(obj,p,x_mpc,model)
 			% Computes consumption policy function after taking expectation to get
 		    % rid of yT dependence
-		    sav = zeros(p.nx_KFE,p.nyP,p.nyF,p.nb,p.nyT);
+		    sav = zeros(p.nx_DST,p.nyP,p.nyF,p.nb,p.nyT);
 		    for ib = 1:p.nb
 		    for iyF = 1:p.nyF
 		    for iyP = 1:p.nyP
 		        x_iyP_iyF_iyT = x_mpc(:,iyP,iyF,:);
 		        sav_iyP_iyF_iyT = model.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
-		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,[p.nx_KFE 1 1 1 p.nyT]);
+		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,[p.nx_DST 1 1 1 p.nyT]);
 		    end
 		    end
 		    end
 		    sav = max(sav,p.borrow_lim);
-		    x_mpc = reshape(x_mpc,[p.nx_KFE p.nyP p.nyF 1 p.nyT]);
+		    x_mpc = reshape(x_mpc,[p.nx_DST p.nyP p.nyF 1 p.nyT]);
 		    con = repmat(x_mpc,[1 1 1 p.nb 1]) - sav - p.savtax * max(sav-p.savtaxthresh,0);
 		end
 
@@ -137,7 +137,7 @@ classdef MPCFinder < handle
 	                    x_mpc(:,:,:,iyT) = ~below_xgrid(:,:,:,iyT) .* x_mpc(:,:,:,iyT)...
 	                                        + below_xgrid(:,:,:,iyT) .* grids.x.matrix(1,:,:);
 	                end
-	                below_xgrid = reshape(below_xgrid,[p.nx_KFE p.nyP p.nyF 1 p.nyT]);
+	                below_xgrid = reshape(below_xgrid,[p.nx_DST p.nyP p.nyF 1 p.nyT]);
 	                below_xgrid = repmat(below_xgrid,[1 1 1 p.nb 1]);
 	            end
 
@@ -147,7 +147,7 @@ classdef MPCFinder < handle
 	            if (shock < 0) && (it == shockperiod)
 	                % make consumption for cases pushed below xgrid equal to consumption
 	                % at bottom of xgrid - the amount borrowed
-	                x_before_shock = reshape(grids.x.matrix,[p.nx_KFE p.nyP p.nyF]);
+	                x_before_shock = reshape(grids.x.matrix,[p.nx_DST p.nyP p.nyF]);
 	                x_minus_xmin = x_before_shock - grids.x.matrix(1,:,:);
 	            	con = ~below_xgrid .* con ...
 	            		+ below_xgrid .* (obj.con_baseline_yT(1,:,:,:,:)...
@@ -219,8 +219,8 @@ classdef MPCFinder < handle
 			x_mpc = obj.xgrid_yT + shock;
 
 			% get saving policy function
-			sav = zeros(p.nx_KFE,p.nyP,p.nyF,p.nb,p.nyT);
-			reshape_vec = [p.nx_KFE 1 1 1 p.nyT];
+			sav = zeros(p.nx_DST,p.nyP,p.nyF,p.nb,p.nyT);
+			reshape_vec = [p.nx_DST 1 1 1 p.nyT];
 			for ib = 1:p.nb
 			for iyF = 1:p.nyF
 			for iyP = 1:p.nyP
@@ -249,21 +249,21 @@ classdef MPCFinder < handle
 
 			% interpolate next period's assets back onto asset grid
 			asset_interp = funbas(obj.fspace,aprime_live(:));
-		    asset_interp = reshape(asset_interp,obj.Nstates,p.nx_KFE*p.nyT)...
-		    	* kron(speye(p.nx_KFE),obj.income.yTdist);
+		    asset_interp = reshape(asset_interp,obj.Nstates,p.nx_DST*p.nyT)...
+		    	* kron(speye(p.nx_DST),obj.income.yTdist);
 		    if p.Bequests == 1
 		        interp_death = asset_interp;
 		    else
-		        interp_death = sparse(obj.Nstates,p.nx_KFE);
+		        interp_death = sparse(obj.Nstates,p.nx_DST);
 		        interp_death(:,1) = 1;
 		    end
 
 		    % now construct transition matrix
 		    transition = sparse(obj.Nstates,obj.Nstates);
 		    for col = 1:p.nyP*p.nyF*p.nb
-		        newblock_live = kron(obj.income.ytrans_live(:,col),ones(p.nx_KFE,1)) .* asset_interp;
-		        newblock_death = kron(obj.income.ytrans_death(:,col),ones(p.nx_KFE,1)) .* interp_death;
-		        transition(:,p.nx_KFE*(col-1)+1:p.nx_KFE*col) = ...
+		        newblock_live = kron(obj.income.ytrans_live(:,col),ones(p.nx_DST,1)) .* asset_interp;
+		        newblock_death = kron(obj.income.ytrans_death(:,col),ones(p.nx_DST,1)) .* interp_death;
+		        transition(:,p.nx_DST*(col-1)+1:p.nx_DST*col) = ...
 		        	(1-p.dieprob)*newblock_live + p.dieprob*newblock_death;
 		    end
 		end

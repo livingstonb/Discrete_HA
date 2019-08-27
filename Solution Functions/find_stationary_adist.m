@@ -11,9 +11,9 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids)
 
     nx = size(grids.a.vec,1);
     if nx == p.nx
-        netymat = income.netymatHJB;
-    elseif nx == p.nx_KFE
-        netymat = income.netymatKFE;
+        netymat = income.netymatEGP;
+    elseif nx == p.nx_DST
+        netymat = income.netymatDST;
     end
 
     if numel(p.r) > 1
@@ -67,7 +67,7 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids)
     % POLICY FUNCTIONS ETC...
     % -----------------------------------------------------------------
     % get saving policy function defined on xgrid
-    modelupdate.sav_x = zeros(p.nx_KFE*p.nyT,p.nyP,p.nyF,p.nb);
+    modelupdate.sav_x = zeros(p.nx_DST*p.nyT,p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP 

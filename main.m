@@ -28,7 +28,7 @@ function [results,decomp] = main(p)
     %% --------------------------------------------------------------------
     % INCOME
     % ---------------------------------------------------------------------
-    income = gen_income_variables(p,heterogeneity);
+    income = Income(p,heterogeneity);
 
     %% --------------------------------------------------------------------
     % ASSET GRIDS
@@ -327,24 +327,24 @@ function [results,decomp] = main(p)
 
         % interpolate to get the integral of m0(a) * g0(a) between a = 0 and 0.05
         m0g0 = m0(:) .* g0(:);
-        m0g0 = reshape(m0g0,[p.nx_KFE p.nyP*p.nyF*p.nb]);
+        m0g0 = reshape(m0g0,[p.nx_DST p.nyP*p.nyF*p.nb]);
         m0g0 = sum(m0g0,2);
         cum_m0g0 = cumsum(m0g0);
         mg0interp = griddedInterpolant(grdDST.a.vec,cum_m0g0,'linear');
 
         % interpolate to get the integral of mpc_norisk(a) * g0_norisk(a)
         mbcg0 = mbc(:) .* g0_norisk(:);
-        mbcg0 = reshape(mbcg0,p.nx_KFE,[]);
+        mbcg0 = reshape(mbcg0,p.nx_DST,[]);
         mbcg0 = sum(mbcg0,2);
         cum_mbcg0 = cumsum(mbcg0);
         mbcg0interp = griddedInterpolant(grdDST.a.vec,cum_mbcg0,'linear');
 
         % get interpolant for cumulative dist of g0_a
-        g0_a = sum(reshape(g0,p.nx_KFE,[]),2);
+        g0_a = sum(reshape(g0,p.nx_DST,[]),2);
         g0interp = griddedInterpolant(grdDST.a.vec,cumsum(g0_a),'linear');
 
         % get interpolant for cumdist of g0_norisk_a
-        g0_norisk_a = sum(reshape(g0_norisk,p.nx_KFE,[]),2);
+        g0_norisk_a = sum(reshape(g0_norisk,p.nx_DST,[]),2);
         g0ninterp = griddedInterpolant(grdDST.a.vec,cumsum(g0_norisk_a),'linear');
 
 

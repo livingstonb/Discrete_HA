@@ -36,7 +36,7 @@ classdef MPCParams < handle
 
         % cash on hand / savings grid
         nx          = 500;
-        nx_KFE      = 400;
+        nx_DST      = 400;
         xmax        = 100;
         xgrid_par   = 0.2; %1 for linear, 0 for L-shaped
         borrow_lim  = 0; % negative does not work
@@ -149,7 +149,7 @@ classdef MPCParams < handle
 
             % fast option
             if runopts.fast == 1
-                [obj.nx_KFE] = deal(10);
+                [obj.nx_DST] = deal(10);
                 [obj.nx] = deal(10);
                 [obj.Nmpcsim] = deal(1e2);
                 [obj.nyT] = deal(3);

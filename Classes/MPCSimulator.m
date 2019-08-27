@@ -79,20 +79,20 @@ classdef MPCSimulator < handle
 			cumdist = cumsum(basemodel.adist(:));
 
 			% indexes
-		    yPind_trans = repmat(kron((1:p.nyP)',ones(p.nx_KFE,1)),p.nyF*p.nb,1);
-		    yFind_trans = repmat(kron((1:p.nyF)',ones(p.nx_KFE*p.nyP,1)),p.nb,1);
+		    yPind_trans = repmat(kron((1:p.nyP)',ones(p.nx_DST,1)),p.nyF*p.nb,1);
+		    yFind_trans = repmat(kron((1:p.nyF)',ones(p.nx_DST*p.nyP,1)),p.nb,1);
 		    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) && (numel(p.r) == 1)
-		        betaind_trans = kron((1:p.nb)',ones(p.nx_KFE*p.nyP*p.nyF,1));
-		        r_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
-		        IESind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
+		        betaind_trans = kron((1:p.nb)',ones(p.nx_DST*p.nyP*p.nyF,1));
+		        r_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
+		        IESind_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
 		    elseif numel(p.r) > 1
-		        betaind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
-		        r_trans = kron((1:p.nb)',ones(p.nx_KFE*p.nyP*p.nyF,1));
-		        IESind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
+		        betaind_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
+		        r_trans = kron((1:p.nb)',ones(p.nx_DST*p.nyP*p.nyF,1));
+		        IESind_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
 		    else
-		        betaind_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
-		        r_trans = kron(ones(p.nb,1),ones(p.nx_KFE*p.nyP*p.nyF,1));
-		        IESind_trans = kron((1:p.nb)',ones(p.nx_KFE*p.nyP*p.nyF,1));
+		        betaind_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
+		        r_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
+		        IESind_trans = kron((1:p.nb)',ones(p.nx_DST*p.nyP*p.nyF,1));
 		    end
 
 			obj.a1 = zeros(obj.Nsim,1);

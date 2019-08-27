@@ -4,6 +4,7 @@ classdef Income < handle
         Import;
         
         p;
+        het;
         
         logyPgrid;
         yPdist;
@@ -21,11 +22,31 @@ classdef Income < handle
         yFgrid;
         yFdist;
         yFcumdist;
+
+        ytrans;
+        meany1;
+
+        ymatdist;
+        labtaxthresh;
+
+        lumptransfer;
+        ymat;
+        netymat;
+        netymatEGP;
+        netymatDST;
+        meannety1;
+
+        ysort;
+        ysortdist;
+        
+        ytrans_live;
+        ytrans_death;
     end
     
     methods
         function obj = Income(p,heterogeneity)
             obj.p = p;
+            obj.het = heterogeneity;
             obj.LoadIncome = ~isempty(p.IncomeProcess);
             
             if obj.LoadIncome
@@ -34,6 +55,8 @@ classdef Income < handle
             
             obj.get_persistent_income();
             obj.get_transitory_income();
+            obj.get_fixed_effect();
+            obj.get_other_income_variables();
             
             if size(obj.yTgrid,2)>1 || size(obj.yFgrid,2)>1 || size(obj.yPgrid,2)>1
                 error('All income grids must be column vectors')
@@ -69,8 +92,8 @@ classdef Income < handle
         
         function get_transitory_income(obj)
             if obj.LoadIncome
-                obj.logyTgrid = Import.discmodel1.logyTgrid;
-                obj.yTdist = Import.discmodel1.yTdist;
+                obj.logyTgrid = obj.Import.discmodel1.logyTgrid;
+                obj.yTdist = obj.Import.discmodel1.yTdist;
                 obj.p.nyT = length(obj.logyTgrid);
                 obj.logyTgrid = reshape(obj.logyTgrid,[],1);
                 obj.yTdist = reshape(obj.yTdist,[],1);
@@ -122,57 +145,61 @@ classdef Income < handle
             obj.ytrans = kron(eye(obj.p.nyF),obj.yPtrans);
 
             % construct matrix of y combinations
-            obj.ymat = repmat(yPgrid,p.nyF,1) .* kron(yFgrid,ones(p.nyP,1)) * yTgrid';
+            obj.ymat = repmat(obj.yPgrid,obj.p.nyF,1) ...
+            	.* kron(obj.yFgrid,ones(obj.p.nyP,1)) * obj.yTgrid';
 
             % distribution of ymat
-            ymatdist = repmat(yPdist,p.nyF,1) .* kron(yFdist,ones(p.nyP,1)) * yTdist';
+            obj.ymatdist = repmat(obj.yPdist,obj.p.nyF,1) ...
+            	.* kron(obj.yFdist,ones(obj.p.nyP,1)) * obj.yTdist';
 
             % find mean y
             % isolate unique (yT,yF,yP) combinations
-            temp = sortrows([ymat(:) ymatdist(:)],1);
-            ysort = temp(:,1);
-            ysortdist = temp(:,2);
-            ycumdist_sort = cumsum(ysortdist);
+            temp = sortrows([obj.ymat(:) obj.ymatdist(:)],1);
+            obj.ysort = temp(:,1);
+            obj.ysortdist = temp(:,2);
+            ycumdist_sort = cumsum(obj.ysortdist);
 
             % 1-period statistics
-            meany1 = ymat(:)'*ymatdist(:);
-            totgrossy1 = meany1;
+            obj.meany1 = obj.ymat(:)' * obj.ymatdist(:);
+            totgrossy1 =obj. meany1;
 
             % find tax threshold on labor income
-            if numel(ysort)>1
-                labtaxthresh = lininterp1(ycumdist_sort,ysort,p.labtaxthreshpc);
+            if numel(obj.ysort)>1
+                obj.labtaxthresh = lininterp1(ycumdist_sort,obj.ysort,obj.p.labtaxthreshpc);
             else
-                labtaxthresh = 0;
+                obj.labtaxthresh = 0;
             end    
 
             % find net income
-            totgrossyhigh = max(ymat(:)-labtaxthresh,0)'*ymatdist(:);
-            lumptransfer = p.labtaxlow*totgrossy1 + p.labtaxhigh*totgrossyhigh;
+            totgrossyhigh = max(obj.ymat(:)-obj.labtaxthresh,0)' * obj.ymatdist(:);
+            obj.lumptransfer = obj.p.labtaxlow * totgrossy1 ...
+            	+ obj.p.labtaxhigh * totgrossyhigh;
             % netymat is N by nyT matrix
-            netymat = lumptransfer + (1-p.labtaxlow)*ymat - p.labtaxhigh*max(ymat-labtaxthresh,0);
-            meannety1 = netymat(:)'*ymatdist(:);
+            obj.netymat = obj.lumptransfer + (1-obj.p.labtaxlow) * obj.ymat ...
+            	- obj.p.labtaxhigh * max(obj.ymat-obj.labtaxthresh,0);
+            obj.meannety1 = obj.netymat(:)' * obj.ymatdist(:);
 
             % net y values on HJB grid
-            netymat_temp = reshape(netymat,[1 p.nyP p.nyF p.nyT]);
-            netymatHJB = repmat(netymat_temp,[p.nx 1 1 1]);
-            netymatKFE = repmat(netymat_temp,[p.nx_KFE 1 1 1]);
+            netymat_temp = reshape(obj.netymat,[1 obj.p.nyP obj.p.nyF obj.p.nyT]);
+            obj.netymatEGP = repmat(netymat_temp,[obj.p.nx 1 1 1]);
+            obj.netymatDST = repmat(netymat_temp,[obj.p.nx_DST 1 1 1]);
 
             % full transition matrix with beta and IES transitions, excluding and including death
-            if p.ResetIncomeUponDeath == 1
-                yPtrans_death = repmat(yPdist',p.nyP,1);
+            if obj.p.ResetIncomeUponDeath == 1
+                yPtrans_death = repmat(obj.yPdist',obj.p.nyP,1);
             else
-                yPtrans_death = yPtrans;
+                yPtrans_death = obj.yPtrans;
             end
 
-            if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) && (numel(p.r)==1)
-                ytrans_live = kron(heterogeneity.betatrans,kron(eye(p.nyF),yPtrans));
-                ytrans_death = kron(heterogeneity.betatrans,kron(eye(p.nyF),yPtrans_death));
-            elseif numel(p.r) > 1
-                ytrans_live = kron(heterogeneity.rtrans,kron(eye(p.nyF),yPtrans));
-                ytrans_death = kron(heterogeneity.rtrans,kron(eye(p.nyF),yPtrans_death));
+            if (numel(obj.p.risk_aver) == 1) && (numel(obj.p.invies) == 1) && (numel(obj.p.r)==1)
+                obj.ytrans_live = kron(obj.het.betatrans,kron(eye(obj.p.nyF),obj.yPtrans));
+                obj.ytrans_death = kron(obj.het.betatrans,kron(eye(obj.p.nyF),yPtrans_death));
+            elseif numel(obj.p.r) > 1
+                obj.ytrans_live = kron(obj.het.rtrans,kron(eye(obj.p.nyF),obj.yPtrans));
+                obj.ytrans_death = kron(obj.het.rtrans,kron(eye(obj.p.nyF),yPtrans_death));
             else
-                ytrans_live = kron(heterogeneity.ztrans,kron(eye(p.nyF),yPtrans));
-                ytrans_death = kron(heterogeneity.ztrans,kron(eye(p.nyF),yPtrans_death));
+                obj.ytrans_live = kron(obj.het.ztrans,kron(eye(obj.p.nyF),obj.yPtrans));
+                obj.ytrans_death = kron(obj.het.ztrans,kron(eye(obj.p.nyF),yPtrans_death));
             end
         end
     end

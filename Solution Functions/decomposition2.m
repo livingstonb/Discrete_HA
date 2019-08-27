@@ -5,12 +5,12 @@ function [decomp2,decomp3] = decomposition2(params,results)
     % computed with respect to a shock of 0.01 * mean ann gross income
 
     % Construct agrid based off p(1)
-    agrid = linspace(0,1,params(1).nx_KFE)';
+    agrid = linspace(0,1,params(1).nx_DST)';
     agrid = agrid.^(1/params(1).xgrid_par);
     agrid = params(1).borrow_lim + (params(1).xmax - params(1).borrow_lim) * agrid;
 
     % Force grid spacing >= gridspace_min near 0
-    for ia = 1:params(1).nx_KFE-1
+    for ia = 1:params(1).nx_DST-1
         if agrid(ia+1) - agrid(ia) < params(1).gridspace_min
             agrid(ia+1) = agrid(ia) + params(1).gridspace_min;
         else
@@ -61,7 +61,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
 
         % g0_wide rows indexed by assets, columns by yF, yP, beta combination
         dim0 = params(baseind).nyF * params(1).nyP * params(baseind).nb;
-        g0_wide = reshape(g0,[params(baseind).nx_KFE dim0]);
+        g0_wide = reshape(g0,[params(baseind).nx_DST dim0]);
 
         % P(a), vector
         g0_a = sum(g0_wide,2);
@@ -72,7 +72,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
 
         % baseline MPCs
         m0 = results(baseind).direct.mpcs(5).mpcs_1_t{1};       
-        m0_wide = reshape(m0,[params(baseind).nx_KFE dim0]);
+        m0_wide = reshape(m0,[params(baseind).nx_DST dim0]);
         m0_a = m0_wide .* g0_wide ./ g0_a_nonzero;
         m0_a = sum(m0_a,2);
 
@@ -83,7 +83,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
         for t = 1:4
             m0_4 = m0_4 + results(baseind).direct.mpcs(5).mpcs_1_t{t};
         end
-        m0_4_wide = reshape(m0_4,[params(baseind).nx_KFE dim0]);
+        m0_4_wide = reshape(m0_4,[params(baseind).nx_DST dim0]);
         m0_4_a = m0_4_wide .* g0_wide ./ g0_a_nonzero;
         m0_4_a = sum(m0_4_a,2);
 
@@ -96,7 +96,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
         dim1 = params(ip).nyF * params(ip).nyP * params(ip).nb;
         
         % rows indexed by assets, columns by yF, yP, beta combination
-        g1_wide = reshape(g1,[params(ip).nx_KFE dim1]);
+        g1_wide = reshape(g1,[params(ip).nx_DST dim1]);
         
         % P(a), vector
         g1_a = sum(g1_wide,2);
@@ -110,7 +110,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
         
         % model MPCs
         m1 = results(ip).direct.mpcs(5).mpcs_1_t{1};       
-        m1_wide = reshape(m1,[params(ip).nx_KFE dim1]);
+        m1_wide = reshape(m1,[params(ip).nx_DST dim1]);
         m1_a = m1_wide .* g1_wide ./ g1_a_nonzero;
         m1_a = sum(m1_a,2);
         
@@ -174,7 +174,7 @@ function [decomp2,decomp3] = decomposition2(params,results)
                 m1_4 = m1_4 + m1_it;
             end
             
-            m1_4_wide = reshape(m1_4,[params(ip).nx_KFE dim1]);
+            m1_4_wide = reshape(m1_4,[params(ip).nx_DST dim1]);
             m1_4_a = m1_4_wide .* g1_wide ./ g1_a_nonzero;
             m1_4_a = sum(m1_4_a,2);
             

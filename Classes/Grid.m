@@ -17,7 +17,7 @@ classdef Grid < handle
                 obj.nx = params.nx;
 				obj.create_sgrid(params);
 			elseif strcmp(gtype,'DST')
-				obj.nx = params.nx_KFE;
+				obj.nx = params.nx_DST;
 			end
 
 			obj.create_xgrid(params,income);
