@@ -73,7 +73,6 @@ function [results,decomp] = main(p)
     % Get policy functions and stationary distribution for final beta, in
     % 'basemofdel' structure
     if p.EpsteinZin == 1
-%         basemodel = solve_EGP_EZ(beta_final,p,grdEGP,heterogeneity,income);
         egp_ez_solver = EGP_EZ_Solver(beta_final,p,grdEGP,heterogeneity,income);
         egp_ez_solver.solve(income);
         basemodel = egp_ez_solver.return_model();
@@ -272,42 +271,8 @@ function [results,decomp] = main(p)
         results.direct.stdev_loggrossy_A = sqrt(results.direct.var_loggrossy1);
         results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
     end
-
-    % % Model with income risk
-    % MPCs = struct();
-    % for i = 1:3
-    %     [MPC_trials(i),stdev_loggrossy_A(i),stdev_lognety_A(i),inc_constrained(i)] ...
-    %         = direct_MPCs_by_simulation(p,heterogeneity,income,basemodel,grdDST);
-    % end
-
-    % results.direct.a_sixth_sim = mean([inc_constrained.a_sixth_Q]);
-    % results.direct.a_twelfth_sim = mean([inc_constrained.a_twelfth_Q]);
-    % results.direct.x_sixth_sim = mean([inc_constrained.x_sixth_Q]);
-    % results.direct.x_twelfth_sim = mean([inc_constrained.x_twelfth_Q]);
-    % results.direct.a_lt_015_annual = mean([inc_constrained.a_lt_015_annual]);
-
-    % MPCs.avg_1_1 = (MPC_trials(1).avg_1_1 + MPC_trials(2).avg_1_1 + MPC_trials(3).avg_1_1)/3;
-    % MPCs.avg_1_2 = (MPC_trials(1).avg_1_2 + MPC_trials(2).avg_1_2 + MPC_trials(3).avg_1_2)/3;
-    % MPCs.avg_1_3 = (MPC_trials(1).avg_1_3 + MPC_trials(2).avg_1_3 + MPC_trials(3).avg_1_3)/3;
-    % MPCs.avg_1_4 = (MPC_trials(1).avg_1_4 + MPC_trials(2).avg_1_4 + MPC_trials(3).avg_1_4)/3;
-    % results.direct.mpcs_sim = MPCs;
-
-    % stdev_loggrossy_A = mean(stdev_loggrossy_A);
-    % stdev_lognety_A = mean(stdev_lognety_A);
-
-    % % Find annual mean and standard deviations of income
-    % if p.freq == 4
-    %     % Direct computations
-    %     results.direct.mean_grossy_A = results.direct.mean_grossy1 * 4;
-    %     % Simulations
-    %     results.direct.stdev_loggrossy_A = stdev_loggrossy_A;
-    %     results.direct.stdev_lognety_A = stdev_lognety_A;     
-    % else
-    %     % Use direct computations
-    %     results.direct.mean_grossy_A = results.direct.mean_grossy1;
-    %     results.direct.stdev_loggrossy_A = sqrt(results.direct.var_loggrossy1);
-    %     results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
-    % end
+    
+    clear mpc_simulator
 
     %% --------------------------------------------------------------------
     % DECOMPOSITION 1 (DECOMP OF EM)
