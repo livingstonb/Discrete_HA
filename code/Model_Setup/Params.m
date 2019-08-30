@@ -1,5 +1,5 @@
-classdef MPCParams < handle
-    % usage: params = MPCParams(frequency,name,IncomeProcess)
+classdef Params < handle
+    % usage: params = Params(frequency,name,IncomeProcess)
 
     properties
         % identifiers
@@ -114,7 +114,7 @@ classdef MPCParams < handle
     end
 
     methods
-        function obj = MPCParams(frequency,name,IncomeProcess)
+        function obj = Params(frequency,name,IncomeProcess)
         	% create params object
             obj.name = name;
             obj.freq = frequency;
@@ -145,7 +145,7 @@ classdef MPCParams < handle
         end
 
         function obj = set_run_parameters(obj,runopts)
-        	% use fields in runopts to set values in MPCParams object
+        	% use fields in runopts to set values in Params object
 
             % fast option
             if runopts.fast == 1

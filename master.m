@@ -8,18 +8,18 @@
 % either the server or the local directory, depending on whether
 % runopts.Server = 0 or 1
 
-% (2) Modify the parameters script 'parameters.m' and make sure that 
+% (2) In code/Model_Setup, modify the parameters script 'parameters.m' and make sure that 
 % runopts.mode is equal to 'parameters'. Alternatively, create a new
 % parameters script using parameters.m as a guide. Note that the current
 % 'parameters.m' script assumes that the main income process is in
 % IncomeGrids/quarterly_b.mat. Also note that if frequency is set to 4
 % (quarterly), then annual parameter values should be used and they will
-% be automatically adjusted in MPCParams.adjust_if_quarterly()
+% be automatically adjusted in Params.adjust_if_quarterly()
 %
 % Note that all parameter defaults
-% are set in the class file Classes/MPCParams.m, and parameters.m overrides
+% are set in the class file code/Model_Setup/Params.m, and parameters.m overrides
 % these defaults. Any parameters not in parameters.m are set to their
-% defaults. See the properties of Classes/MPCParams.m for a list of all
+% defaults. See the properties of code/Model_Setup/Params.m for a list of all
 % parameters.
 
 % (3) Set runopts.names_to_run equal to a cell array containing the name
@@ -29,7 +29,7 @@
 % (4) If convergence fails, betaH0 and/or betaL may need to be adjusted.
 
 % RUNNING ON THE SERVER: To run in batch on the server, use 
-% batch/server.sbatch as a template. That script sends an array to SLURM 
+% code/batch/server.sbatch as a template. That script sends an array to SLURM 
 % that runs all of the requested parameters in parameters.m. Make sure
 % that the range of numbers in the slurm array match the number of 
 % parameters in the parameters script. Output files
@@ -77,10 +77,10 @@ if exist(runopts.savematpath, 'file') == 2
     delete runopts.savematpath;
 end
 
-addpath([runopts.path '/Auxiliary_Functions']);
-addpath([runopts.path '/Solve_Model']);
-addpath([runopts.path '/Statistics']);
-addpath([runopts.path '/Model_Setup']);
+addpath([runopts.path '/code/Auxiliary_Functions']);
+addpath([runopts.path '/code/Solve_Model']);
+addpath([runopts.path '/code/Statistics']);
+addpath([runopts.path '/code/Model_Setup']);
 cd(runopts.path);
 
 % Load parameters
@@ -124,8 +124,8 @@ end
 % -------------------------------------------------------------------------
 
 disp('Check the results structure for detailed results')
-% convert MPCParams object to structure for saving
-Sparams = MPCParams.to_struct(params);
+% convert Params object to structure for saving
+Sparams = Params.to_struct(params);
 save(runopts.savematpath,'Sparams','results','decomps')
 
 if runopts.Server == 1
