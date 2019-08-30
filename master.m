@@ -77,11 +77,10 @@ if exist(runopts.savematpath, 'file') == 2
     delete runopts.savematpath;
 end
 
-addpath([runopts.path '/Auxiliary Functions']);
-addpath([runopts.path '/Solution Functions']);
-addpath([runopts.path '/Output Functions']);
-addpath([runopts.path '/Parameters']);
-addpath([runopts.path '/Classes']);
+addpath([runopts.path '/Auxiliary_Functions']);
+addpath([runopts.path '/Solve_Model']);
+addpath([runopts.path '/Statistics']);
+addpath([runopts.path '/Model_Setup']);
 cd(runopts.path);
 
 % Load parameters
