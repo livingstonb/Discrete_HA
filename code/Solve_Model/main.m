@@ -277,68 +277,7 @@ function [results,decomp] = main(p)
     %% --------------------------------------------------------------------
     % DECOMPOSITION 1 (DECOMP OF EM)
     % ---------------------------------------------------------------------
-	decomp = struct([]);
-    if p.nb == 1 && p.EpsteinZin == 0 && p.bequest_weight == 0 && p.temptation == 0 && (numel(p.r)==1)
-    	% RA MPC
-        m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
- 
-        % MPC shock of 0.01 * annual income
-        m0 = results.direct.mpcs(5).mpcs_1_t{1,1}; % mpcs
-        meanm0 = results.direct.mpcs(5).avg_s_t(1,1);
-        g0 = results.direct.adist; % distribution
-        g0_norisk = results.direct.agrid_dist;
-        mbc  = results.norisk.mpcs1_a_direct{5}; % norisk distribution
-        meanmbc = mbc(:)' * g0_norisk(:);
-
-        % interpolate to get the integral of m0(a) * g0(a) between a = 0 and 0.05
-        m0g0 = m0(:) .* g0(:);
-        m0g0 = reshape(m0g0,[p.nx_DST p.nyP*p.nyF*p.nb]);
-        m0g0 = sum(m0g0,2);
-        cum_m0g0 = cumsum(m0g0);
-        mg0interp = griddedInterpolant(grdDST.a.vec,cum_m0g0,'linear');
-
-        % interpolate to get the integral of mpc_norisk(a) * g0_norisk(a)
-        mbcg0 = mbc(:) .* g0_norisk(:);
-        mbcg0 = reshape(mbcg0,p.nx_DST,[]);
-        mbcg0 = sum(mbcg0,2);
-        cum_mbcg0 = cumsum(mbcg0);
-        mbcg0interp = griddedInterpolant(grdDST.a.vec,cum_mbcg0,'linear');
-
-        % get interpolant for cumulative dist of g0_a
-        g0_a = sum(reshape(g0,p.nx_DST,[]),2);
-        g0interp = griddedInterpolant(grdDST.a.vec,cumsum(g0_a),'linear');
-
-        % get interpolant for cumdist of g0_norisk_a
-        g0_norisk_a = sum(reshape(g0_norisk,p.nx_DST,[]),2);
-        g0ninterp = griddedInterpolant(grdDST.a.vec,cumsum(g0_norisk_a),'linear');
-
-
-        for ia = 1:numel(p.abars)
-            decomp(ia).term1 = m_ra;
-
-            if p.abars(ia) == 0
-                zidx = grdDST.a.matrix(:) <= p.abars(ia);
-                norisk_zidx = grdDST.a.vec <= p.abars(ia);
-
-                decomp(ia).term2 = (m0(zidx) - m_ra)' * g0(zidx);
-                decomp(ia).term3 = (mbc(~norisk_zidx) - m_ra)' * g0_norisk(~norisk_zidx);
-                decomp(ia).term4 = m0(~zidx)' * g0(~zidx)- mbc(~norisk_zidx)' * g0_norisk(~norisk_zidx);
-            else
-                abar = p.abars(ia);
-                decomp(ia).term2 = mg0interp(abar) - m_ra * g0interp(abar);
-                decomp(ia).term3 = meanmbc - mbcg0interp(abar) - m_ra * (1-g0ninterp(abar));
-                decomp(ia).term4 = (meanm0 - mg0interp(abar)) - (meanmbc - mbcg0interp(abar));
-                
-            end
-        end
-    else
-        for ia = 1:numel(p.abars)
-            decomp(ia).term1 = NaN;
-            decomp(ia).term2 = NaN;
-            decomp(ia).term3 = NaN;
-            decomp(ia).term4 = NaN;
-        end
-    end
+    decomp = decomposition_of_meanmpc(p,grdDST,results);
     
     %% --------------------------------------------------------------------
     % GINI
@@ -353,14 +292,4 @@ function [results,decomp] = main(p)
     results.direct.netincgini = direct_gini(income.netymat,income.ymatdist);  
 
     results.Finished = true; 
-
-end
-
-function gini = direct_gini(level,distr)
-    % Sort distribution and levels by levels
-    sorted = sortrows([level(:),distr(:)]);
-    level_sort = sorted(:,1);
-    dist_sort  = sorted(:,2);
-    S = [0;cumsum(dist_sort .* level_sort)];
-    gini = 1 - dist_sort' * (S(1:end-1)+S(2:end)) / S(end);
 end
