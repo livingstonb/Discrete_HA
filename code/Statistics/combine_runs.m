@@ -1,5 +1,6 @@
 
-basedir = '/home/livingstonb/GitHub/Discrete_HA';
+% basedir = '/home/livingstonb/GitHub/Discrete_HA';
+basedir = '/Users/Brian-laptop/Documents/GitHub/Discrete_HA';
 addpath([basedir '/code/Auxiliary_Functions']);
 addpath([basedir '/code/Solve_Model']);
 addpath([basedir '/code/Model_Setup']);
@@ -15,21 +16,12 @@ if FROM_MATFILE
     % User must set basedir and date, where variablesX.mat files
     % are stored in <basedir>/<date>
 
-    %% Select directories
-    % basedir = '/Users/Brian-laptop/Documents/midway2_output/discrete_time';
-    % date = '8_9_19';
-
     %% Read .mat files into a cell array
-    % fulldir = [basedir '/' date '/'];
-    fulldir = [basedir '/Output/'];
+    fulldir = '/Users/Brian-laptop/Documents/midway2_output/discrete_time/8_9_19/';
+%     fulldir = [basedir '/Output/'];
     
-%     params = struct();
-%     results = struct();
-%     decomps = struct();
-%     decomp2 = struct();
-%     decomp3 = struct();
-decomp2 = cell(1,1);
-decomp3 = cell(1,1);
+    decomp_baseline = cell(1,1);
+    decomp3 = cell(1,1);
     
     ind = 0;
     for run = 1:999
@@ -43,13 +35,14 @@ decomp3 = cell(1,1);
             results(ind) = S.results;
             decomps(ind) = S.decomps;
             
-            [decomp2,decomp3] = decomposition2(params,results);
+            [decomp_baseline{ind},decomp_repagent{ind}] = baseline_repagent_decomps(params,results);
         else
             continue
         end
     end
     
-    [T_annual,T_quarter] = create_table(params,results,decomps,decomp2,decomp3);
+    [T_annual,T_quarter] = create_table(...
+    	params,results,decomps,decomp_baseline,decomp_repagent);
     
 else
     
