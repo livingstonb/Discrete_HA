@@ -1,10 +1,8 @@
 
 basedir = '/home/livingstonb/GitHub/Discrete_HA';
-addpath([runopts.path '/Auxiliary Functions']);
-addpath([runopts.path '/Solution Functions']);
-addpath([runopts.path '/Output Functions']);
-addpath([runopts.path '/Parameters']);
-addpath([runopts.path '/Classes']);
+addpath([basedir '/code/Auxiliary_Functions']);
+addpath([basedir '/code/Solve_Model']);
+addpath([basedir '/code/Model_Setup']);
 
 FROM_MATFILE = true;
 if ~FROM_MATFILE

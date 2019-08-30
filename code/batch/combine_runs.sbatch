@@ -10,4 +10,4 @@
 
 module load matlab
 
-matlab -nodisplay < "/home/livingstonb/GitHub/Discrete_HA/Output Functions/combine_runs.m"
+matlab -nodisplay < "/home/livingstonb/GitHub/Discrete_HA/code/Statistics/combine_runs.m"
