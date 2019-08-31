@@ -1,4 +1,7 @@
 classdef Prefs_R_Heterogeneity < handle
+	% this class stores values, distributions, and
+	% transition matrices for heterogeneity in
+	% beta, returns, or another variable (z)
 
 	properties (SetAccess = private)
 		betadist;

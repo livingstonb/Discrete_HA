@@ -1,5 +1,14 @@
 classdef Params < handle
-    % usage: params = Params(frequency,name,IncomeProcess)
+    % Usage: params = Params(frequency,name,IncomeProcess)
+    % After instantiating a Params object, modify any
+    % of the parameters using dot notation. The method
+    % 'adjust_if_quarterly' must be called at the end since 
+    % it is assumed that the discount factor, returns, etc... 
+    % are all entered in annual terms.
+
+    % IncomeProcess is the directory of the income grids,
+    % or an empty string to generate the income process
+    % in the code.
 
     properties
         % identifiers
@@ -45,7 +54,6 @@ classdef Params < handle
         % OPTIONS
         MakePlots = 0;
         Simulate = 0;
-        GRIDTEST;
         mpcshocks_after_period1;
 
         % returns

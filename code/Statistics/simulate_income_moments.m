@@ -1,7 +1,7 @@
 clear
 
 % This script is designed to be run in isolation to estimate various moments of the
-% provided income processes
+% provided income processes. It may be outdated...
 
 path = '/Users/Brian/Documents/GitHub/MPCrecode';
 addpath([path '/Auxiliary Functions']);

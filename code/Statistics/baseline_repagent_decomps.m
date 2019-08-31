@@ -3,7 +3,6 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
     % decomp_wrt_repagent is relative to representative agent model
     
     % computed with respect to a shock of 0.01 * mean ann gross income
-    params(1).nx_DST = params(1).nx_KFE;
 
     % Construct agrid based off params(1)
     agrid = linspace(0,1,params(1).nx_DST)';
@@ -56,7 +55,6 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
         else
             baseind = find(ismember({params.name},{'baseline_Q'}));
         end
-        params(ip).nx_DST = params(ip).nx_KFE;
         
         %% --------------------------------------------------------------
 		% BASELINE DISTRIBUTION AND MPCs OVER ASSET GRID

@@ -2,7 +2,6 @@ function [results,decomp] = main(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
-    % Greg Kaplan 2017
     
     % This is the main function file for this code repository. Given a
     % structure of parameters, p, this script calls functions primarily to 

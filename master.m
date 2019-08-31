@@ -27,6 +27,10 @@
 % over all parameterizations.
 
 % (4) If convergence fails, betaH0 and/or betaL may need to be adjusted.
+% betaL is the lower bound picked for beta during iteration and
+% betaH0 is the adjustment factor to the upper bound. The code will
+% guess a theoretical upper bound, and then will add betaH0 to
+% to that value.
 
 % RUNNING ON THE SERVER: To run in batch on the server, use 
 % code/batch/server.sbatch as a template. That script sends an array to SLURM 
@@ -34,6 +38,11 @@
 % that the range of numbers in the slurm array match the number of 
 % parameters in the parameters script. Output files
 % are stored in the Output directory
+
+% OUTPUT: Results are stored in the 'results' structure. Its 'direct' property
+% contains results found from computing the stationary distribution
+% using non-simulation numerical methods. The 'sim' property contains results
+% found from simulation, if the option is turned on.
 
 clear;
 close all;
