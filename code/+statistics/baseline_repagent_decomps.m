@@ -108,8 +108,8 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
         %% --------------------------------------------------------------
 		% DECOMP WITH RESPECT TO BASELINE
 		% ---------------------------------------------------------------
-        decomp_wrt_baseline(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_s_t{1,1} ...
-                        - results(baseind).direct.mpcs(5).avg_s_t{1,1};
+        decomp_wrt_baseline(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_s_t(1,1) ...
+                        - results(baseind).direct.mpcs(5).avg_s_t(1,1);
         decomp_wrt_baseline(ip).mpc1_term1 = g0_a' * (m1_a - m0_a); % Effect of MPC function
         decomp_wrt_baseline(ip).mpc1_term2 = m0_a' * (g1_a - g0_a); % Effect of distribution
         decomp_wrt_baseline(ip).mpc1_term3 = (m1_a - m0_a)' * (g1_a - g0_a); % Interaction
@@ -148,7 +148,7 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
             m1_atmean = m1_a_interp(3.5);
 
             % Mean model MPC - RA MPC
-            decomp_wrt_repagent(ip).mpc1_Em1_less_mRA = results(ip).direct.mpcs(5).avg_s_t{1,1} - m0_RA;
+            decomp_wrt_repagent(ip).mpc1_Em1_less_mRA = results(ip).direct.mpcs(5).avg_s_t(1,1) - m0_RA;
 
             decomp_wrt_repagent(ip).mpc1_term1 = m1_atmean - m0_RA; % Effect of MPC function
             decomp_wrt_repagent(ip).mpc1_term2 = 0; % Effect of distribution
