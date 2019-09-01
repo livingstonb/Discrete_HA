@@ -20,9 +20,9 @@ FROM_MATFILE = true;
 addpath([basedir '/code']);
 
 if ~FROM_MATFILE
-    clearvars -except params results decomps FROM_MATFILE
+    clearvars -except params results decomps xlxdir FROM_MATFILE
 else
-    clearvars -except FROM_MATFILE
+    clearvars -except basedir matdir xlxdir FROM_MATFILE
 end
 
 if FROM_MATFILE
