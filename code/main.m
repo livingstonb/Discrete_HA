@@ -1,4 +1,4 @@
-function [results,decomp] = main(p)
+function [results,decomp_meanmpc] = main(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -274,9 +274,9 @@ function [results,decomp] = main(p)
     clear mpc_simulator
 
     %% --------------------------------------------------------------------
-    % DECOMPOSITION 1 (DECOMP OF EM)
+    % DECOMPOSITION 1 (DECOMP OF E[mpc])
     % ---------------------------------------------------------------------
-    decomp = decomposition_of_meanmpc(p,grdDST,results);
+    decomp_meanmpc = decomposition_of_meanmpc(p,grdDST,results);
     
     %% --------------------------------------------------------------------
     % GINI

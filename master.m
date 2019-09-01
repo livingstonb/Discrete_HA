@@ -122,7 +122,7 @@ for ip = 1:Nparams
     fprintf('\n Trying %s parameterization "%s"\n',msgfreq,params(ip).name)
 
     tic
-    [results(ip),decomps{ip}] = main(params(ip));
+    [results(ip),decomp_meanmpc{ip}] = main(params(ip));
     toc
     disp(['Finished parameterization ' params(ip).name])
     
