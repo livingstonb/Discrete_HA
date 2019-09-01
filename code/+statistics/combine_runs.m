@@ -27,8 +27,9 @@ end
 
 if FROM_MATFILE
     %% Read .mat files into a cell array
+    decomp_meanmpc = cell(1,1);
     decomp_baseline = cell(1,1);
-    decomp3 = cell(1,1);
+    decomp_repagent = cell(1,1);
     
     ind = 0;
     for run = 1:999
@@ -40,7 +41,7 @@ if FROM_MATFILE
             S = load(fpath);
             params(ind) = S.Sparams;
             results(ind) = S.results;
-            decomps(ind) = S.decomps;
+            decomps{ind} = S.decomps;
             
             [decomp_baseline{ind},decomp_repagent{ind}] ...
             	= statistics.baseline_repagent_decomps(params,results);
