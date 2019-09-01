@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=disc_combine_runs
-#SBATCH --output=/home/livingstonb/GitHub/Discrete_HA/Output/combine_runs.out
-#SBATCH --error=/home/livingstonb/GitHub/Discrete_HA/Output/combine_runs.err
+#SBATCH --output=/home/livingstonb/GitHub/Discrete_HA/output/combine_runs.out
+#SBATCH --error=/home/livingstonb/GitHub/Discrete_HA/output/combine_runs.err
 #SBATCH --partition=broadwl
 #SBATCH --time=00:20:00
 #SBATCH --nodes=1
@@ -10,4 +10,4 @@
 
 module load matlab
 
-matlab -nodisplay < "/home/livingstonb/GitHub/Discrete_HA/code/Statistics/combine_runs.m"
+matlab -nodisplay < "/home/livingstonb/GitHub/Discrete_HA/code/+statistics/combine_runs.m"
