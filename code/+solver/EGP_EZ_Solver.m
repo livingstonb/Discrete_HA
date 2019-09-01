@@ -173,7 +173,7 @@ classdef EGP_EZ_Solver < handle
 			% nexts period's muc(x',yP',yF)
 	        if numel(obj.p.invies) > 1
 	            mucnext = obj.c_xp.^(-obj.invies_col_yT) ...
-	            	.* obj.V_x.p.^(obj.invies_col_yT-obj.p.risk_aver);
+	            	.* obj.V_xp.^(obj.invies_col_yT-obj.p.risk_aver);
 	        elseif numel(obj.p.risk_aver) > 1
 	            mucnext = obj.c_xp.^(-obj.p.invies) .* obj.V_xp.^(obj.p.invies-obj.risk_aver_col_yT);
 	        else
@@ -193,7 +193,7 @@ classdef EGP_EZ_Solver < handle
 	            ezvalnext_ra_equal1 = exp(obj.Emat * log(obj.V_xp) * income.yTdist)...
 	                .^ (obj.risk_aver_col-obj.invies_col);
 
-	            ezvalnext_ra_nequal1 = (obj.Emat * obj.V_x.p.^(1-obj.risk_aver_col)...
+	            ezvalnext_ra_nequal1 = (obj.Emat * obj.V_xp.^(1-obj.risk_aver_col)...
 	            	* income.yTdist)...
 	            	.^ ((obj.risk_aver_col-obj.invies_col)./(1-obj.risk_aver_col));
 
