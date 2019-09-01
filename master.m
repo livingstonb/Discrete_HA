@@ -55,7 +55,7 @@ runopts.Server = 1; % use server paths
 runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
-runopts.mpcshocks_after_period1 = 1; % compute mpcs for ishock > 1
+runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
 % directories
 runopts.localdir = '/Users/Brian-laptop/Documents/GitHub/Discrete_HA';
@@ -108,7 +108,7 @@ end
 % CALL MAIN FUNCTION
 % -------------------------------------------------------------------------
 Nparams = size(params,2);
-decomps    = cell(1,Nparams); 
+decomp_meanmpc    = cell(1,Nparams); 
 
 % iterate through specifications (or run 1)
 for ip = 1:Nparams
@@ -133,7 +133,7 @@ end
 disp('Check the results structure for detailed results')
 % convert Params object to structure for saving
 Sparams = aux.to_structure(params);
-save(runopts.savematpath,'Sparams','results','decomps')
+save(runopts.savematpath,'Sparams','results','decomp_meanmpc')
 
 if runopts.Server == 1
     exit

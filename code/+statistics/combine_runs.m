@@ -41,7 +41,7 @@ if FROM_MATFILE
             S = load(fpath);
             params(ind) = S.Sparams;
             results(ind) = S.results;
-            decomps{ind} = S.decomps;
+            decomps{ind} = S.decomps{1};
             
             [decomp_baseline{ind},decomp_repagent{ind}] ...
             	= statistics.baseline_repagent_decomps(params,results);
