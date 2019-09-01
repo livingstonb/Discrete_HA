@@ -51,10 +51,10 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = 0; % use server paths
-runopts.IterateBeta = 0;
+runopts.Server = 1; % use server paths
+runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for speed
-runopts.Simulate = 1; % also solve distribution via simulation
+runopts.Simulate = 0; % also solve distribution via simulation
 runopts.mpcshocks_after_period1 = 1; % compute mpcs for ishock > 1
 
 % directories
