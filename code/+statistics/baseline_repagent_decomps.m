@@ -188,6 +188,9 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
 end
 
 function [pmf_assets,mpcs_assets] = get_functions_of_assets(baseind,params,pmf,mpcs,dim)
+	% this function outputs pmf(a) and E[mpc|a], functions of assets,
+	% given functions over the entire state space
+	
 	pmf_wide = reshape(pmf,[params(baseind).nx_DST dim]);
 	pmf_assets = sum(pmf_wide,2);
 	pmf_small = pmf_assets < 1e-9;

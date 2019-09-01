@@ -139,9 +139,9 @@ function sim_results = simulate(p,income,model,grids,heterogeneity)
         sim_results.mean_lognety_A   = mean(log(ynetsim(:,p.Tsim)));
         sim_results.var_loggrossy_A  = var(log(ygrosssim(:,p.Tsim)));
         sim_results.var_lognety_A    = var(log(ynetsim(:,p.Tsim)));
-        sim_results.wealthgini_A     = ginicoeff(asim(:,p.Tsim));
-        sim_results.grossincgini_A   = ginicoeff(ygrosssim(:,p.Tsim));
-        sim_results.netincgini_A     = ginicoeff(ynetsim(:,p.Tsim));
+        sim_results.wealthgini_A     = aux.ginicoeff(asim(:,p.Tsim));
+        sim_results.grossincgini_A   = aux.ginicoeff(ygrosssim(:,p.Tsim));
+        sim_results.netincgini_A     = aux.ginicoeff(ynetsim(:,p.Tsim));
     else
         sim_results.mean_grossy_A    = mean(sum(ygrosssim(:,p.Tsim-3:p.Tsim),2));
         sim_results.mean_loggrossy_A = mean(log(sum(ygrosssim(:,p.Tsim-3:p.Tsim),2)));
@@ -149,9 +149,9 @@ function sim_results = simulate(p,income,model,grids,heterogeneity)
         sim_results.mean_lognety_A   = mean(log(sum(ynetsim(:,p.Tsim-3:p.Tsim),2)));
         sim_results.var_loggrossy_A  = var(log(sum(ygrosssim(:,p.Tsim-3:p.Tsim),2)));
         sim_results.var_lognety_A    = var(log(sum(ynetsim(:,p.Tsim-3:p.Tsim),2)));
-        sim_results.wealthgini_A     = ginicoeff(asim(:,p.Tsim));
-        sim_results.grossincgini_A   = ginicoeff(sum(ygrosssim(:,p.Tsim-3:p.Tsim),2));
-        sim_results.netincgini_A     = ginicoeff(sum(ynetsim(:,p.Tsim-3:p.Tsim),2));
+        sim_results.wealthgini_A     = aux.ginicoeff(asim(:,p.Tsim));
+        sim_results.grossincgini_A   = aux.ginicoeff(sum(ygrosssim(:,p.Tsim-3:p.Tsim),2));
+        sim_results.netincgini_A     = aux.ginicoeff(sum(ynetsim(:,p.Tsim-3:p.Tsim),2));
     end
 
     % assetmeans = p.R * mean(ssim);
@@ -186,7 +186,5 @@ function sim_results = simulate(p,income,model,grids,heterogeneity)
 
     clearvars -except p simvals income model grids assetmeans sim_results
     
-    sim_results.mpcs = simulation_MPCs(p,simvals,income,model,grids);
-    sim_results.assetmeans = assetmeans;
-
+    sim_results.mpcs = statistics.simulation_MPCs(p,simvals,income,model,grids);
 end

@@ -12,12 +12,12 @@
 % runopts.mode is equal to 'parameters'. Alternatively, create a new
 % parameters script using parameters.m as a guide. Note that the current
 % 'parameters.m' script assumes that the main income process is in
-% IncomeGrids/quarterly_b.mat. Also note that if frequency is set to 4
+% input/IncomeGrids/quarterly_b.mat. Also note that if frequency is set to 4
 % (quarterly), then annual parameter values should be used and they will
 % be automatically adjusted in Params.adjust_if_quarterly()
 %
 % Note that all parameter defaults
-% are set in the class file code/Model_Setup/Params.m, and parameters.m overrides
+% are set in the class file code/+setup/Params.m, and parameters.m overrides
 % these defaults. Any parameters not in parameters.m are set to their
 % defaults. See the properties of code/Model_Setup/Params.m for a list of all
 % parameters.
@@ -54,8 +54,8 @@ close all;
 runopts.Server = 0; % use server paths
 runopts.IterateBeta = 0;
 runopts.fast = 0; % very small asset and income grids for speed
-runopts.Simulate = 0; % also solve distribution via simulation
-runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
+runopts.Simulate = 1; % also solve distribution via simulation
+runopts.mpcshocks_after_period1 = 1; % compute mpcs for ishock > 1
 
 % directories
 runopts.localdir = '/Users/Brian-laptop/Documents/GitHub/Discrete_HA';
@@ -66,7 +66,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'baseline_Q'}; % {'baseline_Q'}
+runopts.names_to_run = {}; % {'baseline_Q'}
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -74,11 +74,11 @@ runopts.names_to_run = {'baseline_Q'}; % {'baseline_Q'}
 if runopts.Server == 0
     runopts.path = runopts.localdir;
     runopts.number = [];
-    runopts.savematpath = [runopts.localdir '/Output/variables' num2str(runopts.number) '.mat'];
+    runopts.savematpath = [runopts.localdir '/output/variables' num2str(runopts.number) '.mat'];
 else
     runopts.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
     runopts.path = runopts.serverdir;
-    runopts.savematpath = [runopts.serverdir '/Output/variables' num2str(runopts.number) '.mat'];
+    runopts.savematpath = [runopts.serverdir '/output/variables' num2str(runopts.number) '.mat'];
 end
 
 if exist(runopts.savematpath, 'file') == 2
@@ -86,22 +86,20 @@ if exist(runopts.savematpath, 'file') == 2
     delete runopts.savematpath;
 end
 
-addpath([runopts.path '/code/Auxiliary_Functions']);
-addpath([runopts.path '/code/Solve_Model']);
-addpath([runopts.path '/code/Statistics']);
-addpath([runopts.path '/code/Model_Setup']);
+addpath([runopts.path '/code']);
+addpath([runopts.path '/code/aux_lib']);
 cd(runopts.path);
 
 % Load parameters
 switch runopts.mode
     case 'parameters'
-        params = parameters(runopts);
+        params = setup.parameters(runopts);
     case 'grid_tests1'
-        params = parameters_grid_tests1(runopts,'IncomeGrids/quarterly_b.mat');
+        params = setup.parameters_grid_tests1(runopts,'input/IncomeGrids/quarterly_b.mat');
     case 'grid_tests2'
-        params = parameters_grid_tests2(runopts,'IncomeGrids/quarterly_b.mat');
+        params = setup.parameters_grid_tests2(runopts,'input/IncomeGrids/quarterly_b.mat');
     case 'grid_tests3'
-        params = parameters_grid_tests3(runopts,'IncomeGrids/quarterly_b.mat');
+        params = setup.parameters_grid_tests3(runopts,'input/IncomeGrids/quarterly_b.mat');
     otherwise
         error('Parameters script not found')
 end
@@ -134,7 +132,7 @@ end
 
 disp('Check the results structure for detailed results')
 % convert Params object to structure for saving
-Sparams = Params.to_struct(params);
+Sparams = aux.to_structure(params);
 save(runopts.savematpath,'Sparams','results','decomps')
 
 if runopts.Server == 1

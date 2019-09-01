@@ -1,4 +1,5 @@
 function decomp = decomposition_of_meanmpc(p,grids,results)
+	% this function decomposes the mean mpc into four main terms
 
 	decomp = struct();
 	for ia = 1:numel(p.abars)

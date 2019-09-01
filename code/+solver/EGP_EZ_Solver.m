@@ -183,7 +183,7 @@ classdef EGP_EZ_Solver < handle
 	        % expected muc
 	        savtaxrate  = (1+obj.p.savtax.*(repmat(obj.grids.s.matrix(:),obj.p.nb,1)>=obj.p.savtaxthresh));
 	        mu_cons = (1+obj.p.r)*obj.betastacked*obj.Emat*mucnext*income.yTdist ./ savtaxrate;
-	        mu_bequest = utility_bequests1(obj.p.bequest_curv,obj.p.bequest_weight,...
+	        mu_bequest = aux.utility_bequests1(obj.p.bequest_curv,obj.p.bequest_weight,...
 	    		obj.p.bequest_luxury,repmat(obj.grids.s.matrix(:),obj.p.nb,1));
 	        emuc = (1-obj.p.dieprob) * mu_cons + obj.p.dieprob * mu_bequest;
 		end

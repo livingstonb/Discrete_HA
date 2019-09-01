@@ -240,16 +240,6 @@ classdef Params < handle
                 return
             end
         end
-  
-        function S = to_struct(objs)
-            % save object as structure for later use
-            ofields = fields(objs);
-            for is = 1:numel(objs)
-                for ifield = 1:numel(ofields)
-                    S(is).(ofields{ifield}) = objs(is).(ofields{ifield});
-                end
-            end
-        end
     end
 
 end

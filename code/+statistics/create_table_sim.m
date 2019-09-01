@@ -1,5 +1,10 @@
 function [T_annual,T_quarter] = create_table_sim(params,results,...
                                             decomps)
+	% this function creates tables using the simulated
+	% results instead of the direct computations
+	%
+	% this function is likely out of date
+
     %% Rownames
     rows = {'Specification'
             'Lookup Index'

@@ -1,6 +1,6 @@
 function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,income,heterogeneity,grids)
 
- %% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITHOUT INCOME RISK)
+ 	%% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITHOUT INCOME RISK)
     norisk_mpcs1_a_direct = cell(1,6);
  
     for im = 0:numel(p.mpcfrac)

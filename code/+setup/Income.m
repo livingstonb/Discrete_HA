@@ -76,7 +76,7 @@ classdef Income < handle
                 obj.yPdist = reshape(obj.yPdist,[],1);
             elseif obj.p.nyP > 1
                 [obj.logyPgrid, obj.yPtrans, obj.yPdist] ...
-                    = rouwenhorst(obj.p.nyP, -0.5*obj.p.sd_logyP^2, obj.p.sd_logyP, obj.p.rho_logyP);
+                    = aux.rouwenhorst(obj.p.nyP, -0.5*obj.p.sd_logyP^2, obj.p.sd_logyP, obj.p.rho_logyP);
             else
                 obj.logyPgrid = 0;
                 obj.yPdist = 1;
@@ -103,11 +103,11 @@ classdef Income < handle
                 lmu2 = obj.p.lambdaT.*obj.p.sd_logyT^2;
                 lmu4 = 3.*obj.p.lambdaT.*(obj.p.sd_logyT^4);
 
-                %fit thjose moments
-                optionsNLLS = optimoptions(@lsqnonlin,'Display','Off');
-                lpar = lsqnonlin(@(lp)discretize_normal_var_kurt(...
+                %fit those moments
+                optionsNLLS = optimoptions('lsqnonlin','Display','Off');
+                lpar = lsqnonlin(@(lp) aux.discretize_normal_var_kurt(...
                     lp,obj.p.nyT,-lmu2/2,lmu2,lmu4),[2 0.1],[],[],optionsNLLS);
-                [lf,lx,lp] = discretize_normal_var_kurt(lpar,obj.p.nyT,-lmu2/2,lmu2,lmu4);
+                [lf,lx,lp] = aux.discretize_normal_var_kurt(lpar,obj.p.nyT,-lmu2/2,lmu2,lmu4);
                 obj.logyTgrid = lx;
                 obj.yTdist = lp;
                 obj.yTcumdist = cumsum(obj.yTdist,1);
@@ -125,8 +125,8 @@ classdef Income < handle
         
         function get_fixed_effect(obj)
             if obj.p.nyF>1
-                width = fzero(@(x)discrete_normal(obj.p.nyF,-0.5*obj.p.sd_logyF^2 ,obj.p.sd_logyF ,x),2);
-                [~,obj.logyFgrid,obj.yFdist] = discrete_normal(obj.p.nyF,-0.5*obj.p.sd_logyF^2 ,obj.p.sd_logyF ,width);
+                width = fzero(@(x) aux.discrete_normal(obj.p.nyF,-0.5*obj.p.sd_logyF^2 ,obj.p.sd_logyF ,x),2);
+                [~,obj.logyFgrid,obj.yFdist] = aux.discrete_normal(obj.p.nyF,-0.5*obj.p.sd_logyF^2 ,obj.p.sd_logyF ,width);
                 obj.logyFgrid = reshape(obj.logyFgrid,[],1);
                 obj.yFdist = reshape(obj.yFdist,[],1);
             elseif obj.p.nyF==1

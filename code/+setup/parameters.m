@@ -1,17 +1,17 @@
 function params = parameters(runopts)
 
     % location of baseline income process for quarterly case
-    QIncome = 'IncomeGrids/quarterly_b.mat';
+    QIncome = 'input/IncomeGrids/quarterly_b.mat';
     
     %----------------------------------------------------------------------
     % BASELINES
     %----------------------------------------------------------------------
     
     % Annual
-    params(1) = Params(1,'baseline_A','');
+    params(1) = setup.Params(1,'baseline_A','');
     
     % Quarterly
-    params(end+1) = Params(4,'baseline_Q',QIncome);
+    params(end+1) = setup.Params(4,'baseline_Q',QIncome);
     
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -28,7 +28,7 @@ function params = parameters(runopts)
         % different mean wealth targets
         for mw = [0.25, 0.5, 1]
             name = [lfreq ' AYtarget' num2str(mw) ];
-            params(end+1) = Params(ifreq,name,IncomeProcess);
+            params(end+1) = setup.Params(ifreq,name,IncomeProcess);
             params(end).targetAY = mw;
             if ifreq == 4
                 params(end).betaL = 0.5;
@@ -38,7 +38,7 @@ function params = parameters(runopts)
         % different interest rates
         for ii = [0, 5]
             name = [lfreq ' IntRate' num2str(ii)];
-            params(end+1) = Params(ifreq,name,IncomeProcess);
+            params(end+1) = setup.Params(ifreq,name,IncomeProcess);
             params(end).r = ii/100;
             if ii == 5
                 params(end).betaH0 = -3e-3;
@@ -47,42 +47,42 @@ function params = parameters(runopts)
         
         % interest rate heterogeneity
         name = [lfreq ' Permanent r het, r in {0,2,4} p.a.'];
-        params(end+1) = Params(ifreq,name,IncomeProcess);
+        params(end+1) = setup.Params(ifreq,name,IncomeProcess);
         params(end).r = [0,2,4] / 100;
         params(end).betaH0 = -1e-3;
         
         name = [lfreq ' Permanent r het, r in {-2,2,6} p.a.'];
-        params(end+1) = Params(ifreq,name,IncomeProcess);
+        params(end+1) = setup.Params(ifreq,name,IncomeProcess);
         params(end).r = [-2,2,6] / 100;
         params(end).betaH0 = -1e-3;
 
 %         % different tax rates
 %         for itax = [0.05, 0.1, 0.15, 0.25]
 %             name = [lfreq ' LabTax' num2str(itax)];
-%             params(end+1) = Params(ifreq,name,'');
+%             params(end+1) = setup.Params(ifreq,name,'');
 %             params(end).labtaxlow = itax;
 %         end
 
         % no death
         name = [lfreq ' NoDeath'];
-        params(end+1) = Params(ifreq,name,IncomeProcess);
+        params(end+1) = setup.Params(ifreq,name,IncomeProcess);
         params(end).dieprob = 0;
 
         % no bequests
         name = [lfreq ' NoBequests'];
-        params(end+1) = Params(ifreq,name,IncomeProcess);
+        params(end+1) = setup.Params(ifreq,name,IncomeProcess);
         params(end).Bequests = 0;
 
         % perfect annuities
         name = [lfreq ' Annuities'];
-        params(end+1) = Params(ifreq,name,IncomeProcess);
+        params(end+1) = setup.Params(ifreq,name,IncomeProcess);
         params(end).annuities_on();
         params(end).betaH0 = - 5e-3;
 
 %         % bequest curvature
 %         for bcurv = [0.1 0.5 1 2 5]
 %             name = [lfreq ' BeqWt0.02 BeqLux0.01 BeqCurv' num2str(bcurv)];
-%             params(end+1) = Params(ifreq,name,IncomeProcess);
+%             params(end+1) = setup.Params(ifreq,name,IncomeProcess);
 %             params(end).bequest_weight = 0.02;
 %             params(end).bequest_luxury = 0.01;
 %             params(end).bequest_curv   = bcurv;
@@ -97,7 +97,7 @@ function params = parameters(runopts)
              % fixed beta heterogeneity
             for ibw = [0.001, 0.005, 0.01]
                 name = [lfreq ' FixedBetaHet5 Width' num2str(ibw) deathind];
-                params(end+1) = Params(ifreq,name,IncomeProcess);
+                params(end+1) = setup.Params(ifreq,name,IncomeProcess);
                 params(end).nbeta = 5;
                 params(end).betawidth = ibw;
                 params(end).betaswitch = 0;
@@ -114,7 +114,7 @@ function params = parameters(runopts)
             for ibw = [0.01]
                 for bs = [1/50, 1/10]
                     name = [lfreq ' RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
-                    params(end+1) = Params(ifreq,name,IncomeProcess);
+                    params(end+1) = setup.Params(ifreq,name,IncomeProcess);
                     params(end).nbeta = 5;
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
@@ -130,27 +130,27 @@ function params = parameters(runopts)
 
         
         % CRRA with IES heterogeneity
-        params(end+1) = Params(ifreq,[lfreq ' CRRA w/IES betw exp(-1), exp(1)'],IncomeProcess);
+        params(end+1) = setup.Params(ifreq,[lfreq ' CRRA w/IES betw exp(-1), exp(1)'],IncomeProcess);
         params(end).risk_aver = 1./ exp([-1 -0.5 0 0.5 1]);
         if params(end).freq == 4
             params(end).betaH0 =  - 5e-3;
         end
         
-        params(end+1) = Params(ifreq,[lfreq ' CRRA w/IES betw exp(-2), exp(2)'],IncomeProcess);
+        params(end+1) = setup.Params(ifreq,[lfreq ' CRRA w/IES betw exp(-2), exp(2)'],IncomeProcess);
         params(end).risk_aver = 1./ exp([-2 -1 0 1 2]);
         if params(end).freq == 4
             params(end).betaH0 =  - 5e-3;
         end
 
         % EZ with IES heterogeneity
-        params(end+1) = Params(ifreq,[lfreq ' EZ w/IES betw exp(-1), exp(1)'],IncomeProcess);
+        params(end+1) = setup.Params(ifreq,[lfreq ' EZ w/IES betw exp(-1), exp(1)'],IncomeProcess);
         params(end).invies = 1 ./ exp([-1 -0.5 0 0.5 1]);
         params(end).EpsteinZin = 1;
         if (ifreq == 4)
             params(end).betaH0 = - 3e-3;
         end
         
-        params(end+1) = Params(ifreq,[lfreq ' EZ w/IES betw exp(-2), exp(2)'],IncomeProcess);
+        params(end+1) = setup.Params(ifreq,[lfreq ' EZ w/IES betw exp(-2), exp(2)'],IncomeProcess);
         params(end).invies = 1 ./ exp([-2 -1 0 1 2]);
         params(end).EpsteinZin = 1;
         if (ifreq == 4)
@@ -158,7 +158,7 @@ function params = parameters(runopts)
         end
 
         % EZ with risk aversion heterogeneity
-        params(end+1) = Params(ifreq,[lfreq ' EZ w/riskaver betw exp(-2), exp(2)'],IncomeProcess);
+        params(end+1) = setup.Params(ifreq,[lfreq ' EZ w/riskaver betw exp(-2), exp(2)'],IncomeProcess);
         params(end).invies = 1;
         params(end).risk_aver = exp([-2 -1 0 1 2]);
         params(end).EpsteinZin = 1;
@@ -172,43 +172,43 @@ function params = parameters(runopts)
     %----------------------------------------------------------------------
     
     % i
-    params(end+1) = Params(1,'A a(i) NoTransShocks','');
+    params(end+1) = setup.Params(1,'A a(i) NoTransShocks','');
     params(end).nyT = 1;
     params(end).sd_logyT = 0;
     
 %     % ii
-%     params(end+1) = Params(1,'A a(ii) MeasError','');
+%     params(end+1) = setup.Params(1,'A a(ii) MeasError','');
 %     params(end).sd_logyT = sqrt(0.02);
 %     
 %     % iii
-%     params(end+1) = Params(1,'A a(iii) NoTranReEst','');
+%     params(end+1) = setup.Params(1,'A a(iii) NoTranReEst','');
 %     params(end).rho_logyP = 0.8592;
 %     params(end).sd_logyP = sqrt(0.132);
 %     params(end).nyT = 1;
 %     params(end).sd_logyT = 0;
 
     % iv
-    params(end+1) = Params(1,'A a(iv) HighPersistCarrol','');
+    params(end+1) = setup.Params(1,'A a(iv) HighPersistCarrol','');
     params(end).rho_logyP = 0.999;
     params(end).sd_logyP = sqrt(0.015);
     params(end).sd_logyT = sqrt(0.01);
     
 %     % v
-%     params(end+1) = Params(1,'A a(v) HighPersNotReEst','');
+%     params(end+1) = setup.Params(1,'A a(v) HighPersNotReEst','');
 %     params(end).rho_logyP = 0.99;
 %     
 %     % vi
-%     params(end+1) = Params(1,'A a(vi) LowPersNotReEst','');
+%     params(end+1) = setup.Params(1,'A a(vi) LowPersNotReEst','');
 %     params(end).rho_logyP = 0.9;
 % 
 %     % vii
-%     params(end+1) = Params(1,'A a(vii) HighPersReEst','');
+%     params(end+1) = setup.Params(1,'A a(vii) HighPersReEst','');
 %     params(end).rho_logyP = 0.99;
 %     params(end).sd_logyP = sqrt(0.0088);
 %     params(end).sd_logyT = sqrt(0.0667);
     
     % viii
-    params(end+1) = Params(1,'A a(viii) EvenHigherPersReEst','');
+    params(end+1) = setup.Params(1,'A a(viii) EvenHigherPersReEst','');
     params(end).rho_logyP = 0.995;
     params(end).sd_logyP = sqrt(0.0043);
     params(end).sd_logyT = sqrt(0.0688);
@@ -221,7 +221,7 @@ function params = parameters(runopts)
 %     params(end).sd_logyT = sqrt(0);
     
     % x
-    params(end+1) = Params(1,'A WithFE nyF 5','');
+    params(end+1) = setup.Params(1,'A WithFE nyF 5','');
     params(end).rho_logyP = 0.9158;
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
@@ -229,20 +229,20 @@ function params = parameters(runopts)
     params(end).nyF = 5;
 
 %     % xi
-%     params(end+1) = Params(1,'A a(xi) MatchSSA','');
+%     params(end+1) = setup.Params(1,'A a(xi) MatchSSA','');
 %     params(end).rho_logyP = 0.9468;
 %     params(end).sd_logyP = sqrt(0.0641);
 %     params(end).sd_logyT = sqrt(0.0479);
 %     params(end).lambdaT  = 0.0821;
 %     
 %     % xii
-%     params(end+1) = Params(1,'A a(xii) WithSCF m0','');
+%     params(end+1) = setup.Params(1,'A a(xii) WithSCF m0','');
 %     params(end).rho_logyP = 0.9787;
 %     params(end).sd_logyP = sqrt(0.0400);
 %     params(end).sd_logyT = sqrt(0.0508);
 %     
 %     % xiv
-%     params(end+1) = Params(1,'A a(xiv) MassPointTrans','');
+%     params(end+1) = setup.Params(1,'A a(xiv) MassPointTrans','');
 %     params(end).rho_logyP = sqrt(0.9516);
 %     params(end).sd_logyP = sqrt(0.0434);
 %     params(end).sd_logyT = sqrt(0.6431);
@@ -255,7 +255,7 @@ function params = parameters(runopts)
     % different risk aversion coeffs
     for ira = [0.5, 2, 6]
         name = ['Q RiskAver' num2str(ira)];
-        params(end+1) = Params(4,name,QIncome);
+        params(end+1) = setup.Params(4,name,QIncome);
         params(end).risk_aver = ira;
         if (ifreq==4 && ira==4) || ira==6
             params(end).betaL = 0.5;
@@ -267,19 +267,19 @@ function params = parameters(runopts)
     end
     
     % i quarterly_a
-    params(end+1) = Params(4,'Q b(i) quarterly_a','');
+    params(end+1) = setup.Params(4,'Q b(i) quarterly_a','');
     
     % ii
-    params(end+1) = Params(4,'Q b(ii) KMPTransf','');
+    params(end+1) = setup.Params(4,'Q b(ii) KMPTransf','');
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
     
     % iii quarterly_c
-    params(end+1) = Params(4,'Q b(iii) quarterly_c','IncomeGrids/quarterly_c.mat');
+    params(end+1) = setup.Params(4,'Q b(iii) quarterly_c','input/IncomeGrids/quarterly_c.mat');
     
 %     % iv
-%     params(end+1) = Params(4,'Q b(iv) PersEveryPeriod','');
+%     params(end+1) = setup.Params(4,'Q b(iv) PersEveryPeriod','');
 %     params(end).rho_logyP = 0.9884;
 %     params(end).sd_logyP = sqrt(0.0105);
 %     params(end).sd_logyT = sqrt(1.5298);
@@ -299,7 +299,7 @@ function params = parameters(runopts)
         
         % temptation
         for itempt = [0.01 0.05 0.07]
-            params(end+1) = Params(ifreq,[lfreq ' Temptation' num2str(itempt)],IncomeProcess);
+            params(end+1) = setup.Params(ifreq,[lfreq ' Temptation' num2str(itempt)],IncomeProcess);
             params(end).temptation = itempt;
             if (ifreq==4) && (itempt==0.07)
                 params(end).betaH0 = 3.2e-4;
@@ -313,7 +313,7 @@ function params = parameters(runopts)
     ras = [0.5 8  1    1 8];
     ies = [1   1  0.25 2 2];
     for i = 1:5
-        params(end+1) = Params(4,['Q EZ ra' num2str(ras(i)) ' ies' num2str(ies(i))],QIncome);
+        params(end+1) = setup.Params(4,['Q EZ ra' num2str(ras(i)) ' ies' num2str(ies(i))],QIncome);
         params(end).risk_aver = ras(i);
         params(end).invies = 1 / ies(i);
         params(end).EpsteinZin = 1;
@@ -333,7 +333,7 @@ function params = parameters(runopts)
         
 %         % epstein-zin: vary risk_aver
 %         for ra = [0.5 0.75 1.5 2 4 8]
-%             params(end+1) = Params(ifreq,['EZ ra' num2str(ra) ' ies1'],IncomeProcess);
+%             params(end+1) = setup.Params(ifreq,['EZ ra' num2str(ra) ' ies1'],IncomeProcess);
 %             params(end).risk_aver = ra;
 %             params(end).invies = 1;
 %             params(end).EpsteinZin = 1;
@@ -341,19 +341,19 @@ function params = parameters(runopts)
 %         
 %         % epstein-zin: vary invies
 %         for ies = [1/4 1/2 3/4 1.5 2 5]
-%             params(end+1) = Params(ifreq,['EZ ra1 ies' num2str(ies)],IncomeProcess);
+%             params(end+1) = setup.Params(ifreq,['EZ ra1 ies' num2str(ies)],IncomeProcess);
 %             params(end).risk_aver = 1;
 %             params(end).invies = 1/ies;
 %             params(end).EpsteinZin = 1;
 %         end
 
     %----------------------------------------------------------------------
-    % ADJUST TO QUARTERLY VALUES
+    % ADJUST TO QUARTERLY VALUES, DO NOT CHANGE
     %----------------------------------------------------------------------
-    params = Params.adjust_if_quarterly(params);
+    params = setup.Params.adjust_if_quarterly(params);
 
     %----------------------------------------------------------------------
-    % CALL METHODS/CHANGE SELECTED PARAMETERS
+    % CALL METHODS/CHANGE SELECTED PARAMETERS, DO NOT CHANGE
     %----------------------------------------------------------------------
 
     params.set_run_parameters(runopts);
@@ -364,14 +364,11 @@ function params = parameters(runopts)
     % select by number if there is one, otherwise select by names,
     % otherwise use all
     if numel(runopts.number) == 1
-        params = Params.select_by_number(params,runopts.number);
+        params = setup.Params.select_by_number(params,runopts.number);
     elseif numel(runopts.number) > 1
         error('runopts.number must have 1 or zero elements')
     else
-        params = Params.select_by_names(params,runopts.names_to_run);
+        params = setup.Params.select_by_names(params,runopts.names_to_run);
         params.set_index(); % index within .mat file
     end
-   
-    
-
 end

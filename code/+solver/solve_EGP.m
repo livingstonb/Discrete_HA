@@ -93,9 +93,9 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
      
         % c(s)
         if numel(p.risk_aver) == 1
-            con_s = u1inv(p.risk_aver,muc_s);
+            con_s = aux.u1inv(p.risk_aver,muc_s);
         else
-            con_s = u1inv(risk_aver_col,muc_s);
+            con_s = aux.u1inv(risk_aver_col,muc_s);
         end
         
         % x(s) = s + stax + c(s)
@@ -190,17 +190,17 @@ function muc_s = get_marginal_util_cons(...
 	if numel(p.risk_aver) > 1
 		risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
         risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
-        mucnext = utility1(risk_aver_col_yT,c_xp)...
-            - p.temptation/(1+p.temptation) * utility1(risk_aver_col_yT,xp_s);
+        mucnext = aux.utility1(risk_aver_col_yT,c_xp)...
+            - p.temptation/(1+p.temptation) * aux.utility1(risk_aver_col_yT,xp_s);
     else
-        mucnext = utility1(p.risk_aver,c_xp) ...
-            - p.temptation/(1+p.temptation) * utility1(p.risk_aver,xp_s);
+        mucnext = aux.utility1(p.risk_aver,c_xp) ...
+            - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver,xp_s);
     end
 
     % now get MUC this period as a function of s
     savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
     mu_consumption = (1+r_mat(:)).*betastacked*Emat*(mucnext*income.yTdist);
-    mu_bequest = utility_bequests1(p.bequest_curv,p.bequest_weight,...
+    mu_bequest = aux.utility_bequests1(p.bequest_curv,p.bequest_weight,...
                     p.bequest_luxury,repmat(grids.s.matrix(:),p.nb,1));
     muc_s = (1-p.dieprob) * mu_consumption ./ savtaxrate...
                                             + p.dieprob * mu_bequest;
