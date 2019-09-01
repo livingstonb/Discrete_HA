@@ -13,8 +13,8 @@ clear all
 % 'xlxdir' is the desired directory of the output spreadsheet
 
 basedir = '/home/livingstonb/GitHub/Discrete_HA';
-matdir = '/home/livingstonb/GitHub/Discrete_HA/output';
-xlxdir = '/home/livingstonb/GitHub/Discrete_HA/output';
+matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
+xlxdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
 FROM_MATFILE = true;
 
 addpath([basedir '/code']);
