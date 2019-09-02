@@ -41,17 +41,17 @@ if FROM_MATFILE
             S = load(fpath);
             params(ind) = S.Sparams;
             results(ind) = S.results;
-            decomps{ind} = S.decomps{1};
-            
-            [decomp_baseline{ind},decomp_repagent{ind}] ...
-            	= statistics.baseline_repagent_decomps(params,results);
+            decomps{ind} = S.decomp_meanmpc{1};
         else
             continue
         end
     end
+
+    [decomps_baseline,decomps_repagent] ...
+    	= statistics.baseline_repagent_decomps(params,results);
     
     [T_annual,T_quarter] = statistics.create_table(...
-    	params,results,decomps,decomp_baseline,decomp_repagent);
+    	params,results,decomps,decomps_baseline,decomps_repagent);
     
 else
     
