@@ -215,8 +215,8 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     results(ip).direct.mean_a               % Mean assets
                     results(ip).direct.s0;
                     results(ip).direct.constrained(:)       % Fraction with a < eps * mean ann gross inc
+                    results(ip).direct.a_sixth_sim
                     results(ip).direct.a_twelfth_sim       % Fraction with a < 1/12 quarterly income
-                    results(ip).direct.a_lt_015_annual
                     results(ip).direct.x_sixth_sim
                     results(ip).direct.x_twelfth_sim
                     NaN
