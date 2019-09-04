@@ -220,9 +220,6 @@ classdef MPCSimulator < handle
                 a_twelfth_Q(iit) = mean(obj.asim(:,iit) < (y_quarter/12));
                 x_sixth_Q(iit) = mean(obj.xsim(:,iit) < (y_quarter/6));
                 x_twelfth_Q(iit) = mean(obj.xsim(:,iit) < (y_quarter/12));
-
-                a_lt_015_annual(iit) = mean(obj.asim(:,iit) < (y_quarter*p.freq*0.15));
-
             end
 
             obj.inc_constrained = struct();
@@ -271,7 +268,6 @@ classdef MPCSimulator < handle
 		    resultsUpdate.a_twelfth_sim = obj.inc_constrained.a_twelfth_Q;
 		    resultsUpdate.x_sixth_sim = obj.inc_constrained.x_sixth_Q;
 		    resultsUpdate.x_twelfth_sim = obj.inc_constrained.x_twelfth_Q;
-		    resultsUpdate.a_lt_015_annual = obj.inc_constrained.a_lt_015_annual;
 
 		    resultsUpdate.mpcs_sim = obj.mpcs;
 		end

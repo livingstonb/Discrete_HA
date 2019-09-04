@@ -37,7 +37,7 @@ classdef Params < handle
         mpcfrac = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
         
         % wealth statistics options
-        epsilon = [0, 0.005, 0.01, 0.02, 0.05, 0.1]; % fraction of mean ann labor income
+        epsilon = [0, 0.005, 0.01, 0.02, 0.05, 0.1 0.15]; % fraction of mean ann labor income
         percentiles = [10, 25, 50, 75, 90, 95, 99, 99.9]; % in percent
         
         % decomposition

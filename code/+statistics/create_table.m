@@ -16,9 +16,9 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Fraction with a <= 2% mean ann gross lab inc'
             'Fraction with a <= 5% mean ann gross lab inc'
             'Fraction with a <= 10% mean ann gross lab inc'
+            'Fraction with a <= 15% mean ann gross lab inc'
             'Fraction with a <= 1/6 own quarterly income'
             'Fraction with a <= 1/12 own quarterly income'
-            'Fraction with a <= 0.15 * own annual income'
             'Fraction with x <= 1/6 own quarterly income'
             'Fraction with x <= 1/12 own quarterly income'
             '____WEALTH DISTRIBUTION'
@@ -215,7 +215,6 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     results(ip).direct.mean_a               % Mean assets
                     results(ip).direct.s0;
                     results(ip).direct.constrained(:)       % Fraction with a < eps * mean ann gross inc
-                    results(ip).direct.a_sixth_sim         % Fraction with a < 1/6 quarterly income
                     results(ip).direct.a_twelfth_sim       % Fraction with a < 1/12 quarterly income
                     results(ip).direct.a_lt_015_annual
                     results(ip).direct.x_sixth_sim
