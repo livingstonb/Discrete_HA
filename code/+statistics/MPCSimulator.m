@@ -227,7 +227,6 @@ classdef MPCSimulator < handle
             obj.inc_constrained.a_twelfth_Q = mean(a_twelfth_Q);
             obj.inc_constrained.x_sixth_Q = mean(x_sixth_Q);
             obj.inc_constrained.x_twelfth_Q = mean(x_twelfth_Q);
-            obj.inc_constrained.a_lt_015_annual = mean(a_lt_015_annual);
 
             obj.stdev_loggrossy_A = std(log(sum(obj.ygrosssim(:,1:p.freq),2)));
 		    obj.stdev_lognety_A = std(log(sum(obj.ynetsim(:,1:p.freq),2)));
