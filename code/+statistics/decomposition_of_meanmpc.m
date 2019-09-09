@@ -33,19 +33,11 @@ function decomp = decomposition_of_meanmpc(p,grids,results)
     mpcs_nr  = results.norisk.mpcs1_a_direct{5};
     meanmpc_nr = mpcs_nr(:)' * g_nr(:);
 
-    % interpolate to get the integral of mpc(a) * g(a) between a = 0 and 0.05
-    m0g0 = mpcs(:) .* g(:);
-    m0g0 = reshape(m0g0,[p.nx_DST p.nyP*p.nyF*p.nb]);
-    m0g0 = sum(m0g0,2);
-    cum_m0g0 = cumsum(m0g0);
-    m0g0interp = griddedInterpolant(grids.a.vec,cum_m0g0,'linear');
+    % create interpolant of int_0^{epsilon} m0(a)g0(a)da
+    m0g0interp = aux.interpolate_integral(grids.a.matrix(:),mpcs(:),g(:));
 
-    % interpolate to get the integral of mpc_norisk(a) * g_norisk(a)
-    m1g0 = mpcs_nr(:) .* g_nr(:);
-    m1g0 = reshape(m1g0,p.nx_DST,[]);
-    m1g0 = sum(m1g0,2);
-    cum_m1g0 = cumsum(m1g0);
-    m1g0interp = griddedInterpolant(grids.a.vec,cum_m1g0,'linear');
+    % create interpolant of int_0^{epsilon} m1(a)g0(a)da
+    m1g0interp = aux.interpolate_integral(grids.a.vec(:),mpcs_nr(:),g_nr(:));
 
     % get interpolant for cumulative dist of g_a
     g_a = sum(reshape(g,p.nx_DST,[]),2);
