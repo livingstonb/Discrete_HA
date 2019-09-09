@@ -58,7 +58,7 @@ runopts.Simulate = 0; % also solve distribution via simulation
 runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
 % directories
-runopts.localdir = '/Users/Brian-laptop/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % name of parameters script

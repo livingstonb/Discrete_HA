@@ -45,9 +45,7 @@ classdef Grid < handle
 			    xgrid = xgrid.^(1/params.xgrid_par);
 			    xgrid = params.borrow_lim ...
 			    	+ (params.xmax - params.borrow_lim)*xgrid;
-			end
-
-		    xgrid = obj.enforce_min_spacing(params,xgrid);
+            end
 
 		    if strcmp(obj.gtype,'DST')
 		    	xgrid = repmat(xgrid,params.nyP*params.nyF,1);
