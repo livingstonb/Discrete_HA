@@ -58,7 +58,7 @@ runopts.Simulate = 0; % also solve distribution via simulation
 runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
 % directories
-runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % name of parameters script
@@ -75,10 +75,24 @@ if runopts.Server == 0
     runopts.path = runopts.localdir;
     runopts.number = [];
     runopts.savematpath = [runopts.localdir '/output/variables' num2str(runopts.number) '.mat'];
+    if ~exist(runopts.localdir, 'dir')
+        error('Directory not found')
+    end
+    
+    if ~exist([runopts.localdir '/output'], 'dir')
+        mkdir([runopts.localdir '/output']);
+    end
 else
     runopts.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
     runopts.path = runopts.serverdir;
     runopts.savematpath = [runopts.serverdir '/output/variables' num2str(runopts.number) '.mat'];
+    if ~exist(runopts.serverdir, 'dir')
+        error('Directory not found')
+    end
+    
+    if ~exist([runopts.localdir '/output'], 'dir')
+        mkdir([runopts.localdir '/output']);
+    end
 end
 
 if exist(runopts.savematpath, 'file') == 2
@@ -86,6 +100,7 @@ if exist(runopts.savematpath, 'file') == 2
     delete runopts.savematpath;
 end
 
+addpath(runopts.path);
 addpath([runopts.path '/code']);
 addpath([runopts.path '/code/aux_lib']);
 cd(runopts.path);

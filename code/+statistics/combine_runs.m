@@ -1,4 +1,3 @@
-clear all
 
 % this script combines .mat files named variablesX.mat into
 % an excel spreadsheet
@@ -12,15 +11,15 @@ clear all
 %
 % 'xlxdir' is the desired directory of the output spreadsheet
 
-basedir = '/home/livingstonb/GitHub/Discrete_HA';
-matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
-xlxdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
-FROM_MATFILE = true;
+basedir = '/home/brian/Documents/GitHub/Discrete_HA';
+matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
+xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
+FROM_MATFILE = false;
 
 addpath([basedir '/code']);
 
 if ~FROM_MATFILE
-    clearvars -except params results decomps xlxdir FROM_MATFILE
+    clearvars -except params results decomp_meanmpc xlxdir FROM_MATFILE
 else
     clearvars -except basedir matdir xlxdir FROM_MATFILE
 end
@@ -46,18 +45,17 @@ if FROM_MATFILE
             continue
         end
     end
-
-    [decomps_baseline,decomps_repagent] ...
-    	= statistics.baseline_repagent_decomps(params,results);
-    
-    [T_annual,T_quarter] = statistics.create_table(...
-    	params,results,decomps,decomps_baseline,decomps_repagent);
-    
 else
-    
-    [T_annual,T_quarter] = statistics.create_table(params,results,...
-                                            decomps,[],[]);
+    decomps = decomp_meanmpc;
 end
 
-writetable(T_quarter,[xlxdir 'T_quarter.xlsx'],'WriteRowNames',true);
-writetable(T_annual,[xlxdir 'T_annual.xlsx'],'WriteRowNames',true);
+[decomps_baseline,decomps_repagent] ...
+    	= statistics.baseline_repagent_decomps(params,results);
+    
+[T_annual,T_quarter] = statistics.create_table(...
+    params,results,decomps,decomps_baseline,decomps_repagent);
+
+try
+    writetable(T_quarter,[xlxdir 'T_quarter.xlsx'],'WriteRowNames',true);
+    writetable(T_annual,[xlxdir 'T_annual.xlsx'],'WriteRowNames',true);
+end
