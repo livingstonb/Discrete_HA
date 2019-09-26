@@ -29,7 +29,7 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
         extra = 0;
     end
     
-    con = (r_mat .* (r_mat>=0.001) + 0.001 * (r_mat<0.001) + extra) .* repmat(grids.s.vec,1,p.nb) + income.meany1;
+    con = (r_mat .* (r_mat>=0.001) + 0.001 * (r_mat<0.001) + extra) .* repmat(grids.s.vec,1,p.nb) + income.meannety1;
 
     iter = 0;
     cdiff = 1000;
@@ -43,14 +43,14 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
             
             % cash-on-hand is just Rs + meany
             if numel(p.r) > 1
-                mucnext(:,ib) = aux.utility1(p.risk_aver,coninterp{ib}(p.R(ib)*grids.s.vec + income.meany1))...
-                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver,p.R(ib)*grids.s.vec + income.meany1);
+                mucnext(:,ib) = aux.utility1(p.risk_aver,coninterp{ib}(p.R(ib)*grids.s.vec + income.meannety1))...
+                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver,p.R(ib)*grids.s.vec + income.meannety1);
             elseif numel(p.risk_aver) > 1
-                mucnext(:,ib) = aux.utility1(risk_aver_mat(:,ib),coninterp{ib}(p.R.*grids.s.vec + income.meany1))...
-                                - p.temptation/(1+p.temptation) * aux.utility1(risk_aver_mat(:,ib),p.R.*grids.s.vec + income.meany1);
+                mucnext(:,ib) = aux.utility1(risk_aver_mat(:,ib),coninterp{ib}(p.R.*grids.s.vec + income.meannety1))...
+                                - p.temptation/(1+p.temptation) * aux.utility1(risk_aver_mat(:,ib),p.R.*grids.s.vec + income.meannety1);
             else
-                mucnext(:,ib) = aux.utility1(p.risk_aver,coninterp{ib}(p.R*grids.s.vec + income.meany1))...
-                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver,p.R.*grids.s.vec + income.meany1);
+                mucnext(:,ib) = aux.utility1(p.risk_aver,coninterp{ib}(p.R*grids.s.vec + income.meannety1))...
+                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver,p.R.*grids.s.vec + income.meannety1);
             end
         end
         

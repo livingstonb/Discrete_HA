@@ -287,7 +287,15 @@ function params = parameters(runopts)
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
-    
+
+    % Mitman-like calibration
+    params(end+1) = setup.Params(4, 'Q KMP w/tax and transfer, no discount het')
+    params(end).rho_logyP = 0.9879;
+    params(end).sd_logyP = sqrt(0.0109);
+    params(end).sd_logyT = sqrt(0.0494);
+    params(end).labtaxlow = 0.25;
+    params(end).lumptransfer = 0.0363;
+    params(end).targetAY = 4.9;
     
     % iii quarterly_c
     params(end+1) = setup.Params(4,'Q b(iii) quarterly_c','input/IncomeGrids/quarterly_c.mat');

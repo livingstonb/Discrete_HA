@@ -98,6 +98,7 @@ classdef Params < handle
         labtaxthreshpc  = 0.99; %percentile of earnings distribution where high tax rate kicks in
         savtax          = 0; %0.0001;  %tax rate on savings
         savtaxthresh    = 0; %multiple of mean gross labor income
+        lumptransfer   = 0;
 
         % discount factor shocks
         nbeta = 1;

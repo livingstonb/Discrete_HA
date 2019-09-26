@@ -161,7 +161,7 @@ classdef Income < handle
 
             % 1-period statistics
             obj.meany1 = obj.ymat(:)' * obj.ymatdist(:);
-            totgrossy1 =obj. meany1;
+            totgrossy1 = obj.meany1;
 
             % find tax threshold on labor income
             if numel(obj.ysort)>1
@@ -172,8 +172,10 @@ classdef Income < handle
 
             % find net income
             totgrossyhigh = max(obj.ymat(:)-obj.labtaxthresh,0)' * obj.ymatdist(:);
-            obj.lumptransfer = obj.p.labtaxlow * totgrossy1 ...
-            	+ obj.p.labtaxhigh * totgrossyhigh;
+            % obj.lumptransfer = obj.p.labtaxlow * totgrossy1 ...
+            % 	+ obj.p.labtaxhigh * totgrossyhigh;
+            obj.lumptransfer = obj.p.lumptransfer;
+
             % netymat is N by nyT matrix
             obj.netymat = obj.lumptransfer + (1-obj.p.labtaxlow) * obj.ymat ...
             	- obj.p.labtaxhigh * max(obj.ymat-obj.labtaxthresh,0);

@@ -56,7 +56,7 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
             baseind = find(ismember({params.name},{'baseline_Q'}));
         end
         
-        if numel(params) == 1
+        if (numel(params) == 1) || isempty(baseind)
             continue
         end
         

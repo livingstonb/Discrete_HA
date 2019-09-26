@@ -14,7 +14,7 @@
 basedir = '/home/brian/Documents/GitHub/Discrete_HA';
 matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
 xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
-FROM_MATFILE = false;
+FROM_MATFILE = true;
 
 addpath([basedir '/code']);
 
