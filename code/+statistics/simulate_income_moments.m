@@ -3,8 +3,7 @@ clear
 % This script is designed to be run in isolation to estimate various moments of the
 % provided income processes. It may be outdated...
 
-path = '/Users/Brian/Documents/GitHub/MPCrecode';
-addpath([path '/Auxiliary Functions']);
+path = '/Users/Brian/Documents/GitHub/Discrete_HA';
 
 %% ------------------------------------------------------------------------
 % SET PARAMETERS
@@ -12,8 +11,7 @@ addpath([path '/Auxiliary Functions']);
 Nsim = 1e6;
 
 % Baseline quarterly
-params(1).IncomeProcess = ''; % generate in code
-params(1).freq         = 4;
+params(1) = setup.Params(4,'baseline','');
 params(1).nyT          = 11;
 params(1).yTContinuous = 0;
 params(1).sd_logyT     = sqrt(0.2087);
@@ -28,36 +26,56 @@ params(1).labtaxhigh      = 0; %additional tax on incomes above threshold
 params(1).labtaxthreshpc  = 0.99; %percentile of earnings distribution where high tax rate kicks in
 params(1).savtax          = 0; %0.0001;  %tax rate on savings
 params(1).savtaxthresh    = 0; %multiple of mean gross labor income
-income{1} = gen_income_variables(params(1));
+het{1} = setup.Prefs_R_Heterogeneity(params(1));
+income{1} = setup.Income(params(1),het{1});
 
 % quarterly_a
 params(2) = params(1);
-params(2).IncomeProcess = 'IncomeGrids/quarterly_a.mat';
-income{2} = gen_income_variables(params(2));
+params(2).IncomeProcess = 'input/IncomeGrids/quarterly_a.mat';
+het{2} = setup.Prefs_R_Heterogeneity(params(2));
+income{2} = setup.Income(params(2),het{2});
 
 % quarterly_b
 params(3) = params(1);
-params(3).IncomeProcess = 'IncomeGrids/quarterly_b.mat';
-income{3} = gen_income_variables(params(3));
+params(3).IncomeProcess = 'input/IncomeGrids/quarterly_b.mat';
+het{3} = setup.Prefs_R_Heterogeneity(params(3));
+income{3} = setup.Income(params(3),het{3});
 
 % quarterly_b
 params(4) = params(1);
-params(4).IncomeProcess = 'IncomeGrids/quarterly_c.mat';
-income{4} = gen_income_variables(params(4));
+params(4).IncomeProcess = 'input/IncomeGrids/quarterly_c.mat';
+het{4} = setup.Prefs_R_Heterogeneity(params(4));
+income{4} = setup.Income(params(4),het{4});
+
+% KMP
+params(5) = setup.Params(4,'KMP','');
+params(5).rho_logyP = 0.9879;
+params(5).sd_logyP = sqrt(0.0109);
+params(5).sd_logyT = sqrt(0.0494);
+het{5} = setup.Prefs_R_Heterogeneity(params(5));
+income{5} = setup.Income(params(5),het{5});
+
+% KMP - Mitman
+params(6) = setup.Params(4,'KMP','input/IncomeGrids/mitman.mat');
+het{6} = setup.Prefs_R_Heterogeneity(params(6));
+income{6} = setup.Income(params(6),het{6});
+
 
 %% ------------------------------------------------------------------------
 % SIMULATE
 % -------------------------------------------------------------------------
-yTsim = cell(1,4);
-yPsim = cell(1,4);
+n_p = numel(params);
 
-for i = 1:4
-    yTrand = rand(Nsim,4);
-    yPrand = rand(Nsim,4);
-    yTindsim = zeros(Nsim,4,'int8');
-    yPindsim = zeros(Nsim,4,'int8');
+yTsim = cell(1,n_p);
+yPsim = cell(1,n_p);
+
+for i = 1:n_p
+    yTrand = rand(Nsim,n_p);
+    yPrand = rand(Nsim,n_p);
+    yTindsim = zeros(Nsim,n_p,'int8');
+    yPindsim = zeros(Nsim,n_p,'int8');
     
-    for it = 1:4
+    for it = 1:n_p
         [~,yTindsim(:,it)] = max(bsxfun(@lt,yTrand(:,it),income{i}.yTcumdist'),[],2);
         if it == 1
             [~,yPindsim(:,it)] = max(bsxfun(@lt,yPrand(:,it),income{i}.yPcumdist'),[],2);
@@ -78,10 +96,11 @@ Qmoments(1).name = 'q_base';
 Qmoments(2).name = 'q_a';
 Qmoments(3).name = 'q_b';
 Qmoments(4).name = 'q_c';
+Qmoments(5).name = 'KMP';
 Amoments = Qmoments;
 
 % quarterly moments
-for i = 1:4
+for i = 1:n_p
     yTsimQ = yTsim{i}(:,1);
     Qmoments(i).yT_mu1 = mean(yTsimQ);
     Qmoments(i).yT_mu2 = mean( (yTsimQ - mean(yTsimQ)).^2 );
@@ -108,7 +127,7 @@ for i = 1:4
 end
 
 % annual moments
-for i = 1:4
+for i = 1:n_p
     yTsimA = sum(yTsim{i},2);
     Amoments(i).yT_mu1 = mean(yTsimA);
     Amoments(i).yT_mu2 = mean( (yTsimA - mean(yTsimA)).^2 );

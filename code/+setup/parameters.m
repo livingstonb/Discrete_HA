@@ -1,7 +1,7 @@
 function params = parameters(runopts)
 
     % location of baseline income process for quarterly case
-    QIncome = 'IncomeGrids/quarterly_b.mat';
+    QIncome = 'input/IncomeGrids/quarterly_b.mat';
     
     %----------------------------------------------------------------------
     % BASELINES
@@ -275,27 +275,23 @@ function params = parameters(runopts)
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
 
-    % alternative KMP tests for Greg
-    params(end+1) = setup.Params(4,'Q b(ii) KMPTransf, low wealth target','');
-    params(end).targetAY = 11.56 / 4;
-    params(end).rho_logyP = 0.9879;
-    params(end).sd_logyP = sqrt(0.0109);
-    params(end).sd_logyT = sqrt(0.0494);
-
-    params(end+1) = setup.Params(4,'Q b(ii) KMPTransf, high wealth target','');
+    % KMP with tax and transfer - Mitman inc process
+    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, no discount het','input/IncomeGrids/mitman.mat');
+    params(end).sd_logyT = sqrt(0.0522);
+    params(end).labtaxlow = 0.25;
+    params(end).lumptransfer = 0.0363;
     params(end).targetAY = 4.9;
-    params(end).rho_logyP = 0.9879;
-    params(end).sd_logyP = sqrt(0.0109);
-    params(end).sd_logyT = sqrt(0.0494);
-
-    % Mitman-like calibration
-    params(end+1) = setup.Params(4, 'Q KMP w/tax and transfer, no discount het')
+    params(end).r = 0;
+    
+    % KMP with tax and transfer - our inc process
+    params(end+1) = setup.Params(4, 'Q KMP (our income) w/tax and transfer, no discount het','');
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
     params(end).labtaxlow = 0.25;
     params(end).lumptransfer = 0.0363;
     params(end).targetAY = 4.9;
+    params(end).r = 0;
     
     % iii quarterly_c
     params(end+1) = setup.Params(4,'Q b(iii) quarterly_c','input/IncomeGrids/quarterly_c.mat');

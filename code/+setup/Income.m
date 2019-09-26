@@ -1,6 +1,7 @@
 classdef Income < handle
     properties (SetAccess = private)
-        LoadIncome;
+        Load_yP;
+        Load_yT = false;
         Import;
         
         p;
@@ -35,6 +36,8 @@ classdef Income < handle
         netymatEGP;
         netymatDST;
         meannety1;
+        
+        fraction_net_transfer;
 
         ysort;
         ysortdist;
@@ -47,9 +50,9 @@ classdef Income < handle
         function obj = Income(p,heterogeneity)
             obj.p = p;
             obj.het = heterogeneity;
-            obj.LoadIncome = ~isempty(p.IncomeProcess);
+            obj.Load_yP = ~isempty(p.IncomeProcess);
             
-            if obj.LoadIncome
+            if obj.Load_yP
                 obj.Import = load(p.IncomeProcess);
             end
             
@@ -67,13 +70,17 @@ classdef Income < handle
         end
         
         function get_persistent_income(obj)
-            if obj.LoadIncome
+            if obj.Load_yP
                 obj.logyPgrid = obj.Import.discmodel1.logyPgrid;
                 obj.yPdist = obj.Import.discmodel1.yPdist;
                 obj.yPtrans = obj.Import.discmodel1.yPtrans;
                 obj.p.nyP = length(obj.logyPgrid);
                 obj.logyPgrid = reshape(obj.logyPgrid,[],1);
                 obj.yPdist = reshape(obj.yPdist,[],1);
+                
+                if ~isempty(obj.Import.discmodel1.logyTgrid)
+                    obj.Load_yT = true;
+                end
             elseif obj.p.nyP > 1
                 [obj.logyPgrid, obj.yPtrans, obj.yPdist] ...
                     = aux.rouwenhorst(obj.p.nyP, -0.5*obj.p.sd_logyP^2, obj.p.sd_logyP, obj.p.rho_logyP);
@@ -91,7 +98,7 @@ classdef Income < handle
         end
         
         function get_transitory_income(obj)
-            if obj.LoadIncome
+            if obj.Load_yT
                 obj.logyTgrid = obj.Import.discmodel1.logyTgrid;
                 obj.yTdist = obj.Import.discmodel1.yTdist;
                 obj.p.nyT = length(obj.logyTgrid);
@@ -180,6 +187,9 @@ classdef Income < handle
             obj.netymat = obj.lumptransfer + (1-obj.p.labtaxlow) * obj.ymat ...
             	- obj.p.labtaxhigh * max(obj.ymat-obj.labtaxthresh,0);
             obj.meannety1 = obj.netymat(:)' * obj.ymatdist(:);
+            
+            % fraction of households that recieve net transfer from gov
+            obj.fraction_net_transfer = (obj.netymat(:)>obj.ymat(:))' * obj.ymatdist(:);
 
             % net y values on HJB grid
             netymat_temp = reshape(obj.netymat,[1 obj.p.nyP obj.p.nyF obj.p.nyT]);
