@@ -20,6 +20,6 @@ function AYdiff = iterate_EGP(...
 							income,mpcshock,[]);
 	end
 
-	AYdiff = solver.find_stationary_adist(p,model,income,grdDST);
+	AYdiff = solver.find_stationary_adist(p,model,income,grdDST,heterogeneity);
 
 end

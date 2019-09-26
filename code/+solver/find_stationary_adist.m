@@ -1,4 +1,4 @@
-function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids)
+function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heterogeneity)
     % Finds the stationary distribution and transition matrix for a given
     % grids.a.vec
     
@@ -43,7 +43,7 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids)
 
     % stationary distribution over states
     fprintf(' Finding ergodic distribution...\n');
-    q = get_distribution(p,income,nx,modelupdate.statetrans);
+    q = get_distribution(p,income,nx,modelupdate.statetrans,heterogeneity);
 %     [q,~] = eigs(modelupdate.statetrans',[],1,1);
 %     q = q / sum(q(:));
 
@@ -146,12 +146,21 @@ end
 %% ----------------------------------------------------------------
 % iTERATIVE METHOD TO FIND STATIONARY DISTRIBUTION
 % -----------------------------------------------------------------
-function q = get_distribution(p,income,nx,statetrans)
-	q=zeros(1,nx*p.nyP*p.nyF*p.nb);
+function q = get_distribution(p,income,nx,statetrans,heterogeneity)
+	q=ones(nx,p.nyP,p.nyF,p.nb);
 
     % create valid initial distribution for both yF & beta
-    % repmat automatically puts equal weight on each beta
-    q(1,1:nx*p.nyP:end) = repmat(income.yFdist,p.nb,1) / p.nb;
+    beta_dist = reshape(heterogeneity.betadist,[1,1,1,p.nbeta]);
+    yFdist = reshape(income.yFdist,[1,1,p.nyF,1]);
+    q = beta_dist .* yFdist;
+
+    if (p.nbeta==1) && (p.nb>1)
+        q = repmat(q,[nx,p.nyP,1,p.nb]);
+    else
+        q = repmat(q,[nx,p.nyP,1,1]);
+    end
+    q = q(:)' / sum(q(:));
+
     diff = 1; 
     iter = 1;
     while diff>1e-9 && iter < 5e4

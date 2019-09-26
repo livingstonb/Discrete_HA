@@ -119,6 +119,7 @@ function params = parameters(runopts)
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
                     params(end).dieprob = deathp;
+                    params(end).beta0 = 0.9;
                     if strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.02 Death")
                         params(end).betaH0 = 5e-3;
                     elseif strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.1 Death")

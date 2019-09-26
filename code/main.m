@@ -79,7 +79,7 @@ function [results,decomp_meanmpc] = main(p)
         mpcshock = 0;
         basemodel = solver.solve_EGP(beta_final,p,grdEGP,heterogeneity,income,mpcshock,[]);
     end
-    [~,basemodel] = solver.find_stationary_adist(p,basemodel,income,grdDST);
+   [~,basemodel] = solver.find_stationary_adist(p,basemodel,income,grdDST,heterogeneity);
     results.direct.adist = basemodel.adist;
 
     % Report beta and annualized beta

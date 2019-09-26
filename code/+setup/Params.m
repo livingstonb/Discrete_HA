@@ -102,6 +102,7 @@ classdef Params < handle
 
         % discount factor shocks
         nbeta = 1;
+        beta_dist = 1; % either 1 for equal prob in all, or vector summing to 1
         betawidth = 0.005;
         betaswitch = 0;
 

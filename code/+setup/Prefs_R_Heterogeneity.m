@@ -39,7 +39,17 @@ classdef Prefs_R_Heterogeneity < handle
 		        obj.betatrans = 1;
 		    elseif params.nbeta > 1
 		        % Equal probability in stationary distribution
-		        obj.betadist = ones(params.nbeta,1) / params.nbeta; 
+		        if numel(params.beta_dist) == 1
+		        	obj.betadist = ones(params.nbeta,1) / params.nbeta;
+		        elseif (numel(params.beta_dist)==params.nbeta) && (sum(params.beta_dist)==1)
+		        	obj.beta_dist = params.beta_dist(:);
+		        else
+		        	error('Invalid distribution for betas')
+		        end
+
+		        if (numel(params.beta_dist) > 1) && (params.betaswitch>0)
+					error('Model does not allow for setting both a probability of beta switching and the stationary distribution for beta')
+				end
 		        % Probability of switching from beta_i to beta_j, for i=/=j
 		        betaswitch_ij = params.betaswitch / (params.nbeta-1);
 		        % Create matrix with (1-betaswitch) on diag and betaswitch_ij
