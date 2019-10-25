@@ -13,8 +13,12 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
     
     %% ----------------------------------------------------
     % CONSTRUCT EXPECTATIONS MATRIX, ETC...
-    % -----------------------------------------------------                                  
-    betagrid = beta + heterogeneity.betagrid0;
+    % -----------------------------------------------------
+    if numel(p.beta_grid_forced) == 0
+        betagrid = beta + heterogeneity.betagrid0;
+    else
+        betagrid = p.beta_grid_forced;
+    end
     
     if p.IterateBeta == 1
         msg = sprintf(' %3.3f',betagrid);

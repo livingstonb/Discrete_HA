@@ -284,6 +284,7 @@ function params = parameters(runopts)
     params(end).targetAY = 4.9;
     params(end).r = 0;
     
+    
     % KMP with tax and transfer - our inc process
     params(end+1) = setup.Params(4, 'Q KMP (our income) w/tax and transfer, no discount het','');
     params(end).rho_logyP = 0.9879;
@@ -293,6 +294,43 @@ function params = parameters(runopts)
     params(end).lumptransfer = 0.0363;
     params(end).targetAY = 4.9;
     params(end).r = 0;
+    
+    % IMP with tax and transfer, and discount factor heterogeneity- Mitman inc process
+    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta width 0.01','input/IncomeGrids/mitman.mat');
+    params(end).sd_logyT = sqrt(0.0522);
+    params(end).labtaxlow = 0.25;
+    params(end).lumptransfer = 0.0363;
+    params(end).targetAY = 4.9;
+    params(end).r = 0;
+    params(end).nbeta = 2;
+    params(end).betawidth = 0.01;
+    params(end).beta_dist = [0.2, 0.8];
+    params(end).beta0 = 0.9;
+    params(end).betaH0 = -1e-3;
+
+     % IMP with tax and transfer, and discount factor heterogeneity- Mitman inc process
+    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta width 0.1','input/IncomeGrids/mitman.mat');
+    params(end).sd_logyT = sqrt(0.0522);
+    params(end).labtaxlow = 0.25;
+    params(end).lumptransfer = 0.0363;
+    params(end).targetAY = 4.9;
+    params(end).r = 0;
+    params(end).nbeta = 2;
+    params(end).betawidth = 0.1;
+    params(end).beta_dist = [0.2, 0.8];
+    params(end).beta0 = 0.9;
+    params(end).betaH0 = -1e-3;
+
+    % IMP with tax and transfer, and discount factor heterogeneity- Mitman inc process
+    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta 0.9929, 0.9994','input/IncomeGrids/mitman.mat');
+    params(end).sd_logyT = sqrt(0.0522);
+    params(end).labtaxlow = 0.25;
+    params(end).lumptransfer = 0.0363;
+    params(end).r = 0;
+    params(end).nbeta = 2;
+    params(end).beta_dist = [0.2, 0.8];
+    params(end).beta_grid_forced = [0.9929; 0.9994];
+    
     
     % iii quarterly_c
     params(end+1) = setup.Params(4,'Q b(iii) quarterly_c','input/IncomeGrids/quarterly_c.mat');

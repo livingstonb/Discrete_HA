@@ -7,7 +7,11 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
     sav = zeros(p.nx,p.nb);
     mucnext= zeros(p.nx,p.nb);
     
-    betagrid = direct_results.beta + heterogeneity.betagrid0;
+    if numel(p.beta_grid_forced) == 0
+        betagrid = direct_results.beta + heterogeneity.betagrid0;
+    else
+        betagrid = p.beta_grid_forced;
+    end
     
     if numel(p.r) > 1
         Emat = kron(heterogeneity.rtrans,kron(income.ytrans,speye(p.nx)));

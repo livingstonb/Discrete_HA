@@ -42,7 +42,7 @@ classdef Prefs_R_Heterogeneity < handle
 		        if numel(params.beta_dist) == 1
 		        	obj.betadist = ones(params.nbeta,1) / params.nbeta;
 		        elseif (numel(params.beta_dist)==params.nbeta) && (sum(params.beta_dist)==1)
-		        	obj.beta_dist = params.beta_dist(:);
+		        	obj.betadist = params.beta_dist(:);
 		        else
 		        	error('Invalid distribution for betas')
 		        end

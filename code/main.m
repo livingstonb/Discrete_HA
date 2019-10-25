@@ -169,8 +169,7 @@ function [results,decomp_meanmpc] = main(p)
     % Deterministic model
     norisk = solver.solve_EGP_deterministic(p,grdEGP,heterogeneity,income,results.direct);
     if norisk.EGP_cdiff > p.tol_iter
-        % EGP did not converge for beta, escape this parameterization
-        return
+        warning('EGP did not converge for norisk model')
     end
     
     %% --------------------------------------------------------------------
