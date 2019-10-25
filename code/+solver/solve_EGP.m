@@ -93,7 +93,7 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
         xp_s(~svalid) = 0;
 
         % c(x')
-        c_xp = get_c_xprime(p,grids,xp_s,prevmodel,conlast,xvalid,nextmpcshock);
+        c_xp = get_c_xprime(p,grids,xp_s,prevmodel,conlast,nextmpcshock);
         
         % reshape to take expecation over yT first
         c_xp = reshape(c_xp,[],p.nyT);
@@ -156,11 +156,20 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
         model.savinterp{iyP,iyF,ib} = ...
             griddedInterpolant(grids.x.matrix(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
         model.coninterp{iyP,iyF,ib} = ...
-            griddedInterpolant(grids.x.matrix(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');    
+            griddedInterpolant(grids.x.matrix(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');
+        model.coninterp_xprime{iyP,iyF,ib} = @(xprime) new_con_interp(model.coninterp{iyP,iyF,ib},xprime,nextmpcshock);
     end
     end
     end
 end
+
+function result = new_con_interp(old_con_interp, xprime, nextmpcshock)
+    valid = xprime + nextmpcshock >= 0;
+    result = zeros(size(xprime));
+    result(valid) = old_con_interp(xprime(valid));
+    result(~valid) = 1e-8;
+end
+    
 
 function xprime_s = get_xprime_s(p,income,grids,r_mat,nextmpcshock)
 	% find xprime as a function of s
@@ -168,35 +177,40 @@ function xprime_s = get_xprime_s(p,income,grids,r_mat,nextmpcshock)
     xprime_s = (1+r_mat) .* grids.s.matrix + income.netymatEGP + nextmpcshock;
 end
 
-function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast,xvalid,nextmpcshock)
+function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast,nextmpcshock)
 	% find c as a function of x'
 	c_xprime = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
     
     if nextmpcshock >= 0
-        ix_valid = 1:p.nx;
+        ixp_valid = 1:p.nx;
+    else
+        xpvalid = grids.x.matrix + nextmpcshock >= 0;
     end
 
 	for ib  = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
         if nextmpcshock < 0
-            ix_valid = find(xvalid(:,iyP,iyF,1));
+            ixp_valid = find(xpvalid(:,iyP,iyF));
         end
-    	xp_s_ib_iyF_iyP = xp_s(ix_valid,iyP,iyF,ib,:);
+    	xp_s_ib_iyF_iyP = xp_s(ixp_valid,iyP,iyF,ib,:);
         if isempty(prevmodel)
             % usual method of EGP
-            coninterp = griddedInterpolant(grids.x.matrix(ix_valid,iyP,iyF),conlast(ix_valid,iyP,iyF,ib),'linear');
-            c_xprime(ix_valid,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+            coninterp = griddedInterpolant(grids.x.matrix(ixp_valid,iyP,iyF),conlast(ixp_valid,iyP,iyF,ib),'linear');
+            c_xprime(ixp_valid,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
         else
             % need to compute IMPC(s,t) for s > 1, where IMPC(s,t) is MPC in period t out of period
             % s shock that was learned about in period 1 < s
-            c_xprime(ix_valid,iyP,iyF,ib,:) = reshape(prevmodel.coninterp{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
+            c_xprime(ixp_valid,iyP,iyF,ib,:) = reshape(prevmodel.coninterp_xprime{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)),[],1,1,1,p.nyT);
         end
     end
     end
     end
     
-    c_xprime(~xvalid) = 1e-8;
+    if nextmpcshock < 0
+        xpvalid = repmat(xpvalid,[1 1 1 p.nb p.nyT]);
+        c_xprime(~xpvalid) = 1e-8;
+    end
 end
 
 function muc_s = get_marginal_util_cons(...

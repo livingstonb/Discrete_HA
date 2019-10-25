@@ -62,11 +62,11 @@ runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % name of parameters script
-runopts.mode = 'other'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'beta_heterog_width0.0005'};
+runopts.names_to_run = {'Q FixedBetaHet5 Width0.005 Death'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
