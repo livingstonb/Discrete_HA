@@ -66,7 +66,7 @@ runopts.mode = 'other'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'beta_heterog_width0.0005'};
+runopts.names_to_run = {'wealth3.2'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW

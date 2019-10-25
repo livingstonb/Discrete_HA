@@ -191,13 +191,17 @@ function [results,decomp_meanmpc] = main(p)
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
     % ---------------------------------------------------------------------
     if p.mpcshocks_after_period1 == 1
-        maxT = p.freq * 4 + 1;
+        if p.freq == 4
+            maxT = 10;
+        else
+            maxT = 5;
+        end
     else
         maxT = 1;
     end
     mpcmodels = cell(6,maxT,maxT);
     
-    shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
+    shocks = p.shocks;
     
     % policy functions are the same as baseline when shock is received in
     % the current period
@@ -246,6 +250,8 @@ function [results,decomp_meanmpc] = main(p)
     mpc_finder = statistics.MPCFinder(p,income,grdDST,basemodel,mpcmodels);
     mpc_finder.solve(p,grdDST);
     results.direct.mpcs = mpc_finder.mpcs;
+    results.direct.loan = mpc_finder.loan;
+    results.direct.loss_in_2_years = mpc_finder.loss_in_2_years;
     clear mpc_finder
     
     %% --------------------------------------------------------------------

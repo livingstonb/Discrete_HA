@@ -10,6 +10,12 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
     % to reflect the expectation of a future shock. For these cases,
     % the policy functions in 'prevmodel' are used. The variable 'nextmpcshock'
     % is nonzero when a shock is expected next period.
+
+    %% ----------------------------------------------------
+    % REGION WHERE NEXT PERIOD'S SHOCK DRIVES x BELOW 0
+    % ----------------------------------------------------- 
+    min_nety = min(income.netymat(:));
+    invalid = grids.x.matrix <= -(min_nety + nextmpcshock) / p.R;
     
     %% ----------------------------------------------------
     % CONSTRUCT EXPECTATIONS MATRIX, ETC...
@@ -129,6 +135,10 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
     model.sav = sav;
     model.con = reshape(conupdate,[p.nx p.nyP p.nyF p.nb]);
     model.EGP_cdiff = cdiff;
+
+    % adjust for when next period's mpc shock drives assets below 0
+    model.con(invalid) = 1e-8;
+    model.sav = grids.x.matrix - model.con;
     
     % create interpolants from optimal policy functions
     % and find saving values associated with xvals

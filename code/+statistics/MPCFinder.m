@@ -30,6 +30,8 @@ classdef MPCFinder < handle
 		fspace; % object used to interpolate back onto agrid
 
 		mpcs = struct(); % results
+		loan;
+		loss_in_2_years;
 	end
 
 	methods
@@ -55,6 +57,9 @@ classdef MPCFinder < handle
 		    	obj.mpcs(ishock).avg_s_t = NaN(5,5);
 		    	% mpcs over states for shock in period 1
 		    	obj.mpcs(ishock).mpcs_1_t = cell(1,4);
+
+		    	obj.loan = NaN;
+		    	obj.loss_in_2_years = NaN;
 	    	end
 		end
 
@@ -73,9 +78,16 @@ classdef MPCFinder < handle
 				end
 
 				for shockperiod = shockperiods
-					obj.computeMPCs(p,grids,ishock,shockperiod);
+					loan = 0;
+					obj.computeMPCs(p,grids,ishock,shockperiod,loan);
 				end
 			end
+
+			% $500 loss in 2 years
+			obj.computeMPCs(p,grids,4,9,0);
+
+			% $5000 loan for one year
+			obj.computeMPCs(p,grids,3,5,0.081);
 
 			obj.compute_cumulative_mpcs();
 		end
@@ -106,7 +118,7 @@ classdef MPCFinder < handle
 		    con = repmat(x_mpc,[1 1 1 p.nb 1]) - sav - p.savtax * max(sav-p.savtaxthresh,0);
 		end
 
-		function computeMPCs(obj,p,grids,ishock,shockperiod)
+		function computeMPCs(obj,p,grids,ishock,shockperiod,loan)
 			shock = p.shocks(ishock);
 
 			for it = 1:shockperiod
@@ -123,6 +135,8 @@ classdef MPCFinder < handle
 				% cash-on-hand
 				if it == shockperiod
 					x_mpc = obj.xgrid_yT + shock;
+				elseif it == 1
+					x_mpc = obj.xgrid_yT + loan;
 				else
 					x_mpc = obj.xgrid_yT;
 				end
@@ -160,7 +174,13 @@ classdef MPCFinder < handle
 	            % now compute IMPC(s,t)
 	            mpcs = ( trans_1_t * con - obj.con_baseline) / shock;
 
-	            obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.adist(:)' * mpcs(:);
+	            if loan > 0
+	            	obj.loan = obj.basemodel.adist(:)' * mpcs(:);
+	            elseif shockperiod <= 5
+	            	obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.adist(:)' * mpcs(:);
+	            else
+	            	obj.loss_in_2_years = obj.basemodel.adist(:)' * mpcs(:);
+	            end
 	            
 	            if (shockperiod == 1) && (it >= 1 && it <= 4)
 	            	% store is = 1 mpcs for decompositions
