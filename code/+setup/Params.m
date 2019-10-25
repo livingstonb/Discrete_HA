@@ -220,6 +220,8 @@ classdef Params < handle
                     objs(io).r = objs(io).r + objs(io).dieprob;
                     objs(io).R = 1 + objs(io).r;
                 end
+
+                objs(io).lumptransfer = objs(io).lumptransfer / objs(io).freq;
             end
         end
         

@@ -55,18 +55,18 @@ runopts.Server = 0; % use server paths
 runopts.IterateBeta = 0;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
-runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
+runopts.mpcshocks_after_period1 = 1; % compute mpcs for ishock > 1
 
 % directories
 runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % name of parameters script
-runopts.mode = 'EZtests'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'other'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {}; % {'baseline_Q'}
+runopts.names_to_run = {'beta_heterog_width0.0005'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -117,6 +117,8 @@ switch runopts.mode
         params = setup.parameters_grid_tests3(runopts,'input/IncomeGrids/quarterly_b.mat');
     case 'EZtests'
         params = setup.parameters_EZtests(runopts);
+    case 'other'
+        params = setup.parameters_other(runopts);
     otherwise
         error('Parameters script not found')
 end
