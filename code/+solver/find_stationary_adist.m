@@ -31,8 +31,8 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heter
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        x_iyP_iyF = x(:,iyP,iyF,:);
-        sav_iyP_iyF_ib = model.savinterp{iyP,iyF,ib}(x_iyP_iyF(:));
+        x_iyP_iyF_ib = x(:,iyP,iyF,ib,:);
+        sav_iyP_iyF_ib = model.savinterp{iyP,iyF,ib}(x_iyP_iyF_ib(:));
         sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_ib,[nx 1 1 1 p.nyT]);
     end
     end

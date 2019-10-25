@@ -93,7 +93,7 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
         xp_s(~svalid) = 0;
 
         % c(x')
-        c_xp = get_c_xprime(p,grids,xp_s,prevmodel,conlast,xvalid);
+        c_xp = get_c_xprime(p,grids,xp_s,prevmodel,conlast,xvalid,nextmpcshock);
         
         % reshape to take expecation over yT first
         c_xp = reshape(c_xp,[],p.nyT);
@@ -117,7 +117,7 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
         x_s = reshape(x_s,[p.nx p.nyP p.nyF p.nb]);
 
         % interpolate from x(s) to get s(x)
-        sav = get_saving_policy(p,grids,x_s,svalid);
+        sav = get_saving_policy(p,grids,x_s,svalid,nextmpcshock);
 
         % updated consumption function, column vec length of
         % length p.nx*p.nyP*p.nyF*p.nb
@@ -144,7 +144,7 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
 
     % adjust for when next period's mpc shock drives assets below 0
     model.con(~xvalid) = 1e-8;
-    model.sav = grids.x.matrix - model.con;
+    model.sav(~xvalid) = grids.x.matrix(~xvalid) - 1e-8;
     
     % create interpolants from optimal policy functions
     % and find saving values associated with xvals
@@ -168,14 +168,20 @@ function xprime_s = get_xprime_s(p,income,grids,r_mat,nextmpcshock)
     xprime_s = (1+r_mat) .* grids.s.matrix + income.netymatEGP + nextmpcshock;
 end
 
-function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast,valid)
+function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast,xvalid,nextmpcshock)
 	% find c as a function of x'
 	c_xprime = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
+    
+    if nextmpcshock >= 0
+        ix_valid = 1:p.nx;
+    end
 
 	for ib  = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        ix_valid = find(valid(:,iyP,iyF,ib));
+        if nextmpcshock < 0
+            ix_valid = find(xvalid(:,iyP,iyF,1));
+        end
     	xp_s_ib_iyF_iyP = xp_s(ix_valid,iyP,iyF,ib,:);
         if isempty(prevmodel)
             % usual method of EGP
@@ -190,7 +196,7 @@ function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast,valid)
     end
     end
     
-    c_xprime(~valid) = 1e-8;
+    c_xprime(~xvalid) = 1e-8;
 end
 
 function muc_s = get_marginal_util_cons(...
@@ -216,7 +222,7 @@ function muc_s = get_marginal_util_cons(...
                                             + p.dieprob * mu_bequest;
 end
 
-function sav = get_saving_policy(p,grids,x_s,svalid)
+function sav = get_saving_policy(p,grids,x_s,svalid,nextmpcshock)
 	% finds s(x), the saving policy function on the
 	% cash-on-hand grid
 
@@ -224,7 +230,12 @@ function sav = get_saving_policy(p,grids,x_s,svalid)
     for ib  = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        is_valid = find(svalid(:,iyP,iyF,ib));
+        for i = 1:p.nx
+            if (x_s(i,iyP,iyF,ib) < x_s(i+1,iyP,iyF,ib)) && svalid(i,1,1,1)
+                is_valid = i:p.nx;
+                break;
+            end
+        end
         savinterp = griddedInterpolant(x_s(is_valid,iyP,iyF,ib),grids.s.matrix(is_valid,iyP,iyF),'linear');
         sav(:,iyP,iyF,ib) = savinterp(grids.x.matrix(:,iyP,iyF)); 
     end

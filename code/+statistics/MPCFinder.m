@@ -113,8 +113,8 @@ classdef MPCFinder < handle
 		    end
 		    end
 		    sav = max(sav,p.borrow_lim);
-		    x_mpc = reshape(x_mpc,[p.nx_DST p.nyP p.nyF 1 p.nyT]);
-		    con = repmat(x_mpc,[1 1 1 p.nb 1]) - sav - p.savtax * max(sav-p.savtaxthresh,0);
+		    x_mpc = reshape(x_mpc,[p.nx_DST p.nyP p.nyF p.nb p.nyT]);
+		    con = x_mpc - sav - p.savtax * max(sav-p.savtaxthresh,0);
 		end
 
 		function computeMPCs(obj,p,grids,ishock,shockperiod,loan)
@@ -150,8 +150,7 @@ classdef MPCFinder < handle
 	                    x_mpc(:,:,:,:,iyT) = ~below_xgrid(:,:,:,:,iyT) .* x_mpc(:,:,:,:,iyT)...
 	                                        + below_xgrid(:,:,:,:,iyT) .* grids.x.matrix(1,:,:);
 	                end
-	                below_xgrid = reshape(below_xgrid,[p.nx_DST p.nyP p.nyF 1 p.nyT]);
-	                below_xgrid = repmat(below_xgrid,[1 1 1 p.nb 1]);
+	                below_xgrid = reshape(below_xgrid,[p.nx_DST p.nyP p.nyF p.nb p.nyT]);
 	            end
 
 	            % consumption choice given the shock
@@ -243,7 +242,7 @@ classdef MPCFinder < handle
 			for ib = 1:p.nb
 			for iyF = 1:p.nyF
 			for iyP = 1:p.nyP
-				x_iyP_iyF_iyT = reshape(x_mpc(:,iyP,iyF,:),[],1);
+				x_iyP_iyF_iyT = reshape(x_mpc(:,iyP,iyF,ib,:),[],1);
 
 				if (shock < 0) && (ii == is)
 		        	below_xgrid = x_iyP_iyF_iyT < min(obj.xgrid_yT(1,iyP,iyF,:));
