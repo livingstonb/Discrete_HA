@@ -42,7 +42,7 @@ classdef MPCFinder < handle
 			obj.fspace = fundef({'spli',grids.a.vec,0,1});
 			obj.income = income;
 
-			obj.xgrid_yT = repmat(grids.a.vec,[1 p.nyP p.nyF p.nyT])...
+			obj.xgrid_yT = repmat(grids.a.vec,[1 p.nyP p.nyF p.nb p.nyT])...
 				+ income.netymatDST;
 
 			if numel(p.r) > 1
@@ -70,8 +70,7 @@ classdef MPCFinder < handle
 			obj.get_baseline_consumption(p);
 
 			for ishock = 1:6
-				if (ishock <= 3) || (p.mpcshocks_after_period1 == 0)...
-					|| (p.EpsteinZin == 1)
+				if (p.mpcshocks_after_period1 == 0) || (p.EpsteinZin == 1)
 					shockperiods = 1;
 				else
 					shockperiods = [1 2 5];
@@ -107,7 +106,7 @@ classdef MPCFinder < handle
 		    for ib = 1:p.nb
 		    for iyF = 1:p.nyF
 		    for iyP = 1:p.nyP
-		        x_iyP_iyF_iyT = x_mpc(:,iyP,iyF,:);
+		        x_iyP_iyF_iyT = x_mpc(:,iyP,iyF,ib,:);
 		        sav_iyP_iyF_iyT = model.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
 		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,[p.nx_DST 1 1 1 p.nyT]);
 		    end
@@ -146,10 +145,10 @@ classdef MPCFinder < handle
 	                % bring back up to asset grid for interpolation
 	                below_xgrid = false(size(x_mpc));
 	                for iyT = 1:p.nyT
-	                    below_xgrid(:,:,:,iyT) = x_mpc(:,:,:,iyT) < grids.x.matrix(1,:,:);
+	                    below_xgrid(:,:,:,:,iyT) = x_mpc(:,:,:,:,iyT) < grids.x.matrix(1,:,:);
 
-	                    x_mpc(:,:,:,iyT) = ~below_xgrid(:,:,:,iyT) .* x_mpc(:,:,:,iyT)...
-	                                        + below_xgrid(:,:,:,iyT) .* grids.x.matrix(1,:,:);
+	                    x_mpc(:,:,:,:,iyT) = ~below_xgrid(:,:,:,:,iyT) .* x_mpc(:,:,:,:,iyT)...
+	                                        + below_xgrid(:,:,:,:,iyT) .* grids.x.matrix(1,:,:);
 	                end
 	                below_xgrid = reshape(below_xgrid,[p.nx_DST p.nyP p.nyF 1 p.nyT]);
 	                below_xgrid = repmat(below_xgrid,[1 1 1 p.nb 1]);

@@ -219,7 +219,7 @@ function [results,decomp_meanmpc] = main(p)
 
             % get consumption functions conditional on future shock
             % 'lag' is number of periods before shock
-            if shocks(ishock) > 0 && (maxT > 1)
+            if maxT > 1
                 for lag = 1:maxT-1
                     if lag == 1
                         % shock is next period
