@@ -9,6 +9,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Stdev log annual net income'
             '____WEALTH CONSTRAINTS'
             'Mean assets'
+            'Mean saving'
             'Fraction with s == 0'
             'Fraction with a == 0'
             'Fraction with a <= 0.5% mean ann gross lab inc'
@@ -213,6 +214,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     results(ip).direct.stdev_lognety_A      % Stdev log annual net income
                     NaN
                     results(ip).direct.mean_a               % Mean assets
+                    results(ip).direct.mean_s               % Mean saving
                     results(ip).direct.s0;
                     results(ip).direct.constrained(:)       % Fraction with a < eps * mean ann gross inc
                     results(ip).direct.a_sixth_sim

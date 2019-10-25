@@ -11,10 +11,10 @@
 %
 % 'xlxdir' is the desired directory of the output spreadsheet
 
-basedir = '/home/brian/Documents/GitHub/Discrete_HA';
-matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
-xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
-FROM_MATFILE = true;
+basedir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
+matdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA/output/';
+xlxdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA/output/';
+FROM_MATFILE = false;
 
 addpath([basedir '/code']);
 
