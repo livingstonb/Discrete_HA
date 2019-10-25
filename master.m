@@ -52,21 +52,21 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Server = 0; % use server paths
-runopts.IterateBeta = 1;
+runopts.IterateBeta = 0;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
 runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
 % directories
-runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % name of parameters script
-runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'EZtests'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'Q EZ w/IES betw exp(-1), exp(1)'}; % {'baseline_Q'}
+runopts.names_to_run = {}; % {'baseline_Q'}
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -115,6 +115,8 @@ switch runopts.mode
         params = setup.parameters_grid_tests2(runopts,'input/IncomeGrids/quarterly_b.mat');
     case 'grid_tests3'
         params = setup.parameters_grid_tests3(runopts,'input/IncomeGrids/quarterly_b.mat');
+    case 'EZtests'
+        params = setup.parameters_EZtests(runopts);
     otherwise
         error('Parameters script not found')
 end
