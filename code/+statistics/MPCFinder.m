@@ -134,7 +134,7 @@ classdef MPCFinder < handle
 					previous_period = it - 1;
 					one_period_transition = obj.transition_matrix_given_t_s(...
 						p,shockperiod,previous_period,ishock);
- 					trans_1_t =  trans_1_t * one_period_transition;
+ 					trans_1_t =  one_period_transition * trans_1_t;
 				end
 
 				% cash-on-hand
@@ -176,7 +176,7 @@ classdef MPCFinder < handle
 	            con = reshape(con,[],p.nyT) * obj.income.yTdist;
 
 	            % now compute IMPC(s,t)
-	            mpcs = ( trans_1_t * con - obj.con_baseline) / shock;
+	            mpcs = ( trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / shock;
 
 	            if loan > 0
 	            	obj.loan = obj.basemodel.adist(:)' * mpcs(:);
@@ -211,9 +211,8 @@ classdef MPCFinder < handle
 
 			% transition probabilities from it = is to it = is + 1
 			trans_1_t = trans_1_t * obj.transition_matrix_given_t_s(p,shockperiod,shockperiod,ishock);
-	        clear trans_s_s1
 
-	        RHScon = obj.con_baseline(:);
+	        RHScon = obj.basemodel.statetrans^shockperiod * obj.con_baseline(:);
 	        LHScon = obj.con_baseline(:);
 
 	        for it = shockperiod+1:5 % it > shockperiod case, policy fcns stay the same in this region

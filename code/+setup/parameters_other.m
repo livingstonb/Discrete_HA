@@ -14,6 +14,8 @@ function params = parameters_other(runopts)
     params.targetAY = 3.2;
     params.lumptransfer = 0.0081 * 2.0 * 4.0;
     params.shocks = shocks;
+    params.nx = 100;
+    params.nx_DST = 100;
 
     params(2) = setup.Params(4,'wealth0.3',QIncome);
     params(2).targetAY = 0.3;
