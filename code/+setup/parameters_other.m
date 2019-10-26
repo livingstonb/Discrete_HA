@@ -14,8 +14,6 @@ function params = parameters_other(runopts)
     params.targetAY = 3.2;
     params.lumptransfer = 0.0081 * 2.0 * 4.0;
     params.shocks = shocks;
-    params.nx = 100;
-    params.nx_DST = 100;
 
     params(2) = setup.Params(4,'wealth0.3',QIncome);
     params(2).targetAY = 0.3;
@@ -23,7 +21,7 @@ function params = parameters_other(runopts)
     params(2).shocks = shocks;
 
     ii = 3;
-    for bwidth = [0.0005, 0.001, 0.0025, 0.005, 0.01, 0.02]
+    for bwidth = [0.0005, 0.001, 0.0025, 0.005, 0.01, 0.02, 0.03]
     	name = sprintf('beta_heterog_width%1.4f', bwidth);
     	params(ii) = setup.Params(4,name,QIncome);
     	params(ii).betawidth = bwidth;
