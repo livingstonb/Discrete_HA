@@ -55,6 +55,12 @@ classdef MPCFinder < handle
 		    	obj.mpcs(ishock).avg_s_t = NaN(5,5);
 		    	% mpcs over states for shock in period 1
 		    	obj.mpcs(ishock).mpcs_1_t = cell(1,4);
+                % fraction of responders
+                obj.mpcs(ishock).mpc_pos = NaN(5,5);
+                obj.mpcs(ishock).mpc_neg = NaN(5,5);
+                obj.mpcs(ishock).mpc0 = NaN(5,5);
+                % conditional mean
+                obj.mpcs(ishock).avg_s_t_condl = NaN(5,5);
 
 		    	obj.loan = NaN;
 		    	obj.loss_in_2_years = NaN;
@@ -176,6 +182,15 @@ classdef MPCFinder < handle
 	            	obj.loan = obj.basemodel.adist(:)' * mpcs(:);
 	            elseif shockperiod <= 5
 	            	obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.adist(:)' * mpcs(:);
+                    
+                    loc_pos = mpcs(:) > 0;
+                    dist_vec = obj.basemodel.adist(:);
+                    if sum(dist_vec(loc_pos)) > 0
+                        obj.mpcs(ishock).avg_s_t_condl(shockperiod,it) = dist_vec(loc_pos)' * mpcs(loc_pos) / sum(dist_vec(loc_pos));
+                    end
+                    obj.mpcs(ishock).mpc_pos = sum(dist_vec(loc_pos));
+                    obj.mpcs(ishock).mpc_neg = sum(dist_vec(mpcs(:)<0));
+                    obj.mpcs(ishock).mpc0 = sum(dist_vec(mpcs(:)==0));
 	            else
 	            	obj.loss_in_2_years = obj.basemodel.adist(:)' * mpcs(:);
 	            end
