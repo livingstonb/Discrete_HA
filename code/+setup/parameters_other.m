@@ -7,7 +7,7 @@ function params = parameters_other(runopts)
     % EXPERIMENTS
     %----------------------------------------------------------------------
 
-    shocks = [-0.0081, -0.00405, -0.081, 0.0081, 0.00405, 0.081];
+    shocks = [-0.0081, -0.0405, -0.081, 0.0081, 0.0405, 0.081];
 
     % Quarterly
     params = setup.Params(4,'wealth3.2',QIncome);
