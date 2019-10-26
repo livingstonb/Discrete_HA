@@ -75,8 +75,16 @@ function [T_annual,T_quarter] = create_table(params,results,...
             '(A/Q) MPC, shock = 0.1 next period'
             '(A/Q) MPC, shock = 0.01 in four periods'
             '(A/Q) MPC, shock = 0.1 in four periods'
-            '(A/Q) MPC, negative shock in 8 periods'
-            '(A/Q) MPC, loan for 4 periods'
+            '(A/Q) E[MPC], negative shock in 8 periods'
+            '(A/Q) E[MPC|MPC>0], negative shock in 8 periods'
+            '(A/Q) P(MPC<0), negative shock in 8 periods'
+            '(A/Q) P(MPC=0), negative shock in 8 periods'
+            '(A/Q) P(MPC>0), negative shock in 8 periods'
+            '(A/Q) E[MPC], loan for 4 periods'
+            '(A/Q) E[MPC|MPC>0], loan for 4 periods'
+            '(A/Q) P(MPC<0), loan for 4 periods'
+            '(A/Q) P(MPC=0), loan for 4 periods'
+            '(A/Q) P(MPC>0), loan for 4 periods'
             '____DECOMP OF IMPC(1,1) (MPC OUT OF FRACTION MEAN ANN INC)'
             '(A/Q) Decomp of Em0 around 0, RA MPC'
             '(A/Q) Decomp of Em0 around 0, HtM Effect'
@@ -245,8 +253,16 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     results(ip).direct.mpcs(6).avg_s_t(2,1)
                     results(ip).direct.mpcs(5).avg_s_t(5,1)
                     results(ip).direct.mpcs(6).avg_s_t(5,1)
-                    results(ip).direct.loss_in_2_years
-                    results(ip).direct.loan
+                    results(ip).direct.loss_in_2_years.avg
+                    results(ip).direct.loss_in_2_years.mpc_condl
+                    results(ip).direct.loss_in_2_years.mpc_neg
+                    results(ip).direct.loss_in_2_years.mpc0
+                    results(ip).direct.loss_in_2_years.mpc_pos
+                    results(ip).direct.loan.avg
+                    results(ip).direct.loan.mpc_condl
+                    results(ip).direct.loan.mpc_neg
+                    results(ip).direct.loan.mpc0
+                    results(ip).direct.loan.mpc_pos
                     NaN
                     dec1(:)                                 % Decomp1
                     NaN

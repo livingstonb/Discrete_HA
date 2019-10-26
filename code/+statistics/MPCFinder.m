@@ -30,8 +30,8 @@ classdef MPCFinder < handle
 		fspace; % object used to interpolate back onto agrid
 
 		mpcs = struct(); % results
-		loan;
-		loss_in_2_years;
+		loan = struct();
+		loss_in_2_years = struct();
 	end
 
 	methods
@@ -62,8 +62,16 @@ classdef MPCFinder < handle
                 % conditional mean
                 obj.mpcs(ishock).avg_s_t_condl = NaN(5,5);
 
-		    	obj.loan = NaN;
-		    	obj.loss_in_2_years = NaN;
+		    	obj.loan.avg = NaN;
+		    	obj.loan.mpc_condl = NaN;
+		    	obj.loan.mpc_neg = NaN;
+		    	obj.loan.mpc0 = NaN;
+		    	obj.loan.mpc_pos = NaN;
+		    	obj.loss_in_2_years.avg = NaN;
+		    	obj.loss_in_2_years.mpc_condl = NaN;
+		    	obj.loss_in_2_years.mpc_neg = NaN;
+		    	obj.loss_in_2_years.mpc0 = NaN;
+		    	obj.loss_in_2_years.mpc_pos = NaN;
 	    	end
 		end
 
@@ -91,7 +99,7 @@ classdef MPCFinder < handle
                 obj.computeMPCs(p,grids,1,9,0);
 
                 % $5000 loan for one year
-                obj.computeMPCs(p,grids,3,5,0.081);
+                obj.computeMPCs(p,grids,3,5,p.shocks(6));
             end
 
 			obj.compute_cumulative_mpcs();
@@ -178,21 +186,40 @@ classdef MPCFinder < handle
 	            % now compute IMPC(s,t)
 	            mpcs = ( trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / shock;
 
+	            loc_pos = mpcs(:) > 0;
+                dist_vec = obj.basemodel.adist(:);
+
+                mpc_pos = sum(dist_vec(loc_pos));
+                mpc_neg = sum(dist_vec(mpcs(:)<0));
+                mpc0 = sum(dist_vec(mpcs(:)==0));
+
+                if sum(dist_vec(loc_pos)) > 0
+                	mpc_condl = dist_vec(loc_pos)' * mpcs(loc_pos) / sum(dist_vec(loc_pos));
+                else
+                	mpc_condl = NaN;
+                end
+
 	            if loan > 0
-	            	obj.loan = obj.basemodel.adist(:)' * mpcs(:);
+	            	obj.loan.avg = obj.basemodel.adist(:)' * mpcs(:);
+	            	obj.loan.mpc_condl = mpc_condl;
+	            	obj.loan.mpc_pos = mpc_pos;
+	            	obj.loan.mpc0 = mpc0;
+	            	obj.loan.mpc_neg = mpc_neg;
 	            elseif shockperiod <= 5
 	            	obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.adist(:)' * mpcs(:);
                     
-                    loc_pos = mpcs(:) > 0;
-                    dist_vec = obj.basemodel.adist(:);
                     if sum(dist_vec(loc_pos)) > 0
                         obj.mpcs(ishock).avg_s_t_condl(shockperiod,it) = dist_vec(loc_pos)' * mpcs(loc_pos) / sum(dist_vec(loc_pos));
                     end
-                    obj.mpcs(ishock).mpc_pos = sum(dist_vec(loc_pos));
-                    obj.mpcs(ishock).mpc_neg = sum(dist_vec(mpcs(:)<0));
-                    obj.mpcs(ishock).mpc0 = sum(dist_vec(mpcs(:)==0));
+                    obj.mpcs(ishock).mpc_pos = mpc_pos;
+                    obj.mpcs(ishock).mpc_neg = mpc_neg;
+                    obj.mpcs(ishock).mpc0 = mpc0;
 	            else
-	            	obj.loss_in_2_years = obj.basemodel.adist(:)' * mpcs(:);
+	            	obj.loss_in_2_years.avg = obj.basemodel.adist(:)' * mpcs(:);
+	            	obj.loss_in_2_years.mpc_condl = mpc_condl;
+	            	obj.loss_in_2_years.mpc_pos = mpc_pos;
+	            	obj.loss_in_2_years.mpc0 = mpc0;
+	            	obj.loss_in_2_years.mpc_neg = mpc_neg;
 	            end
 	            
 	            if (shockperiod == 1) && (it >= 1 && it <= 4)
