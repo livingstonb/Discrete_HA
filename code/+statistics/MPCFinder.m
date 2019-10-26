@@ -195,8 +195,7 @@ classdef MPCFinder < handle
 			shock = p.shocks(ishock);
 
 			% transition probabilities from it = is to it = is + 1
-			trans_s_s1 = obj.transition_matrix_given_t_s(p,shockperiod,shockperiod,ishock);
-	        trans_1_t = trans_1_t * trans_s_s1;
+			trans_1_t = trans_1_t * obj.transition_matrix_given_t_s(p,shockperiod,shockperiod,ishock);
 	        clear trans_s_s1
 
 	        RHScon = obj.con_baseline(:);
@@ -274,13 +273,16 @@ classdef MPCFinder < handle
 		    else
 		        interp_death = sparse(obj.Nstates,p.nx_DST);
 		        interp_death(:,1) = 1;
-		    end
+            end
+            
+            ytrans_live_long = kron(obj.income.ytrans_live, ones(p.nx_DST,1));
+            ytrans_death_long = kron(obj.income.ytrans_death, ones(p.nx_DST,1));
 
 		    % now construct transition matrix
 		    transition = sparse(obj.Nstates,obj.Nstates);
 		    for col = 1:p.nyP*p.nyF*p.nb
-		        newblock_live = kron(obj.income.ytrans_live(:,col),ones(p.nx_DST,1)) .* asset_interp;
-		        newblock_death = kron(obj.income.ytrans_death(:,col),ones(p.nx_DST,1)) .* interp_death;
+		        newblock_live = ytrans_live_long(:,col) .* asset_interp;
+		        newblock_death = ytrans_death_long(:,col) .* interp_death;
 		        transition(:,p.nx_DST*(col-1)+1:p.nx_DST*col) = ...
 		        	(1-p.dieprob)*newblock_live + p.dieprob*newblock_death;
 		    end
