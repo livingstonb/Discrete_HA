@@ -84,7 +84,7 @@ classdef MPCFinder < handle
 
             if p.mpcshocks_after_period1 > 0
                 % $500 loss in 2 years
-                obj.computeMPCs(p,grids,4,9,0);
+                obj.computeMPCs(p,grids,1,9,0);
 
                 % $5000 loan for one year
                 obj.computeMPCs(p,grids,3,5,0.081);

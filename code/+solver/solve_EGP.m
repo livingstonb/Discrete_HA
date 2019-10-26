@@ -90,7 +90,6 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
         
         % x'(s)
         xp_s = get_xprime_s(p,income,grids,r_mat,nextmpcshock);
-        xp_s(~svalid) = 0;
 
         % c(x')
         c_xp = get_c_xprime(p,grids,xp_s,prevmodel,conlast,nextmpcshock);
@@ -142,10 +141,6 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
     model.con = reshape(conupdate,[p.nx p.nyP p.nyF p.nb]);
     model.EGP_cdiff = cdiff;
 
-    % adjust for when next period's mpc shock drives assets below 0
-    model.con(~xvalid) = 1e-8;
-    model.sav(~xvalid) = grids.x.matrix(~xvalid) - 1e-8;
-    
     % create interpolants from optimal policy functions
     % and find saving values associated with xvals
     model.savinterp = cell(p.nyP,p.nyF,p.nb);
@@ -205,11 +200,6 @@ function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast,nextmpcshock)
         end
     end
     end
-    end
-    
-    if nextmpcshock < 0
-        xpvalid = repmat(xpvalid,[1 1 1 p.nb p.nyT]);
-        c_xprime(~xpvalid) = 1e-8;
     end
 end
 
