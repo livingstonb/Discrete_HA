@@ -61,17 +61,21 @@ classdef MPCFinder < handle
                 obj.mpcs(ishock).mpc0 = NaN(5,5);
                 % conditional mean
                 obj.mpcs(ishock).avg_s_t_condl = NaN(5,5);
+                % median
+                obj.mpcs(ishock).median = NaN(5,5);
 
 		    	obj.loan.avg = NaN;
 		    	obj.loan.mpc_condl = NaN;
 		    	obj.loan.mpc_neg = NaN;
 		    	obj.loan.mpc0 = NaN;
 		    	obj.loan.mpc_pos = NaN;
+		    	obj.loan.median = NaN;
 		    	obj.loss_in_2_years.avg = NaN;
 		    	obj.loss_in_2_years.mpc_condl = NaN;
 		    	obj.loss_in_2_years.mpc_neg = NaN;
 		    	obj.loss_in_2_years.mpc0 = NaN;
 		    	obj.loss_in_2_years.mpc_pos = NaN;
+		    	obj.loss_in_2_years.median = NaN;
 	    	end
 		end
 
@@ -193,6 +197,13 @@ classdef MPCFinder < handle
                 mpc_neg = sum(dist_vec(mpcs(:)<0));
                 mpc0 = sum(dist_vec(mpcs(:)==0));
 
+                sorted_mat = sortrows([mpcs(:) dist_vec]);
+                cumdist = cumsum(sorted_mat(:,2));
+                [cumdist, iunique] = unique(cumdist,'last');
+                sorted_mpcs = sorted_mat(iunique,1);
+                mpc_median = interp1(cumdist, sorted_mpcs, 0.5);
+
+
                 if sum(dist_vec(loc_pos)) > 0
                 	mpc_condl = dist_vec(loc_pos)' * mpcs(loc_pos) / sum(dist_vec(loc_pos));
                 else
@@ -205,21 +216,21 @@ classdef MPCFinder < handle
 	            	obj.loan.mpc_pos = mpc_pos;
 	            	obj.loan.mpc0 = mpc0;
 	            	obj.loan.mpc_neg = mpc_neg;
+	            	obj.loan.median = mpc_median;
 	            elseif shockperiod <= 5
 	            	obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.adist(:)' * mpcs(:);
-                    
-                    if sum(dist_vec(loc_pos)) > 0
-                        obj.mpcs(ishock).avg_s_t_condl(shockperiod,it) = dist_vec(loc_pos)' * mpcs(loc_pos) / sum(dist_vec(loc_pos));
-                    end
-                    obj.mpcs(ishock).mpc_pos = mpc_pos;
-                    obj.mpcs(ishock).mpc_neg = mpc_neg;
-                    obj.mpcs(ishock).mpc0 = mpc0;
+                    obj.mpcs(ishock).avg_s_t_condl(shockperiod,it) = mpc_condl;
+                    obj.mpcs(ishock).mpc_pos(shockperiod,it) = mpc_pos;
+                    obj.mpcs(ishock).mpc_neg(shockperiod,it) = mpc_neg;
+                    obj.mpcs(ishock).mpc0(shockperiod,it) = mpc0;
+                    obj.mpcs(ishock).median(shockperiod,it) = mpc_median;
 	            else
 	            	obj.loss_in_2_years.avg = obj.basemodel.adist(:)' * mpcs(:);
 	            	obj.loss_in_2_years.mpc_condl = mpc_condl;
 	            	obj.loss_in_2_years.mpc_pos = mpc_pos;
 	            	obj.loss_in_2_years.mpc0 = mpc0;
 	            	obj.loss_in_2_years.mpc_neg = mpc_neg;
+	            	obj.loss_in_2_years.median = mpc_median;
 	            end
 	            
 	            if (shockperiod == 1) && (it >= 1 && it <= 4)

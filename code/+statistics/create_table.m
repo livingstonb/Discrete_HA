@@ -35,56 +35,84 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Wealth, top 1% share'
             'Gini coefficient'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK -1e-5)'
-            'PERIOD 1 MPC, shock = -1e-5'
-            'PERIOD 2 MPC, shock = -1e-5'
-            'PERIOD 3 MPC shock = -1e-5'
-            'PERIOD 4 MPC shock = -1e-5'
-            'FOUR PERIOD MPC, shock = -1e-5'
+            'PERIOD 1 Median(MPC), shock = -1e-5'
+            'PERIOD 1 E[MPC], shock = -1e-5'
+            'PERIOD 2 E[MPC], shock = -1e-5'
+            'PERIOD 3 E[MPC] shock = -1e-5'
+            'PERIOD 4 E[MPC] shock = -1e-5'
+            'FOUR PERIOD E[MPC], shock = -1e-5'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK -0.01)'
-            'PERIOD 1 MPC, shock = -0.01'
-            'PERIOD 2 MPC, shock = -0.01'
-            'PERIOD 3 MPC shock = -0.01'
-            'PERIOD 4 MPC shock = -0.01'
-            'FOUR PERIOD MPC, shock = -0.01'
+            'PERIOD 1 Median(MPC), shock = -0.01'
+            'PERIOD 1 E[MPC], shock = -0.01'
+            'PERIOD 2 E[MPC], shock = -0.01'
+            'PERIOD 3 E[MPC], shock = -0.01'
+            'PERIOD 4 E[MPC], shock = -0.01'
+            'FOUR PERIOD E[MPC], shock = -0.01'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK -0.1)'
-            'PERIOD 1 MPC, shock = -0.1'
-            'PERIOD 2 MPC, shock = -0.1'
-            'PERIOD 3 MPC shock = -0.1'
+            'PERIOD 1 Median(MPC), shock = -0.1'
+            'PERIOD 1 E[MPC], shock = -0.1'
+            'PERIOD 2 E[MPC], shock = -0.1'
+            'PERIOD 3 E[MPC] shock = -0.1'
             'PERIOD 4 MPC shock = -0.1'
-            'FOUR PERIOD MPC, shock = -0.1'
+            'FOUR PERIOD E[MPC], shock = -0.1'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK 1e-5)'
-            'PERIOD 1 MPC, shock = 1e-5'
-            'PERIOD 2 MPC, shock = 1e-5'
-            'PERIOD 3 MPC shock = 1-5'
-            'PERIOD 4 MPC shock = 1e-5'
-            'FOUR PERIOD MPC, shock = 1e-5'
+            'PERIOD 1 Median(MPC), shock = 1e-5'
+            'PERIOD 1 E[MPC], shock = 1e-5'
+            'PERIOD 2 E[MPC], shock = 1e-5'
+            'PERIOD 3 E[MPC], shock = 1-5'
+            'PERIOD 4 E[MPC], shock = 1e-5'
+            'FOUR PERIOD E[MPC], shock = 1e-5'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK 0.01)'
-            'PERIOD 1 MPC, shock = 0.01'
-            'PERIOD 2 MPC, shock = 0.01'
-            'PERIOD 3 MPC shock = 0.01'
+            'PERIOD 1 Median(MPC), shock = 0.01'
+            'PERIOD 1 E[MPC], shock = 0.01'
+            'PERIOD 2 E[MPC], shock = 0.01'
+            'PERIOD 3 E[MPC] shock = 0.01'
             'PERIOD 4 MPC shock = 0.01'
-            'FOUR PERIOD MPC, shock = 0.01'
+            'FOUR PERIOD E[MPC], shock = 0.01'
             '____MPCS OUT OF FRACTION MEAN ANN INC (SHOCK 0.1)'
-            'PERIOD 1 MPC, shock = 0.1'
-            'PERIOD 2 MPC, shock = 0.1'
-            'PERIOD 3 MPC shock = 0.1'
-            'PERIOD 4 MPC shock = 0.1'
-            'FOUR PERIOD MPC, shock = 0.1'
-            '____MPC OUT OF NEWS'
-            '(A/Q) MPC, shock = 0.01 next period'
-            '(A/Q) MPC, shock = 0.1 next period'
-            '(A/Q) MPC, shock = 0.01 in four periods'
-            '(A/Q) MPC, shock = 0.1 in four periods'
+            'PERIOD 1 Median(MPC), shock = 0.1'
+            'PERIOD 1 E[MPC], shock = 0.1'
+            'PERIOD 2 E[MPC], shock = 0.1'
+            'PERIOD 3 E[MPC] shock = 0.1'
+            'PERIOD 4 E[MPC] shock = 0.1'
+            'FOUR PERIOD E[MPC], shock = 0.1'
+            '____MPCs OUT OF NEWS'
+            '(A/Q) E[MPC], shock = -1e-5 next period'
+            '(A/Q) E[MPC], shock = -0.01 next period'
+            '(A/Q) E[MPC], shock = -0.1 next period'
+            '(A/Q) E[MPC], shock = 1e-5 next period'
+            '(A/Q) E[MPC], shock = 0.01 next period'
+            '(A/Q) E[MPC], shock = 0.1 next period'
+            '(A/Q) E[MPC], shock = -1e-5 in four periods'
+            '(A/Q) E[MPC], shock = -0.01 in four periods'
+            '(A/Q) E[MPC], shock = -0.1 in four periods'
+            '(A/Q) E[MPC], shock = 1e-5 in four periods'
+            '(A/Q) E[MPC], shock = 0.01 in four periods'
+            '(A/Q) E[MPC], shock = 0.1 in four periods'
+            '(A/Q) Median(MPC), shock = -1e-5 next period'
+            '(A/Q) Median(MPC), shock = -0.01 next period'
+            '(A/Q) Median(MPC), shock = -0.1 next period'
+            '(A/Q) Median(MPC), shock = 1e-5 next period'
+            '(A/Q) Median(MPC), shock = 0.01 next period'
+            '(A/Q) Median(MPC), shock = 0.1 next period'
+            '(A/Q) Median(MPC), shock = -1e-5 in four periods'
+            '(A/Q) Median(MPC), shock = -0.01 in four periods'
+            '(A/Q) Median(MPC), shock = -0.1 in four periods'
+            '(A/Q) Median(MPC), shock = 1e-5 in four periods'
+            '(A/Q) Median(MPC), shock = 0.01 in four periods'
+            '(A/Q) Median(MPC), shock = 0.1 in four periods'
             '(A/Q) E[MPC], negative shock in 8 periods'
-            '(A/Q) E[MPC|MPC>0], negative shock in 8 periods'
+            '(A/Q) E[MPC|MPC>0), negative shock in 8 periods'
             '(A/Q) P(MPC<0), negative shock in 8 periods'
             '(A/Q) P(MPC=0), negative shock in 8 periods'
             '(A/Q) P(MPC>0), negative shock in 8 periods'
+            '(A/Q) Median(MPC), negative shock in 8 periods'
             '(A/Q) E[MPC], loan for 4 periods'
             '(A/Q) E[MPC|MPC>0], loan for 4 periods'
             '(A/Q) P(MPC<0), loan for 4 periods'
             '(A/Q) P(MPC=0), loan for 4 periods'
             '(A/Q) P(MPC>0), loan for 4 periods'
+            '(A/Q) Median(MPC), loan for 4 periods'
             '____DECOMP OF IMPC(1,1) (MPC OUT OF FRACTION MEAN ANN INC)'
             '(A/Q) Decomp of Em0 around 0, RA MPC'
             '(A/Q) Decomp of Em0 around 0, HtM Effect'
@@ -209,7 +237,8 @@ function [T_annual,T_quarter] = create_table(params,results,...
                 end
 
                 for i = 1:6
-                    s_t_mpcs{i} = [results(ip).direct.mpcs(i).avg_s_t(1,1)          % IMPC(1,1)
+                    s_t_mpcs{i} = [ results(ip).direct.mpcs(i).median(1,1)
+                                    results(ip).direct.mpcs(i).avg_s_t(1,1)          % IMPC(1,1)
                                     results(ip).direct.mpcs(i).avg_s_t(1,2)        % IMPC(1,2)
                                     results(ip).direct.mpcs(i).avg_s_t(1,3)        % IMPC(1,3)
                                     results(ip).direct.mpcs(i).avg_s_t(1,4)        % IMPC(1,4)
@@ -249,20 +278,42 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     NaN
                     s_t_mpcs{6}
                     NaN
+                    results(ip).direct.mpcs(1).avg_s_t(2,1)
+                    results(ip).direct.mpcs(2).avg_s_t(2,1)
+                    results(ip).direct.mpcs(3).avg_s_t(2,1)
+                    results(ip).direct.mpcs(4).avg_s_t(2,1)
                     results(ip).direct.mpcs(5).avg_s_t(2,1)
                     results(ip).direct.mpcs(6).avg_s_t(2,1)
+                    results(ip).direct.mpcs(1).avg_s_t(5,1)
+                    results(ip).direct.mpcs(2).avg_s_t(5,1)
+                    results(ip).direct.mpcs(3).avg_s_t(5,1)
+                    results(ip).direct.mpcs(4).avg_s_t(5,1)
                     results(ip).direct.mpcs(5).avg_s_t(5,1)
                     results(ip).direct.mpcs(6).avg_s_t(5,1)
+                    results(ip).direct.mpcs(1).median(2,1)
+                    results(ip).direct.mpcs(2).median(2,1)
+                    results(ip).direct.mpcs(3).median(2,1)
+                    results(ip).direct.mpcs(4).median(2,1)
+                    results(ip).direct.mpcs(5).median(2,1)
+                    results(ip).direct.mpcs(6).median(2,1)
+                    results(ip).direct.mpcs(1).median(5,1)
+                    results(ip).direct.mpcs(2).median(5,1)
+                    results(ip).direct.mpcs(3).median(5,1)
+                    results(ip).direct.mpcs(4).median(5,1)
+                    results(ip).direct.mpcs(5).median(5,1)
+                    results(ip).direct.mpcs(6).median(5,1)
                     results(ip).direct.loss_in_2_years.avg
                     results(ip).direct.loss_in_2_years.mpc_condl
                     results(ip).direct.loss_in_2_years.mpc_neg
                     results(ip).direct.loss_in_2_years.mpc0
                     results(ip).direct.loss_in_2_years.mpc_pos
+                    results(ip).direct.loss_in_2_years.median
                     results(ip).direct.loan.avg
                     results(ip).direct.loan.mpc_condl
                     results(ip).direct.loan.mpc_neg
                     results(ip).direct.loan.mpc0
                     results(ip).direct.loan.mpc_pos
+                    results(ip).direct.loan.median
                     NaN
                     dec1(:)                                 % Decomp1
                     NaN
