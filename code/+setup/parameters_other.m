@@ -21,7 +21,7 @@ function params = parameters_other(runopts)
     params(2).shocks = shocks;
 
     ii = 3;
-    for bwidth = [0.0005, 0.001, 0.0025, 0.005, 0.01, 0.02, 0.03]
+    for bwidth = np.arange(0.0025, 0.005, 10)
     	name = sprintf('beta_heterog_width%1.4f', bwidth);
     	params(ii) = setup.Params(4,name,QIncome);
     	params(ii).betawidth = bwidth;

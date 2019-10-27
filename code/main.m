@@ -141,6 +141,10 @@ function [results,decomp_meanmpc] = main(p)
             results.direct.constrained(i) = wpinterp(p.epsilon(i)*income.meany1*p.freq);
         end
     end
+
+    results.direct.wealth_lt_1000 = wpinterp(0.0081*2);
+    results.direct.wealth_lt_5000 = wpinterp(0.081);
+    results.direct.wealth_lt_10000 = wpinterp(0.081*2);
     
     % Wealth percentiles
     [acumdist_unique,uniqueind] = unique(sort_acumdist,'last');

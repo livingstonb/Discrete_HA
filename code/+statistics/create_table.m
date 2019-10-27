@@ -18,6 +18,9 @@ function [T_annual,T_quarter] = create_table(params,results,...
             'Fraction with a <= 5% mean ann gross lab inc'
             'Fraction with a <= 10% mean ann gross lab inc'
             'Fraction with a <= 15% mean ann gross lab inc'
+            'Fraction with a <= $1000'
+            'Fraction with a <= $5000'
+            'Fraction with a <= $10000'
             'Fraction with a <= 1/6 own quarterly income'
             'Fraction with a <= 1/12 own quarterly income'
             'Fraction with x <= 1/6 own quarterly income'
@@ -256,6 +259,9 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     results(ip).direct.mean_s               % Mean saving
                     results(ip).direct.s0;
                     results(ip).direct.constrained(:)       % Fraction with a < eps * mean ann gross inc
+                    results(ip).direct.wealth_lt_1000
+                    results(ip).direct.wealth_lt_5000
+                    results(ip).direct.wealth_lt_10000
                     results(ip).direct.a_sixth_sim
                     results(ip).direct.a_twelfth_sim       % Fraction with a < 1/12 quarterly income
                     results(ip).direct.x_sixth_sim
