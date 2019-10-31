@@ -11,13 +11,13 @@
 %
 % 'xlxdir' is the desired directory of the output spreadsheet
 
-basedir = '/home/livingstonb/GitHub/Discrete_HA';
-matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
-xlxdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
-% basedir = '/home/brian/Documents/GitHub/Discrete_HA';
-% matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
-% xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
-FROM_MATFILE = true;
+% basedir = '/home/livingstonb/GitHub/Discrete_HA';
+% matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
+% xlxdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
+basedir = '/home/brian/Documents/GitHub/Discrete_HA';
+matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
+xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
+FROM_MATFILE = false;
 
 addpath([basedir '/code']);
 

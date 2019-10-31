@@ -146,7 +146,7 @@ classdef MPCFinder < handle
 					previous_period = it - 1;
 					one_period_transition = obj.transition_matrix_given_t_s(...
 						p,shockperiod,previous_period,ishock);
- 					trans_1_t =  one_period_transition * trans_1_t;
+ 					trans_1_t = trans_1_t * one_period_transition;
 				end
 
 				% cash-on-hand
@@ -188,7 +188,11 @@ classdef MPCFinder < handle
 	            con = reshape(con,[],p.nyT) * obj.income.yTdist;
 
 	            % now compute IMPC(s,t)
-	            mpcs = ( trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / shock;
+	            if loan > 0
+	            	mpcs = ( trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / loan;
+	            else
+	            	mpcs = ( trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / shock;
+	            end
 
 	            loc_pos = mpcs(:) > 0;
                 dist_vec = obj.basemodel.adist(:);
@@ -217,6 +221,7 @@ classdef MPCFinder < handle
 	            	obj.loan.mpc0 = mpc0;
 	            	obj.loan.mpc_neg = mpc_neg;
 	            	obj.loan.median = mpc_median;
+                    return;
 	            elseif shockperiod <= 5
 	            	obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.adist(:)' * mpcs(:);
                     obj.mpcs(ishock).avg_s_t_condl(shockperiod,it) = mpc_condl;
@@ -224,14 +229,15 @@ classdef MPCFinder < handle
                     obj.mpcs(ishock).mpc_neg(shockperiod,it) = mpc_neg;
                     obj.mpcs(ishock).mpc0(shockperiod,it) = mpc0;
                     obj.mpcs(ishock).median(shockperiod,it) = mpc_median;
-	            else
+	            elseif shockperiod == 9
 	            	obj.loss_in_2_years.avg = obj.basemodel.adist(:)' * mpcs(:);
 	            	obj.loss_in_2_years.mpc_condl = mpc_condl;
 	            	obj.loss_in_2_years.mpc_pos = mpc_pos;
 	            	obj.loss_in_2_years.mpc0 = mpc0;
 	            	obj.loss_in_2_years.mpc_neg = mpc_neg;
 	            	obj.loss_in_2_years.median = mpc_median;
-	            end
+                    return;
+                end
 	            
 	            if (shockperiod == 1) && (it >= 1 && it <= 4)
 	            	% store is = 1 mpcs for decompositions

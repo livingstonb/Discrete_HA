@@ -21,7 +21,7 @@ function params = parameters_other(runopts)
     params(2).shocks = shocks;
 
     ii = 3;
-    for bwidth = linspace(0.0025, 0.005, 10)
+    for bwidth = [0.0289]
     	name = sprintf('beta_heterog_width%1.4f', bwidth);
     	params(ii) = setup.Params(4,name,QIncome);
     	params(ii).betawidth = bwidth;
@@ -29,6 +29,7 @@ function params = parameters_other(runopts)
         params(ii).targetAY = 3.2;
         params(ii).lumptransfer = 0.0081 * 2.0 * 4.0;
         params(ii).shocks = shocks;
+        params(ii).beta0 = 0.82;
     	ii = ii + 1;
     end
     
