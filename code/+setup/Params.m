@@ -54,6 +54,7 @@ classdef Params < handle
         % OPTIONS
         MakePlots = 0;
         Simulate = 0;
+        MPCs;
         mpcshocks_after_period1;
 
         % returns
@@ -173,6 +174,9 @@ classdef Params < handle
 
             % simulate option
             [obj.Simulate] = deal(runopts.Simulate);
+
+            % compute mpcs
+            [obj.MPCs] = deal(runopts.MPCs);
 
             % compute mpcs for is > 1?
             [obj.mpcshocks_after_period1] = deal(runopts.mpcshocks_after_period1);

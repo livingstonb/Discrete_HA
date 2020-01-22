@@ -2,6 +2,14 @@ function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(p,norisk,inco
 
  	%% DIRECTLY COMPUTED 1-PERIOD MPCs (MODEL WITHOUT INCOME RISK)
     norisk_mpcs1_a_direct = cell(1,6);
+
+    for im = 1:6
+        norisk_mpcs1_a_direct{im} = NaN;
+    end
+
+    if p.MPCs == 0
+        return;
+    end
  
     for im = 0:numel(p.mpcfrac)
         if im == 0

@@ -9,7 +9,7 @@ function decomp = decomposition_of_meanmpc(p,grids,results)
         decomp(ia).term4 = NaN;
     end
 
-    doDecomposition = (p.nb==1) && (p.EpsteinZin==0) ...
+    doDecomposition = (p.nb==1) && (p.EpsteinZin==0) && (p.MPCs==1)...
     	&& (p.bequest_weight==0) && (p.temptation==0) && (numel(p.r)==1);
 
     if ~doDecomposition

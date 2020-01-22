@@ -10,28 +10,33 @@ function params = parameters_other(runopts)
     shocks = [-0.0081, -0.0405, -0.081, 0.0081, 0.0405, 0.081];
 
     % Quarterly
-    params = setup.Params(4,'wealth3.2',QIncome);
-    params.targetAY = 3.2;
+    params = setup.Params(4, 'target_assets_lt_1000_no_adj_costs', QIncome);
     params.lumptransfer = 0.0081 * 2.0 * 4.0;
     params.shocks = shocks;
 
-    params(2) = setup.Params(4,'wealth0.3',QIncome);
-    params(2).targetAY = 0.3;
-    params(2).lumptransfer = 0.0081 * 2.0 * 4.0;
-    params(2).shocks = shocks;
 
-    ii = 3;
-    for bwidth = [0.0289]
-    	name = sprintf('beta_heterog_width%1.4f', bwidth);
-    	params(ii) = setup.Params(4,name,QIncome);
-    	params(ii).betawidth = bwidth;
-        params(ii).nbeta = 3;
-        params(ii).targetAY = 3.2;
-        params(ii).lumptransfer = 0.0081 * 2.0 * 4.0;
-        params(ii).shocks = shocks;
-        params(ii).beta0 = 0.82;
-    	ii = ii + 1;
-    end
+    % params = setup.Params(4,'wealth3.2',QIncome);
+    % params.targetAY = 3.2;
+    % params.lumptransfer = 0.0081 * 2.0 * 4.0;
+    % params.shocks = shocks;
+
+    % params(2) = setup.Params(4,'wealth0.3',QIncome);
+    % params(2).targetAY = 0.3;
+    % params(2).lumptransfer = 0.0081 * 2.0 * 4.0;
+    % params(2).shocks = shocks;
+
+    % ii = 3;
+    % for bwidth = [0.0289]
+    % 	name = sprintf('beta_heterog_width%1.4f', bwidth);
+    % 	params(ii) = setup.Params(4,name,QIncome);
+    % 	params(ii).betawidth = bwidth;
+    %     params(ii).nbeta = 3;
+    %     params(ii).targetAY = 3.2;
+    %     params(ii).lumptransfer = 0.0081 * 2.0 * 4.0;
+    %     params(ii).shocks = shocks;
+    %     params(ii).beta0 = 0.82;
+    % 	ii = ii + 1;
+    % end
     
 
     %----------------------------------------------------------------------

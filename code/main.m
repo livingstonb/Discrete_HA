@@ -248,10 +248,14 @@ function [results,decomp_meanmpc] = main(p)
             end
         end
     end
-
-    disp('Computing MPCs')
+    
     mpc_finder = statistics.MPCFinder(p,income,grdDST,basemodel,mpcmodels);
-    mpc_finder.solve(p,grdDST);
+
+    if p.MPCs == 1
+        disp('Computing MPCs')
+        mpc_finder.solve(p,grdDST);
+    end
+
     results.direct.mpcs = mpc_finder.mpcs;
     results.direct.loan = mpc_finder.loan;
     results.direct.loss_in_2_years = mpc_finder.loss_in_2_years;

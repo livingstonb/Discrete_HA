@@ -52,10 +52,11 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Server = 0; % use server paths
-runopts.IterateBeta = 1;
+runopts.IterateBeta = 0;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
-runopts.mpcshocks_after_period1 = 1; % compute mpcs for ishock > 1
+runopts.MPCs = 0;
+runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
 % directories
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
@@ -122,11 +123,27 @@ switch runopts.mode
     otherwise
         error('Parameters script not found')
 end
+Nparams = size(params,2);
+
+%% ------------------------------------------------------------------------
+% CALIBRATING WITH FSOLVE
+% -------------------------------------------------------------------------
+if Nparams > 1
+    error('This section should be commented out when using multiple parameterizations')
+elseif runopts.IterateBeta == 1
+    error('IterateBeta must be set to 0 if this section is used')
+end
+
+calibrator = @(discount) solver.constraint_calibrator(discount, params);
+beta_final = fsolve(calibrator, params.beta0);
+params.beta0 = beta_final;
+params.MPCs = 1;
+params.mpcshocks_after_period1 = 1;
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
 % -------------------------------------------------------------------------
-Nparams = size(params,2);
+
 decomp_meanmpc    = cell(1,Nparams); 
 
 % iterate through specifications (or run 1)
