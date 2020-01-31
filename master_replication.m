@@ -17,10 +17,10 @@ runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
 
 % Directories
 parent_dir = {'/home', 'brian', 'Documents', 'GitHub'};
-runopts.localdir = fullfile(parent_dir{:}, 'Discrete_HA')
+runopts.localdir = fullfile(parent_dir{:}, 'Discrete_HA');
 
 % Location of baseline income process
-Qincome = fullfile('input', 'quarterly_b.mat');
+QIncome = fullfile('input', 'quarterly_b.mat');
 
 % Shock sizes
 shocks = [-0.0081, -0.0405, -0.081, 0.0081, 0.0405, 0.081];
@@ -41,7 +41,7 @@ runopts.number = 1;
 % HOUSEKEEPING, DO NOT CHANGE BELOW
 % -------------------------------------------------------------------------
 runopts.path = runopts.localdir;
-runopts.savematpath = fullfile(runopts.localdir, 'output', 'variables.mat')
+runopts.savematpath = fullfile(runopts.localdir, 'output', 'variables.mat');
 
 if ~exist(runopts.localdir, 'dir')
     error('Directory not found')

@@ -1,5 +1,56 @@
-function [T_annual,T_quarter] = create_table(params,results,...
-                                            decomps,decomp2,decomp3)
+function [T_annual,T_quarter] = create_table(params, results,...
+                                            decomps, decomp2, decomp3)
+
+    if nargin == 5
+        decomps_available = 1;
+        decomp_labels = {'____DECOMP OF IMPC(1,1) (MPC OUT OF FRACTION MEAN ANN INC)'
+            '(A/Q) Decomp of Em0 around 0, RA MPC'
+            '(A/Q) Decomp of Em0 around 0, HtM Effect'
+            '(A/Q) Decomp of Em0 around 0, Non-HtM, constraint'
+            '(A/Q) Decomp of Em0 around 0, Non-HtM, inc risk'
+            '(A/Q) Decomp of Em0 around 0.01, RA MPC'
+            '(A/Q) Decomp of Em0 around 0.01, HtM Effect'
+            '(A/Q) Decomp of Em0 around 0.01, Non-HtM, constraint'
+            '(A/Q) Decomp of Em0 around 0.01, Non-HtM, inc risk'
+            '(A/Q) Decomp of Em0 around 0.05, RA MPC'
+            '(A/Q) Decomp of Em0 around 0.05, HtM Effect'
+            '(A/Q) Decomp of Em0 around 0.05, Non-HtM, constraint'
+            '(A/Q) Decomp of Em0 around 0.05, Non-HtM, inc risk'
+            '____DECOMP OF ANNUAL EM1-EM0 (MPC OUT OF 0.01 MEAN ANN INC)'
+            '(Annual) Em1 - Em0'
+            '(Annual) Decomp of Em1-Em0, effect of MPC fcn'
+            '(Annual) Decomp of Em1-Em0, effect of distr'
+            '(Annual) Decomp of Em1-Em0, interaction'
+            '(Annual) Decomp of the distr effect around 0, HtM households'
+            '(Annual) Decomp of the distr effect around 0, non-HtM households'
+            '(Annual) Decomp of the distr effect around 0.01, HtM households'
+            '(Annual) Decomp of the distr effect around 0.01, non-HtM households'
+            '(Annual) Decomp of the distr effect around 0.05, HtM households'
+            '(Annual) Decomp of the distr effect around 0.05, non-HtM households'
+            '____DECOMP OF QUARTERLY EM1-EM0 (MPC OUT OF 0.01 MEAN ANN INC)'
+            '(Quarterly) Em1 - Em0'
+            '(Quarterly) Decomp of Em1-Em0, effect of MPC fcn'
+            '(Quarterly) Decomp of Em1-Em0, effect of distr'
+            '(Quarterly) Decomp of Em1-Em0, interaction'
+            '(Quarterly) Decomp of the distr effect around 0, HtM households'
+            '(Quarterly) Decomp of the distr effect around 0, non-HtM households'
+            '(Quarterly) Decomp of the distr effect around 0.01, HtM households'
+            '(Quarterly) Decomp of the distr effect around 0.01, non-HtM households'
+            '(Quarterly) Decomp of the distr effect around 0.05, HtM households'
+            '(Quarterly) Decomp of the distr effect around 0.05, non-HtM households'
+            '____DECOMP OF ONE PERIOD EM1-EM_RA (MPC OUT OF 0.01 MEAN ANN INC)'
+            'Em1 - EmRA'
+            'Decomp of Em1-EmRA, effect of MPC fcn'
+            'Decomp of Em1-EmRA, effect of distr'
+            'Decomp of Em1-EmRA, interaction'
+            };
+    elseif nargin == 2
+        decomps_available = 0;
+        decomp_labels = {};
+    else
+        error('Invalid number of arguments')
+    end
+
     %% Rownames
     rows = {'Specification'
             'Lookup Index'
@@ -116,47 +167,9 @@ function [T_annual,T_quarter] = create_table(params,results,...
             '(A/Q) P(MPC=0), loan for 4 periods'
             '(A/Q) P(MPC>0), loan for 4 periods'
             '(A/Q) Median(MPC), loan for 4 periods'
-            '____DECOMP OF IMPC(1,1) (MPC OUT OF FRACTION MEAN ANN INC)'
-            '(A/Q) Decomp of Em0 around 0, RA MPC'
-            '(A/Q) Decomp of Em0 around 0, HtM Effect'
-            '(A/Q) Decomp of Em0 around 0, Non-HtM, constraint'
-            '(A/Q) Decomp of Em0 around 0, Non-HtM, inc risk'
-            '(A/Q) Decomp of Em0 around 0.01, RA MPC'
-            '(A/Q) Decomp of Em0 around 0.01, HtM Effect'
-            '(A/Q) Decomp of Em0 around 0.01, Non-HtM, constraint'
-            '(A/Q) Decomp of Em0 around 0.01, Non-HtM, inc risk'
-            '(A/Q) Decomp of Em0 around 0.05, RA MPC'
-            '(A/Q) Decomp of Em0 around 0.05, HtM Effect'
-            '(A/Q) Decomp of Em0 around 0.05, Non-HtM, constraint'
-            '(A/Q) Decomp of Em0 around 0.05, Non-HtM, inc risk'
-            '____DECOMP OF ANNUAL EM1-EM0 (MPC OUT OF 0.01 MEAN ANN INC)'
-            '(Annual) Em1 - Em0'
-            '(Annual) Decomp of Em1-Em0, effect of MPC fcn'
-            '(Annual) Decomp of Em1-Em0, effect of distr'
-            '(Annual) Decomp of Em1-Em0, interaction'
-            '(Annual) Decomp of the distr effect around 0, HtM households'
-            '(Annual) Decomp of the distr effect around 0, non-HtM households'
-            '(Annual) Decomp of the distr effect around 0.01, HtM households'
-            '(Annual) Decomp of the distr effect around 0.01, non-HtM households'
-            '(Annual) Decomp of the distr effect around 0.05, HtM households'
-            '(Annual) Decomp of the distr effect around 0.05, non-HtM households'
-            '____DECOMP OF QUARTERLY EM1-EM0 (MPC OUT OF 0.01 MEAN ANN INC)'
-            '(Quarterly) Em1 - Em0'
-            '(Quarterly) Decomp of Em1-Em0, effect of MPC fcn'
-            '(Quarterly) Decomp of Em1-Em0, effect of distr'
-            '(Quarterly) Decomp of Em1-Em0, interaction'
-            '(Quarterly) Decomp of the distr effect around 0, HtM households'
-            '(Quarterly) Decomp of the distr effect around 0, non-HtM households'
-            '(Quarterly) Decomp of the distr effect around 0.01, HtM households'
-            '(Quarterly) Decomp of the distr effect around 0.01, non-HtM households'
-            '(Quarterly) Decomp of the distr effect around 0.05, HtM households'
-            '(Quarterly) Decomp of the distr effect around 0.05, non-HtM households'
-            '____DECOMP OF ONE PERIOD EM1-EM_RA (MPC OUT OF 0.01 MEAN ANN INC)'
-            'Em1 - EmRA'
-            'Decomp of Em1-EmRA, effect of MPC fcn'
-            'Decomp of Em1-EmRA, effect of distr'
-            'Decomp of Em1-EmRA, interaction'
             };
+
+    rows = [rows decomp_labels];
     Nrows = numel(rows) - 1;
 
     %% Iterate over frequency
@@ -183,9 +196,7 @@ function [T_annual,T_quarter] = create_table(params,results,...
                 % code failed to run
                 column = [p.index;NaN(Nrows-1,1)];
             else
-                
-%                 if ~NoDecomps
-%                     % decomposition1
+                if decomps_available == 1
                     dec1 = [[decomps{ip}.term1]
                             [decomps{ip}.term2]
                             [decomps{ip}.term3]
@@ -229,23 +240,30 @@ function [T_annual,T_quarter] = create_table(params,results,...
                         dec2_Q = dec2_mpc1;
                     end
 
-                s_t_mpcs = cell(1,6);
+                    decomp_output = [
+                                    NaN
+                                    dec1(:)
+                                    NaN
+                                    dec2_A
+                                    NaN
+                                    dec2_Q
+                                    NaN
+                                    dec3_mpc1
+                                    ];
 
-                for i = 1:3
-%                     s_t_mpcs{i} = [results(ip).direct.mpcs_sim.avg_1_1(i)
-%                                     results(ip).direct.mpcs_sim.avg_1_2(i)
-%                                     results(ip).direct.mpcs_sim.avg_1_3(i)
-%                                     results(ip).direct.mpcs_sim.avg_1_4(i)
-%                                     results(ip).direct.mpcs_sim.avg_1_1to4(i)];
+                else
+                    decomp_output = [];
                 end
+
+                s_t_mpcs = cell(1,6);
 
                 for i = 1:6
                     s_t_mpcs{i} = [ results(ip).direct.mpcs(i).median(1,1)
-                                    results(ip).direct.mpcs(i).avg_s_t(1,1)          % IMPC(1,1)
+                                    results(ip).direct.mpcs(i).avg_s_t(1,1)        % IMPC(1,1)
                                     results(ip).direct.mpcs(i).avg_s_t(1,2)        % IMPC(1,2)
                                     results(ip).direct.mpcs(i).avg_s_t(1,3)        % IMPC(1,3)
                                     results(ip).direct.mpcs(i).avg_s_t(1,4)        % IMPC(1,4)
-                                    results(ip).direct.mpcs(i).avg_1_1to4];          % IMPC(1,1-4)
+                                    results(ip).direct.mpcs(i).avg_1_1to4];        % IMPC(1,1-4)
                 end
 
                 column = [
@@ -320,14 +338,8 @@ function [T_annual,T_quarter] = create_table(params,results,...
                     results(ip).direct.loan.mpc0
                     results(ip).direct.loan.mpc_pos
                     results(ip).direct.loan.median
-                    NaN
-                    dec1(:)                                 % Decomp1
-                    NaN
-                    dec2_A                                  % Decomposition2
-                    NaN
-                    dec2_Q
-                    NaN
-                    dec3_mpc1];                             % Decomposition3
+                    decomp_output(:)
+                    ];
             end
 
             % Add this column to table

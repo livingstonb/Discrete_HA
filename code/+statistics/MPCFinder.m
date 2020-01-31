@@ -64,6 +64,9 @@ classdef MPCFinder < handle
                 % median
                 obj.mpcs(ishock).median = NaN(5,5);
 
+                obj.mpcs(ishock).avg_1_1to4 = NaN;
+                obj.mpcs(ishock).avg_5_1to4 = NaN;
+
 		    	obj.loan.avg = NaN;
 		    	obj.loan.mpc_condl = NaN;
 		    	obj.loan.mpc_neg = NaN;
