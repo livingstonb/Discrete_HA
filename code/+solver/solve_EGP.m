@@ -5,11 +5,14 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
     % find_stationary() to compute the stationary distribution over states 
     % via direct methods (rather than simulations) and stores the results 
     % in the 'model' structure.
-
+    %
     % To compute the MPCs out of news, it is necessary for the policy function
     % to reflect the expectation of a future shock. For these cases,
     % the policy functions in 'prevmodel' are used. The variable 'nextmpcshock'
     % is nonzero when a shock is expected next period.
+    %
+    % Brian Livingston, 2020
+    % livingstonb@uchicago.edu
 
     %% ----------------------------------------------------
     % REGION WHERE NEXT PERIOD'S ASSETS GUARANTEED NON-NEG

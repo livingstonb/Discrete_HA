@@ -1,6 +1,9 @@
 function gini = direct_gini(level,distr)
-	% computes the gini index from a discrete probability
-	% distribution
+	% Computes the gini index from a discrete probability
+	% distribution.
+	%
+	% Brian Livingston, 2020
+	% livingstonb@uchicago.edu
 
     % Sort distribution and levels by levels
     sorted = sortrows([level(:),distr(:)]);

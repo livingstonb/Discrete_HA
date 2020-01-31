@@ -1,12 +1,15 @@
 function AYdiff = iterate_EGP(...
 	x,p,grdEGP,grdDST,heterogeneity,income,mpcshock)
-	% this function provides a function handle that can
+	% This function provides a function handle that can
 	% be used to find beta iteratively using a routine
 	% such as fzero
-
+	%
 	% AYdiff is the absolute difference between the ratio
 	% of mean wealth to annual income and the target for
-	% for that ratio
+	% for that ratio.
+	%
+	% Brian Livingston, 2020
+	% livingstonb@uchicago.edu
 
 	if p.EpsteinZin == 1
 		egp_ez_solver = solver.EGP_EZ_Solver(x,p,grdEGP,heterogeneity,income);

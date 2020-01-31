@@ -1,5 +1,5 @@
 function [p] = discrete_normal_alt(x,mu,sigma)
-% creates equally spaced approximation to normal distribution
+% Creates equally spaced approximation to normal distribution
 % x is the grid
 % mu is mean
 % sigma is standard deviation

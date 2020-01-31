@@ -110,12 +110,6 @@ cd(runopts.path);
 switch runopts.mode
     case 'parameters'
         params = setup.parameters(runopts);
-    case 'grid_tests1'
-        params = setup.parameters_grid_tests1(runopts,'input/IncomeGrids/quarterly_b.mat');
-    case 'grid_tests2'
-        params = setup.parameters_grid_tests2(runopts,'input/IncomeGrids/quarterly_b.mat');
-    case 'grid_tests3'
-        params = setup.parameters_grid_tests3(runopts,'input/IncomeGrids/quarterly_b.mat');
     case 'EZtests'
         params = setup.parameters_EZtests(runopts);
     case 'other'

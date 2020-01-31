@@ -1,5 +1,5 @@
 function s = to_structure(objs)
-    % convert object to structure
+    % Convert object to structure
     ofields = fields(objs);
     for is = 1:numel(objs)
         for ifield = 1:numel(ofields)

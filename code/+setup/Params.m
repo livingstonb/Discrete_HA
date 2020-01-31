@@ -5,10 +5,13 @@ classdef Params < handle
     % 'adjust_if_quarterly' must be called at the end since 
     % it is assumed that the discount factor, returns, etc... 
     % are all entered in annual terms.
-
+    %
     % IncomeProcess is the directory of the income grids,
     % or an empty string to generate the income process
     % in the code.
+    %
+    % Brian Livingston, 2020
+    % livingstonb@uchicago.edu
 
     properties
         % identifiers

@@ -1,4 +1,6 @@
 function x = constraint_calibrator(beta_in, p)
+	% Brian Livingston, 2020
+	% livingstonb@uchicago.edu
 
 	p.beta0 = beta_in;
 	results = main(p);

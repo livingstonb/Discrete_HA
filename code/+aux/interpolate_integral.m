@@ -1,8 +1,11 @@
 function interpolant = interpolate_integral(gridValues, integrandValues, pmf)
-	% returns an interpolant that interpolates to find the value of
-	% int_0^{epsilon} values(a)g(a)da for a given epsilon
+	% Returns an interpolant that interpolates to find the value of
+	% int_0^{epsilon} values(a)g(a)da for a given epsilon.
 	%
-	% evaluate the above integral by calling interpolant(epsilon)
+	% Evaluate the above integral by calling interpolant(epsilon).
+	%
+	% Brian Livingston, 2020
+	% livingstonb@uchicago.edu
 
 	sortedInputs = sortrows([gridValues(:) integrandValues(:) pmf(:)]);
 	gridSorted = sortedInputs(:,1);

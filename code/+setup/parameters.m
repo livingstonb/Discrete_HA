@@ -1,7 +1,9 @@
 function params = parameters(runopts)
+    % Brian Livingston, 2020
+    % livingstonb@uchicago.edu
 
     % location of baseline income process for quarterly case
-    QIncome = 'input/IncomeGrids/quarterly_b.mat';
+    QIncome = 'input/quarterly_b.mat';
     
     %----------------------------------------------------------------------
     % BASELINES
@@ -278,7 +280,7 @@ function params = parameters(runopts)
     params(end).sd_logyT = sqrt(0.0494);
 
     % KMP with tax and transfer - Mitman inc process
-    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, no discount het','input/IncomeGrids/mitman.mat');
+    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, no discount het','input/mitman.mat');
     params(end).sd_logyT = sqrt(0.0522);
     params(end).labtaxlow = 0.25;
     params(end).lumptransfer = 0.0363;
@@ -297,7 +299,7 @@ function params = parameters(runopts)
     params(end).r = 0;
     
     % IMP with tax and transfer, and discount factor heterogeneity- Mitman inc process
-    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta width 0.01','input/IncomeGrids/mitman.mat');
+    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta width 0.01','input/mitman.mat');
     params(end).sd_logyT = sqrt(0.0522);
     params(end).labtaxlow = 0.25;
     params(end).lumptransfer = 0.0363;
@@ -310,7 +312,7 @@ function params = parameters(runopts)
     params(end).betaH0 = -1e-3;
 
      % IMP with tax and transfer, and discount factor heterogeneity- Mitman inc process
-    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta width 0.1','input/IncomeGrids/mitman.mat');
+    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta width 0.1','input/mitman.mat');
     params(end).sd_logyT = sqrt(0.0522);
     params(end).labtaxlow = 0.25;
     params(end).lumptransfer = 0.0363;
@@ -323,7 +325,7 @@ function params = parameters(runopts)
     params(end).betaH0 = -1e-3;
 
     % IMP with tax and transfer, and discount factor heterogeneity- Mitman inc process
-    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta 0.9929, 0.9994','input/IncomeGrids/mitman.mat');
+    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta 0.9929, 0.9994','input/mitman.mat');
     params(end).sd_logyT = sqrt(0.0522);
     params(end).labtaxlow = 0.25;
     params(end).lumptransfer = 0.0363;
@@ -334,7 +336,7 @@ function params = parameters(runopts)
     
     
     % iii quarterly_c
-    params(end+1) = setup.Params(4,'Q b(iii) quarterly_c','input/IncomeGrids/quarterly_c.mat');
+    params(end+1) = setup.Params(4,'Q b(iii) quarterly_c','input/quarterly_c.mat');
     
 %     % iv
 %     params(end+1) = setup.Params(4,'Q b(iv) PersEveryPeriod','');

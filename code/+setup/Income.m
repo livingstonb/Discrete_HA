@@ -1,4 +1,7 @@
 classdef Income < handle
+    % Brian Livingston, 2020
+    % livingstonb@uchicago.edu
+
     properties (SetAccess = private)
         Load_yP;
         Load_yT = false;

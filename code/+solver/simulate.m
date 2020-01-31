@@ -1,7 +1,9 @@
 function sim_results = simulate(p,income,model,grids,heterogeneity)
-
     % This function runs simulations based on the paratmers in 'p' and the
     % policy functions in 'model'.
+    %
+    % Brian Livingston, 2020
+    % livingstonb@uchicago.edu
     
     rng('default');
     rng(1991);

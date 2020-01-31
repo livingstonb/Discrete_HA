@@ -2,6 +2,8 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
     % This function uses the method of endogenous grid points to find the
     % policy functions of the deterministic model. Output is in the
     % 'norisk' structure.
+    % Brian Livingston, 2020
+    % livingstonb@uchicago.edu
 
     coninterp = cell(1,p.nb);
     sav = zeros(p.nx,p.nb);

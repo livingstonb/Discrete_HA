@@ -1,4 +1,7 @@
 classdef Grid < handle
+	% Brian Livingston, 2020
+	% livingstonb@uchicago.edu
+
 	properties (SetAccess = private)
 		x; % cash-on-hand grids
 		s; % savings grids

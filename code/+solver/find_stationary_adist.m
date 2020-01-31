@@ -1,7 +1,10 @@
 function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heterogeneity)
     % Finds the stationary distribution and transition matrix for a given
-    % grids.a.vec
-    
+    % grids.a.vec.
+    %
+    % Brian Livingston, 2020
+    % livingstonb@uchicago.edu
+
     %% ----------------------------------------------------------------
     % FIND STATIONARY DISTRIBUTION
     % -----------------------------------------------------------------

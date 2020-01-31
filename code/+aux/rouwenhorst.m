@@ -1,5 +1,4 @@
 function [grid, trans, dist] = rouwenhorst(n, mu, sigma, rho)
-    
     % grid
     width = sqrt((n-1) * sigma^2 / ( 1 - rho^2));
     grid = linspace( mu-width, mu + width, n)';

@@ -1,7 +1,10 @@
 classdef EGP_EZ_Solver < handle
     % This class finds the policy functions using the
     % method of endogenous grid points for the case of
-    % Epstein-Zin utility
+    % Epstein-Zin utility.
+    %
+    % Brian Livingston, 2020
+	% livingstonb@uchicago.edu
     
 	properties (SetAccess = private)
         % parameters and grid

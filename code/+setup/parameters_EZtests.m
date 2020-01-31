@@ -1,7 +1,9 @@
 function params = parameters_EZtests(runopts)
+    % Brian Livingston, 2020
+    % livingstonb@uchicago.edu
 
     % location of baseline income process for quarterly case
-    QIncome = 'input/IncomeGrids/quarterly_b.mat';
+    QIncome = 'input/quarterly_b.mat';
     
     %----------------------------------------------------------------------
     % BASELINES
