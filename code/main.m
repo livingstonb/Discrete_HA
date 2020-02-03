@@ -1,4 +1,4 @@
-function [results,decomp_meanmpc] = main(p)
+function [results, decomp_meanmpc] = main(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -16,7 +16,7 @@ function [results,decomp_meanmpc] = main(p)
         error('only one form of heterogeneity allowed')
     else
         % find a better way to do this...
-        p.nb = max([p.nbeta,numel(p.risk_aver),numel(p.r),numel(p.invies)]);
+        p.nb = max([p.nbeta, numel(p.risk_aver), numel(p.r), numel(p.invies)]);
     end
     
     %% --------------------------------------------------------------------
@@ -27,26 +27,24 @@ function [results,decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % INCOME
     % ---------------------------------------------------------------------
-    income = setup.Income(p,heterogeneity);
+    income = setup.Income(p, heterogeneity);
 
     %% --------------------------------------------------------------------
     % ASSET GRIDS
     % ---------------------------------------------------------------------
-    
     % grids for method of EGP
-    grdEGP = setup.Grid(p,income,'EGP');
+    grdEGP = setup.Grid(p, income, 'EGP');
 
     % grids for finding stationary distribution
-    grdDST = setup.Grid(p,income,'DST');
+    grdDST = setup.Grid(p, income, 'DST');
 
     %% --------------------------------------------------------------------
     % MODEL SOLUTION
     % ---------------------------------------------------------------------
-
     if p.IterateBeta == 1
-        
         mpcshock = 0;
-        iterate_EGP_x = @(x) solver.iterate_EGP(x,p,grdEGP,grdDST,heterogeneity,income,mpcshock);
+        iterate_EGP_x = @(x) solver.iterate_EGP(x, p, grdEGP, grdDST,...
+            heterogeneity, income, mpcshock);
 
         if numel(heterogeneity.betadist) == 1
             beta_ub = p.betaH;
@@ -57,10 +55,10 @@ function [results,decomp_meanmpc] = main(p)
         beta_lb = p.betaL;
 
         % output function that limits number of fzero iterations
-        check_evals = @(x,y,z) aux.fzero_checkiter(x,y,z,p.maxiterAY);
+        check_evals = @(x,y,z) aux.fzero_checkiter(x, y, z, p.maxiterAY);
         
-        options = optimset('TolX',p.tolAY,'OutputFcn',check_evals);
-        [beta_final,~,exitflag] = fzero(iterate_EGP_x,[beta_lb,beta_ub],options);
+        options = optimset('TolX', p.tolAY, 'OutputFcn', check_evals);
+        [beta_final,~,exitflag] = fzero(iterate_EGP_x, [beta_lb,beta_ub], options);
         if exitflag ~= 1
             return
         end
@@ -70,16 +68,18 @@ function [results,decomp_meanmpc] = main(p)
     end
     
     % Get policy functions and stationary distribution for final beta, in
-    % 'basemofdel' structure
+    % 'basemodel' structure
     if p.EpsteinZin == 1
-        egp_ez_solver = solver.EGP_EZ_Solver(beta_final,p,grdEGP,heterogeneity,income);
+        egp_ez_solver = solver.EGP_EZ_Solver(beta_final, p, grdEGP, heterogeneity, income);
         egp_ez_solver.solve(income);
         basemodel = egp_ez_solver.return_model();
     else
         mpcshock = 0;
-        basemodel = solver.solve_EGP(beta_final,p,grdEGP,heterogeneity,income,mpcshock,[]);
+        basemodel = solver.solve_EGP(...
+            beta_final, p, grdEGP, heterogeneity, income, mpcshock, []);
     end
-   [~,basemodel] = solver.find_stationary_adist(p,basemodel,income,grdDST,heterogeneity);
+   [~,basemodel] = solver.find_stationary_adist(...
+        p, basemodel, income, grdDST, heterogeneity);
     results.direct.adist = basemodel.adist;
 
     % Report beta and annualized beta
@@ -94,7 +94,6 @@ function [results,decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % IMPORTANT MOMENTS
     % ---------------------------------------------------------------------
-
     results.direct.mean_s = basemodel.xdist(:)' * basemodel.sav_x(:);
     results.direct.mean_a = basemodel.mean_a;
     results.direct.mean_x = basemodel.xdist(:)' * basemodel.xvals(:);
@@ -123,8 +122,8 @@ function [results,decomp_meanmpc] = main(p)
 
     sort_acumdist = cumsum(sort_adist);
 
-    [aunique,uind] = unique(sort_agrid,'last');
-    wpinterp = griddedInterpolant(aunique,sort_acumdist(uind),'linear');
+    [aunique,uind] = unique(sort_agrid, 'last');
+    wpinterp = griddedInterpolant(aunique, sort_acumdist(uind), 'linear');
     for i = 1:numel(p.epsilon)        
         % create interpolant to find fraction of constrained households
         if p.epsilon(i) == 0
@@ -147,8 +146,8 @@ function [results,decomp_meanmpc] = main(p)
     results.direct.wealth_lt_10000 = wpinterp(0.081*2);
     
     % Wealth percentiles
-    [acumdist_unique,uniqueind] = unique(sort_acumdist,'last');
-    wpinterp_inverse = griddedInterpolant(acumdist_unique,sort_agrid(uniqueind),'linear');
+    [acumdist_unique,uniqueind] = unique(sort_acumdist, 'last');
+    wpinterp_inverse = griddedInterpolant(acumdist_unique, sort_agrid(uniqueind), 'linear');
     results.direct.wpercentiles = wpinterp_inverse(p.percentiles/100);
     
     % Top shares
@@ -167,33 +166,41 @@ function [results,decomp_meanmpc] = main(p)
     results.direct.agrid_dist = sum(sum(sum(basemodel.adist,4),3),2);
     
     %% --------------------------------------------------------------------
-    % EGP FOR MODEL WITHOUT INCOME RISK
+    % MPCs FOR MODEL WITHOUT INCOME RISK
     % ---------------------------------------------------------------------
-    
-    % Deterministic model
-    norisk = solver.solve_EGP_deterministic(p,grdEGP,heterogeneity,income,results.direct);
-    if norisk.EGP_cdiff > p.tol_iter
-        warning('EGP did not converge for norisk model')
+    if p.DeterministicMPCs == 1
+        % Solve deterministic model
+        norisk = solver.solve_EGP_deterministic(...
+            p,grdEGP, heterogeneity, income, results.direct);
+        if norisk.EGP_cdiff > p.tol_iter
+            warning('EGP did not converge for norisk model')
+        end
+
+        % Compute MPCs for deterministic model
+        results.norisk.mpcs1_a_direct = ...
+            statistics.direct_MPCs_by_computation_norisk(...
+                p, norisk, income, heterogeneity, grdDST);
+    else
+        % Fill deterministic MPCs with NaNs
+        results.norisk_mpcs1_a_direct = cell(1,6);
+        for im = 1:6
+            results.norisk_mpcs1_a_direct{im} = NaN;
+        end
     end
-    
+
     %% --------------------------------------------------------------------
     % SIMULATIONS
     % ---------------------------------------------------------------------
     if p.Simulate == 1
-        results.sim = solver.simulate(p,income,basemodel,grdDST,heterogeneity);
+        results.sim = solver.simulate(...
+            p, income, basemodel, grdDST, heterogeneity);
     end
-    
-    %% --------------------------------------------------------------------
-    % MPCS FOR NO-RISK MODEL
-    % ---------------------------------------------------------------------
-    
-    results.norisk.mpcs1_a_direct = ...
-        statistics.direct_MPCs_by_computation_norisk(p,norisk,income,heterogeneity,grdDST);
 
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
     % ---------------------------------------------------------------------
     if p.mpcshocks_after_period1 == 1
+        disp('Solving for policy functions of anticipated future shocks')
         if p.freq == 4
             maxT = 10;
         else
@@ -202,7 +209,7 @@ function [results,decomp_meanmpc] = main(p)
     else
         maxT = 1;
     end
-    mpcmodels = cell(6,maxT,maxT);
+    mpcmodels = cell(6, maxT, maxT);
     
     shocks = p.shocks;
     
@@ -210,7 +217,6 @@ function [results,decomp_meanmpc] = main(p)
     % the current period
     
     for ishock = 1:6
-        
         for is = 1:maxT
             mpcmodels{ishock,is,is} = basemodel;
         end
@@ -235,8 +241,8 @@ function [results,decomp_meanmpc] = main(p)
                         nextmodel = model_lagged{ishock,lag-1};
                     end
 
-                    model_lagged{ishock,lag} = solver.solve_EGP(results.direct.beta,p,grdEGP,...
-                        heterogeneity,income,nextmpcshock,nextmodel);
+                    model_lagged{ishock,lag} = solver.solve_EGP(results.direct.beta,...
+                        p, grdEGP, heterogeneity, income, nextmpcshock, nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s
@@ -249,11 +255,10 @@ function [results,decomp_meanmpc] = main(p)
         end
     end
     
-    mpc_finder = statistics.MPCFinder(p,income,grdDST,basemodel,mpcmodels);
-
+    mpc_finder = statistics.MPCFinder(p, income, grdDST, basemodel, mpcmodels);
     if p.MPCs == 1
         disp('Computing MPCs')
-        mpc_finder.solve(p,grdDST);
+        mpc_finder.solve(p, grdDST);
     end
 
     results.direct.mpcs = mpc_finder.mpcs;
@@ -264,9 +269,9 @@ function [results,decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
-    % model with income risk
     mpc_simulator = statistics.MPCSimulator(p);
-    mpc_simulator.simulate(p,income,grdDST,heterogeneity,basemodel);
+    mpc_simulator.simulate(...
+        p, income, grdDST, heterogeneity, basemodel);
 
     results.direct = mpc_simulator.append_results(results.direct);
 
@@ -289,19 +294,19 @@ function [results,decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % DECOMPOSITION 1 (DECOMP OF E[mpc])
     % ---------------------------------------------------------------------
-    decomp_meanmpc = statistics.decomposition_of_meanmpc(p,grdDST,results);
+    decomp_meanmpc = statistics.decomposition_of_meanmpc(p, grdDST, results);
     
     %% --------------------------------------------------------------------
     % GINI
     % ---------------------------------------------------------------------
     % Wealth
-    results.direct.wealthgini = aux.direct_gini(grdDST.a.matrix,basemodel.adist);
+    results.direct.wealthgini = aux.direct_gini(grdDST.a.matrix, basemodel.adist);
     
     % Gross income
-    results.direct.grossincgini = aux.direct_gini(income.ysort,income.ysortdist);
+    results.direct.grossincgini = aux.direct_gini(income.ysort, income.ysortdist);
     
     % Net income
-    results.direct.netincgini = aux.direct_gini(income.netymat,income.ymatdist);  
+    results.direct.netincgini = aux.direct_gini(income.netymat, income.ymatdist);  
 
     results.Finished = true; 
 end

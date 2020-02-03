@@ -59,6 +59,7 @@ classdef Params < handle
         Simulate = 0;
         MPCs;
         mpcshocks_after_period1;
+        DeterministicMPCs = 1;
 
         % returns
         r = 0.02; % default annual, adjusted if frequency = 4;
@@ -183,6 +184,8 @@ classdef Params < handle
 
             % compute mpcs for is > 1?
             [obj.mpcshocks_after_period1] = deal(runopts.mpcshocks_after_period1);
+
+            [obj.DeterministicMPCs] = deal(runopts.DeterministicMPCs);
             
             [obj.path] = deal(runopts.path);
         end

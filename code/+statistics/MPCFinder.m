@@ -82,13 +82,15 @@ classdef MPCFinder < handle
 	    	end
 		end
 
-		function solve(obj,p,grids)
+		function solve(obj, p, grids)
 			% This function calls the appropriate methods to find
 			% the MPCs.
 
+			fprintf('    Computing baseline consumption...\n')
 			obj.get_baseline_consumption(p);
 
 			for ishock = 1:6
+				shock_size = p.shocks(ishock);
 				if (p.mpcshocks_after_period1 == 0) || (p.EpsteinZin == 1)
 					shockperiods = 1;
 				else
@@ -97,22 +99,26 @@ classdef MPCFinder < handle
 
 				for shockperiod = shockperiods
 					loan = 0;
-					obj.computeMPCs(p,grids,ishock,shockperiod,loan);
+					fprintf('    Computing MPCs out of period %d shock of size %f...\n',...
+						shockperiod, shock_size)
+					obj.computeMPCs(p, grids, ishock, shockperiod, loan);
 				end
             end
 
             if p.mpcshocks_after_period1 > 0
                 % $500 loss in 2 years
+                fprintf('    Computing MPCs out of anticipated loss in 2 years...\n')
                 obj.computeMPCs(p,grids,1,9,0);
 
                 % $5000 loan for one year
+                fprintf('    Computing MPCs out of loan...\n')
                 obj.computeMPCs(p,grids,3,5,p.shocks(6));
             end
 
 			obj.compute_cumulative_mpcs();
 		end
 
-		function get_baseline_consumption(obj,p)
+		function get_baseline_consumption(obj, p)
 			% Each (a,yP,yF) is associated with nyT possible x values, create this
 		    % grid here
 		    obj.con_baseline_yT = obj.get_policy(p,obj.xgrid_yT,obj.basemodel);

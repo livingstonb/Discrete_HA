@@ -12,8 +12,9 @@ close all;
 runopts.IterateBeta = 0;
 runopts.fast = 0; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
-runopts.MPCs = 0;
-runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
+runopts.MPCs = 1;
+runopts.mpcshocks_after_period1 = 1; % compute mpcs for ishock > 1
+runopts.DeterministicMPCs = 0;
 
 % Directories
 parent_dir = {'/home', 'brian', 'Documents', 'GitHub'};
@@ -23,6 +24,7 @@ runopts.localdir = fullfile(parent_dir{:}, 'Discrete_HA');
 QIncome = fullfile('input', 'quarterly_b.mat');
 
 % Shock sizes
+% We assume that $500 is 0.81% of mean annual income
 shocks = [-0.0081, -0.0405, -0.081, 0.0081, 0.0405, 0.081];
 
 % Size of lump sum transfer (annual)
@@ -35,7 +37,7 @@ lumptransfer = 0.0081 * 2.0 * 4.0;
 % 1 -- Beta heterogeneity
 % 2 -- Baseline
 % 3 -- Target fraction of hh with assets < $1000
-runopts.number = 1;
+runopts.number = 3;
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
