@@ -31,19 +31,19 @@ income{1} = setup.Income(params(1),het{1});
 
 % quarterly_a
 params(2) = params(1);
-params(2).IncomeProcess = 'input/IncomeGrids/quarterly_a.mat';
+params(2).IncomeProcess = 'input/income_quarterly_a.mat';
 het{2} = setup.Prefs_R_Heterogeneity(params(2));
 income{2} = setup.Income(params(2),het{2});
 
 % quarterly_b
 params(3) = params(1);
-params(3).IncomeProcess = 'input/IncomeGrids/quarterly_b.mat';
+params(3).IncomeProcess = 'input/income_quarterly_b.mat';
 het{3} = setup.Prefs_R_Heterogeneity(params(3));
 income{3} = setup.Income(params(3),het{3});
 
 % quarterly_b
 params(4) = params(1);
-params(4).IncomeProcess = 'input/IncomeGrids/quarterly_c.mat';
+params(4).IncomeProcess = 'input/income_quarterly_c.mat';
 het{4} = setup.Prefs_R_Heterogeneity(params(4));
 income{4} = setup.Income(params(4),het{4});
 
@@ -56,7 +56,7 @@ het{5} = setup.Prefs_R_Heterogeneity(params(5));
 income{5} = setup.Income(params(5),het{5});
 
 % KMP - Mitman
-params(6) = setup.Params(4,'KMP','input/IncomeGrids/mitman.mat');
+params(6) = setup.Params(4,'KMP','input/income_mitman.mat');
 het{6} = setup.Prefs_R_Heterogeneity(params(6));
 income{6} = setup.Income(params(6),het{6});
 

@@ -12,7 +12,7 @@
 % runopts.mode is equal to 'parameters'. Alternatively, create a new
 % parameters script using parameters.m as a guide. Note that the current
 % 'parameters.m' script assumes that the main income process is in
-% input/IncomeGrids/quarterly_b.mat. Also note that if frequency is set to 4
+% input/income_quarterly_b.mat. Also note that if frequency is set to 4
 % (quarterly), then annual parameter values should be used and they will
 % be automatically adjusted in Params.adjust_if_quarterly()
 %

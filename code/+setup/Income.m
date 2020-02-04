@@ -5,7 +5,7 @@ classdef Income < handle
     properties (SetAccess = private)
         Load_yP;
         Load_yT = false;
-        Import;
+        ImportedVariables;
         
         p;
         het;
@@ -57,7 +57,7 @@ classdef Income < handle
             obj.Load_yP = ~isempty(p.IncomeProcess);
             
             if obj.Load_yP
-                obj.Import = load(p.IncomeProcess);
+                obj.ImportedVariables = load(p.IncomeProcess);
             end
             
             obj.get_persistent_income();
@@ -75,14 +75,14 @@ classdef Income < handle
         
         function get_persistent_income(obj)
             if obj.Load_yP
-                obj.logyPgrid = obj.Import.discmodel1.logyPgrid;
-                obj.yPdist = obj.Import.discmodel1.yPdist;
-                obj.yPtrans = obj.Import.discmodel1.yPtrans;
+                obj.logyPgrid = obj.ImportedVariables.logyPgrid;
+                obj.yPdist = obj.ImportedVariables.yPdist;
+                obj.yPtrans = obj.ImportedVariables.yPtrans;
                 obj.p.nyP = length(obj.logyPgrid);
                 obj.logyPgrid = reshape(obj.logyPgrid,[],1);
                 obj.yPdist = reshape(obj.yPdist,[],1);
                 
-                if ~isempty(obj.Import.discmodel1.logyTgrid)
+                if ~isempty(obj.ImportedVariables.logyTgrid)
                     obj.Load_yT = true;
                 end
             elseif obj.p.nyP > 1
@@ -103,8 +103,8 @@ classdef Income < handle
         
         function get_transitory_income(obj)
             if obj.Load_yT
-                obj.logyTgrid = obj.Import.discmodel1.logyTgrid;
-                obj.yTdist = obj.Import.discmodel1.yTdist;
+                obj.logyTgrid = obj.ImportedVariables.logyTgrid;
+                obj.yTdist = obj.ImportedVariables.yTdist;
                 obj.p.nyT = length(obj.logyTgrid);
                 obj.logyTgrid = reshape(obj.logyTgrid,[],1);
                 obj.yTdist = reshape(obj.yTdist,[],1);

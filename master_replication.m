@@ -21,7 +21,7 @@ parent_dir = {'/home', 'brian', 'Documents', 'GitHub'};
 runopts.localdir = fullfile(parent_dir{:}, 'Discrete_HA');
 
 % Location of baseline income process
-QIncome = fullfile('input', 'quarterly_b.mat');
+QIncome = fullfile('input', 'income_quarterly_b.mat');
 
 % Shock sizes
 % We assume that $500 is 0.81% of mean annual income

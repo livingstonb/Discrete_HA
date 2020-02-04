@@ -3,7 +3,7 @@ function params = parameters(runopts)
     % livingstonb@uchicago.edu
 
     % location of baseline income process for quarterly case
-    QIncome = 'input/quarterly_b.mat';
+    QIncome = 'input/income_quarterly_b.mat';
     
     %----------------------------------------------------------------------
     % BASELINES
@@ -280,7 +280,7 @@ function params = parameters(runopts)
     params(end).sd_logyT = sqrt(0.0494);
 
     % KMP with tax and transfer - Mitman inc process
-    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, no discount het','input/mitman.mat');
+    params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, no discount het','input/income_mitman.mat');
     params(end).sd_logyT = sqrt(0.0522);
     params(end).labtaxlow = 0.25;
     params(end).lumptransfer = 0.0363;
@@ -336,7 +336,7 @@ function params = parameters(runopts)
     
     
     % iii quarterly_c
-    params(end+1) = setup.Params(4,'Q b(iii) quarterly_c','input/quarterly_c.mat');
+    params(end+1) = setup.Params(4,'Q b(iii) quarterly_c','input/income_quarterly_c.mat');
     
 %     % iv
 %     params(end+1) = setup.Params(4,'Q b(iv) PersEveryPeriod','');
