@@ -109,4 +109,8 @@ end
 % SOLVE AND CREATE TABLE OF RESULTS
 % -------------------------------------------------------------------------
 results = main(params);
-results_table = statistics.create_table(params, results, params.freq);
+
+mpcs_on_table = true;
+mpcs_news_on_table = true;
+table_gen = statistics.TableGenerator(mpcs_on_table, mpcs_news_on_table);
+results_table = table_gen.create(params, results, params.freq);

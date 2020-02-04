@@ -1,40 +1,58 @@
-function output_table = create_table(params, results, freq)
-	this_freq = find([params.freq]==freq);
-	if isempty(this_freq)
-	    return;
+classdef TableGenerator
+	properties (SetAccess = private)
+		MPCs;
+		MPCs_news;
 	end
 
-	output_table = table();
-	for ip = this_freq
-		p = params(ip);
-		result_structure = results(ip);
-
-		new_column = intro_stats_table(result_structure, p);
-
-		temp = wealth_constraints_table(result_structure);
-		new_column = [new_column; temp];
-
-		temp = wealth_distribution_table(result_structure);
-		new_column = [new_column; temp];
-
-		for ishock = 1:6
-			shock_size = p.shocks(ishock);
-			temp = mpcs_table(result_structure, ishock, shock_size);
-			new_column = [new_column; temp];
+	methods
+		function obj = TableGenerator(MPCs, MPCs_news)
+			obj.MPCs = MPCs;
+			obj.MPCs_news = MPCs_news;
 		end
 
-		temp = mean_mpcs_news_table(result_structure, p, 'MEAN');
-		new_column = [new_column; temp];
+		function output_table = create(obj, params, results, freq)
+			this_freq = find([params.freq]==freq);
+			if isempty(this_freq)
+			    return;
+			end
 
-		temp = mean_mpcs_news_table(result_structure, p, 'MEDIAN');
-		new_column = [new_column; temp];
+			output_table = table();
+			for ip = this_freq
+				p = params(ip);
+				result_structure = results(ip);
 
-		temp = specialty_mpc_tables(result_structure, p);
-		new_column = [new_column; temp];
+				new_column = intro_stats_table(result_structure, p);
 
-		column_label = sprintf('Specification%d', p.index);
-		new_column.Properties.VariableNames = {column_label};
-		output_table = [output_table, new_column];
+				temp = wealth_constraints_table(result_structure);
+				new_column = [new_column; temp];
+
+				temp = wealth_distribution_table(result_structure);
+				new_column = [new_column; temp];
+
+				if obj.MPCs
+					for ishock = 1:6
+						shock_size = p.shocks(ishock);
+						temp = mpcs_table(result_structure, p,ishock, shock_size);
+						new_column = [new_column; temp];
+					end
+				end
+
+				if obj.MPCs_news
+					temp = mpcs_news_table(result_structure, p, 'MEAN');
+					new_column = [new_column; temp];
+
+					temp = mpcs_news_table(result_structure, p, 'MEDIAN');
+					new_column = [new_column; temp];
+				end
+
+				temp = specialty_mpc_tables(result_structure, p);
+				new_column = [new_column; temp];
+
+				column_label = sprintf('Specification%d', p.index);
+				new_column.Properties.VariableNames = {column_label};
+				output_table = [output_table, new_column];
+			end
+		end
 	end
 end
 
@@ -126,7 +144,7 @@ function out = wealth_distribution_table(values)
 	out = append_to_table(out, new_entries, new_labels);
 end
 
-function out = mpcs_table(values, ishock, shock_size)
+function out = mpcs_table(values, p, ishock, shock_size)
 	header = sprintf(...
 		'MPCs OUT OF FRACTION MEAN ANN INC (SHOCK %g)', shock_size);
 	out = new_table_with_header(header);
@@ -138,17 +156,22 @@ function out = mpcs_table(values, ishock, shock_size)
 					sprintf('PERIOD 4 E[MPC], shock = %g', shock_size)
 					sprintf('FOUR PERIOD E[MPC], shock = %g', shock_size)
 		};
-	new_entries = {	values.direct.mpcs(ishock).median(1,1);
-					values.direct.mpcs(ishock).avg_s_t(1,1)
-					values.direct.mpcs(ishock).avg_s_t(1,2)
-					values.direct.mpcs(ishock).avg_s_t(1,3)
-					values.direct.mpcs(ishock).avg_s_t(1,4)
-					values.direct.mpcs(ishock).avg_1_1to4
-		};
+
+	if p.MPCs
+		new_entries = {	values.direct.mpcs(ishock).median(1,1);
+						values.direct.mpcs(ishock).avg_s_t(1,1)
+						values.direct.mpcs(ishock).avg_s_t(1,2)
+						values.direct.mpcs(ishock).avg_s_t(1,3)
+						values.direct.mpcs(ishock).avg_s_t(1,4)
+						values.direct.mpcs(ishock).avg_1_1to4
+			};
+	else
+		new_entries = num2cell(NaN(6,1));
+	end
 	out = append_to_table(out, new_entries, new_labels);
 end
 
-function out = mean_mpcs_news_table(values, p, statistic)
+function out = mpcs_news_table(values, p, statistic)
 	if strcmp(statistic, 'MEAN')
 		stat_label = 'E[MPC]';
 	elseif strcmp(statistic, 'MEDIAN')
@@ -171,7 +194,9 @@ function out = mean_mpcs_news_table(values, p, statistic)
 			new_labels{ilabel} = convertStringsToChars(...
 				strcat("ONE PERIOD ", stat_label, shock_label));
 
-			if strcmp(statistic, 'MEAN')
+			if ~p.mpcshocks_after_period1
+				new_entries{ilabel} = NaN;
+			elseif strcmp(statistic, 'MEAN')
 				new_entries{ilabel} = values.direct.mpcs(ishock).avg_s_t(period,1);
 			elseif strcmp(statistic, 'MEDIAN')
 				new_entries{ilabel} = values.direct.mpcs(ishock).median(period,1);
