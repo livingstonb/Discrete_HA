@@ -10,7 +10,7 @@ close all;
 % -------------------------------------------------------------------------
 % Options
 runopts.IterateBeta = 0;
-runopts.fast = 0; % very small asset and income grids for speed
+runopts.fast = 1; % very small asset and income grids for speed
 runopts.Simulate = 0; % also solve distribution via simulation
 runopts.MPCs = 1;
 runopts.mpcshocks_after_period1 = 1; % compute mpcs for ishock > 1
@@ -109,4 +109,4 @@ end
 % SOLVE AND CREATE TABLE OF RESULTS
 % -------------------------------------------------------------------------
 results = main(params);
-[~, results_table] = statistics.create_table(params, results);
+results_table = statistics.create_table(params, results, params.freq);
