@@ -51,7 +51,7 @@ classdef Income < handle
     end
     
     methods
-        function obj = Income(p,heterogeneity)
+        function obj = Income(p, heterogeneity)
             obj.p = p;
             obj.het = heterogeneity;
             obj.Load_yP = ~isempty(p.IncomeProcess);

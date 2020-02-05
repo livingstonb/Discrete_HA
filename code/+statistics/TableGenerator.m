@@ -194,7 +194,7 @@ function out = mpcs_news_table(values, p, statistic)
 			new_labels{ilabel} = convertStringsToChars(...
 				strcat("ONE PERIOD ", stat_label, shock_label));
 
-			if ~p.mpcshocks_after_period1
+			if ~p.MPCs_news
 				new_entries{ilabel} = NaN;
 			elseif strcmp(statistic, 'MEAN')
 				new_entries{ilabel} = values.direct.mpcs(ishock).avg_s_t(period,1);

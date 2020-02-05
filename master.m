@@ -53,10 +53,12 @@ close all;
 % options
 runopts.Server = 0; % use server paths
 runopts.IterateBeta = 0;
-runopts.fast = 0; % very small asset and income grids for speed
+runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
 runopts.MPCs = 0;
-runopts.mpcshocks_after_period1 = 0; % compute mpcs for ishock > 1
+runopts.MPCs_news = 0;
+runopts.MPCs_loan_and_loss = 0;
+runopts.DeterministicMPCs = 1; % must be on if decompositions are needed
 
 % directories
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
@@ -132,7 +134,7 @@ calibrator = @(discount) solver.constraint_calibrator(discount, params);
 beta_final = fsolve(calibrator, params.beta0);
 params.beta0 = beta_final;
 params.MPCs = 1;
-params.mpcshocks_after_period1 = 1;
+params.MPCs_news = 1;
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION

@@ -35,7 +35,7 @@ classdef MPCFinder < handle
 	end
 
 	methods
-		function obj = MPCFinder(p,income,grids,basemodel,models)
+		function obj = MPCFinder(p, income, grids, basemodel, models)
 			obj.Nstates = p.nx_DST*p.nyP*p.nyF*p.nb;
 			obj.basemodel = basemodel;
 			obj.models = models;
@@ -91,7 +91,7 @@ classdef MPCFinder < handle
 
 			for ishock = 1:6
 				shock_size = p.shocks(ishock);
-				if (p.mpcshocks_after_period1 == 0) || (p.EpsteinZin == 1)
+				if (p.MPCs_news == 0) || (p.EpsteinZin == 1)
 					shockperiods = 1;
 				else
 					shockperiods = [1 2 5];
@@ -105,14 +105,14 @@ classdef MPCFinder < handle
 				end
             end
 
-            if p.mpcshocks_after_period1 > 0
+            if p.MPCs_loan_and_loss == 1
                 % $500 loss in 2 years
                 fprintf('    Computing MPCs out of anticipated loss in 2 years...\n')
-                obj.computeMPCs(p,grids,1,9,0);
+                obj.computeMPCs(p, grids, 1, 9, 0);
 
                 % $5000 loan for one year
                 fprintf('    Computing MPCs out of loan...\n')
-                obj.computeMPCs(p,grids,3,5,p.shocks(6));
+                obj.computeMPCs(p, grids, 3, 5, p.shocks(6));
             end
 
 			obj.compute_cumulative_mpcs();
@@ -126,7 +126,7 @@ classdef MPCFinder < handle
 		    obj.con_baseline = reshape(obj.con_baseline_yT,[],p.nyT) * obj.income.yTdist;
 		end
 
-		function con = get_policy(obj,p,x_mpc,model)
+		function con = get_policy(obj, p, x_mpc, model)
 			% Computes consumption policy function after taking expectation to get
 		    % rid of yT dependence
 		    sav = zeros(p.nx_DST,p.nyP,p.nyF,p.nb,p.nyT);
@@ -144,7 +144,7 @@ classdef MPCFinder < handle
 		    con = x_mpc - sav - p.savtax * max(sav-p.savtaxthresh,0);
 		end
 
-		function computeMPCs(obj,p,grids,ishock,shockperiod,loan)
+		function computeMPCs(obj, p, grids, ishock, shockperiod, loan)
 			shock = p.shocks(ishock);
 
 			for it = 1:shockperiod
@@ -258,8 +258,8 @@ classdef MPCFinder < handle
 				shockperiod,trans_1_t);
 		end
 
-		function computeMPCs_periods_after_shock(obj,p,grids,...
-			ishock,shockperiod,trans_1_t)
+		function computeMPCs_periods_after_shock(obj, p, grids,...
+			ishock, shockperiod, trans_1_t)
 			shock = p.shocks(ishock);
 
 			% transition probabilities from it = is to it = is + 1
@@ -290,7 +290,7 @@ classdef MPCFinder < handle
 		end
 
 		function transition = transition_matrix_given_t_s(...
-			obj,p,is,ii,ishock)
+			obj, p, is, ii, ishock)
 			% Computes the transition matrix between t=ii and 
 			% t=ii + 1 given shock in period 'is'
 

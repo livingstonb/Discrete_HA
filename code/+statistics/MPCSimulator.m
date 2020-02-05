@@ -75,7 +75,7 @@ classdef MPCSimulator < handle
 			end
 		end
 
-		function draw_from_stationary_dist(obj,p,grids,basemodel)
+		function draw_from_stationary_dist(obj, p, grids, basemodel)
 			cumdist = cumsum(basemodel.adist(:));
 
 			% indexes
@@ -114,7 +114,7 @@ classdef MPCSimulator < handle
 		    end
 		end
 
-		function simulate_exog_transitions(obj,p,income,heterogeneity)
+		function simulate_exog_transitions(obj, p, income, heterogeneity)
 			for it = 1:obj.Tmax
 		        live = (obj.diesim(:,it)==0);
 		        [~,obj.yTindsim(:,it)]      = max(obj.yTrand(:,it)<=income.yTcumdist',[],2);
@@ -143,7 +143,7 @@ classdef MPCSimulator < handle
                         - p.labtaxhigh*max(obj.ygrosssim-income.labtaxthresh,0);
 		end
 
-		function simulate_decisions(obj,p,grids,basemodel,ishock)
+		function simulate_decisions(obj, p, grids, basemodel, ishock)
 			% Location of households that get pushed below bottom of their grid
 	        % in first period upon shock
             obj.adjust_mpc = false(obj.Nsim,1);
@@ -212,7 +212,7 @@ classdef MPCSimulator < handle
 
 		end
 
-		function computeStatistics(obj,p)
+		function computeStatistics(obj, p)
 			for iit = 1:3
                 y_quarter = obj.ygrosssim(:,iit) * p.freq / 4;
 
@@ -233,7 +233,7 @@ classdef MPCSimulator < handle
 		    obj.mean_grossy_A = mean(sum(obj.ygrosssim(:,1:p.freq),2));
 		end
 
-		function computeMPCs(obj,p,ishock)
+		function computeMPCs(obj, p, ishock)
 			shock = p.shocks(ishock);
 
 			% MPC in period 1 out of period 1 shock
@@ -261,7 +261,7 @@ classdef MPCSimulator < handle
             obj.mpcs(ishock).avg_1_1to4 = mean(mpcs_1_1to4);
 		end
 
-		function resultsUpdate = append_results(obj,results)
+		function resultsUpdate = append_results(obj, results)
 			resultsUpdate = results;
 			resultsUpdate.a_sixth_sim = obj.inc_constrained.a_sixth_Q;
 		    resultsUpdate.a_twelfth_sim = obj.inc_constrained.a_twelfth_Q;

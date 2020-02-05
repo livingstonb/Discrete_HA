@@ -11,8 +11,6 @@ contains code written by others, with citations where possible.
 
 The script *master_replication.m* is provided to solve for the calibrations
 presented in the paper and compute statistics.
-The income process used for these calibrations is contained in the MATLAB file
-*quarterly_b.mat*.
 
 ### The calibration
 

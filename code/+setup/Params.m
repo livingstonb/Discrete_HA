@@ -57,9 +57,10 @@ classdef Params < handle
         % OPTIONS
         MakePlots = 0;
         Simulate = 0;
-        MPCs;
-        mpcshocks_after_period1;
-        DeterministicMPCs = 1;
+        MPCs = 0;
+        MPCs_news = 0;
+        MPCs_loan_and_loss = 0;
+        DeterministicMPCs = 0;
 
         % returns
         r = 0.02; % default annual, adjusted if frequency = 4;
@@ -130,7 +131,7 @@ classdef Params < handle
     end
 
     methods
-        function obj = Params(frequency,name,IncomeProcess)
+        function obj = Params(frequency, name, IncomeProcess)
         	% create params object
             obj.name = name;
             obj.freq = frequency;
@@ -160,7 +161,7 @@ classdef Params < handle
             obj.annuities = 1;
         end
 
-        function obj = set_run_parameters(obj,runopts)
+        function obj = set_run_parameters(obj, runopts)
         	% use fields in runopts to set values in Params object
 
             % fast option
@@ -183,7 +184,9 @@ classdef Params < handle
             [obj.MPCs] = deal(runopts.MPCs);
 
             % compute mpcs for is > 1?
-            [obj.mpcshocks_after_period1] = deal(runopts.mpcshocks_after_period1);
+            [obj.MPCs_news] = deal(runopts.MPCs_news);
+
+            [obj.MPCs_loan_and_loss] = deal(runopts.MPCs_loan_and_loss);
 
             [obj.DeterministicMPCs] = deal(runopts.DeterministicMPCs);
             
@@ -196,7 +199,7 @@ classdef Params < handle
             [obj.index] = deal(ind{:});
         end
 
-        function obj = set_grid(obj,nx,nxlong,curv)
+        function obj = set_grid(obj, nx, nxlong, curv)
         	% convenient way to set grid for grid tests
             obj.nx = nx;
             obj.nxlong = nxlong;
@@ -236,11 +239,11 @@ classdef Params < handle
             end
         end
         
-        function objs = select_by_number(objs,number)
+        function objs = select_by_number(objs, number)
             objs = objs([objs.index]==number);
         end
         
-        function objs = select_by_names(objs,names_to_run)
+        function objs = select_by_names(objs, names_to_run)
             % discards all experiments with names not included in the
             % cell array 'names_to_run'
             if ~isempty(names_to_run)

@@ -35,7 +35,7 @@ classdef Prefs_R_Heterogeneity < handle
 		%% -------------------------------------------------------
 	    % Discount Factor Heterogeneity
 	    % --------------------------------------------------------
-		function obj = initialize_discount_factor(obj,params)
+		function obj = initialize_discount_factor(obj, params)
 			% discount factor distribution
 		    if  params.nbeta == 1
 		        obj.betadist = 1;
@@ -84,7 +84,7 @@ classdef Prefs_R_Heterogeneity < handle
 		%% -------------------------------------------------------
 	    % IES Heterogeneity (Epstein-Zin only)
 	    % --------------------------------------------------------
-	    function obj = initialize_IES_heterogeneity(obj,params)
+	    function obj = initialize_IES_heterogeneity(obj, params)
 		    if numel(params.risk_aver) > 1 || ((numel(params.invies) > 1)...
 		    	&& (params.EpsteinZin == 1))
 
@@ -109,7 +109,7 @@ classdef Prefs_R_Heterogeneity < handle
 		%% -------------------------------------------------------
 	    % Returns Heterogeneity
 	    % --------------------------------------------------------
-		function initialize_returns_heterogeneity(obj,params)
+		function initialize_returns_heterogeneity(obj, params)
             nr = numel(params.r);
 			if nr > 1
 		        obj.rdist = ones(nr,1) / nr;

@@ -13,7 +13,7 @@ classdef Grid < handle
 	end
 
 	methods
-		function obj = Grid(params,income,gtype)
+		function obj = Grid(params, income, gtype)
 			obj.gtype = gtype;
 
 			if strcmp(gtype,'EGP')
@@ -28,7 +28,7 @@ classdef Grid < handle
             obj.create_agrid(params);
 		end
 
-		function obj = create_sgrid(obj,params)
+		function obj = create_sgrid(obj, params)
 			sgrid = linspace(0,1,obj.nx)';
 		    sgrid = sgrid.^(1./params.xgrid_par);
 		    sgrid = params.borrow_lim + (params.xmax-params.borrow_lim) .* sgrid;
@@ -39,7 +39,7 @@ classdef Grid < handle
 		    obj.s.matrix = repmat(sgrid,[1 params.nyP params.nyF]);
 		end
 
-		function obj = create_xgrid(obj,params,income)
+		function obj = create_xgrid(obj, params, income)
 			minyT = kron(min(income.netymat,[],2),ones(obj.nx,1));
 			if strcmp(obj.gtype,'EGP')
 			    xgrid = min(params.R) * obj.s.matrix(:) + minyT;
@@ -56,7 +56,7 @@ classdef Grid < handle
 		    obj.x.matrix = reshape(xgrid,[obj.nx params.nyP params.nyF]);
 		end
 
-		function obj = create_norisk_xgrid(obj,params,income)
+		function obj = create_norisk_xgrid(obj, params, income)
 			if strcmp(obj.gtype,'EGP')
 				xgrid_norisk = obj.s.vec + income.meany1;
 				obj.x.vec_norisk = obj.enforce_min_spacing(params,xgrid_norisk);
@@ -70,7 +70,7 @@ classdef Grid < handle
 			end
 		end
 
-		function obj = create_agrid(obj,params)
+		function obj = create_agrid(obj, params)
 			agrid = linspace(0,1,obj.nx)';
 		    agrid = agrid .^ (1/params.xgrid_par);
 		    agrid = params.borrow_lim ...
@@ -79,7 +79,7 @@ classdef Grid < handle
 		    obj.a.matrix = repmat(obj.a.vec,[1,params.nyP,params.nyF,params.nb]);
 		end
 
-		function grid_adj = enforce_min_spacing(obj,params,gridvec)
+		function grid_adj = enforce_min_spacing(obj, params, gridvec)
 			grid_adj = gridvec;
 			for ii = 1:numel(gridvec)-1
 				if grid_adj(ii+1) - grid_adj(ii) < params.gridspace_min

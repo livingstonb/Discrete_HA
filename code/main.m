@@ -199,7 +199,7 @@ function [results, decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
     % ---------------------------------------------------------------------
-    if p.mpcshocks_after_period1 == 1
+    if (p.MPCs_news == 1) || (p.MPCs_loan_and_loss == 1)
         disp('Solving for policy functions of anticipated future shocks')
         if p.freq == 4
             maxT = 10;
