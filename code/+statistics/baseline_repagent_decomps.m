@@ -1,4 +1,4 @@
-function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decomps(params,results)
+function [decomp_wrt_baseline, decomp_wrt_repagent] = baseline_and_repagent_decomps(params, results)
     % decomp_wrt_baseline is relative to baseline
     % decomp_wrt_repagent is relative to representative agent model
     
@@ -56,32 +56,32 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
             baseind = find(ismember({params.name},{'baseline_Q'}));
         end
         
-        if (numel(params) == 1) || isempty(baseind)
-            continue
+        skip_baseline_decomp = (numel(params) == 1) || isempty(baseind);
+
+        if ~skip_baseline_decomp
+            %% --------------------------------------------------------------
+    		% BASELINE DISTRIBUTION AND MPCs OVER ASSET GRID
+    		% ---------------------------------------------------------------
+    		dim0 = params(baseind).nyF * params(1).nyP * params(baseind).nb;
+
+    		% distribution
+            g0 = results(baseind).direct.adist(:); 
+            
+            % one-period mpcs
+            m0 = results(baseind).direct.mpcs(5).mpcs_1_t{1};
+
+            % dist and one-period mpcs condensed to asset grid
+            [g0_a, m0_a] = get_functions_of_assets(baseind, params, g0, m0, dim0);
+
+            % four-period mpcs
+            m0_4 = 0;
+            for t = 1:4
+                m0_4 = m0_4 + results(baseind).direct.mpcs(5).mpcs_1_t{t};
+            end
+
+            % four-period mpcs condensed to asset grid
+            [~,m0_4_a] = get_functions_of_assets(baseind, params, g0, m0_4, dim0);
         end
-        
-        %% --------------------------------------------------------------
-		% BASELINE DISTRIBUTION AND MPCs OVER ASSET GRID
-		% ---------------------------------------------------------------
-		dim0 = params(baseind).nyF * params(1).nyP * params(baseind).nb;
-
-		% distribution
-        g0 = results(baseind).direct.adist(:); 
-        
-        % one-period mpcs
-        m0 = results(baseind).direct.mpcs(5).mpcs_1_t{1};
-
-        % dist and one-period mpcs condensed to asset grid
-        [g0_a,m0_a] = get_functions_of_assets(baseind,params,g0,m0,dim0);
-
-        % four-period mpcs
-        m0_4 = 0;
-        for t = 1:4
-            m0_4 = m0_4 + results(baseind).direct.mpcs(5).mpcs_1_t{t};
-        end
-
-        % four-period mpcs condensed to asset grid
-        [~,m0_4_a] = get_functions_of_assets(baseind,params,g0,m0_4,dim0);      
 
         %% --------------------------------------------------------------
 		% ALTERNATIVE MODEL DISTRIBUTION AND MPCs OVER ASSET GRID
@@ -95,7 +95,7 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
         m1 = results(ip).direct.mpcs(5).mpcs_1_t{1};       
 
         % distribution and mpcs condensed to asset grid
-        [g1_a,m1_a] = get_functions_of_assets(baseind,params,g1,m1,dim1);
+        [g1_a, m1_a] = get_functions_of_assets(ip, params, g1, m1, dim1);
 
         % 4-period mpcs
         if params(ip).freq == 4
@@ -106,46 +106,78 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
                 m1_4 = m1_4 + m1_it;
             end
 
-            [~,m1_4_a] = get_functions_of_assets(baseind,params,g1,m1_4,dim1);
+            [~, m1_4_a] = get_functions_of_assets(ip, params, g1, m1_4, dim1);
         end
 
-        %% --------------------------------------------------------------
-		% DECOMP WITH RESPECT TO BASELINE
-		% ---------------------------------------------------------------
-        decomp_wrt_baseline(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_s_t(1,1) ...
-                        - results(baseind).direct.mpcs(5).avg_s_t(1,1);
-        decomp_wrt_baseline(ip).mpc1_term1 = g0_a' * (m1_a - m0_a); % Effect of MPC function
-        decomp_wrt_baseline(ip).mpc1_term2 = m0_a' * (g1_a - g0_a); % Effect of distribution
-        decomp_wrt_baseline(ip).mpc1_term3 = (m1_a - m0_a)' * (g1_a - g0_a); % Interaction
+        if ~skip_baseline_decomp
+            %% --------------------------------------------------------------
+    		% DECOMP WITH RESPECT TO BASELINE
+    		% ---------------------------------------------------------------
+            decomp_wrt_baseline(ip).mpc1_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_s_t(1,1) ...
+                            - results(baseind).direct.mpcs(5).avg_s_t(1,1);
+            decomp_wrt_baseline(ip).mpc1_term1 = g0_a' * (m1_a - m0_a); % Effect of MPC function
+            decomp_wrt_baseline(ip).mpc1_term2 = m0_a' * (g1_a - g0_a); % Effect of distribution
+            decomp_wrt_baseline(ip).mpc1_term3 = (m1_a - m0_a)' * (g1_a - g0_a); % Interaction
 
-        % Decomposition of distribution effect
-        % create interpolants from assets to integrals of m0g0, m0g1
-        m0g0 = m0_a .* g0_a;
-        m0g0_interp = griddedInterpolant(agrid_short,cumsum(m0g0),'linear');
-        m0g1 = m0_a .* g1_a;
-        m0g1_interp = griddedInterpolant(agrid_short,cumsum(m0g1),'linear');
+            % Decomposition of distribution effect
+            % create interpolants from assets to integrals of m0g0, m0g1
+            m0g0 = m0_a .* g0_a;
+            m0g0_interp = griddedInterpolant(agrid_short,cumsum(m0g0),'linear');
+            m0g1 = m0_a .* g1_a;
+            m0g1_interp = griddedInterpolant(agrid_short,cumsum(m0g1),'linear');
 
-        for ia = 1:numel(params(ip).abars)
-            abar = params(ip).abars(ia); % HtM threshold
-            if abar == 0
-	            idx = agrid_short <= abar;
-	            % HtM households
-	            decomp_wrt_baseline(ip).mpc1_term2a(ia) = m0_a(idx)' * (g1_a(idx) - g0_a(idx));
-	            % Non-HtM households
-	            decomp_wrt_baseline(ip).mpc1_term2b(ia) = m0_a(~idx)' * (g1_a(~idx) - g0_a(~idx));
-	        else
-	        	decomp_wrt_baseline(ip).mpc1_term2a(ia) = m0g1_interp(abar) - m0g0_interp(abar);
-	        	decomp_wrt_baseline(ip).mpc1_term2b(ia) = (m0_a'*g1_a - m0g1_interp(abar)) ...
-	        									- (m0_a'*g0_a - m0g0_interp(abar));
-	        end
+            for ia = 1:numel(params(ip).abars)
+                abar = params(ip).abars(ia); % HtM threshold
+                if abar == 0
+    	            idx = agrid_short <= abar;
+    	            % HtM households
+    	            decomp_wrt_baseline(ip).mpc1_term2a(ia) = m0_a(idx)' * (g1_a(idx) - g0_a(idx));
+    	            % Non-HtM households
+    	            decomp_wrt_baseline(ip).mpc1_term2b(ia) = m0_a(~idx)' * (g1_a(~idx) - g0_a(~idx));
+    	        else
+    	        	decomp_wrt_baseline(ip).mpc1_term2a(ia) = m0g1_interp(abar) - m0g0_interp(abar);
+    	        	decomp_wrt_baseline(ip).mpc1_term2b(ia) = (m0_a'*g1_a - m0g1_interp(abar)) ...
+    	        									- (m0_a'*g0_a - m0g0_interp(abar));
+    	        end
+            end
+
+            %% 4-Period MPC decomp_wrt_baseline (decomp with respect to baseline)
+            % Only used for quarterly models
+            if params(ip).freq == 4
+                % create interpolants from assets to m0g0, m0g1
+                m0g0_4 = m0_4_a .* g0_a;
+                m0g0_interp4 = griddedInterpolant(agrid_short,cumsum(m0g0_4),'linear');
+                m0g1_4 = m0_4_a .* g1_a;
+                m0g1_interp4 = griddedInterpolant(agrid_short,cumsum(m0g1_4),'linear');
+
+                decomp_wrt_baseline(ip).mpc4_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_1_1to4 ...
+                            - results(baseind).direct.mpcs(5).avg_1_1to4;
+                decomp_wrt_baseline(ip).mpc4_term1 = g0_a' * (m1_4_a - m0_4_a);
+                decomp_wrt_baseline(ip).mpc4_term2 = m0_4_a' * (g1_a - g0_a);
+                decomp_wrt_baseline(ip).mpc4_term3 = (m1_4_a - m0_4_a)' * (g1_a - g0_a);
+
+                for ia = 1:numel(params(ip).abars)
+                    abar = params(ip).abars(ia);
+                    if abar == 0
+                        idx = agrid_short <= abar;
+                        decomp_wrt_baseline(ip).mpc4_term2a(ia) = m0_4_a(idx)' * (g1_a(idx) - g0_a(idx));
+                        decomp_wrt_baseline(ip).mpc4_term2b(ia) = m0_4_a(~idx)' * (g1_a(~idx) - g0_a(~idx));
+                    else
+                        decomp_wrt_baseline(ip).mpc4_term2a(ia) = m0g1_interp4(abar) - m0g0_interp4(abar);
+                        decomp_wrt_baseline(ip).mpc4_term2b(ia) = (m0_4_a'*g1_a - m0g1_interp4(abar)) ...
+                                                    - (m0_4_a'*g0_a - m0g0_interp4(abar));
+                    end
+                end
+            end
         end
-        
+
         %% --------------------------------------------------------------
 		% DECOMP WITH RESPECT TO REP AGENT MODEL
 		% ---------------------------------------------------------------
         if params(ip).nb == 1
             % RA MPC
-            m0_RA = params(ip).R * (results(ip).direct.beta*params(ip).R)^(-1/params(ip).risk_aver) - 1;
+            temp = (1-params(ip).dieprob) * results(ip).direct.beta * params(ip).R;
+            m0_RA = params(ip).R * temp ^ (-1/params(ip).risk_aver) - 1;
 
             % To get E[MPC|a=3.5], interpolate
             m1_a_interp = griddedInterpolant(agrid_short,m1_a,'linear');
@@ -157,36 +189,6 @@ function [decomp_wrt_baseline,decomp_wrt_repagent] = baseline_and_repagent_decom
             decomp_wrt_repagent(ip).mpc1_term1 = m1_atmean - m0_RA; % Effect of MPC function
             decomp_wrt_repagent(ip).mpc1_term2 = 0; % Effect of distribution
             decomp_wrt_repagent(ip).mpc1_term3 = (m1_a - m0_RA)' * g1_a - (m1_atmean - m0_RA); % Interaction
-        end
-        
-
-        %% 4-Period MPC decomp_wrt_baseline (decomp with respect to baseline)
-        % Only used for quarterly models
-        if params(ip).freq == 4
-            % create interpolants from assets to m0g0, m0g1
-	        m0g0_4 = m0_4_a .* g0_a;
-	        m0g0_interp4 = griddedInterpolant(agrid_short,cumsum(m0g0_4),'linear');
-	        m0g1_4 = m0_4_a .* g1_a;
-	        m0g1_interp4 = griddedInterpolant(agrid_short,cumsum(m0g1_4),'linear');
-
-            decomp_wrt_baseline(ip).mpc4_Em1_less_Em0 = results(ip).direct.mpcs(5).avg_1_1to4 ...
-                        - results(baseind).direct.mpcs(5).avg_1_1to4;
-            decomp_wrt_baseline(ip).mpc4_term1 = g0_a' * (m1_4_a - m0_4_a);
-            decomp_wrt_baseline(ip).mpc4_term2 = m0_4_a' * (g1_a - g0_a);
-            decomp_wrt_baseline(ip).mpc4_term3 = (m1_4_a - m0_4_a)' * (g1_a - g0_a);
-
-            for ia = 1:numel(params(ip).abars)
-                abar = params(ip).abars(ia);
-                if abar == 0
-	                idx = agrid_short <= abar;
-	                decomp_wrt_baseline(ip).mpc4_term2a(ia) = m0_4_a(idx)' * (g1_a(idx) - g0_a(idx));
-	                decomp_wrt_baseline(ip).mpc4_term2b(ia) = m0_4_a(~idx)' * (g1_a(~idx) - g0_a(~idx));
-	            else
-	            	decomp_wrt_baseline(ip).mpc4_term2a(ia) = m0g1_interp4(abar) - m0g0_interp4(abar);
-		        	decomp_wrt_baseline(ip).mpc4_term2b(ia) = (m0_4_a'*g1_a - m0g1_interp4(abar)) ...
-	        									- (m0_4_a'*g0_a - m0g0_interp4(abar));
-            	end
-            end
         end
     end
 end

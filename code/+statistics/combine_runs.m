@@ -59,6 +59,6 @@ end
     params,results,decomps,decomps_baseline,decomps_repagent);
 
 try
-    writetable(T_quarter,[xlxdir 'T_quarter.xlsx'],'WriteRowNames',true);
-    writetable(T_annual,[xlxdir 'T_annual.xlsx'],'WriteRowNames',true);
+    writetable(T_quarter, [xlxdir 'T_quarter.xlsx'], 'WriteRowNames', true);
+    writetable(T_annual, [xlxdir 'T_annual.xlsx'], 'WriteRowNames', true);
 end

@@ -18,7 +18,8 @@ function decomp = decomposition_of_meanmpc(p,grids,results)
     end
 
     % representative agent MPC
-    m_ra = p.R * (results.direct.beta*p.R)^(-1/p.risk_aver) - 1;
+    temp = (1-p.dieprob) * results.direct.beta * p.R;
+    m_ra = p.R * temp ^ (-1/p.risk_aver) - 1;
 
     % mpcs from model with income risk
     mpcs = results.direct.mpcs(5).mpcs_1_t{1,1}; % mpcs

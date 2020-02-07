@@ -52,10 +52,10 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Server = 0; % use server paths
-runopts.IterateBeta = 0;
+runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
-runopts.MPCs = 0;
+runopts.MPCs = 1;
 runopts.MPCs_news = 0;
 runopts.MPCs_loan_and_loss = 0;
 runopts.DeterministicMPCs = 1; % must be on if decompositions are needed
@@ -65,11 +65,11 @@ runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % name of parameters script
-runopts.mode = 'other'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {};
+runopts.names_to_run = {'baseline_A'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -124,23 +124,28 @@ Nparams = size(params,2);
 %% ------------------------------------------------------------------------
 % CALIBRATING WITH FSOLVE
 % -------------------------------------------------------------------------
-if Nparams > 1
-    error('This section should be commented out when using multiple parameterizations')
-elseif runopts.IterateBeta == 1
-    error('IterateBeta must be set to 0 if this section is used')
-end
-
-calibrator = @(discount) solver.constraint_calibrator(discount, params);
-beta_final = fsolve(calibrator, params.beta0);
-params.beta0 = beta_final;
-params.MPCs = 1;
-params.MPCs_news = 1;
+%     if Nparams > 1
+%         error('This section should be commented out when using multiple parameterizations')
+%     end
+% 
+%     params.MPCs = 0;
+%     params.MPCs_news = 0;
+%     params.MPCs_loan_and_loss = 0;
+% 
+% 
+%     calibrator = @(discount) solver.constraint_calibrator(discount, params);
+%     beta_final = fsolve(calibrator, params.beta0);
+% 
+%     params.beta0 = beta_final;
+%     params.MPCs = runopts.MPCs;
+%     params.MPCs_news = runopts.MPCs_news;
+%     params.MPCs_loan_and_loss = runopts.MPCs_loan_and_loss;
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
 % -------------------------------------------------------------------------
 
-decomp_meanmpc    = cell(1,Nparams); 
+decomp_meanmpc = cell(1, Nparams); 
 
 % iterate through specifications (or run 1)
 for ip = 1:Nparams
@@ -149,10 +154,10 @@ for ip = 1:Nparams
     else
         msgfreq = 'quarterly';
     end
-    fprintf('\n Trying %s parameterization "%s"\n',msgfreq,params(ip).name)
+    fprintf('\n Trying %s parameterization "%s"\n', msgfreq,params(ip).name)
 
     tic
-    [results(ip),decomp_meanmpc{ip}] = main(params(ip));
+    [results(ip), decomp_meanmpc{ip}] = main(params(ip));
     toc
     disp(['Finished parameterization ' params(ip).name])
     
@@ -165,8 +170,23 @@ end
 disp('Check the results structure for detailed results')
 % convert Params object to structure for saving
 Sparams = aux.to_structure(params);
-save(runopts.savematpath,'Sparams','results','decomp_meanmpc')
+save(runopts.savematpath, 'Sparams', 'results', 'decomp_meanmpc')
 
 if runopts.Server == 1
     exit
 end
+
+
+%% ------------------------------------------------------------------------
+% SOLVE AND CREATE TABLE OF RESULTS
+% -------------------------------------------------------------------------
+% mpcs_on_table = true;
+% mpcs_news_on_table = false;
+% MPCs_loan_loss_on_table = 
+decomps_on_table = true;
+[~, repagent_decomps] = statistics.baseline_repagent_decomps(params, results);
+
+table_gen = statistics.TableGenerator(...
+    params.MPCs, params.MPCs_news, params.MPCs_loan_and_loss, decomps_on_table);
+results_table = table_gen.create(...
+    params, results, params.freq, decomp_meanmpc, repagent_decomps)

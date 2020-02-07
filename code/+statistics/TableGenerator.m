@@ -2,15 +2,21 @@ classdef TableGenerator
 	properties (SetAccess = private)
 		MPCs;
 		MPCs_news;
+		MPCs_loan_loss;
+		decomps;
 	end
 
 	methods
-		function obj = TableGenerator(MPCs, MPCs_news)
+		function obj = TableGenerator(MPCs, MPCs_news, MPCs_loan_loss, decomps)
 			obj.MPCs = MPCs;
 			obj.MPCs_news = MPCs_news;
+			obj.MPCs_loan_loss = MPCs_loan_loss;
+			obj.decomps = decomps;
 		end
 
-		function output_table = create(obj, params, results, freq)
+		function output_table = create(obj, params, results, freq,...
+			decomp_results, decomp_repagent)
+
 			this_freq = find([params.freq]==freq);
 			if isempty(this_freq)
 			    return;
@@ -32,9 +38,21 @@ classdef TableGenerator
 				if obj.MPCs
 					for ishock = 1:6
 						shock_size = p.shocks(ishock);
-						temp = mpcs_table(result_structure, p,ishock, shock_size);
+						temp = mpcs_table(result_structure, p, ishock, shock_size);
 						new_column = [new_column; temp];
 					end
+				end
+
+				if obj.decomps
+					shock_size = p.shocks(5);
+
+					decomp_structure = decomp_results{ip};
+					temp = decomp_table(decomp_structure, shock_size);
+					new_column = [new_column; temp];
+
+					decomp_structure = decomp_repagent(ip);
+					temp = repagent_decomp_table(decomp_structure, shock_size);
+					new_column = [new_column; temp];
 				end
 
 				if obj.MPCs_news
@@ -45,8 +63,10 @@ classdef TableGenerator
 					new_column = [new_column; temp];
 				end
 
-				temp = specialty_mpc_tables(result_structure, p);
-				new_column = [new_column; temp];
+				if obj.MPCs_loan_loss
+					temp = specialty_mpc_tables(result_structure, p);
+					new_column = [new_column; temp];
+				end
 
 				column_label = sprintf('Specification%d', p.index);
 				new_column.Properties.VariableNames = {column_label};
@@ -257,6 +277,54 @@ function out = specialty_mpc_tables(values, p)
     loan_table = append_to_table(loan_table, new_entries, new_labels);
 
     out = [loss_table; loan_table];
+end
+
+function out = decomp_table(decomp, shock_size)
+	header_name = sprintf(...
+		'DECOMP OF ONE PERIOD E[MPC], SHOCK OF %g', shock_size);
+	out = new_table_with_header(header_name);
+
+	new_labels = {	'Decomp of E[MPC] around a=0, RA MPC'
+		            'Decomp of E[MPC] around a=0, HtM Effect'
+		            'Decomp of E[MPC] around a=0, Non-HtM, constraint'
+		            'Decomp of E[MPC] around a=0, Non-HtM, inc risk'
+		            'Decomp of E[MPC] around a=0.01, RA MPC'
+		            'Decomp of E[MPC] around a=0.01, HtM Effect'
+		            'Decomp of E[MPC] around a=0.01, Non-HtM, constraint'
+		            'Decomp of E[MPC] around a=0.01, Non-HtM, inc risk'
+		            'Decomp of E[MPC] around a=0.05, RA MPC'
+		            'Decomp of E[MPC] around a=0.05, HtM Effect'
+		            'Decomp of E[MPC] around a=0.05, Non-HtM, constraint'
+		            'Decomp of E[MPC] around a=0.05, Non-HtM, inc risk'
+		};
+
+	temp = [	[decomp.term1]
+				[decomp.term2]
+				[decomp.term3]
+				[decomp.term4]
+		];
+	new_entries = num2cell(temp(:));
+
+	out = append_to_table(out, new_entries, new_labels);
+end
+
+function out = repagent_decomp_table(decomp, shock_size)
+	header_name = sprintf(...
+		'DECOMP OF ONE PERIOD E[MPC] - E[MPC_RA], SHOCK OF %g', shock_size);
+	out = new_table_with_header(header_name);
+
+	new_labels = {	'E[MPC] - E[MPC_RA]'
+		            'Decomp of E[MPC] - E[MPC_RA], effect of MPC fcn'
+		            'Decomp of E[MPC] - E[MPC_RA], effect of distr'
+		            'Decomp of E[MPC] - E[MPC_RA], interaction'
+		};
+	new_entries = {	decomp.mpc1_Em1_less_mRA
+                    decomp.mpc1_term1
+                    decomp.mpc1_term2
+                    decomp.mpc1_term3
+		};
+
+	out = append_to_table(out, new_entries, new_labels);
 end
 
 function output_table = append_to_table(...

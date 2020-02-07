@@ -101,5 +101,7 @@ results = main(params);
 
 mpcs_on_table = true;
 mpcs_news_on_table = true;
-table_gen = statistics.TableGenerator(mpcs_on_table, mpcs_news_on_table);
+decomps_on_table = false;
+table_gen = statistics.TableGenerator(...
+	mpcs_on_table, mpcs_news_on_table, decomps_on_table);
 results_table = table_gen.create(params, results, params.freq)
