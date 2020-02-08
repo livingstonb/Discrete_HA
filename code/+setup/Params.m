@@ -205,6 +205,37 @@ classdef Params < handle
             obj.nxlong = nxlong;
             obj.xgrid_par = curv;
         end
+
+        function obj = set(obj, field, new_val, quiet)
+            % Sets the value of a parameter.
+            %
+            % Inputs
+            % ------
+            %
+            % field : A string containing the parameter
+            %   name.
+            %
+            % new_val : The desired value of the parameter.
+            %
+            % quiet : An optional argument that, when it
+            %   evaluates to true, suppresses printing
+            %   to the screen.
+
+            field = char(field);
+            if ~isprop(obj, field)
+                error("Requested field is not an attribute of Params.");
+            end
+
+            obj.(field) = new_val;
+
+            if ~exist('quiet', 'var')
+                quiet = false;
+            end
+
+            if ~quiet
+                disp(strcat(field, sprintf(" has been reset to %.9f", new_val)));
+            end
+        end
     end
     
     methods (Static)
