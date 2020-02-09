@@ -32,7 +32,6 @@ classdef Grid < handle
 			sgrid = linspace(0, 1, obj.nx)';
 		    sgrid = sgrid .^ (1./params.xgrid_par);
 		    sgrid = params.borrow_lim + (params.xmax-params.borrow_lim) .* sgrid;
-
 		    sgrid = obj.enforce_min_spacing(params, sgrid);
 
 		    obj.s.vec = sgrid;
@@ -47,7 +46,7 @@ classdef Grid < handle
 		end
 
 		function obj = create_norisk_xgrid(obj, params, income)
-			obj.x.vec_norisk  = obj.s.vec + income.meany1;
+			obj.x.vec_norisk  = obj.s.vec + income.meannety1;
 		end
 
 		function obj = create_agrid(obj, params)
