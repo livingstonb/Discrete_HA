@@ -29,31 +29,31 @@ classdef Grid < handle
 		end
 
 		function obj = create_sgrid(obj, params)
-			sgrid = linspace(0,1,obj.nx)';
-		    sgrid = sgrid.^(1./params.xgrid_par);
+			sgrid = linspace(0, 1, obj.nx)';
+		    sgrid = sgrid .^ (1./params.xgrid_par);
 		    sgrid = params.borrow_lim + (params.xmax-params.borrow_lim) .* sgrid;
 
-		    sgrid = obj.enforce_min_spacing(params,sgrid);
+		    sgrid = obj.enforce_min_spacing(params, sgrid);
 
 		    obj.s.vec = sgrid;
-		    obj.s.matrix = repmat(sgrid,[1 params.nyP params.nyF]);
+		    obj.s.matrix = repmat(sgrid, [1 params.nyP params.nyF]);
 		end
 
 		function obj = create_xgrid(obj, params, income)
-			minyT = kron(min(income.netymat,[],2),ones(obj.nx,1));
+			minyT = kron(min(income.netymat, [], 2), ones(obj.nx,1));
 			if strcmp(obj.gtype,'EGP')
 			    xgrid = min(params.R) * obj.s.matrix(:) + minyT;
 			elseif strcmp(obj.gtype,'DST')
-			    xgrid = linspace(0,1,obj.nx)';
-			    xgrid = xgrid.^(1/params.xgrid_par);
+			    xgrid = linspace(0, 1, obj.nx)';
+			    xgrid = xgrid .^ (1/params.xgrid_par);
 			    xgrid = params.borrow_lim ...
-			    	+ (params.xmax - params.borrow_lim)*xgrid;
+			    	+ (params.xmax - params.borrow_lim) * xgrid;
 
-		    	xgrid = repmat(xgrid,params.nyP*params.nyF,1);
+		    	xgrid = repmat(xgrid, params.nyP*params.nyF, 1);
 			    xgrid = xgrid + minyT;
 		    end
 
-		    obj.x.matrix = reshape(xgrid,[obj.nx params.nyP params.nyF]);
+		    obj.x.matrix = reshape(xgrid, [obj.nx params.nyP params.nyF]);
 		end
 
 		function obj = create_norisk_xgrid(obj, params, income)

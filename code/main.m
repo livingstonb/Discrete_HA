@@ -37,6 +37,8 @@ function [results, decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % ASSET GRIDS
     % ---------------------------------------------------------------------
+    NBL = -min(income.netymat(:)) / p.r;
+
     % grids for method of EGP
     grdEGP = setup.Grid(p, income, 'EGP');
 

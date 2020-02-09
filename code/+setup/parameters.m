@@ -10,10 +10,18 @@ function params = parameters(runopts)
     %----------------------------------------------------------------------
     
     % Annual
-    params(1) = setup.Params(1,'baseline_A','');
+    params(1) = setup.Params(1, 'baseline_A', '');
+
+    % Annual with borrowing
+    params(end+1) = setup.Params(1, 'baseline_A_with_borrowing', '');
+    params(end).borrow_lim = -1e10;
     
     % Quarterly
-    params(end+1) = setup.Params(4,'baseline_Q',QIncome);
+    params(end+1) = setup.Params(4, 'baseline_Q', QIncome);
+
+    % Quarterly with borrowing
+    params(end+1) = setup.Params(4, 'baseline_Q_with_borrowing', QIncome);
+    params(end).borrow_lim = -1e10;
     
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
