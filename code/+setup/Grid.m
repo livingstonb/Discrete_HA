@@ -29,13 +29,12 @@ classdef Grid < handle
 		end
 
 		function obj = create_sgrid(obj, params)
-			sgrid = linspace(0, 1, obj.nx)';
-		    sgrid = sgrid .^ (1./params.xgrid_par);
-		    sgrid = params.borrow_lim + (params.xmax-params.borrow_lim) .* sgrid;
-		    sgrid = obj.enforce_min_spacing(params, sgrid);
+			savgrid = create_curved_grid(...
+				params.borrow_lim, params.xmax, obj.nx, params.xgrid_par);
+		    savgrid = obj.enforce_min_spacing(params, savgrid);
 
-		    obj.s.vec = sgrid;
-		    obj.s.matrix = repmat(sgrid, [1 params.nyP params.nyF]);
+		    obj.s.vec = savgrid;
+		    obj.s.matrix = repmat(savgrid, [1 params.nyP params.nyF]);
 		end
 
 		function obj = create_xgrid(obj, params, income)
@@ -50,12 +49,10 @@ classdef Grid < handle
 		end
 
 		function obj = create_agrid(obj, params)
-			agrid = linspace(0,1,obj.nx)';
-		    agrid = agrid .^ (1/params.xgrid_par);
-		    agrid = params.borrow_lim ...
-		    	+ (params.xmax - params.borrow_lim) * agrid;
-		    obj.a.vec = obj.enforce_min_spacing(params,agrid);
-		    obj.a.matrix = repmat(obj.a.vec,[1,params.nyP,params.nyF,params.nb]);
+			agrid = create_curved_grid(...
+				params.borrow_lim, params.xmax, obj.nx, params.xgrid_par);
+		    obj.a.vec = obj.enforce_min_spacing(params, agrid);
+		    obj.a.matrix = repmat(obj.a.vec, [1,params.nyP,params.nyF,params.nb]);
 		end
 
 		function grid_adj = enforce_min_spacing(obj, params, gridvec)
@@ -70,4 +67,10 @@ classdef Grid < handle
 		end
 	end
 
+end
+
+function cgrid = create_curved_grid(lowval, highval, npts, curvature)
+	cgrid = linspace(0, 1, npts)';
+    cgrid = cgrid .^ (1/curvature);
+    cgrid = lowval + (highval - lowval) * cgrid;
 end
