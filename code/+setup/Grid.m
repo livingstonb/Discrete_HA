@@ -18,13 +18,13 @@ classdef Grid < handle
 
 			if strcmp(gtype,'EGP')
                 obj.nx = params.nx;
-				obj.create_sgrid(params);
 			elseif strcmp(gtype,'DST')
 				obj.nx = params.nx_DST;
 			end
 
-			obj.create_xgrid(params,income);
-			obj.create_norisk_xgrid(params,income);
+			obj.create_sgrid(params);
+			obj.create_xgrid(params, income);
+			obj.create_norisk_xgrid(params, income);
             obj.create_agrid(params);
 		end
 
@@ -41,33 +41,13 @@ classdef Grid < handle
 
 		function obj = create_xgrid(obj, params, income)
 			minyT = kron(min(income.netymat, [], 2), ones(obj.nx,1));
-			if strcmp(obj.gtype,'EGP')
-			    xgrid = min(params.R) * obj.s.matrix(:) + minyT;
-			elseif strcmp(obj.gtype,'DST')
-			    xgrid = linspace(0, 1, obj.nx)';
-			    xgrid = xgrid .^ (1/params.xgrid_par);
-			    xgrid = params.borrow_lim ...
-			    	+ (params.xmax - params.borrow_lim) * xgrid;
-
-		    	xgrid = repmat(xgrid, params.nyP*params.nyF, 1);
-			    xgrid = xgrid + minyT;
-		    end
+			xgrid = min(params.R) * obj.s.matrix(:) + minyT;
 
 		    obj.x.matrix = reshape(xgrid, [obj.nx params.nyP params.nyF]);
 		end
 
 		function obj = create_norisk_xgrid(obj, params, income)
-			if strcmp(obj.gtype,'EGP')
-				xgrid_norisk = obj.s.vec + income.meany1;
-				obj.x.vec_norisk = obj.enforce_min_spacing(params,xgrid_norisk);
-			elseif strcmp(obj.gtype,'DST')
-				xgrid_norisk = linspace(0,1,obj.nx);
-			    xgrid_norisk = xgrid_norisk .^ (1/params.xgrid_par);
-			    xgrid_norisk = params.borrow_lim ...
-			    	+ (params.xmax-params.borrow_lim).*xgrid_norisk;
-		    	xgrid_norisk = obj.enforce_min_spacing(params,xgrid_norisk);
-			    obj.x.vec_norisk = xgrid_norisk + income.meany1;
-			end
+			obj.x.vec_norisk  = obj.s.vec + income.meany1;
 		end
 
 		function obj = create_agrid(obj, params)
