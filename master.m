@@ -52,7 +52,7 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Server = 0; % use server paths
-runopts.IterateBeta = 0;
+runopts.IterateBeta = 1;
 runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
 runopts.MPCs = 1;
@@ -144,7 +144,6 @@ Nparams = size(params,2);
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
 % -------------------------------------------------------------------------
-
 decomp_meanmpc = cell(1, Nparams); 
 
 % iterate through specifications (or run 1)
@@ -166,7 +165,6 @@ end
 %% ------------------------------------------------------------------------
 % DECOMPOSITION 2 AND SAVING/TABLE CREATING
 % -------------------------------------------------------------------------
-
 disp('Check the results structure for detailed results')
 % convert Params object to structure for saving
 Sparams = aux.to_structure(params);
@@ -184,7 +182,8 @@ end
 % mpcs_news_on_table = false;
 % MPCs_loan_loss_on_table = 
 decomps_on_table = true;
-[~, repagent_decomps] = statistics.baseline_repagent_decomps(params, results);
+return_nans = false;
+[~, repagent_decomps] = statistics.baseline_repagent_decomps(params, results, return_nans);
 
 table_gen = statistics.TableGenerator(...
     params.MPCs, params.MPCs_news, params.MPCs_loan_and_loss, decomps_on_table);

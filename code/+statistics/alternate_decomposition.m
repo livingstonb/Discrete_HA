@@ -1,11 +1,14 @@
 function decomp = alternate_decomposition(p_baseline, results_baseline,...
-	p_no_bc, results_no_bc)
+	p_no_bc, results_no_bc, return_nans)
 
 	% Construct agrid from baseline parameters
 	agrid = construct_agrid(p_baseline);
 
 	% Initialize
 	decomp = initialize_to_nan(p_baseline);
+    if return_nans
+        return
+    end
 
 	% Check if required MPCs are available
     baseline_mpcs_available = (p_baseline.MPCs == 1) && (p_baseline.DeterministicMPCs == 1);
@@ -21,8 +24,8 @@ function decomp = alternate_decomposition(p_baseline, results_baseline,...
     % RA model WITHOUT borrowing constraint
     % ---------------------------------------------------------------------
     RA = struct();
-    tmp = (1-p.dieprob) * results.direct.beta * p.R;
-    RA.mpc = p.R * tmp ^ (-1/p.risk_aver) - 1;
+    tmp = (1-p_baseline.dieprob) * results_baseline.direct.beta * p_baseline.R;
+    RA.mpc = p_baseline.R * tmp ^ (-1/p_baseline.risk_aver) - 1;
 
     %% --------------------------------------------------------------------
     % RA model WITH borrowing constraint
@@ -41,7 +44,7 @@ function decomp = alternate_decomposition(p_baseline, results_baseline,...
 
     HA_with_BC.Empc = results_baseline.direct.mpcs(5).avg_s_t(1,1);
 
-    mpcs = results_baseline.direct.mpcs(5).mpcs_1_5{1};
+    mpcs = results_baseline.direct.mpcs(5).mpcs_1_t{1};
     HA_with_BC.mpcs = reshape(mpcs, [], n_het);
     HA_with_BC.pmf = reshape(results_baseline.direct.adist, [], n_het);
 
@@ -59,7 +62,7 @@ function decomp = alternate_decomposition(p_baseline, results_baseline,...
     % ---------------------------------------------------------------------
     HA = struct();
 
-    mpcs = results_no_bc.direct.mpcs(5).mpcs_1_5{1};
+    mpcs = results_no_bc.direct.mpcs(5).mpcs_1_t{1};
     mpcs = reshape(mpcs, [], n_het);
     ind0 = p_no_bc.nx_neg_DST + 1;
     HA.mpcs = mpcs(ind0:end,:);
@@ -71,21 +74,21 @@ function decomp = alternate_decomposition(p_baseline, results_baseline,...
     HA_with_BC.mpc_integral_interp = cell(n_het, 1);
     for ii = 1:n_het
         HA_with_BC.mpc_integral_interp{ii} = aux.interpolate_integral(...
-            assets, HA_with_BC.mpcs(:,ii), HA_with_BC.pmf(:,ii));
+            agrid, HA_with_BC.mpcs(:,ii), HA_with_BC.pmf(:,ii));
     end
 
     % For integral over mpcs for HA model without budget constraint
     HA.mpc_integral_interp = cell(n_het, 1);
     for ii = 1:n_het
         HA.mpc_integral_interp{ii} = aux.interpolate_integral(...
-            assets, HA.mpcs(:,ii), HA_with_BC.pmf(:,ii));
+            agrid, HA.mpcs(:,ii), HA_with_BC.pmf(:,ii));
     end
 
     % For integral over mpcs for RA model with budget constraint
     RA_with_BC.mpc_integral_interp = cell(n_het, 1);
     for ii = 1:n_het
         RA_with_BC.mpc_integral_interp{ii} = aux.interpolate_integral(...
-            assets, RA_with_BC.mpcs(:,ii), HA_with_BC.pmf(:,ii));
+            agrid, RA_with_BC.mpcs(:,ii), HA_with_BC.pmf(:,ii));
     end
 
     %% --------------------------------------------------------------------

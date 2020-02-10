@@ -4,18 +4,20 @@ classdef TableGenerator
 		MPCs_news;
 		MPCs_loan_loss;
 		decomps;
+		alt_decomps;
 	end
 
 	methods
-		function obj = TableGenerator(MPCs, MPCs_news, MPCs_loan_loss, decomps)
+		function obj = TableGenerator(MPCs, MPCs_news, MPCs_loan_loss, decomps, alt_decomps)
 			obj.MPCs = MPCs;
 			obj.MPCs_news = MPCs_news;
 			obj.MPCs_loan_loss = MPCs_loan_loss;
 			obj.decomps = decomps;
+			obj.alt_decomps = alt_decomps;
 		end
 
 		function output_table = create(obj, params, results, freq,...
-			decomp_results, decomp_repagent)
+			decomp_results, decomp_repagent, decomp_alt)
 
 			this_freq = find([params.freq]==freq);
 			if isempty(this_freq)
@@ -52,6 +54,15 @@ classdef TableGenerator
 
 					decomp_structure = decomp_repagent(ip);
 					temp = repagent_decomp_table(decomp_structure, shock_size);
+					new_column = [new_column; temp];
+				end
+
+
+				if obj.alt_decomps
+					shock_size = p.shocks(5);
+
+					decomp_structure = decomp_alt(ip);
+					temp = alt_decomp_table(decomp_structure, shock_size);
 					new_column = [new_column; temp];
 				end
 

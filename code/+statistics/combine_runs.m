@@ -14,21 +14,30 @@
 % basedir = '/home/livingstonb/GitHub/Discrete_HA';
 % matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
 % xlxdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
-basedir = '/home/brian/Documents/GitHub/Discrete_HA';
-matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
-xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
-FROM_MATFILE = false;
-decomp_with_loose_borr_limit = true;
-index_loose_borr_limit_Q = 'baseline_Q_with_borrowing';
-index_loose_borr_limit_A = 'baseline_A_with_borrowing';
 
-addpath([basedir '/code']);
+FROM_MATFILE = true;
 
 if ~FROM_MATFILE
     clearvars -except params results decomp_meanmpc xlxdir FROM_MATFILE
 else
-    clearvars -except basedir matdir xlxdir FROM_MATFILE
+    clearvars -except FROM_MATFILE
 end
+
+basedir = '/home/brian/Documents/GitHub/Discrete_HA';
+matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
+xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
+
+addpath([basedir '/code']);
+
+decomp_with_loose_borr_limit = true;
+index_loose_borr_limit_Q = 'baseline_Q_with_borrowing';
+index_loose_borr_limit_A = 'baseline_A_with_borrowing';
+
+mpcs_on_table = true;
+mpcs_news_on_table = false;
+MPCs_loan_and_loss_on_table = false;
+decomps_on_table = true;
+
 
 if FROM_MATFILE
     %% Read .mat files into a cell array
@@ -39,7 +48,7 @@ if FROM_MATFILE
     ind = 0;
     for run = 1:999
         runstr = num2str(run);
-        fpath = [matdir,'variables',runstr,'.mat'];
+        fpath = [matdir,'variables', runstr, '.mat'];
         if exist(fpath,'file')
             ind = ind+1;
             
@@ -55,8 +64,13 @@ else
     decomps = decomp_meanmpc;
 end
 
+if decomp_with_loose_borr_limit
+    return_nans = true;
+else
+    return_nans = false;
+end
 [decomps_baseline, decomps_repagent] ...
-    	= statistics.baseline_repagent_decomps(params, results);
+    	= statistics.baseline_repagent_decomps(params, results, return_nans);
 
 if decomp_with_loose_borr_limit
     for ip = 1:ind
@@ -68,56 +82,60 @@ if decomp_with_loose_borr_limit
                 cellfun(@(z) strcmp(z,index_loose_borr_limit_Q), {params.name}));
         end
         p_no_bc = params(index_loose_borr_limit);
-        results_no_bc = results{index_loose_borr_limit};
+        results_no_bc = results(index_loose_borr_limit);
 
-        decomp_alt(ip) = alternate_decomposition(params(ip), results{ip},...
-            p_no_bc, results_no_bc);
+        return_nans = (ip == index_loose_borr_limit);
+        decomp_alt(ip) = statistics.alternate_decomposition(...
+            params(ip), results(ip),...
+            p_no_bc, results_no_bc, return_nans);
     end
 end
     
 % [T_annual, T_quarter] = statistics.create_table_old(...
 %     params, results, decomps, decomps_baseline, decomps_repagent);
 
-mpcs_on_table = true;
-mpcs_news_on_table = true;
-MPCs_loan_and_loss_on_table = true;
-decomps_on_table = true;
 table_gen = statistics.TableGenerator(...
-    mpcs_on_table, mpcs_news_on_table, MPCs_loan_and_loss_on_table, decomps_on_table);
+    mpcs_on_table, mpcs_news_on_table,...
+    MPCs_loan_and_loss_on_table,...
+    decomps_on_table,...
+    decomp_with_loose_borr_limit);
 
 for freq = [1 4]
-    params_freq = struct();
-    results_freq = struct();
-    decomp_meanmpc_freq = struct();
-    repagent_decomps_freq = struct();
     ifreq = 0;
     for ip = 1:ind
         if params(ip).freq == freq
             ifreq = ifreq + 1;
-            params_freq(ifreq) = params(ip);
-            results_freq(ifreq) = results(ip);
-            decomp_meanmpc_freq(ifreq) = decomp_meanmpc(ip);
-            repagent_decomps_freq(ifreq) = repagent_decomps(ip);
+
+            if ifreq == 1
+                params_freq = params(ip);
+                results_freq = results(ip);
+                decomp_meanmpc_freq{1} = decomps{ip};
+                decomps_repagent_freq = decomps_repagent(ip);
+                decomp_alt_freq = decomp_alt(ip);
+            else
+                params_freq(ifreq) = params(ip);
+                results_freq(ifreq) = results(ip);
+                decomp_meanmpc_freq{ifreq} = decomps{ip};
+                decomps_repagent_freq(ifreq) = decomps_repagent(ip);
+                decomp_alt_freq(ifreq) = decomp_alt(ip);
+            end
         end
     end
 
-    if (freq == 1) && (ifreq > 0)
-        T_annual = table_gen.create(...
-            params_freq, results_freq, freq, decomp_meanmpc_freq, repagent_decomps_freq);
-    elseif (freq == 1)
-        T_annual = table();
-    elseif (freq == 4) && (ifreq > 0)
-        T_quarter = table_gen.create(...
-            params_freq, results_freq, freq, decomp_meanmpc_freq, repagent_decomps_freq);
-    elseif (freq == 4)
-        T_quarter = table();
+    if ifreq > 0
+        T = table_gen.create(...
+            params_freq, results_freq, freq,...
+            decomp_meanmpc_freq,...
+            decomps_repagent_freq,...
+            decomp_alt_freq);
+
+        if freq == 1
+            T_annual = T;
+            fname = 'T_annual.xlsx';
+        elseif freq == 4
+            T_quarter = T;
+            fname = 'T_quarter.xlsx';
+        end
+        writetable(T, [xlxdir fname], 'WriteRowNames', true);
     end
-end
-
-if ~isempty(T_quarter)
-    writetable(T_quarter, [xlxdir 'T_quarter.xlsx'], 'WriteRowNames', true);
-end
-
-if ~isempty(T_annual)
-    writetable(T_annual, [xlxdir 'T_annual.xlsx'], 'WriteRowNames', true);
 end

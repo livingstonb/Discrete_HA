@@ -1,4 +1,4 @@
-function [decomp_wrt_baseline, decomp_wrt_repagent] = baseline_and_repagent_decomps(params, results)
+function [decomp_wrt_baseline, decomp_wrt_repagent] = baseline_and_repagent_decomps(params, results, return_nans)
     % decomp_wrt_baseline is relative to baseline
     % decomp_wrt_repagent is relative to representative agent model
     
@@ -48,12 +48,16 @@ function [decomp_wrt_baseline, decomp_wrt_repagent] = baseline_and_repagent_deco
 
         decomp_wrt_baseline(ip).decomp_error = NaN;
         decomp_wrt_repagent(ip).decomp_error = NaN;
+        
+        if return_nans
+            continue
+        end
 
         % find index of baseline within 'p'
         if params(ip).freq == 1
-            baseind = find(ismember({params.name},{'baseline_A'}));
+            baseind = find(ismember({params.name}, {'baseline_A'}));
         else
-            baseind = find(ismember({params.name},{'baseline_Q'}));
+            baseind = find(ismember({params.name}, {'baseline_Q'}));
         end
         
         skip_baseline_decomp = (numel(params) == 1) || isempty(baseind);

@@ -25,12 +25,14 @@ function params = parameters(runopts)
     params(end+1) = setup.Params(4, 'baseline_Q', QIncome);
 
     % Quarterly with borrowing
+    num_neg_pts = 20;
     params(end+1) = setup.Params(4, 'baseline_Q_with_borrowing', QIncome_trunc);
     params(end).borrow_lim = -1e10;
-    params(end).nx = 520;
-    params(end).nx_neg = 20;
-    params(end).nx_DST = 420;
-    params(end).nx_neg_DST = 20;
+    params(end).nx = 500 + num_neg_pts;
+    params(end).nx_neg = num_neg_pts;
+    params(end).nx_DST = 400 + num_neg_pts;
+    params(end).nx_neg_DST = num_neg_pts;
+    params(end).beta0 = 0.9843634210;
     
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -440,11 +442,10 @@ function params = parameters(runopts)
     % select by number if there is one, otherwise select by names,
     % otherwise use all
     if numel(runopts.number) == 1
-        params = setup.Params.select_by_number(params,runopts.number);
+        params = setup.Params.select_by_number(params, runopts.number);
     elseif numel(runopts.number) > 1
         error('runopts.number must have 1 or zero elements')
     else
-        params = setup.Params.select_by_names(params,runopts.names_to_run);
-        params.set_index(); % index within .mat file
+        params = setup.Params.select_by_names(params, runopts.names_to_run);
     end
 end
