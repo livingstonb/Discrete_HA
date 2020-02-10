@@ -47,11 +47,13 @@ classdef Params < handle
         abars = [0, 0.01, 0.05];
 
         % cash on hand / savings grid
-        nx          = 500;
-        nx_DST      = 400;
-        xmax        = 100;
-        xgrid_par   = 0.2; %1 for linear, 0 for L-shaped
-        borrow_lim  = 0; % negative does not work
+        nx = 500;
+        nx_neg = 0;
+        nx_DST = 400;
+        nx_neg_DST = 0;
+        xmax = 100;
+        xgrid_par = 0.2; %1 for linear, 0 for L-shaped
+        borrow_lim = 0;
         gridspace_min = 0.001; % minimum grid space (0 for no minimum)
         
         % OPTIONS

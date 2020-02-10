@@ -38,6 +38,9 @@ function [results, decomp_meanmpc] = main(p)
     % ASSET GRIDS
     % ---------------------------------------------------------------------
     NBL = -min(income.netymat(:)) / p.r;
+    if p.borrow_lim <= -1e10
+        p.set("borrow_lim", 0.95*NBL, false);
+    end
 
     % grids for method of EGP
     grdEGP = setup.Grid(p, income, 'EGP');

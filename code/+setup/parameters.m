@@ -22,11 +22,14 @@ function params = parameters(runopts)
     % Quarterly with borrowing
     params(end+1) = setup.Params(4, 'baseline_Q_with_borrowing', QIncome);
     params(end).borrow_lim = -1e10;
+    params(end).nx = 520;
+    params(end).nx_neg = 20;
+    params(end).nx_DST = 420;
+    params(end).nx_neg_DST = 20;
     
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
     %----------------------------------------------------------------------
-
     for ifreq = [4]
         if ifreq == 1
             lfreq = 'A';
