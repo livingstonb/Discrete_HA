@@ -28,11 +28,6 @@ function [results, decomp_meanmpc] = main(p)
     % INCOME
     % ---------------------------------------------------------------------
     income = setup.Income(p, heterogeneity);
-    % if ~isempty(p.IncomeProcess)
-    %     p.set("nyP", income.nyP, true);
-    %     p.set("nyF", income.nyF, true);
-    %     p.set("nyT", income.nyT, true);
-    % end
 
     %% --------------------------------------------------------------------
     % ASSET GRIDS

@@ -59,7 +59,8 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
     end
     
     con = (r_mat(:) .* (r_mat(:)>=0.001) + 0.001 * (r_mat(:)<0.001) + extra) ...
-    	.* repmat(grids.x.matrix(:),p.nb,1);
+    	.* repmat(grids.x.matrix(:), p.nb, 1);
+    con(con<=0) = min(con(con>0));
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
@@ -229,7 +230,7 @@ function muc_s = get_marginal_util_cons(...
                                             + p.dieprob * mu_bequest;
 end
 
-function sav = get_saving_policy(p,grids,x_s,svalid,nextmpcshock)
+function sav = get_saving_policy(p, grids, x_s, svalid, nextmpcshock)
 	% finds s(x), the saving policy function on the
 	% cash-on-hand grid
 

@@ -16,15 +16,15 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
     end
     
     if numel(p.r) > 1
-        Emat = kron(heterogeneity.rtrans,kron(income.ytrans,speye(p.nx)));
-        r_col = kron(p.r',ones(p.nx,1));
-        r_mat = reshape(r_col,[p.nx,numel(p.r)]);
+        Emat = kron(heterogeneity.rtrans, kron(income.ytrans, speye(p.nx)));
+        r_col = kron(p.r', ones(p.nx,1));
+        r_mat = reshape(r_col, [p.nx,numel(p.r)]);
     else
         r_mat = p.r;
     end
 
     if numel(p.risk_aver) > 1
-        risk_aver_mat = kron(p.risk_aver,ones(p.nx,1));
+        risk_aver_mat = kron(p.risk_aver, ones(p.nx,1));
     end
 
     % initial guess for consumption function, stacked state combinations
@@ -35,7 +35,8 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
         extra = 0;
     end
     
-    con = (r_mat .* (r_mat>=0.001) + 0.001 * (r_mat<0.001) + extra) .* repmat(grids.s.vec,1,p.nb) + income.meannety1;
+    con = (r_mat .* (r_mat>=0.001) + 0.001 * (r_mat<0.001) + extra) .* grids.x.matrix_norisk;
+    con(con<=0) = min(con(con>0));
 
     iter = 0;
     cdiff = 1000;
@@ -45,18 +46,18 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
         conlast = con;
         
         for ib = 1:p.nb
-            coninterp{ib} = griddedInterpolant(grids.x.vec_norisk,conlast(:,ib),'linear');
+            coninterp{ib} = griddedInterpolant(grids.x.vec_norisk, conlast(:,ib), 'linear');
             
             % cash-on-hand is just Rs + meany
             if numel(p.r) > 1
-                mucnext(:,ib) = aux.utility1(p.risk_aver,coninterp{ib}(p.R(ib)*grids.s.vec + income.meannety1))...
-                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver,p.R(ib)*grids.s.vec + income.meannety1);
+                mucnext(:,ib) = aux.utility1(p.risk_aver, coninterp{ib}(p.R(ib)*grids.s.vec + income.meannety1))...
+                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver, p.R(ib)*grids.s.vec + income.meannety1);
             elseif numel(p.risk_aver) > 1
                 mucnext(:,ib) = aux.utility1(risk_aver_mat(:,ib),coninterp{ib}(p.R.*grids.s.vec + income.meannety1))...
-                                - p.temptation/(1+p.temptation) * aux.utility1(risk_aver_mat(:,ib),p.R.*grids.s.vec + income.meannety1);
+                                - p.temptation/(1+p.temptation) * aux.utility1(risk_aver_mat(:,ib), p.R.*grids.s.vec + income.meannety1);
             else
-                mucnext(:,ib) = aux.utility1(p.risk_aver,coninterp{ib}(p.R*grids.s.vec + income.meannety1))...
-                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver,p.R.*grids.s.vec + income.meannety1);
+                mucnext(:,ib) = aux.utility1(p.risk_aver, coninterp{ib}(p.R*grids.s.vec + income.meannety1))...
+                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver, p.R.*grids.s.vec + income.meannety1);
             end
         end
         
@@ -77,21 +78,21 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
                 p.bequest_luxury,repmat(grids.s.vec,1,p.nb));
         
         if numel(p.risk_aver) == 1
-            con1 = aux.u1inv(p.risk_aver,muc1);
+            con1 = aux.u1inv(p.risk_aver, muc1);
         else
-            con1 = aux.u1inv(risk_aver_mat,muc1);
+            con1 = aux.u1inv(risk_aver_mat, muc1);
         end
         
-        cash1 = con1 + repmat(grids.s.vec,1,p.nb)...
-            + p.savtax * max(repmat(grids.s.vec,1,p.nb) - p.savtaxthresh,0);
+        cash1 = con1 + repmat(grids.s.vec, 1, p.nb)...
+            + p.savtax * max(repmat(grids.s.vec, 1, p.nb) - p.savtaxthresh,0);
         
         for ib = 1:p.nb
-            savinterp = griddedInterpolant(cash1(:,ib),grids.s.vec,'linear');
+            savinterp = griddedInterpolant(cash1(:,ib), grids.s.vec, 'linear');
             sav(:,ib) = savinterp(grids.x.vec_norisk);
         end
         sav(sav<p.borrow_lim) = p.borrow_lim;
-        con = repmat(grids.x.vec_norisk,1,p.nb) - sav...
-                                - p.savtax * max(sav - p.savtaxthresh,0);
+        con = repmat(grids.x.vec_norisk, 1, p.nb) - sav...
+            - p.savtax * max(sav - p.savtaxthresh,0);
         
         cdiff = max(abs(con(:)-conlast(:)));
         if mod(iter,100) ==0
@@ -104,8 +105,8 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
     
     % Store consumption and savings function interpolants
     for ib = 1:p.nb
-        norisk.coninterp{ib} = griddedInterpolant(grids.x.vec_norisk,con(:,ib),'linear');
-        norisk.savinterp{ib} = griddedInterpolant(grids.x.vec_norisk,sav(:,ib),'linear');
+        norisk.coninterp{ib} = griddedInterpolant(grids.x.vec_norisk,con(:,ib), 'linear');
+        norisk.savinterp{ib} = griddedInterpolant(grids.x.vec_norisk,sav(:,ib), 'linear');
     end
     
    

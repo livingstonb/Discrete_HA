@@ -78,7 +78,8 @@ classdef Grid < handle
 		end
 
 		function obj = create_norisk_xgrid(obj, params, income)
-			obj.x.vec_norisk  = obj.s.vec + income.meannety1;
+			obj.x.vec_norisk  = min(params.R) * obj.s.vec + income.meannety1;
+			obj.x.matrix_norisk = repmat(obj.x.vec_norisk, 1, params.nb);
 		end
 
 		function obj = create_agrid(obj, params)

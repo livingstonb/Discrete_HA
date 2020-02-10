@@ -4,6 +4,7 @@ function params = parameters(runopts)
 
     % location of baseline income process for quarterly case
     QIncome = 'input/income_quarterly_b.mat';
+    QIncome_trunc = 'input/income_quarterly_b_truncated.mat';
     
     %----------------------------------------------------------------------
     % BASELINES
@@ -12,19 +13,19 @@ function params = parameters(runopts)
     % Annual
     params(1) = setup.Params(1, 'baseline_A', '');
 
-    % Annual with borrowing
-    params(end+1) = setup.Params(1, 'baseline_A_with_borrowing', '');
-    params(end).borrow_lim = -1e10;
-    params(end).nx = 520;
-    params(end).nx_neg = 20;
-    params(end).nx_DST = 420;
-    params(end).nx_neg_DST = 20;
-    
+%     % Annual with borrowing
+%     params(end+1) = setup.Params(1, 'baseline_A_with_borrowing', '');
+%     params(end).borrow_lim = -1e10;
+%     params(end).nx = 520;
+%     params(end).nx_neg = 20;
+%     params(end).nx_DST = 420;
+%     params(end).nx_neg_DST = 20;
+%     
     % Quarterly
     params(end+1) = setup.Params(4, 'baseline_Q', QIncome);
 
     % Quarterly with borrowing
-    params(end+1) = setup.Params(4, 'baseline_Q_with_borrowing', QIncome);
+    params(end+1) = setup.Params(4, 'baseline_Q_with_borrowing', QIncome_trunc);
     params(end).borrow_lim = -1e10;
     params(end).nx = 520;
     params(end).nx_neg = 20;
