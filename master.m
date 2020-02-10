@@ -168,6 +168,7 @@ end
 disp('Check the results structure for detailed results')
 % convert Params object to structure for saving
 Sparams = aux.to_structure(params);
+Sincome = aux.to_structure(params);
 save(runopts.savematpath, 'Sparams', 'results', 'decomp_meanmpc')
 
 if runopts.Server == 1
