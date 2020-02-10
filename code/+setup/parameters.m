@@ -15,6 +15,10 @@ function params = parameters(runopts)
     % Annual with borrowing
     params(end+1) = setup.Params(1, 'baseline_A_with_borrowing', '');
     params(end).borrow_lim = -1e10;
+    params(end).nx = 520;
+    params(end).nx_neg = 20;
+    params(end).nx_DST = 420;
+    params(end).nx_neg_DST = 20;
     
     % Quarterly
     params(end+1) = setup.Params(4, 'baseline_Q', QIncome);
