@@ -327,6 +327,39 @@ function out = repagent_decomp_table(decomp, shock_size)
 	out = append_to_table(out, new_entries, new_labels);
 end
 
+function out = alt_decomp_table(decomp, shock_size)
+	header_name = sprintf(...
+		'ALT DECOMP OF ONE PERIOD E[MPC], SHOCK OF %g', shock_size);
+	out = new_table_with_header(header_name);
+
+	new_labels = {	'Alt decomp of E[MPC] around a=0, RA MPC'
+		            'Alt decomp of E[MPC] around a=0, HtM Effect'
+		            'Alt decomp of E[MPC] around a=0, Non-HtM, constraint'
+		            'Alt decomp of E[MPC] around a=0, Non-HtM, inc risk'
+		            'Alt decomp of E[MPC] around a=0, Interaction'
+		            'Alt decomp of E[MPC] around a=0.01, RA MPC'
+		            'Alt decomp of E[MPC] around a=0.01, HtM Effect'
+		            'Alt decomp of E[MPC] around a=0.01, Non-HtM, constraint'
+		            'Alt decomp of E[MPC] around a=0.01, Non-HtM, inc risk'
+		            'Alt decomp of E[MPC] around a=0.01, Interaction'
+		            'Alt decomp of E[MPC] around a=0.05, RA MPC'
+		            'Alt decomp of E[MPC] around a=0.05, HtM Effect'
+		            'Alt decomp of E[MPC] around a=0.05, Non-HtM, constraint'
+		            'Alt decomp of E[MPC] around a=0.05, Non-HtM, inc risk'
+		            'Alt decomp of E[MPC] around a=0.05, Interaction'
+		};
+
+	temp = [	[decomp.term1]
+				[decomp.term2]
+				[decomp.term3]
+				[decomp.term4]
+				[decomp.term5]
+		];
+	new_entries = num2cell(temp(:));
+
+	out = append_to_table(out, new_entries, new_labels);
+end
+
 function output_table = append_to_table(...
 		input_table, new_entries, new_labels)
 	table_to_append = table(new_entries,...
