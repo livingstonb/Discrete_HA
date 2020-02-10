@@ -36,11 +36,6 @@ classdef Grid < handle
 		end
 
 		function obj = create_sgrid(obj, params)
-			% savgrid = create_curved_grid(...
-			% 	params.borrow_lim, params.xmax, obj.nx,...
-			% 	params.xgrid_par, false);
-		 %    savgrid = obj.enforce_min_spacing(params, savgrid);
-
 		    soft_constraint = 0;
 			if obj.nx_neg > 0
 				neg_midpt = (params.borrow_lim + soft_constraint) / 2;

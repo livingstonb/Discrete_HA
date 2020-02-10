@@ -168,8 +168,8 @@ function [results, decomp_meanmpc] = main(p)
     
     % create interpolant from wealth percentile to cumulative wealth share
     cumwealthshare = griddedInterpolant(acumdist_unique,cumassets(uniqueind),'linear');
-    results.direct.top10share  = 1 - cumwealthshare(0.9);
-    results.direct.top1share   = 1 - cumwealthshare(0.99);
+    results.direct.top10share = 1 - cumwealthshare(0.9);
+    results.direct.top1share = 1 - cumwealthshare(0.99);
     
     % save adist from model
     results.direct.adist = basemodel.adist;
