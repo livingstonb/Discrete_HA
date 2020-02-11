@@ -15,6 +15,9 @@ classdef MPCPlotter < handle
 		tile;
 
 		mpcs_plotted = false;
+
+		fontsize = 12;
+		show_grid = 'off';
 	end
 
 	methods
@@ -28,55 +31,72 @@ classdef MPCPlotter < handle
 
 			obj.agrid = agrid;
 			obj.pmf_a = results.direct.agrid_dist;
+		end
+
+		function [ax_main, ax_window] = create_mpcs_plot(...
+			obj, yP_indices, zoomed_window, shock_size)
 
 			obj.fig = figure();
-			
-			obj.tile = tiledlayout(2, 1);
-			% obj.ax = axes('Parent', obj.fig);
-			% hold(obj.ax, 'on');
+			ax_main = axes(obj.fig);
+			legend('hide');
+			xlabel("Wealth (ratio to mean annual income)")
+			ylabel(sprintf("One-period MPC out of %g", shock_size))
+			ax_main = obj.apply_formatting(ax_main);
+
+			if zoomed_window
+				ax_window = add_window(obj.fig, ax_main);
+				ax_window = obj.apply_formatting(ax_window);
+			end
+
+			for ii = 1:numel(yP_indices)
+			    iyP = yP_indices(ii);
+			    
+			    obj.plot_mpc_function(ax_main, iyP);
+			    if zoomed_window
+			        obj.plot_mpc_function(ax_window, iyP);
+			    end
+			end
+
+			yP_labels = {'Low', 'High'};
+			legend(ax_main, yP_labels);
+			legend(ax_main, 'show');
 		end
 
-		function plot_mpcs(obj, yP_indices, iyF, ib)
-			if nargin == 2
+		function plot_mpc_function(obj, parent_obj, iyP, iyF, ib)
+			if nargin == 3
 				iyF = 1;
 				ib = 1;
-			elseif nargin == 2
+			elseif nargin == 4
 				ib = 1;
 			end
 
-			ax = nexttile(obj.tile);
-			hold(ax, 'on');
-			for iyP = yP_indices
-				selected_mpcs = obj.mpcs(:,iyP,iyF,ib);
-				plot(ax, obj.agrid, selected_mpcs);
-				% hold on
-			end
-			hold(ax, 'off');
+			selected_mpcs = obj.mpcs(:,iyP,iyF,ib);
 
-			legend("Low persistent income", "High persistent income")
-			axis(obj.lims);
-			xlabel("Wealth (ratio to mean annual income)")
-			ylabel("One-period MPC out of 0.01")
-
-			obj.mpcs_plotted = true;
+			hold(parent_obj, 'on');
+			plot(parent_obj, obj.agrid, selected_mpcs);
+			hold(parent_obj, 'off');
 		end
 
-		function plot_asset_dist(obj, nbins, amax)
+		function [ax, wealth_hist] = create_wealth_histogram(obj, nbins, amax)
 			% if obj.mpcs_plotted
 			% 	obj.ax.OuterPosition = [0 0.5 1 1];
 			% 	yyaxis(obj.ax, 'right');
 			% 	obj.ax.OuterPosition = [0 0 1 1];
 			% end
-			ax = nexttile(obj.tile);
+			obj.fig = figure();
 			[edges, counts] = smoothed_histogram(obj.agrid, obj.pmf_a, nbins, amax);
-			asset_hist = histogram('BinEdges', edges, 'BinCounts', counts);
+			wealth_hist = histogram('Parent', obj.fig, 'BinEdges', edges, 'BinCounts', counts);
 
 			bar_color = [0,0,0] + 0.5;
-			asset_hist.FaceColor = bar_color;
+			wealth_hist.FaceColor = bar_color;
 			% asset_hist.FaceAlpha = 0.2;
-			asset_hist.EdgeColor = bar_color;
+			wealth_hist.EdgeColor = bar_color;
+
+			ax = gca;
 			xlabel("Wealth (ratio to mean annual income)")
 			ylabel("Probability density")
+
+			ax = obj.apply_formatting(ax);
 
 			% bfig = bar(ax, bins, vals, 'hist');
 
@@ -87,29 +107,29 @@ classdef MPCPlotter < handle
 
 			% yyaxis(obj.ax, 'left');
 		end
+
+		function ax = apply_formatting(obj, ax)
+			grid(ax, obj.show_grid);
+			set(ax, 'FontSize', obj.fontsize);
+		end
 	end
 end
 
+function ax = add_window(parent_obj, main_ax)
+	main_ax_corner = main_ax.Position(1:2);
+	main_ax_width = main_ax.Position(3);
+	main_ax_height = main_ax.Position(4);
+
+	window_corner(1) = main_ax_corner(1) + 0.5 * main_ax_height;
+	window_corner(2) = main_ax_corner(2) + 0.5 * main_ax_width;
+	window_width = 0.25 * main_ax_width;
+	window_height = 0.25 * main_ax_height;
+
+	window_position = [window_corner, window_width, window_height];
+	ax = axes('Position', window_position);
+end
+
 function [bins, vals] = smoothed_histogram(agrid, pmf, nbins, amax)
-	% dims = size(pmf);
-	% dims_for_rep = dims;
-	% dims_for_rep(1) = 1;
-
-	% agrid_rep
-
-	% n_asset = numel(agrid);
-	% pmf_reshaped = reshape(pmf, n_asset, []);
-	% pmf_marginal = sum(pmf, 2);
-	% tmp_sorted = sortrows([agrid(:), pmf(:)]);
-	% tmp_sorted = sortrows([agrid, pmf_marginal]);
-
-	% [a_vals, inds_unique] = unique(tmp_sorted(:,1), 'last');
-	% a_cdf = cumsum(tmp_sorted(:,2));
-	% a_cdf = a_cdf(inds_unique);
-
-	% cdf_interp = griddedInterpolant(a_vals, a_cdf, 'linear');
-
-	% a_cdf = cumsum(pmf_marginal);
 	a_cdf = cumsum(pmf);
 	cdf_interp = griddedInterpolant(agrid, a_cdf, 'linear');
 
