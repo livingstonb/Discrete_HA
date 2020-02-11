@@ -10,9 +10,11 @@ load('/home/brian/Documents/GitHub/Discrete_HA/input/yPdist.mat')
 
 params = Sparams;
 
+fontsize = 16;
+
 %% MPCs Function
 mpc_plotter = statistics.MPCPlotter(params, agrid, yPdist, results);
-mpc_plotter.fontsize = 16;
+mpc_plotter.fontsize = fontsize;
 mpc_plotter.show_grid = 'on';
 
 yP_indices = [3, 8];
@@ -20,6 +22,14 @@ zoomed_window = true;
 shock_size = 0.01;
 [ax_main, ax_window] = mpc_plotter.create_mpcs_plot(...
 			yP_indices, zoomed_window, shock_size);
+ax_main.XLim = [0, 10];
+
+window_max_x = 0.3;
+ax_window.YLim = ax_main.YLim;
+ax_window.XLim = [0, window_max_x];
+xticks(ax_window, [0:0.1:window_max_x])
+yticks(ax_window, [0:0.1:0.3])
+set(ax_window, 'FontSize', fontsize-2)
         
 %% Plot wealth histogram
 mpc_plotter = statistics.MPCPlotter(params, agrid, yPdist, results);

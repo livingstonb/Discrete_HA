@@ -60,6 +60,7 @@ classdef MPCPlotter < handle
 			yP_labels = {'Low', 'High'};
 			legend(ax_main, yP_labels);
 			legend(ax_main, 'show');
+			box(ax_main.Legend, 'off');
 		end
 
 		function plot_mpc_function(obj, parent_obj, iyP, iyF, ib)
@@ -120,13 +121,14 @@ function ax = add_window(parent_obj, main_ax)
 	main_ax_width = main_ax.Position(3);
 	main_ax_height = main_ax.Position(4);
 
-	window_corner(1) = main_ax_corner(1) + 0.5 * main_ax_height;
-	window_corner(2) = main_ax_corner(2) + 0.5 * main_ax_width;
-	window_width = 0.25 * main_ax_width;
-	window_height = 0.25 * main_ax_height;
+	window_corner(1) = main_ax_corner(1) + 0.25 * main_ax_width;
+	window_corner(2) = main_ax_corner(2) + 0.4 * main_ax_height;
+	window_width = 0.5 * main_ax_width;
+	window_height = 0.3 * main_ax_height;
 
 	window_position = [window_corner, window_width, window_height];
 	ax = axes('Position', window_position);
+	box(ax, 'on');
 end
 
 function [bins, vals] = smoothed_histogram(agrid, pmf, nbins, amax)
