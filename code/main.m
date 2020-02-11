@@ -117,7 +117,6 @@ function [results, decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % WEALTH DISTRIBUTION
     % ---------------------------------------------------------------------
-
     % Create values for fraction constrained (HtM) at every pt in asset space,
     % defining constrained as a <= epsilon * mean annual gross labor income 
     % + borrowing limit
@@ -129,6 +128,7 @@ function [results, decomp_meanmpc] = main(p)
 
     [aunique,uind] = unique(sort_agrid, 'last');
     wpinterp = griddedInterpolant(aunique, sort_acumdist(uind), 'linear');
+    results.direct.find_wealth_pctile = @(a) 100 * wpinterp(a);
     for i = 1:numel(p.epsilon)        
         % create interpolant to find fraction of constrained households
         if p.epsilon(i) == 0
@@ -151,7 +151,7 @@ function [results, decomp_meanmpc] = main(p)
     results.direct.wealth_lt_10000 = wpinterp(0.081*2);
     
     % Wealth percentiles
-    [acumdist_unique,uniqueind] = unique(sort_acumdist, 'last');
+    [acumdist_unique, uniqueind] = unique(sort_acumdist, 'last');
     wpinterp_inverse = griddedInterpolant(acumdist_unique, sort_agrid(uniqueind), 'linear');
     results.direct.wpercentiles = wpinterp_inverse(p.percentiles/100);
     
@@ -162,7 +162,7 @@ function [results, decomp_meanmpc] = main(p)
     cumassets = cumsum(totassets) / results.direct.mean_a;
     
     % create interpolant from wealth percentile to cumulative wealth share
-    cumwealthshare = griddedInterpolant(acumdist_unique,cumassets(uniqueind),'linear');
+    cumwealthshare = griddedInterpolant(acumdist_unique, cumassets(uniqueind), 'linear');
     results.direct.top10share = 1 - cumwealthshare(0.9);
     results.direct.top1share = 1 - cumwealthshare(0.99);
     
@@ -274,7 +274,7 @@ function [results, decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
-    mpc_simulator = statistics.MPCSimulator(p);
+    mpc_simulator = statistics.MPCSimulator(p, results.direct.find_wealth_pctile);
     mpc_simulator.simulate(...
         p, income, grdDST, heterogeneity, basemodel);
 

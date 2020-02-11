@@ -122,13 +122,14 @@ function params = parameters(runopts)
                 params(end).betawidth = ibw;
                 params(end).betaswitch = 0;
                 params(end).dieprob = deathp;
-                params(end).beta0 = 0.956194383870642;
+                % params(end).beta0 = 0.956194383870642;
+                params(end).beta0 = 0.918;
                 
-                if ibw == 0.005
-                    params(end).betaH0 = -1e-3;
-                elseif ibw == 0.01
-                    params(end).betaH0 = -1e-3;
-                end
+                % if ibw == 0.005
+                %     params(end).betaH0 = -1e-3;
+                % elseif ibw == 0.01
+                %     params(end).betaH0 = -1e-3;
+                % end
             end
 
             % random beta heterogeneity

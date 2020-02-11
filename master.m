@@ -52,16 +52,16 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Server = 0; % use server paths
-runopts.IterateBeta = 1;
+runopts.IterateBeta = 0;
 runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
-runopts.MPCs = 1;
+runopts.MPCs = 0;
 runopts.MPCs_news = 0;
 runopts.MPCs_loan_and_loss = 0;
 runopts.DeterministicMPCs = 1; % must be on if decompositions are needed
 
 % directories
-runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % name of parameters script
@@ -69,7 +69,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'baseline_Q'};
+runopts.names_to_run = {'Q FixedBetaHet5 Width0.01 Death'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW

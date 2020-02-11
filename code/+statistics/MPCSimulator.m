@@ -39,10 +39,14 @@ classdef MPCSimulator < handle
     	inc_constrained;
 
     	a1;
+
+        assets_beta_rank_corr;
+        wpercentiles;
+    	wealth_pctile_interpolant;
 	end
 
 	methods
-		function obj = MPCSimulator(p)
+		function obj = MPCSimulator(p, wealth_pctile_interpolant)
 			obj.Nsim = p.Nsim;
 			obj.Npartition = p.Nsim / obj.partitionsize;
 
@@ -61,6 +65,8 @@ classdef MPCSimulator < handle
 
 		    dierand = rand(obj.Nsim,obj.Tmax,'single');
 		    obj.diesim = dierand < p.dieprob;
+
+		    obj.wealth_pctile_interpolant = wealth_pctile_interpolant;
 		end
 
 		function simulate(obj,p,income,grids,heterogeneity,basemodel)
@@ -231,6 +237,17 @@ classdef MPCSimulator < handle
             obj.stdev_loggrossy_A = std(log(sum(obj.ygrosssim(:,1:p.freq),2)));
 		    obj.stdev_lognety_A = std(log(sum(obj.ynetsim(:,1:p.freq),2)));
 		    obj.mean_grossy_A = mean(sum(obj.ygrosssim(:,1:p.freq),2));
+            
+            obj.wpercentiles = prctile(obj.asim(:,3), p.percentiles);
+
+		    % Rank-rank correlation between assets and beta
+		    if p.nbeta == 1
+		    	obj.assets_beta_rank_corr = NaN;
+		    else
+		    	asset_ranks = obj.wealth_pctile_interpolant(obj.asim(:,3));
+		    	tmp = corrcoef([double(obj.betaindsim(:,3)), asset_ranks]);
+                obj.assets_beta_rank_corr = tmp(1,2);
+		    end
 		end
 
 		function computeMPCs(obj, p, ishock)
@@ -267,6 +284,7 @@ classdef MPCSimulator < handle
 		    resultsUpdate.a_twelfth_sim = obj.inc_constrained.a_twelfth_Q;
 		    resultsUpdate.x_sixth_sim = obj.inc_constrained.x_sixth_Q;
 		    resultsUpdate.x_twelfth_sim = obj.inc_constrained.x_twelfth_Q;
+            resultsUpdate.assets_beta_rank_corr = obj.assets_beta_rank_corr;
 
 		    resultsUpdate.mpcs_sim = obj.mpcs;
 		end
