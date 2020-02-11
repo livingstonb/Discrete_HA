@@ -123,7 +123,7 @@ function params = parameters(runopts)
                 params(end).betaswitch = 0;
                 params(end).dieprob = deathp;
                 % params(end).beta0 = 0.956194383870642;
-                params(end).beta0 = 0.918;
+                params(end).beta0 = 0.982418237966389;
                 
                 % if ibw == 0.005
                 %     params(end).betaH0 = -1e-3;
@@ -141,12 +141,14 @@ function params = parameters(runopts)
                     params(end).betawidth = ibw;
                     params(end).betaswitch = bs;
                     params(end).dieprob = deathp;
-                    params(end).beta0 = 0.9;
-                    if strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.02 Death")
-                        params(end).betaH0 = 5e-3;
-                    elseif strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.1 Death")
-                        params(end).betaH0 = 1.5e-2;
-                    end
+%                     params(end).beta0 = 0.9;
+%                     if strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.02 Death")
+%                         params(end).betaH0 = 5e-3;
+%                     elseif strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.1 Death")
+%                         params(end).betaH0 = 1.5e-2;
+%                     end
+                    
+                    params(end).beta0 = 0.967667877287739;
                 end
             end
         end

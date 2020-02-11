@@ -61,7 +61,7 @@ runopts.MPCs_loan_and_loss = 0;
 runopts.DeterministicMPCs = 1; % must be on if decompositions are needed
 
 % directories
-runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % name of parameters script
@@ -69,7 +69,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'Q FixedBetaHet5 Width0.01 Death'};
+runopts.names_to_run = {'Q RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -179,14 +179,11 @@ end
 %% ------------------------------------------------------------------------
 % SOLVE AND CREATE TABLE OF RESULTS
 % -------------------------------------------------------------------------
-% mpcs_on_table = true;
-% mpcs_news_on_table = false;
-% MPCs_loan_loss_on_table = 
-decomps_on_table = true;
 return_nans = false;
+decomp_with_loose_borr_limit = false;
 [~, repagent_decomps] = statistics.baseline_repagent_decomps(params, results, return_nans);
 
-table_gen = statistics.TableGenerator(...
-    params.MPCs, params.MPCs_news, params.MPCs_loan_and_loss, decomps_on_table);
-results_table = table_gen.create(...
-    params, results, params.freq, decomp_meanmpc, repagent_decomps)
+table_gen = statistics.TableGenerator();
+% table_gen.decomp_repagent = repagent_decomps;
+quarterly_results = table_gen.create(params, results, 4);
+annual_results = table_gen.create(params, results, 1);

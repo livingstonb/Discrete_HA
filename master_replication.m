@@ -99,9 +99,5 @@ params = setup.Params.select_by_number(params, runopts.number);
 % -------------------------------------------------------------------------
 results = main(params);
 
-mpcs_on_table = true;
-mpcs_news_on_table = true;
-decomps_on_table = false;
-table_gen = statistics.TableGenerator(...
-	mpcs_on_table, mpcs_news_on_table, decomps_on_table);
-results_table = table_gen.create(params, results, params.freq)
+table_gen = statistics.TableGenerator();
+output_table = table_gen.create(params, results, params.freq)

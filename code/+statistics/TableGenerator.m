@@ -1,30 +1,39 @@
 classdef TableGenerator
 	properties (SetAccess = private)
-		MPCs;
-		MPCs_news;
-		MPCs_loan_loss;
-		decomps;
-		alt_decomps;
+		output_table;
+	end
+
+	properties
+		decomp_incrisk;
+		decomp_repagent;
+		decomp_incrisk_alt;
 	end
 
 	methods
-		function obj = TableGenerator(MPCs, MPCs_news, MPCs_loan_loss, decomps, alt_decomps)
-			obj.MPCs = MPCs;
-			obj.MPCs_news = MPCs_news;
-			obj.MPCs_loan_loss = MPCs_loan_loss;
-			obj.decomps = decomps;
-			obj.alt_decomps = alt_decomps;
-		end
-
-		function output_table = create(obj, params, results, freq,...
-			decomp_results, decomp_repagent, decomp_alt)
-
+		function output_table = create(obj, params, results, freq)
+			output_table = table();
 			this_freq = find([params.freq]==freq);
 			if isempty(this_freq)
 			    return;
 			end
 
-			output_table = table();
+			mpcs_present = false;
+			mpcs_news_present = false;
+			mpcs_loan_loss_present = false;
+			for ip = this_freq
+				if params(ip).MPCs
+					mpcs_present = true;
+				end
+
+				if params(ip).MPCs_news
+					mpcs_news_present = true;
+				end
+
+				if params(ip).MPCs_loan_and_loss
+					mpcs_loan_loss_present = true;
+				end
+			end
+
 			for ip = this_freq
 				p = params(ip);
 				result_structure = results(ip);
@@ -37,36 +46,40 @@ classdef TableGenerator
 				temp = wealth_distribution_table(result_structure);
 				new_column = [new_column; temp];
 
-				if obj.MPCs
-					for ishock = 1:6
-						shock_size = p.shocks(ishock);
-						temp = mpcs_table(result_structure, p, ishock, shock_size);
-						new_column = [new_column; temp];
-					end
+				ishock = 1;
+				while mpcs_present && (ishock < 7)
+					shock_size = p.shocks(ishock);
+					temp = mpcs_table(result_structure, p, ishock, shock_size);
+					new_column = [new_column; temp];
+					ishock = ishock + 1;
 				end
 
-				if obj.decomps
+				if 	~isempty(obj.decomp_incrisk)
 					shock_size = p.shocks(5);
 
-					decomp_structure = decomp_results{ip};
+					decomp_structure = obj.decomp_incrisk(ip);
 					temp = decomp_table(decomp_structure, shock_size);
 					new_column = [new_column; temp];
+				end
 
-					decomp_structure = decomp_repagent(ip);
+				if ~isempty(obj.decomp_repagent)
+					shock_size = p.shocks(5);
+
+					decomp_structure = obj.decomp_repagent(ip);
 					temp = repagent_decomp_table(decomp_structure, shock_size);
 					new_column = [new_column; temp];
 				end
 
 
-				if obj.alt_decomps
+				if ~isempty(obj.decomp_incrisk_alt)
 					shock_size = p.shocks(5);
 
-					decomp_structure = decomp_alt(ip);
+					decomp_structure = obj.decomp_incrisk_alt(ip);
 					temp = alt_decomp_table(decomp_structure, shock_size);
 					new_column = [new_column; temp];
 				end
 
-				if obj.MPCs_news
+				if mpcs_news_present
 					temp = mpcs_news_table(result_structure, p, 'MEAN');
 					new_column = [new_column; temp];
 
@@ -74,7 +87,7 @@ classdef TableGenerator
 					new_column = [new_column; temp];
 				end
 
-				if obj.MPCs_loan_loss
+				if mpcs_loan_loss_present
 					temp = specialty_mpc_tables(result_structure, p);
 					new_column = [new_column; temp];
 				end

@@ -90,6 +90,10 @@ function [decomp_wrt_baseline, decomp_wrt_repagent] = baseline_and_repagent_deco
         %% --------------------------------------------------------------
 		% ALTERNATIVE MODEL DISTRIBUTION AND MPCs OVER ASSET GRID
 		% ---------------------------------------------------------------
+        if params.nb > 1
+            continue
+        end
+        
         dim1 = params(ip).nyF * params(ip).nyP * params(ip).nb;
 
         % distribution
@@ -197,7 +201,7 @@ function [decomp_wrt_baseline, decomp_wrt_repagent] = baseline_and_repagent_deco
     end
 end
 
-function [pmf_assets,mpcs_assets] = get_functions_of_assets(baseind,params,pmf,mpcs,dim)
+function [pmf_assets, mpcs_assets] = get_functions_of_assets(baseind,params, pmf, mpcs, dim)
 	% this function outputs pmf(a) and E[mpc|a], functions of assets,
 	% given functions over the entire state space
 	
