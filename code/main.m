@@ -28,6 +28,7 @@ function [results, decomp_meanmpc] = main(p)
     % INCOME
     % ---------------------------------------------------------------------
     income = setup.Income(p, heterogeneity);
+    
 
     %% --------------------------------------------------------------------
     % ASSET GRIDS
@@ -117,17 +118,33 @@ function [results, decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % WEALTH DISTRIBUTION
     % ---------------------------------------------------------------------
+    % pmf(a, yP, yF, ib)
+    results.direct.adist = basemodel.adist;
+    
+    % pmf(a)
+    results.direct.agrid_dist = sum(sum(sum(basemodel.adist,4),3),2);
+    
+    % Support of the distribution
+    support = results.direct.agrid_dist > 1e-9;
+    results.direct.agrid_support = grdDST.a.vec(support);
+    
+    % cdf(a) over the support of pmf(a)
+    tmp = cumsum(results.direct.agrid_dist);
+    tmp = tmp(support);
+    tmp = tmp / tmp(end);
+    results.direct.agrid_cumdist_support = tmp;
+    
+    % pmf(a) over the support of pmf(a)
+    tmp = results.direct.agrid_dist(support);
+    results.direct.agrid_dist_support = tmp / sum(tmp);
+
     % Create values for fraction constrained (HtM) at every pt in asset space,
-    % defining constrained as a <= epsilon * mean annual gross labor income 
-    % + borrowing limit
-    sort_aspace = sortrows([grdDST.a.matrix(:) basemodel.adist(:)]);
-    sort_agrid = sort_aspace(:,1);
-    sort_adist = sort_aspace(:,2);
+    % defining constrained as a <= epsilon * mean annual gross labor income
+    wpinterp = griddedInterpolant(...
+        results.direct.agrid_support,...
+        results.direct.agrid_cumdist_support,...
+        'linear');
 
-    sort_acumdist = cumsum(sort_adist);
-
-    [aunique,uind] = unique(sort_agrid, 'last');
-    wpinterp = griddedInterpolant(aunique, sort_acumdist(uind), 'linear');
     results.direct.find_wealth_pctile = @(a) 100 * wpinterp(a);
     for i = 1:numel(p.epsilon)        
         % create interpolant to find fraction of constrained households
@@ -142,7 +159,7 @@ function [results, decomp_meanmpc] = main(p)
                 results.direct.s0 = (c - p.dieprob) / (1 - p.dieprob);
             end
         else
-            results.direct.constrained(i) = wpinterp(p.epsilon(i)*income.meany1*p.freq);
+            results.direct.constrained(i) = wpinterp(p.epsilon(i));
         end
     end
 
@@ -151,24 +168,25 @@ function [results, decomp_meanmpc] = main(p)
     results.direct.wealth_lt_10000 = wpinterp(0.081*2);
     
     % Wealth percentiles
-    [acumdist_unique, uniqueind] = unique(sort_acumdist, 'last');
-    wpinterp_inverse = griddedInterpolant(acumdist_unique, sort_agrid(uniqueind), 'linear');
+    wpinterp_inverse = griddedInterpolant(...
+        results.direct.agrid_cumdist_support,...
+        results.direct.agrid_support,...
+        'linear');
     results.direct.wpercentiles = wpinterp_inverse(p.percentiles/100);
     
     % Top shares
     % Amount of total assets that reside in each pt on sorted asset space
-    totassets = sort_adist .* sort_agrid;
+    totassets = results.direct.agrid_dist_support .* results.direct.agrid_support;
     % Fraction of total assets in each pt on asset space
     cumassets = cumsum(totassets) / results.direct.mean_a;
     
-    % create interpolant from wealth percentile to cumulative wealth share
-    cumwealthshare = griddedInterpolant(acumdist_unique, cumassets(uniqueind), 'linear');
-    results.direct.top10share = 1 - cumwealthshare(0.9);
-    results.direct.top1share = 1 - cumwealthshare(0.99);
-    
-    % save adist from model
-    results.direct.adist = basemodel.adist;
-    results.direct.agrid_dist = sum(sum(sum(basemodel.adist,4),3),2);
+    % Create interpolant from wealth percentile to cumulative wealth share
+    cumwealthshare_interp = griddedInterpolant(...
+        results.direct.agrid_cumdist_support,...
+        cumassets,...
+        'linear');
+    results.direct.top10share = 1 - cumwealthshare_interp(0.9);
+    results.direct.top1share = 1 - cumwealthshare_interp(0.99);
     
     %% --------------------------------------------------------------------
     % MPCs FOR MODEL WITHOUT INCOME RISK
@@ -200,6 +218,41 @@ function [results, decomp_meanmpc] = main(p)
         results.sim = solver.simulate(...
             p, income, basemodel, grdDST, heterogeneity);
     end
+    
+%     %% --------------------------------------------------------------------
+%     % MPCs over cash-on-hand
+%     % ---------------------------------------------------------------------
+%     con_base = basemodel.con;
+%     con_shock = zeros(p.nx, p.nyP, p.nyF, p.nb);
+%     for ib = 1:p.nb
+%     for iyF = 1:p.nyF
+%     for iyP = 1:p.nyP
+%         cash_shock = grdEGP.x.matrix(:,iyP,iyF,ib) + 0.01;
+%         con_shock(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(cash_shock);
+%     end
+%     end
+%     end
+%     
+%     mpcs = (con_shock - con_base) / 0.01;
+%     iyP = 8;
+%     start = 80;
+%     
+%     mpcs = mpcs(start:end,:,:,:);
+%     results.direct.mpcs(5).mpcs_1_t{1} = mpcs(:);
+%     mpc_plotter = statistics.MPCPlotter(p, grdEGP.x.matrix(start:end,iyP,1,1), income.yPdist, results);
+%     
+%     yP_indices = [3, 8];
+%     zoomed_window = true;
+%     shock_size = 0.01;
+%     [ax_main, ax_window] = mpc_plotter.create_mpcs_plot(...
+%                 yP_indices, zoomed_window, shock_size);
+%     ax_main.XLim = [0, 10];
+% 
+%     window_max_x = 0.3;
+%     ax_window.YLim = ax_main.YLim;
+%     ax_window.XLim = [0, window_max_x];
+%     xticks(ax_window, [0:0.1:window_max_x])
+%     yticks(ax_window, [0:0.1:0.3])
 
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)

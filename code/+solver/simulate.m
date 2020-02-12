@@ -5,9 +5,9 @@ function sim_results = simulate(p,income,model,grids,heterogeneity)
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
     
-    rng('default');
-    rng(1991);
-    
+%     rng('default');
+%     rng(1991);
+%     
     %% Simulate income process
     disp(['Simulating income process...']);
     if p.yTContinuous == 1
@@ -123,11 +123,11 @@ function sim_results = simulate(p,income,model,grids,heterogeneity)
         end
     end
 
-%     %% Get distribution over asset grid
-%     fspace = fundef({'spli',grids.a.vec,0,1});
-%     agrid_dist = full(funbas(fspace,asim(:,end)));
-%     sim_results.agrid_dist = sum(agrid_dist,1)' / sum(agrid_dist(:));
-    
+    %% Get pmf over asset grid
+    fspace = fundef({'spli',grids.a.vec,0,1});
+    agrid_dist = funbase(fspace, double(asim(:,end)));
+    sim_results.agrid_dist = sum(agrid_dist,1)' / sum(agrid_dist(:));
+
     %% Moments/important quantities
     sim_results.mean_s          = mean(ssim(:,p.Tsim));
     sim_results.mean_a          = mean(asim(:,p.Tsim));

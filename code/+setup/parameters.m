@@ -12,6 +12,7 @@ function params = parameters(runopts)
     
     % Annual
     params(1) = setup.Params(1, 'baseline_A', '');
+    params(1).beta0 = 0.984108034755346;
 
 %     % Annual with borrowing
 %     params(end+1) = setup.Params(1, 'baseline_A_with_borrowing', '');
@@ -23,6 +24,8 @@ function params = parameters(runopts)
 %     
     % Quarterly
     params(end+1) = setup.Params(4, 'baseline_Q', QIncome);
+    params(end).beta0 = 0.984363510593659;
+%     params(end).r = -0.055682280613782;
 
     % Quarterly with borrowing
     num_neg_pts = 20;

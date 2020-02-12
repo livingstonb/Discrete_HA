@@ -23,7 +23,7 @@ classdef MPCPlotter < handle
 	methods
 		function obj = MPCPlotter(params, agrid, yPdist, results)
 			obj.p = params;
-			obj.dims = [obj.p.nx_DST, obj.p.nyP, obj.p.nyF, obj.p.nb];
+			obj.dims = [numel(agrid), obj.p.nyP, obj.p.nyF, obj.p.nb];
 			obj.yPdist = yPdist;
 
 			obj.mpcs = reshape(...

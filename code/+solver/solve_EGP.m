@@ -18,8 +18,7 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
     % REGION WHERE NEXT PERIOD'S ASSETS GUARANTEED NON-NEG
     % ----------------------------------------------------- 
     min_nety = min(income.netymat(:));
-    xvalid = p.R * grids.x.matrix + min_nety + nextmpcshock >= 0;
-    svalid = p.R * grids.s.matrix + min_nety + nextmpcshock >= 0;
+    svalid = p.R * grids.s.matrix + min_nety + nextmpcshock >= p.borrow_lim;
     
     %% ----------------------------------------------------
     % CONSTRUCT EXPECTATIONS MATRIX, ETC...
@@ -183,7 +182,7 @@ function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast,nextmpcshock)
     if nextmpcshock >= 0
         ixp_valid = 1:p.nx;
     else
-        xpvalid = grids.x.matrix + nextmpcshock >= 0;
+        xpvalid = grids.x.matrix + nextmpcshock >= p.borrow_lim;
     end
 
 	for ib  = 1:p.nb

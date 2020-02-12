@@ -7,11 +7,11 @@ function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(...
         norisk_mpcs1_a_direct{im} = NaN;
     end
  
-    for im = 0:numel(p.mpcfrac)
+    for im = 0:numel(p.shocks)
         if im == 0
             mpcamount = 0;
         else
-            mpcamount = p.mpcfrac(im) * income.meany1 * p.freq;
+            mpcamount = p.shocks(im) * income.meany1 * p.freq;
         end
         
         x_mpc = grids.a.vec + income.meannety1 + mpcamount;

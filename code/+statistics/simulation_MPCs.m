@@ -12,9 +12,9 @@ function MPCs = simulation_MPCs(p,simvals,income,basemodel,grids)
     xsim = simvals.xsim;
     
     %% MPCs
-    Nmpcamount = numel(p.mpcfrac);
+    Nmpcamount = numel(p.shocks);
     for im = 1:Nmpcamount
-        mpcamount{im} = p.mpcfrac(im) * income.meany1 * p.freq;
+        mpcamount{im} = p.shocks(im) * income.meany1 * p.freq;
         
         if mpcamount{im} < 0
             set_mpc_one = false(p.Nsim,1);

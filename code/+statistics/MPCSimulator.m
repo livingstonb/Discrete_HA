@@ -123,7 +123,7 @@ classdef MPCSimulator < handle
 		function simulate_exog_transitions(obj, p, income, heterogeneity)
 			for it = 1:obj.Tmax
 		        live = (obj.diesim(:,it)==0);
-		        [~,obj.yTindsim(:,it)]      = max(obj.yTrand(:,it)<=income.yTcumdist',[],2);
+		        [~,obj.yTindsim(:,it)] = max(obj.yTrand(:,it)<=income.yTcumdist',[],2);
 		        
 		        if it > 1
 		            if p.ResetIncomeUponDeath == 1

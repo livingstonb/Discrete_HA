@@ -69,7 +69,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'baseline_Q'};
+runopts.names_to_run = {'baseline_A'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -140,6 +140,25 @@ Nparams = size(params,2);
 %     params.MPCs = runopts.MPCs;
 %     params.MPCs_news = runopts.MPCs_news;
 %     params.MPCs_loan_and_loss = runopts.MPCs_loan_and_loss;
+
+%% ------------------------------------------------------------------------
+% CALIBRATING WITH FSOLVE
+% -------------------------------------------------------------------------
+% if Nparams > 1
+%     error('This section should be commented out when using multiple parameterizations')
+% end
+% 
+% params.MPCs = 0;
+% params.MPCs_news = 0;
+% params.MPCs_loan_and_loss = 0;
+% 
+% calibrator = @(r) solver.Calibrator.mean_wealth(r, params, "r");
+% r_final = fsolve(calibrator, params.r);
+% 
+% params.r = r_final;
+% params.MPCs = runopts.MPCs;
+% params.MPCs_news = runopts.MPCs_news;
+% params.MPCs_loan_and_loss = runopts.MPCs_loan_and_loss;
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION

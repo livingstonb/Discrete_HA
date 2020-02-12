@@ -27,7 +27,7 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heter
     end
 
     % cash-on-hand as function of (a,yP,yF,yT)
-    x = squeeze(grids.a.matrix(:,:,:,1)) + netymat;
+    x = grids.a.matrix + netymat;
     
     % saving interpolated onto this grid
     sav = zeros(nx,p.nyP,p.nyF,p.nb,p.nyT);
@@ -40,6 +40,7 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heter
     end
     end
     end
+    sav = max(sav, p.borrow_lim);
 
     % transition matrix over (x,yP,yF,beta) full asset space
     modelupdate.statetrans = get_transition_matrix(p,income,grids,nx,sav,r_mat);
@@ -116,9 +117,17 @@ function trans = get_transition_matrix(p,income,grids,nx,sav,r_mat)
 	% create interpolant object
     fspace = fundef({'spli',grids.a.vec,0,1});
     % get interpolated probabilities and take expectation over yT
-    interp_live = funbas(fspace,aprime_live(:));
-    interp_live = reshape(interp_live,nx*p.nyP*p.nyF*p.nb,nx*p.nyT);
-    interp_live = interp_live * kron(speye(nx),income.yTdist);
+    % interp_live = funbas(fspace,aprime_live(:));
+    % interp_live = reshape(interp_live,nx*p.nyP*p.nyF*p.nb,nx*p.nyT);
+    % interp_live = interp_live * kron(speye(nx),income.yTdist);
+
+    interp_live = 0;
+    for k = 1:p.nyT
+        ap_temp = aprime_live(:,:,:,:,k);
+        interp_temp = reshape(funbas(fspace, ap_temp(:)), [], nx);
+        interp_live = interp_live + income.yTdist(k) * interp_temp;
+    end
+
     if p.Bequests == 1
         interp_death = interp_live;
     else
