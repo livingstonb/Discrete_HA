@@ -55,7 +55,7 @@ runopts.Server = 0; % use server paths
 runopts.IterateBeta = 0;
 runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
-runopts.MPCs = 0;
+runopts.MPCs = 1;
 runopts.MPCs_news = 0;
 runopts.MPCs_loan_and_loss = 0;
 runopts.DeterministicMPCs = 1; % must be on if decompositions are needed
@@ -69,7 +69,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'Q RandomBetaHet5 Width0.01 SwitchProb0.1 Death'};
+runopts.names_to_run = {'baseline_Q'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW

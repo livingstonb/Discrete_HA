@@ -4,13 +4,13 @@ close all
 addpath('/home/brian/Documents/GitHub/Discrete_HA/')
 addpath('/home/brian/Documents/GitHub/Discrete_HA/code')
 
-load('/home/brian/Documents/GitHub/Discrete_HA/output/variables1.mat')
+load('/home/brian/Documents/GitHub/Discrete_HA/output/variables.mat')
 load('/home/brian/Documents/GitHub/Discrete_HA/input/agrid.mat')
 load('/home/brian/Documents/GitHub/Discrete_HA/input/yPdist.mat')
 
 params = Sparams;
 
-fontsize = 16;
+fontsize = 12;
 
 %% MPCs Function
 mpc_plotter = statistics.MPCPlotter(params, agrid, yPdist, results);
@@ -31,9 +31,11 @@ xticks(ax_window, [0:0.1:window_max_x])
 yticks(ax_window, [0:0.1:0.3])
 set(ax_window, 'FontSize', fontsize-2)
         
-%% Plot wealth histogram
-mpc_plotter = statistics.MPCPlotter(params, agrid, yPdist, results);
-[ax, wealth_hist] = mpc_plotter.create_wealth_histogram(200, 10);
+%% Wealth histogram
+nbins = 100;
+amax = 10;
+wealth_plotter = statistics.WealthPlotter(params, agrid, results);
+[ax, wealth_hist] = wealth_plotter.create_histogram(nbins, amax);
 
 % %% MPCs Function
 % mpc_plotter = statistics.MPCPlotter(params, agrid, yPdist, results);

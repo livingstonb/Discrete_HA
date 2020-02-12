@@ -83,11 +83,13 @@ classdef Grid < handle
 		end
 
 		function obj = create_agrid(obj, params)
-			agrid = create_curved_grid(...
-				params.borrow_lim, params.xmax, obj.nx,...
-				params.xgrid_par, false);
-		    obj.a.vec = obj.enforce_min_spacing(params, agrid);
-		    obj.a.matrix = repmat(obj.a.vec, [1,params.nyP,params.nyF,params.nb]);
+			% agrid = create_curved_grid(...
+			% 	params.borrow_lim, params.xmax, obj.nx,...
+			% 	params.xgrid_par, false);
+		 %    obj.a.vec = obj.enforce_min_spacing(params, agrid);
+		 %    obj.a.matrix = repmat(obj.a.vec, [1,params.nyP,params.nyF,params.nb]);
+		 	obj.a.vec = min(params.R) * obj.s.vec;
+		 	obj.a.matrix = min(params.R) * obj.s.matrix;
 		end
 
 		function grid_adj = enforce_min_spacing(obj, params, gridvec)

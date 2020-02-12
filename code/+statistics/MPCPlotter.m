@@ -78,37 +78,6 @@ classdef MPCPlotter < handle
 			hold(parent_obj, 'off');
 		end
 
-		function [ax, wealth_hist] = create_wealth_histogram(obj, nbins, amax)
-			% if obj.mpcs_plotted
-			% 	obj.ax.OuterPosition = [0 0.5 1 1];
-			% 	yyaxis(obj.ax, 'right');
-			% 	obj.ax.OuterPosition = [0 0 1 1];
-			% end
-			obj.fig = figure();
-			[edges, counts] = smoothed_histogram(obj.agrid, obj.pmf_a, nbins, amax);
-			wealth_hist = histogram('Parent', obj.fig, 'BinEdges', edges, 'BinCounts', counts);
-
-			bar_color = [0,0,0] + 0.5;
-			wealth_hist.FaceColor = bar_color;
-			% asset_hist.FaceAlpha = 0.2;
-			wealth_hist.EdgeColor = bar_color;
-
-			ax = gca;
-			xlabel("Wealth (ratio to mean annual income)")
-			ylabel("Probability density")
-
-			ax = obj.apply_formatting(ax);
-
-			% bfig = bar(ax, bins, vals, 'hist');
-
-			% bar_color = [0,0,0] + 0.5;
-			% bfig.FaceColor = bar_color;
-			% bfig.FaceAlpha = 0.2;
-			% bfig.EdgeColor = bar_color;
-
-			% yyaxis(obj.ax, 'left');
-		end
-
 		function ax = apply_formatting(obj, ax)
 			grid(ax, obj.show_grid);
 			set(ax, 'FontSize', obj.fontsize);
@@ -129,32 +98,4 @@ function ax = add_window(parent_obj, main_ax)
 	window_position = [window_corner, window_width, window_height];
 	ax = axes('Position', window_position);
 	box(ax, 'on');
-end
-
-function [bins, vals] = smoothed_histogram(agrid, pmf, nbins, amax)
-	a_cdf = cumsum(pmf);
-	cdf_interp = griddedInterpolant(agrid, a_cdf, 'linear');
-
-	amin = agrid(1);
-	spacing = (amax - amin) / nbins;
-	bins = 1:nbins;
-	bins = amin + bins * spacing;
-
-	vals = zeros(nbins, 1);
-	for ibin = 1:nbins
-		bin_start = bins(ibin) - spacing;
-		bin_end = bins(ibin);
-
-		P_lt_start = cdf_interp(bin_start);
-
-		if ibin < nbins
-			P_lt_end = cdf_interp(bin_end);
-		else
-			P_lt_end = 1;
-		end
-
-		vals(ibin) = P_lt_end - P_lt_start;
-	end
-
-	bins = [amin, bins];
 end
