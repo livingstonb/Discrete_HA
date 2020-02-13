@@ -12,11 +12,13 @@ function [results, decomp_meanmpc] = main(p)
     results.Finished = false;
 
     % throw error if more than one type of heterogeneity are added
-    if (p.nbeta > 1) + (numel(p.risk_aver)>1) + (numel(p.r)>1) + (numel(p.invies)>1) > 1
+    if (p.nbeta > 1) + (numel(p.risk_aver)>1) + (numel(p.r)>1)...
+        + (numel(p.temptation)>1) + (numel(p.invies)>1) > 1
+
         error('only one form of heterogeneity allowed')
     else
         % find a better way to do this...
-        p.nb = max([p.nbeta, numel(p.risk_aver), numel(p.r), numel(p.invies)]);
+        p.nb = max([p.nbeta, numel(p.risk_aver), numel(p.r), numel(p.invies), numel(p.temptation)]);
     end
     
     %% --------------------------------------------------------------------

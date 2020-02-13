@@ -381,6 +381,10 @@ function params = parameters(runopts)
                 params(end).betaH0 = - 2e-5;
             end
         end
+
+        name = 'Q Temptation Heterogeneity';
+        params(end+1) = setup.Params(4, name, IncomeProcess);
+        params(end).temptation = [0, 0.05, 0.1]
     end
         
     % epstein-zin, quarterly

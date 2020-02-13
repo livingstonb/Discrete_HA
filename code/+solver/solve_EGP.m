@@ -48,6 +48,9 @@ function model = solve_EGP(beta, p, grids, heterogeneity,...
         Emat = kron(heterogeneity.ztrans,kron(income.ytrans,speye(p.nx)));
         risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
         r_mat = p.r;
+    elseif numel(p.temptation) > 1
+        Emat = kron(heterogeneity.ztrans,kron(income.ytrans,speye(p.nx)));
+        r_mat = p.r;
     else
         Emat = kron(heterogeneity.betatrans,kron(income.ytrans,speye(p.nx)));
         r_mat = p.r;
@@ -55,7 +58,7 @@ function model = solve_EGP(beta, p, grids, heterogeneity,...
 
     % initial guess for consumption function, stacked state combinations
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
-    if p.temptation > 0.05
+    if max(p.temptation) > 0.05
         extra = 0.5;
     else
         extra = 0;
@@ -67,14 +70,11 @@ function model = solve_EGP(beta, p, grids, heterogeneity,...
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    if (numel(p.risk_aver) > 1) || (numel(p.r) > 1)
-        % IES heterogeneity or returns heterogeneity - nb is number of IES or r values
-        % betagrid is just beta
-        betastacked = speye(p.nyP*p.nyF*p.nx*p.nb) * betagrid;
-    else
-        % beta heterogeneity
+    if p.nbeta > 1
         betastacked = kron(betagrid, ones(p.nyP*p.nyF*p.nx,1));
         betastacked = sparse(diag(betastacked));
+    else
+        betastacked = speye(p.nyP*p.nyF*p.nx*p.nb) * betagrid;
     end
 
     %% ----------------------------------------------------
@@ -213,13 +213,18 @@ function muc_s = get_marginal_util_cons(...
 
 	% first get marginal utility of consumption next period
 	if numel(p.risk_aver) > 1
-		risk_aver_col = kron(p.risk_aver', ones(p.nx*p.nyP*p.nyF,1));
-        risk_aver_col_yT = repmat(risk_aver_col,1,p.nyT);
+		risk_aver_col = kron(p.risk_aver', ones(p.nx*p.nyP*p.nyF, 1));
+        risk_aver_col_yT = repmat(risk_aver_col, 1, p.nyT);
         mucnext = aux.utility1(risk_aver_col_yT, c_xp)...
-            - p.temptation/(1+p.temptation) * aux.utility1(risk_aver_col_yT,xp_s);
+            - p.temptation/(1+p.temptation) * aux.utility1(risk_aver_col_yT, xp_s);
+    elseif numel(p.temptation) > 1
+        temptation_repeated = repmat(p.temptation, p.nx*p.nyP*p.nyF, 1);
+        temptation_term = temptation_repeated ./ (1 + temptation_repeated);
+        mucnext = aux.utility1(p.risk_aver, c_xp) ...
+            - temptation_term(:) .* aux.utility1(p.risk_aver, xp_s);
     else
         mucnext = aux.utility1(p.risk_aver, c_xp) ...
-            - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver,xp_s);
+            - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver, xp_s);
     end
 
     % now get MUC this period as a function of s

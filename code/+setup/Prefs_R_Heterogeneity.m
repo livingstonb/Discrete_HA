@@ -17,6 +17,7 @@ classdef Prefs_R_Heterogeneity < handle
 		ztrans;
 		zcumdist;
 		zcumtrans;
+		z_created = false;
 
 		rdist;
 		rtrans;
@@ -29,7 +30,12 @@ classdef Prefs_R_Heterogeneity < handle
 		function obj = Prefs_R_Heterogeneity(params)
 			obj.initialize_discount_factor(params);
 			obj.initialize_IES_heterogeneity(params);
+			obj.initialize_temptation_heterogeneity(params);
             obj.initialize_returns_heterogeneity(params);
+
+            if ~obj.z_created
+            	obj.initialize_z();
+            end
 		end
 
 		%% -------------------------------------------------------
@@ -98,11 +104,24 @@ classdef Prefs_R_Heterogeneity < handle
 		        
 		        obj.zcumdist = cumsum(obj.zdist);
 		        obj.zcumtrans = cumsum(obj.ztrans,2);
-		    else
-		        obj.zdist = 1;
-		        obj.ztrans = 0;
-		        obj.zcumdist = 1;
-		        obj.zcumtrans = 0;
+
+		        obj.z_created = true;
+		    end
+		end
+
+		%% -------------------------------------------------------
+	    % Temptation heterogeneity
+	    % --------------------------------------------------------
+	    function obj = initialize_temptation_heterogeneity(obj, params)
+	    	nt = numel(params.temptation);
+		    if nt > 1
+		    	obj.zdist = ones(nt, 1) / nt;
+		    	obj.ztrans = eye(nt);
+
+		        obj.zcumdist = cumsum(obj.zdist);
+		        obj.zcumtrans = cumsum(obj.ztrans, 2);
+
+		        obj.z_created = true;
 		    end
 		end
 
@@ -128,6 +147,16 @@ classdef Prefs_R_Heterogeneity < handle
 		        obj.rcumdist = 1;
 		        obj.rcumtrans = 0;
 		    end
+		end
+
+		%% -------------------------------------------------------
+	    % Initialize z-Distribution
+	    % --------------------------------------------------------
+		function initialize_z(obj)
+            obj.zdist = 1;
+	        obj.ztrans = 0;
+	        obj.zcumdist = 1;
+	        obj.zcumtrans = 0;
 		end
 	end
 

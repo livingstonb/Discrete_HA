@@ -12,7 +12,7 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heter
 
     fprintf(' Computing state-to-state transition probabilities... \n');
 
-    nx = size(grids.a.vec,1);
+    nx = size(grids.a.vec, 1);
     if nx == p.nx
         netymat = income.netymatEGP;
     elseif nx == p.nx_DST
