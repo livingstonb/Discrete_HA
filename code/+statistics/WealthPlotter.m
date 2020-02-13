@@ -21,6 +21,10 @@ classdef WealthPlotter
 		end
 
 		function [ax, wealth_hist] = create_histogram(obj, nbins, amax)
+			if nargin < 3
+				amax = max(obj.agrid);
+			end
+
 			obj.fig = figure();
 			[edges, counts] = smoothed_histogram(obj.agrid, obj.pmf_a, nbins, amax);
 			wealth_hist = histogram('Parent', obj.fig, 'BinEdges', edges, 'BinCounts', counts);

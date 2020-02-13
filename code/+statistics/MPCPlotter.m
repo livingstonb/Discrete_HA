@@ -40,7 +40,7 @@ classdef MPCPlotter < handle
 			ax_main = axes(obj.fig);
 			legend('hide');
 			xlabel("Wealth (ratio to mean annual income)")
-			ylabel(sprintf("One-period MPC out of %g", shock_size))
+			ylabel(sprintf("MPC out of %g", shock_size))
 			ax_main = obj.apply_formatting(ax_main);
 
 			if zoomed_window
@@ -76,6 +76,15 @@ classdef MPCPlotter < handle
 			hold(parent_obj, 'on');
 			plot(parent_obj, obj.agrid, selected_mpcs);
 			hold(parent_obj, 'off');
+		end
+
+		function ax = add_median_wealth(obj, ax, median_wealth)
+			hold(ax, 'on')
+			wline = [0, 1];
+			wvals = [median_wealth, median_wealth];
+			plot(ax, wvals, wline, '--b');
+		    ax.Legend.String{end} = 'Median wealth';
+		    hold(ax, 'off')
 		end
 
 		function ax = apply_formatting(obj, ax)

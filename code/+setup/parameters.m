@@ -24,12 +24,7 @@ function params = parameters(runopts)
 %     
     % Quarterly
     params(end+1) = setup.Params(4, 'baseline_Q', QIncome);
-    params(end).beta0 = 0.980363510593659;
-    params(end).Nsim = 1e5;
-    
-    params(end+1) = setup.Params(4, 'baseline_Q_yTspread', '');
     params(end).beta0 = 0.984363510593659;
-    params(end).nyT = 101;
     params(end).Nsim = 1e5;
 
     % Quarterly with borrowing
@@ -435,6 +430,13 @@ function params = parameters(runopts)
 %             params(end).invies = 1/ies;
 %             params(end).EpsteinZin = 1;
 %         end
+
+    %----------------------------------------------------------------------
+    % OTHER
+    %----------------------------------------------------------------------
+    params(end+1) = setup.Params(4,'quarterly_a_nyT101','');
+    params(end).beta0 = 0.984363510593659;
+    params(end).nyT = 101;
 
     %----------------------------------------------------------------------
     % ADJUST TO QUARTERLY VALUES, DO NOT CHANGE
