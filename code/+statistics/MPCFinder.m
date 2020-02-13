@@ -19,6 +19,7 @@ classdef MPCFinder < handle
 		r_mat; % matrix of interest rates, if more than 1
 
 		income;
+		grids;
 
 		con_baseline; % baseline consumption
 		con_baseline_yT; % baseline consumption before expectation wrt yT
@@ -36,16 +37,17 @@ classdef MPCFinder < handle
 
 	methods
 		function obj = MPCFinder(p, income, grids, basemodel, models)
-			obj.Nstates = p.nx_DST*p.nyP*p.nyF*p.nb;
+			obj.Nstates = p.nx_DST * p.nyP * p.nyF * p.nb;
 			obj.basemodel = basemodel;
 			obj.models = models;
 			obj.fspace = fundef({'spli',grids.a.vec,0,1});
 			obj.income = income;
 
 			obj.xgrid_yT = grids.a.vec + income.netymat_broadcast;
+			obj.grids = grids;
 
 			if numel(p.r) > 1
-		        obj.r_mat = reshape(r_col,[1 1 1 numel(p.r)]);
+		        obj.r_mat = reshape(r_col, [1 1 1 numel(p.r)]);
 		    else
 		        obj.r_mat = p.r;
 		    end
@@ -121,9 +123,10 @@ classdef MPCFinder < handle
 		function get_baseline_consumption(obj, p)
 			% Each (a,yP,yF) is associated with nyT possible x values, create this
 		    % grid here
-		    obj.con_baseline_yT = obj.get_policy(p,obj.xgrid_yT,obj.basemodel);
+		    obj.con_baseline_yT = obj.get_policy(p, obj.xgrid_yT, obj.basemodel);
+
 		    % take expectation wrt yT
-		    obj.con_baseline = reshape(obj.con_baseline_yT,[],p.nyT) * obj.income.yTdist;
+		    obj.con_baseline = reshape(obj.con_baseline_yT, [], p.nyT) * obj.income.yTdist;
 		end
 
 		function con = get_policy(obj, p, x_mpc, model)
@@ -135,13 +138,15 @@ classdef MPCFinder < handle
 		    for iyP = 1:p.nyP
 		        x_iyP_iyF_iyT = x_mpc(:,iyP,iyF,1,:);
 		        sav_iyP_iyF_iyT = model.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
-		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,[p.nx_DST 1 1 1 p.nyT]);
+		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT, [p.nx_DST 1 1 1 p.nyT]);
 		    end
 		    end
 		    end
-		    sav = max(sav,p.borrow_lim);
+		    sav = max(sav, p.borrow_lim);
+		    sav_tax = aux.compute_sav_tax(sav, p.savtax, p.savtaxthresh);
+
 		    x_mpc = reshape(x_mpc,[p.nx_DST p.nyP p.nyF 1 p.nyT]);
-		    con = x_mpc - sav - p.savtax * max(sav-p.savtaxthresh,0);
+		    con = x_mpc - sav - sav_tax;
 		end
 
 		function computeMPCs(obj, p, grids, ishock, shockperiod, loan)
@@ -177,16 +182,16 @@ classdef MPCFinder < handle
 	                    x_mpc(:,:,:,:,iyT) = ~below_xgrid(:,:,:,:,iyT) .* x_mpc(:,:,:,:,iyT)...
 	                                        + below_xgrid(:,:,:,:,iyT) .* grids.x.matrix(1,:,:);
 	                end
-	                below_xgrid = reshape(below_xgrid,[p.nx_DST p.nyP p.nyF 1 p.nyT]);
+	                below_xgrid = reshape(below_xgrid, [p.nx_DST p.nyP p.nyF 1 p.nyT]);
 	            end
 
 	            % consumption choice given the shock
-	            con = obj.get_policy(p,x_mpc,obj.models{ishock,shockperiod,it});
+	            con = obj.get_policy(p, x_mpc, obj.models{ishock,shockperiod,it});
 
 	            if (shock < 0) && (it == shockperiod)
 	                % make consumption for cases pushed below xgrid equal to consumption
 	                % at bottom of xgrid - the amount borrowed
-	                x_before_shock = reshape(grids.x.matrix,[p.nx_DST p.nyP p.nyF]);
+	                x_before_shock = reshape(grids.x.matrix, [p.nx_DST p.nyP p.nyF]);
 	                x_minus_xmin = x_before_shock - grids.x.matrix(1,:,:);
 	            	con = ~below_xgrid .* con ...
 	            		+ below_xgrid .* (obj.con_baseline_yT(1,:,:,:,:)...
@@ -194,13 +199,13 @@ classdef MPCFinder < handle
 	            end
 
 	            % expectation over yT
-	            con = reshape(con,[],p.nyT) * obj.income.yTdist;
+	            con = reshape(con, [], p.nyT) * obj.income.yTdist;
 
 	            % now compute IMPC(s,t)
 	            if loan > 0
-	            	mpcs = ( trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / loan;
+	            	mpcs = (trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / loan;
 	            else
-	            	mpcs = ( trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / shock;
+	            	mpcs = (trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / shock;
 	            end
 
 	            loc_pos = mpcs(:) > 0;
@@ -215,8 +220,7 @@ classdef MPCFinder < handle
                 [cumdist, iunique] = unique(cumdist,'last');
                 sorted_mpcs = sorted_mat(iunique,1);
                 mpc_median = interp1(cumdist, sorted_mpcs, 0.5);
-
-
+        
                 if sum(dist_vec(loc_pos)) > 0
                 	mpc_condl = dist_vec(loc_pos)' * mpcs(loc_pos) / sum(dist_vec(loc_pos));
                 else
@@ -254,8 +258,8 @@ classdef MPCFinder < handle
 	            end
 			end
 
-			obj.computeMPCs_periods_after_shock(p,grids,ishock,...
-				shockperiod,trans_1_t);
+			obj.computeMPCs_periods_after_shock(p, grids, ishock,...
+				shockperiod, trans_1_t);
 		end
 
 		function computeMPCs_periods_after_shock(obj, p, grids,...
@@ -263,7 +267,8 @@ classdef MPCFinder < handle
 			shock = p.shocks(ishock);
 
 			% transition probabilities from it = is to it = is + 1
-			trans_1_t = trans_1_t * obj.transition_matrix_given_t_s(p,shockperiod,shockperiod,ishock);
+			trans_1_t = trans_1_t * obj.transition_matrix_given_t_s(...
+				p, shockperiod, shockperiod, ishock);
 
 	        RHScon = obj.basemodel.statetrans^shockperiod * obj.con_baseline(:);
 	        LHScon = obj.con_baseline(:);
@@ -318,10 +323,10 @@ classdef MPCFinder < handle
                 sav_iyP_iyF_iyT = obj.models{ishock,is,ii}.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT);
                 
 		        if (shock < 0) && (ii == is)
-		            sav_iyP_iyF_iyT(below_xgrid) = 0;
+		            sav_iyP_iyF_iyT(below_xgrid) = p.borrow_lim;
 		        end
 
-		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT,reshape_vec);
+		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT, reshape_vec);
 			end
 			end
 			end
@@ -329,17 +334,17 @@ classdef MPCFinder < handle
 			sav = max(sav,p.borrow_lim);
 
 			% next period's assets conditional on living
-			aprime_live = (1+repmat(obj.r_mat,[1 1 1 1 p.nyT])) .* sav;
+			aprime_live = (1+repmat(obj.r_mat, [1 1 1 1 p.nyT])) .* sav;
 
 			% interpolate next period's assets back onto asset grid
-			asset_interp = funbas(obj.fspace,aprime_live(:));
-		    asset_interp = reshape(asset_interp,obj.Nstates,p.nx_DST*p.nyT)...
-		    	* kron(speye(p.nx_DST),obj.income.yTdist);
+			asset_interp = funbas(obj.fspace, aprime_live(:));
+		    asset_interp = reshape(asset_interp, obj.Nstates, p.nx_DST*p.nyT)...
+		    	* kron(speye(p.nx_DST) ,obj.income.yTdist);
 		    if p.Bequests == 1
 		        interp_death = asset_interp;
 		    else
-		        interp_death = sparse(obj.Nstates,p.nx_DST);
-		        interp_death(:,1) = 1;
+		        interp_death = sparse(obj.Nstates, p.nx_DST);
+		        interp_death(:,obj.grids.i0) = 1;
             end
             
             ytrans_live_long = kron(obj.income.ytrans_live, ones(p.nx_DST,1));

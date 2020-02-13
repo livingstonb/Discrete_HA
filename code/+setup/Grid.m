@@ -11,6 +11,8 @@ classdef Grid < handle
 		nx_neg;
 		nyP;
 		nyF;
+
+		i0;
 	end
 
 	methods
@@ -33,6 +35,8 @@ classdef Grid < handle
 			obj.create_xgrid(params, income);
 			obj.create_norisk_xgrid(params, income);
             obj.create_agrid(params);
+
+            obj.i0 = obj.nx_neg + 1;
 		end
 
 		function obj = create_sgrid(obj, params)

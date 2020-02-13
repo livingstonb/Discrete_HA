@@ -70,14 +70,14 @@ classdef MPCSimulator < handle
 		end
 
 		function simulate(obj,p,income,grids,heterogeneity,basemodel)
-			obj.draw_from_stationary_dist(p,grids,basemodel);
-			obj.simulate_exog_transitions(p,income,heterogeneity);
-			obj.simulate_decisions(p,grids,basemodel,0); % baseline
+			obj.draw_from_stationary_dist(p, grids, basemodel);
+			obj.simulate_exog_transitions(p, income, heterogeneity);
+			obj.simulate_decisions(p, grids, basemodel, 0); % baseline
 			obj.computeStatistics(p);
 
 			for ishock = 1:6
-				obj.simulate_decisions(p,grids,basemodel,ishock);
-				obj.computeMPCs(p,ishock);
+				obj.simulate_decisions(p, grids, basemodel, ishock);
+				obj.computeMPCs(p, ishock);
 			end
 		end
 
@@ -195,7 +195,7 @@ classdef MPCSimulator < handle
 	            end
 	            end
 	            
-	            obj.ssim(:,it) = max(obj.ssim(:,it),p.borrow_lim);
+	            obj.ssim(:,it) = max(obj.ssim(:,it), p.borrow_lim);
 
 	            if it < obj.Tmax
 	                if numel(p.r) > 1

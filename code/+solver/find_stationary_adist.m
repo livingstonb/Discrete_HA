@@ -20,8 +20,8 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heter
     end
 
     if numel(p.r) > 1
-        r_col = kron(p.r',ones(nx*p.nyP*p.nyF,1));
-        r_mat = reshape(r_col,[nx,p.nyP,p.nyF,numel(p.r)]);
+        r_col = kron(p.r', ones(nx*p.nyP*p.nyF,1));
+        r_mat = reshape(r_col, [nx,p.nyP,p.nyF,numel(p.r)]);
     else
         r_mat = p.r;
     end
@@ -36,36 +36,36 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heter
     for iyP = 1:p.nyP
         x_iyP_iyF_ib = x(:,iyP,iyF,ib,:);
         sav_iyP_iyF_ib = model.savinterp{iyP,iyF,ib}(x_iyP_iyF_ib(:));
-        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_ib,[nx 1 1 1 p.nyT]);
+        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_ib, [nx 1 1 1 p.nyT]);
     end
     end
     end
     sav = max(sav, p.borrow_lim);
 
     % transition matrix over (x,yP,yF,beta) full asset space
-    modelupdate.statetrans = get_transition_matrix(p,income,grids,nx,sav,r_mat);
+    modelupdate.statetrans = get_transition_matrix(p, income, grids, nx, sav, r_mat);
 
     % stationary distribution over states
     fprintf(' Finding ergodic distribution...\n');
-    q = get_distribution(p,income,nx,modelupdate.statetrans,heterogeneity);
+    q = get_distribution(p, income, nx, modelupdate.statetrans, heterogeneity);
 %     [q,~] = eigs(modelupdate.statetrans',[],1,1);
 %     q = q / sum(q(:));
 
-    modelupdate.adist = reshape(full(q'),[nx,p.nyP,p.nyF,p.nb]);
+    modelupdate.adist = reshape(full(q'), [nx,p.nyP,p.nyF,p.nb]);
     
     % get distribution over (x,yP,yF,beta)
-    xdist = kron(income.yTdist,reshape(modelupdate.adist,nx,[]));
-    modelupdate.xdist = reshape(xdist,[nx*p.nyT p.nyP p.nyF p.nb]);
+    xdist = kron(income.yTdist, reshape(modelupdate.adist, nx, []));
+    modelupdate.xdist = reshape(xdist, [nx*p.nyT p.nyP p.nyF p.nb]);
     
     % Extend xvals to (nx*p.nyT,p.nyP,p.nyF,p.nyT)
-    incvals = reshape(income.ymat,[p.nyP*p.nyF p.nyT]);
-    incvals = permute(incvals,[2 1]);
-    incvals = kron(incvals,ones(nx,1));
-    incvals = reshape(incvals,[nx*p.nyT p.nyP p.nyF]);
-    modelupdate.y_x = repmat(incvals,[1 1 1 p.nb]);
+    incvals = reshape(income.ymat, [p.nyP*p.nyF p.nyT]);
+    incvals = permute(incvals, [2 1]);
+    incvals = kron(incvals, ones(nx,1));
+    incvals = reshape(incvals, [nx*p.nyT p.nyP p.nyF]);
+    modelupdate.y_x = repmat(incvals, [1 1 1 p.nb]);
     modelupdate.nety_x = income.lumptransfer + (1-p.labtaxlow)*incvals - p.labtaxhigh*max(incvals-income.labtaxthresh,0);
-    modelupdate.nety_x = repmat(modelupdate.nety_x,[1 1 1 p.nb]);
-    modelupdate.xvals = repmat(grids.a.vec,[p.nyT p.nyP p.nyF p.nb]) + modelupdate.nety_x;
+    modelupdate.nety_x = repmat(modelupdate.nety_x, [1 1 1 p.nb]);
+    modelupdate.xvals = repmat(grids.a.vec, [p.nyT p.nyP p.nyF p.nb]) + modelupdate.nety_x;
 
     %% ----------------------------------------------------------------
     % POLICY FUNCTIONS ETC...
@@ -79,7 +79,7 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heter
     end
     end
     end
-    modelupdate.sav_x = max(modelupdate.sav_x,p.borrow_lim);
+    modelupdate.sav_x = max(modelupdate.sav_x, p.borrow_lim);
 
     % Collapse the asset distribution from (a,yP_lag,yF_lag,beta_lag) to (a,beta_lag) for norisk
     % model, and from (x,yP,yF,beta) to (x,beta)
@@ -87,18 +87,18 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heter
         % a
         modelupdate.adist_noincrisk =  sum(sum(modelupdate.adist,3),2);
         % x
-        modelupdate.xdist_noincrisk    = sum(sum(modelupdate.xdist,3),2);
+        modelupdate.xdist_noincrisk = sum(sum(modelupdate.xdist,3),2);
     elseif (p.nyP>1 && p.nyF==1) || (p.nyP==1 && p.nyF>1)
         modelupdate.adist_noincrisk =  sum(modelupdate.adist,2);
-        modelupdate.xdist_noincrisk    = sum(modelupdate.xdist,2);
+        modelupdate.xdist_noincrisk = sum(modelupdate.xdist,2);
     elseif p.nyP==1 && p.nyF==1
         modelupdate.adist_noincrisk = modelupdate.adist;
-        modelupdate.xdist_noincrisk    = modelupdate.xdist;
+        modelupdate.xdist_noincrisk = modelupdate.xdist;
     end
 
     % Policy functions associated with xdist
     modelupdate.con_x = modelupdate.xvals - modelupdate.sav_x ...
-    	- p.savtax*max(modelupdate.sav_x-p.savtaxthresh,0);
+    	- p.savtax*max(modelupdate.sav_x-p.savtaxthresh, 0);
     
     % mean saving, mean assets
 	modelupdate.mean_a = modelupdate.adist(:)' * grids.a.matrix(:);
@@ -111,16 +111,12 @@ end
 %% ----------------------------------------------------------------
 % TRANSITION MATRIX
 % -----------------------------------------------------------------
-function trans = get_transition_matrix(p,income,grids,nx,sav,r_mat)
+function trans = get_transition_matrix(p, income, grids, nx, sav, r_mat)
 	aprime_live = (1+repmat(r_mat,[1,1,1,1,p.nyT])) .* sav;
 
 	% create interpolant object
     fspace = fundef({'spli',grids.a.vec,0,1});
     % get interpolated probabilities and take expectation over yT
-    % interp_live = funbas(fspace,aprime_live(:));
-    % interp_live = reshape(interp_live,nx*p.nyP*p.nyF*p.nb,nx*p.nyT);
-    % interp_live = interp_live * kron(speye(nx),income.yTdist);
-
     interp_live = 0;
     for k = 1:p.nyT
         ap_temp = aprime_live(:,:,:,:,k);
@@ -132,16 +128,16 @@ function trans = get_transition_matrix(p,income,grids,nx,sav,r_mat)
         interp_death = interp_live;
     else
         interp_death = sparse(nx*p.nyP*p.nyF*p.nb,nx);
-        interp_death(:,1) = 1;
+        interp_death(:,grids.i0) = 1;
     end
 
-    trans = sparse(nx*p.nyP*p.nyF*p.nb,nx*p.nyP*p.nyF*p.nb);
+    trans = sparse(nx*p.nyP*p.nyF*p.nb, nx*p.nyP*p.nyF*p.nb);
     col = 1;
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        transcol_live = kron(income.ytrans_live(:,col),ones(nx,1));
-        transcol_death = kron(income.ytrans_death(:,col),ones(nx,1));
+        transcol_live = kron(income.ytrans_live(:,col), ones(nx,1));
+        transcol_death = kron(income.ytrans_death(:,col), ones(nx,1));
         
         transcol_live = transcol_live .* interp_live;
         transcol_death = transcol_death .* interp_death;
@@ -158,18 +154,18 @@ end
 %% ----------------------------------------------------------------
 % iTERATIVE METHOD TO FIND STATIONARY DISTRIBUTION
 % -----------------------------------------------------------------
-function q = get_distribution(p,income,nx,statetrans,heterogeneity)
-	q=ones(nx,p.nyP,p.nyF,p.nb);
+function q = get_distribution(p, income, nx, statetrans, heterogeneity)
+	q = ones(nx,p.nyP,p.nyF,p.nb);
 
     % create valid initial distribution for both yF & beta
-    beta_dist = reshape(heterogeneity.betadist,[1,1,1,p.nbeta]);
-    yFdist = reshape(income.yFdist,[1,1,p.nyF,1]);
+    beta_dist = reshape(heterogeneity.betadist, [1,1,1,p.nbeta]);
+    yFdist = reshape(income.yFdist, [1,1,p.nyF,1]);
     q = beta_dist .* yFdist;
 
     if (p.nbeta==1) && (p.nb>1)
-        q = repmat(q,[nx,p.nyP,1,p.nb]);
+        q = repmat(q, [nx,p.nyP,1,p.nb]);
     else
-        q = repmat(q,[nx,p.nyP,1,1]);
+        q = repmat(q, [nx,p.nyP,1,1]);
     end
     q = q(:)' / sum(q(:));
 
