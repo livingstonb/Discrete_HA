@@ -15,6 +15,8 @@ function model = solve_EGP(beta, p, grids, heterogeneity,...
     % livingstonb@uchicago.edu
 
     xgrid_repeated = repmat(grids.x.matrix(:), p.nb, 1);
+    sgrid_repeated = repmat(grids.s.matrix(:), p.nb, 1);
+    sgrid_tax = aux.compute_sav_tax(sgrid_repeated, p.savtax, p.savtaxthresh);
 
     %% ----------------------------------------------------
     % REGION WHERE NEXT PERIOD'S ASSETS GUARANTEED NON-NEG
@@ -115,10 +117,8 @@ function model = solve_EGP(beta, p, grids, heterogeneity,...
         end
         
         % x(s) = s + stax + c(s)
-        x_s = repmat(grids.s.matrix(:),p.nb,1)...
-                        + p.savtax * max(repmat(grids.s.matrix(:), p.nb,1) - p.savtaxthresh ,0)...
-                        + con_s;
-        x_s = reshape(x_s,[p.nx p.nyP p.nyF p.nb]);
+        x_s = sgrid_repeated + sgrid_tax + con_s;
+        x_s = reshape(x_s, [p.nx p.nyP p.nyF p.nb]);
 
         % interpolate from x(s) to get s(x)
         sav = get_saving_policy(p, grids, x_s, svalid, nextmpcshock);

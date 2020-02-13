@@ -36,27 +36,33 @@ classdef EGP_EZ_Solver < handle
 		Vinterp;
 
 		ezval;
+
+		sgrid_repeated;
+		sgrid_tax;
 	end
 
 	methods
-		function obj = EGP_EZ_Solver(betta,p,grids,heterogeneity,income)
+		function obj = EGP_EZ_Solver(betta, p, grids, heterogeneity, income)
             obj.p = p;
             obj.grids = grids;
 			obj.betagrid = betta + heterogeneity.betagrid0;
 
             if obj.p.IterateBeta == 1
-		        msg = sprintf(' %3.3f',obj.betagrid);
+		        msg = sprintf(' %3.3f', obj.betagrid);
 		        disp([' Trying betagrid =' msg])
             end
 
 		    % initial guess for consumption function, stacked state combinations
-		    obj.con = (obj.p.r + 0.002*(obj.p.r<0.001)) * repmat(obj.grids.x.matrix(:),obj.p.nb,1);
+		    obj.con = (obj.p.r + 0.002*(obj.p.r<0.001)) * repmat(obj.grids.x.matrix(:), obj.p.nb, 1);
 
 		    % initial guess for value function
 		    obj.V = obj.con;
 
 		    obj.create_discount_factor_array();
-		    obj.create_other_objects(heterogeneity,income);
+		    obj.create_other_objects(heterogeneity, income);
+
+		    obj.sgrid_repeated = repmat(grids.s.matrix(:), p.nb, 1);
+		    obj.sgrid_tax = aux.compute_sav_tax(obj.sgrid_repeated, p.savtax, p.savtaxthresh);
 		end
 
 		function create_discount_factor_array(obj)
@@ -124,9 +130,8 @@ classdef EGP_EZ_Solver < handle
 			con_s = muc_s .^ (-1./obj.invies_col);
 
 			% x(s)
-			x_s = con_s + repmat(obj.grids.s.matrix(:),obj.p.nb,1)...
-                        + obj.p.savtax * max(repmat(obj.grids.s.matrix(:),obj.p.nb,1)-obj.p.savtaxthresh,0);
-	        x_s = reshape(x_s,[obj.p.nx obj.p.nyP obj.p.nyF obj.p.nb]);
+        	x_s = obj.sgrid_repeated +  obj.sgrid_tax + con_s;
+        	x_s = reshape(x_s, [obj.p.nx obj.p.nyP obj.p.nyF obj.p.nb]);
 
 	        % s(x) saving policy function
 	        obj.sav = obj.get_sav_x_by_interpolating_x_s(x_s);
@@ -138,8 +143,9 @@ classdef EGP_EZ_Solver < handle
 	        xp = reshape(xp,[obj.p.nx obj.p.nyP obj.p.nyF obj.p.nb obj.p.nyT]);
 
 	        % update consumption
+	        savtax = aux.compute_sav_tax(obj.sav, obj.p.savtax, obj.p.savtaxthresh);
 	        obj.conupdate = repmat(obj.grids.x.matrix,[1 1 1 obj.p.nb]) ...
-	        	- obj.sav - obj.p.savtax * max(obj.sav-obj.p.savtaxthresh,0);
+	        	- obj.sav - savtax;
 
 	        % compute E[V(x)^(1-riskaver)]^(1/(1-riskaver))
 	        obj.update_ezval(income,xp);
