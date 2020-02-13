@@ -29,7 +29,6 @@ function [results, decomp_meanmpc] = main(p)
     % ---------------------------------------------------------------------
     income = setup.Income(p, heterogeneity);
     
-
     %% --------------------------------------------------------------------
     % ASSET GRIDS
     % ---------------------------------------------------------------------
@@ -70,7 +69,7 @@ function [results, decomp_meanmpc] = main(p)
         end
     else
         % Beta was set in parameters
-        beta_final = p.beta0;    
+        beta_final = p.beta0;
     end
     
     % Get policy functions and stationary distribution for final beta, in
@@ -218,7 +217,7 @@ function [results, decomp_meanmpc] = main(p)
         results.sim = solver.simulate(...
             p, income, basemodel, grdDST, heterogeneity);
     end
-    
+
 %     %% --------------------------------------------------------------------
 %     % MPCs over cash-on-hand
 %     % ---------------------------------------------------------------------

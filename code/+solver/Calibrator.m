@@ -1,33 +1,58 @@
-classdef Calibrator
+classdef Calibrator < handle
 	% Brian Livingston, 2020
 	% livingstonb@uchicago.edu
 
-	methods (Static)
-		function x = fraction_constrained(beta_in, p)
-			
-			p.set("beta0", beta_in);
-			results = main(p);
+	properties
+		options;
+		variable;
+		target_name;
+		target_value;
+	end
 
-			x = results.direct.wealth_lt_1000 - 0.23;
-
-			fprintf("\n\n---- For beta = %f, P(assets<$1000) = %f ----\n\n",...
-				p.beta0, results.direct.wealth_lt_1000)
-
+	methods
+		function obj = Calibrator(params, variable);
+			options = struct();
+			obj.options.MPCs = params.MPCs;
+			obj.options.MPCs_news = params.MPCs_news;
+			obj.options.MPCs_loan_and_loss = params.MPCs_loan_and_loss;
+			obj.options.Simulate = params.Simulate;
+			obj.options.DeterministicMPCs = params.DeterministicMPCs;
+			obj.variable = variable;
 		end
 
-		function x = mean_wealth(input_value, p, input_name)
-			p.set(input_name, input_value);
+		function set_target(obj, target_name, target_value)
+			obj.target_name = target_name;
+			obj.target_value = target_value;
+		end
 
-			if strcmp(input_name, "r")
-				p.set("R", 1 + input_value);
+		function dv = fn_handle(obj, x, current_params)
+			obj.turn_off_param_options(current_params);
+			current_params.set(obj.variable, x);
+			results = main(current_params);
+
+			v = results.direct.(obj.target_name);
+			dv = v - obj.target_value;
+
+			fprintf('\n\n---- For %s = %g:\n', obj.variable, x)
+			fprintf('     Result was %s = %g\n', obj.target_name, v)
+
+			obj.reset_param_options(current_params);
+		end
+
+		function turn_off_param_options(obj, params)
+			quiet = true;
+			props = fields(obj.options);
+			for ip = 1:numel(props)
+				params.set(props{ip}, 0, quiet);
 			end
+		end
 
-			results = main(p);
-
-			x = results.direct.mean_a - 0.25;
-
-			fprintf("\n\n---- For %s = %f, E[a] = %f ----\n\n",...
-				input_name, input_value, results.direct.mean_a)
+		function reset_param_options(obj, params)
+			quiet = true;
+			props = fields(obj.options);
+			for ip = 1:numel(props)
+				params.set(props{ip}, obj.options.(props{ip}), quiet);
+			end
 		end
 	end
 end

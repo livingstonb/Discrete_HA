@@ -125,7 +125,7 @@ function sim_results = simulate(p,income,model,grids,heterogeneity)
 
     %% Get pmf over asset grid
     fspace = fundef({'spli',grids.a.vec,0,1});
-    agrid_dist = funbase(fspace, double(asim(:,end)));
+    agrid_dist = funbas(fspace, double(asim(:,end)));
     sim_results.agrid_dist = sum(agrid_dist,1)' / sum(agrid_dist(:));
 
     %% Moments/important quantities

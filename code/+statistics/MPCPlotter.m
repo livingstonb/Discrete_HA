@@ -57,7 +57,7 @@ classdef MPCPlotter < handle
 			    end
 			end
 
-			yP_labels = {'Low', 'High'};
+			yP_labels = {'Low yP', 'High yP'};
 			legend(ax_main, yP_labels);
 			legend(ax_main, 'show');
 			box(ax_main.Legend, 'off');

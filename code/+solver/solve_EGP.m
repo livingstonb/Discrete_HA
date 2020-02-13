@@ -1,5 +1,5 @@
-function model = solve_EGP(beta,p,grids,heterogeneity,...
-    income,nextmpcshock,prevmodel)
+function model = solve_EGP(beta, p, grids, heterogeneity,...
+    income, nextmpcshock, prevmodel)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
@@ -13,6 +13,8 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
     %
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
+
+    xgrid_repeated = repmat(grids.x.matrix(:), p.nb, 1);
 
     %% ----------------------------------------------------
     % REGION WHERE NEXT PERIOD'S ASSETS GUARANTEED NON-NEG
@@ -89,48 +91,47 @@ function model = solve_EGP(beta,p,grids,heterogeneity,...
         % interpolate to get c(x') using c(x)
         
         % c(x)
-        conlast = reshape(conlast,[p.nx p.nyP p.nyF p.nb]);
+        conlast = reshape(conlast, [p.nx p.nyP p.nyF p.nb]);
         
         % x'(s)
-        xp_s = get_xprime_s(p,income,grids,r_mat,nextmpcshock);
+        xp_s = get_xprime_s(p, income, grids, r_mat, nextmpcshock);
 
         % c(x')
-        c_xp = get_c_xprime(p,grids,xp_s,prevmodel,conlast,nextmpcshock);
+        c_xp = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshock);
         
         % reshape to take expecation over yT first
-        c_xp = reshape(c_xp,[],p.nyT);
-        xp_s = reshape(xp_s,[],p.nyT);
+        c_xp = reshape(c_xp, [], p.nyT);
+        xp_s = reshape(xp_s, [], p.nyT);
 
         % MUC in current period, from Euler equation
         muc_s = get_marginal_util_cons(...
-        	p,income,grids,c_xp,xp_s,r_mat,Emat,betastacked);
+        	p, income, grids, c_xp, xp_s, r_mat, Emat, betastacked);
      
         % c(s)
         if numel(p.risk_aver) == 1
-            con_s = aux.u1inv(p.risk_aver,muc_s);
+            con_s = aux.u1inv(p.risk_aver, muc_s);
         else
-            con_s = aux.u1inv(risk_aver_col,muc_s);
+            con_s = aux.u1inv(risk_aver_col, muc_s);
         end
         
         % x(s) = s + stax + c(s)
         x_s = repmat(grids.s.matrix(:),p.nb,1)...
-                        + p.savtax * max(repmat(grids.s.matrix(:),p.nb,1)-p.savtaxthresh,0)...
+                        + p.savtax * max(repmat(grids.s.matrix(:), p.nb,1) - p.savtaxthresh ,0)...
                         + con_s;
         x_s = reshape(x_s,[p.nx p.nyP p.nyF p.nb]);
 
         % interpolate from x(s) to get s(x)
-        sav = get_saving_policy(p,grids,x_s,svalid,nextmpcshock);
+        sav = get_saving_policy(p, grids, x_s, svalid, nextmpcshock);
+        sav_tax = aux.compute_sav_tax(sav(:), p.savtax, p.savtaxthresh);
 
         % updated consumption function, column vec length of
         % length p.nx*p.nyP*p.nyF*p.nb
-        conupdate = repmat(grids.x.matrix(:),p.nb,1) - sav(:)...
-                            - p.savtax * max(sav(:)-p.savtaxthresh,0);
+        conupdate = xgrid_repeated - sav(:) - sav_tax;
 
         cdiff = max(abs(conupdate(:)-conlast(:)));
         if mod(iter,50) ==0
             disp(['  EGP Iteration ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
-
     end
     
     if cdiff>p.tol_iter

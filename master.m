@@ -69,7 +69,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'baseline_A'};
+runopts.names_to_run = {'baseline_Q'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -124,41 +124,18 @@ Nparams = size(params,2);
 %% ------------------------------------------------------------------------
 % CALIBRATING WITH FSOLVE
 % -------------------------------------------------------------------------
-%     if Nparams > 1
-%         error('This section should be commented out when using multiple parameterizations')
-%     end
-% 
-%     params.MPCs = 0;
-%     params.MPCs_news = 0;
-%     params.MPCs_loan_and_loss = 0;
-% 
-% 
-%     calibrator = @(discount) solver.constraint_calibrator(discount, params);
-%     beta_final = fsolve(calibrator, params.beta0);
-% 
-%     params.beta0 = beta_final;
-%     params.MPCs = runopts.MPCs;
-%     params.MPCs_news = runopts.MPCs_news;
-%     params.MPCs_loan_and_loss = runopts.MPCs_loan_and_loss;
+% calibrator = solver.Calibrator(params, 'beta0');
+% calibrator.set_target('mean_a', 3.5);
+% beta_final = fsolve(@(x) calibrator.fn_handle(x, params), params.beta0);
+% calibrator.reset_param_options(params);
 
 %% ------------------------------------------------------------------------
 % CALIBRATING WITH FSOLVE
 % -------------------------------------------------------------------------
-% if Nparams > 1
-%     error('This section should be commented out when using multiple parameterizations')
-% end
-% 
-% params.MPCs = 0;
-% params.MPCs_news = 0;
-% params.MPCs_loan_and_loss = 0;
-% 
-% calibrator = @(r) solver.Calibrator.mean_wealth(r, params, "r");
-% r_final = fsolve(calibrator, params.r);
-% 
-% params.r = r_final;
-% params.MPCs = runopts.MPCs;
-% params.MPCs_news = runopts.MPCs_news;
-% params.MPCs_loan_and_loss = runopts.MPCs_loan_and_loss;
+% calibrator = solver.Calibrator(params, 'r');
+% calibrator.set_target('wealth_lt_1000', 0.23);
+% r_final = fsolve(@(x) calibrator.fn_handle(x, params), params.r);
+% calibrator.reset_param_options(params);
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION

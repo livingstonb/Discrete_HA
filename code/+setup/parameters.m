@@ -24,8 +24,14 @@ function params = parameters(runopts)
 %     
     % Quarterly
     params(end+1) = setup.Params(4, 'baseline_Q', QIncome);
-    params(end).beta0 = 0.984363510593659;
+%     params(end).beta0 = 0.984363510593659;
 %     params(end).r = -0.055682280613782;
+    params(end).Nsim = 1e5;
+    
+    params(end+1) = setup.Params(4, 'baseline_Q_yTspread', '');
+    params(end).beta0 = 0.984363510593659;
+    params(end).nyT = 101;
+    params(end).Nsim = 1e5;
 
     % Quarterly with borrowing
     num_neg_pts = 20;
