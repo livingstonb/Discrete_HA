@@ -92,7 +92,7 @@ function params = parameters_EZtests(runopts)
     % select by number if there is one, otherwise select by names,
     % otherwise use all
     if numel(runopts.number) == 1
-        params = setup.Params.select_by_number(params,runopts.number);
+        params = params(runopts.number);
     elseif numel(runopts.number) > 1
         error('runopts.number must have 1 or zero elements')
     else

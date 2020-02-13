@@ -33,8 +33,9 @@ function [results, decomp_meanmpc] = main(p)
     % ASSET GRIDS
     % ---------------------------------------------------------------------
     NBL = -min(income.netymat(:)) / p.r;
+    loose_constraint = p.nbl_adjustment * NBL;
     if p.borrow_lim <= -1e10
-        p.set("borrow_lim", 0.95*NBL, false);
+        p.set("borrow_lim", loose_constraint, false);
     end
 
     % grids for method of EGP

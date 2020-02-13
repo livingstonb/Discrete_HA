@@ -36,6 +36,7 @@ classdef Params < handle
         tolAY       = 1e-7;
 
         % mpc options
+        shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
         Nmpcsim = 2e5; % Number of draws to compute MPCs
         
         % wealth statistics options
@@ -53,6 +54,7 @@ classdef Params < handle
         xmax = 100;
         xgrid_par = 0.2; %1 for linear, 0 for L-shaped
         borrow_lim = 0;
+        nbl_adjustment = 1;
         gridspace_min = 0.001; % minimum grid space (0 for no minimum)
         
         % OPTIONS
@@ -126,9 +128,6 @@ classdef Params < handle
         % beta iteration
         IterateBeta;
     	targetAY    = 3.5; 
-
-    	% mpc shock sizes
-    	shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
     end
 
     methods
@@ -237,6 +236,11 @@ classdef Params < handle
                 disp(strcat(field, sprintf(" has been reset to %.9f", new_val)));
             end
         end
+
+        function [matches, indices] = return_indices(obj, names)
+            matches = ismember(names, {obj.name});
+            indices = find(ismember({obj.name}, names));
+        end
     end
     
     methods (Static)
@@ -270,11 +274,7 @@ classdef Params < handle
                 objs(io).lumptransfer = objs(io).lumptransfer / objs(io).freq;
             end
         end
-        
-        function objs = select_by_number(objs, number)
-            objs = objs([objs.index]==number);
-        end
-        
+
         function objs = select_by_names(objs, names_to_run)
             % discards all experiments with names not included in the
             % cell array 'names_to_run'
