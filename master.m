@@ -69,7 +69,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'Q Temptation Heterogeneity'};
+runopts.names_to_run = {'baseline_Q'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -124,10 +124,10 @@ Nparams = size(params,2);
 %% ------------------------------------------------------------------------
 % CALIBRATING WITH FSOLVE
 % -------------------------------------------------------------------------
-calibrator = solver.Calibrator(params, 'beta0');
-calibrator.set_target('mean_a', 3.5);
-beta_final = fsolve(@(x) calibrator.fn_handle(x, params), params.beta0);
-calibrator.reset_param_options(params);
+% calibrator = solver.Calibrator(params, 'beta0');
+% calibrator.set_target('mean_a', 3.5);
+% beta_final = fsolve(@(x) calibrator.fn_handle(x, params), params.beta0);
+% calibrator.reset_param_options(params);
 
 %% ------------------------------------------------------------------------
 % CALIBRATING WITH FSOLVE

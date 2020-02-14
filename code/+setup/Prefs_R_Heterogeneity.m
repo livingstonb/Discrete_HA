@@ -18,6 +18,7 @@ classdef Prefs_R_Heterogeneity < handle
 		zcumdist;
 		zcumtrans;
 		z_created = false;
+		nz;
 
 		rdist;
 		rtrans;
@@ -36,6 +37,7 @@ classdef Prefs_R_Heterogeneity < handle
             if ~obj.z_created
             	obj.initialize_z();
             end
+            obj.nz = numel(obj.zdist);
 		end
 
 		%% -------------------------------------------------------
@@ -138,15 +140,13 @@ classdef Prefs_R_Heterogeneity < handle
 		        off_diag = rswitch * ones(nr);
 		        off_diag = off_diag - diag(diag(off_diag));
 		        obj.rtrans = off_diag + diag(diagonal);
-		        
-		        obj.rcumdist = cumsum(obj.rdist);
-		        obj.rcumtrans = cumsum(obj.rtrans,2);
 		    else
 		        obj.rdist = 1;
-		        obj.rtrans = 0;
+		        obj.rtrans = 1;
 		        obj.rcumdist = 1;
-		        obj.rcumtrans = 0;
 		    end
+		    obj.rcumdist = cumsum(obj.rdist);
+		    obj.rcumtrans = cumsum(obj.rtrans,2);
 		end
 
 		%% -------------------------------------------------------
@@ -154,9 +154,9 @@ classdef Prefs_R_Heterogeneity < handle
 	    % --------------------------------------------------------
 		function initialize_z(obj)
             obj.zdist = 1;
-	        obj.ztrans = 0;
+	        obj.ztrans = 1;
 	        obj.zcumdist = 1;
-	        obj.zcumtrans = 0;
+	        obj.zcumtrans = 1;
 		end
 	end
 

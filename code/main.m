@@ -329,7 +329,8 @@ function [results, decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
-    mpc_simulator = statistics.MPCSimulator(p, results.direct.find_wealth_pctile);
+    mpc_simulator = statistics.MPCSimulator(...
+        p, results.direct.find_wealth_pctile, heterogeneity);
     mpc_simulator.simulate(...
         p, income, grdDST, heterogeneity, basemodel);
 

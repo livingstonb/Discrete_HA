@@ -149,7 +149,7 @@ classdef Params < handle
                 obj.rho_logyP = 0.9881;
             else
                 error('Frequency must be 1 or 4')
-            end             
+            end
         end
         
         function obj = annuities_on(obj)
@@ -272,6 +272,12 @@ classdef Params < handle
                 end
 
                 objs(io).lumptransfer = objs(io).lumptransfer / objs(io).freq;
+            end
+        end
+
+        function objs = make_other_adjustments(objs)
+            for io = 1:numel(objs)
+                objs(io).nbeta = max(1, numel(objs(io).beta_grid_forced));
             end
         end
 

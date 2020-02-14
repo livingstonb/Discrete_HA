@@ -210,7 +210,7 @@ classdef Income < handle
             if numel(obj.p.r) > 1
                 obj.ytrans_live = kron(obj.het.rtrans,kron(eye(obj.p.nyF),obj.yPtrans));
                 obj.ytrans_death = kron(obj.het.rtrans,kron(eye(obj.p.nyF),yPtrans_death));
-            elseif numel(obj.p.nbeta) > 1 || (numel(obj.p.beta_grid_forced) > 1)
+            elseif obj.p.nbeta > 1
                 obj.ytrans_live = kron(obj.het.betatrans,kron(eye(obj.p.nyF),obj.yPtrans));
                 obj.ytrans_death = kron(obj.het.betatrans,kron(eye(obj.p.nyF),yPtrans_death));
             else

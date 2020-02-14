@@ -6,17 +6,21 @@ classdef MPCSimulator < handle
 
 		state_rand;
 		yPrand;
-		betarand;
-		IESrand;
-		r_rand;
+		% betarand;
+		% IESrand;
+		% r_rand;
+		zrand;
 		yTrand;
-		betaindsim;
-		IESindsim;
-		r_indsim;
+		% betaindsim;
+		% IESindsim;
+		% r_indsim;
 		yPindsim;
 		yTindsim;
 		yFindsim;
+		zindsim;
 		diesim;
+
+		zcumtrans
 
 		xsim;
 		asim;
@@ -46,30 +50,40 @@ classdef MPCSimulator < handle
 	end
 
 	methods
-		function obj = MPCSimulator(p, wealth_pctile_interpolant)
+		function obj = MPCSimulator(p, wealth_pctile_interpolant, heterogeneity)
 			obj.Nsim = p.Nsim;
 			obj.Npartition = p.Nsim / obj.partitionsize;
 
-			obj.state_rand  = rand(obj.Nsim,1,'single');
-		    obj.yPrand      = rand(obj.Nsim,obj.Tmax,'single');
-		    obj.betarand    = rand(obj.Nsim,obj.Tmax,'single');
-		    obj.IESrand     = rand(obj.Nsim,obj.Tmax,'single');
-		    obj.r_rand      = rand(obj.Nsim,obj.Tmax,'single');
-		    obj.yTrand      = rand(obj.Nsim,obj.Tmax,'single');
-		    obj.betaindsim  = ones(obj.Nsim,obj.Tmax,'int8');
-		    obj.IESindsim   = ones(obj.Nsim,obj.Tmax,'int8');
-		    obj.r_indsim    = ones(obj.Nsim,obj.Tmax,'int8');
-		    obj.yPindsim    = ones(obj.Nsim,obj.Tmax,'int8');
-		    obj.yTindsim    = ones(obj.Nsim,obj.Tmax,'int8');
-		    obj.yFindsim    = ones(obj.Nsim,1,'int8');
+			if numel(p.r) > 1
+				obj.zcumtrans = heterogeneity.rcumtrans;
+			elseif p.nbeta > 1
+				obj.zcumtrans = heterogeneity.betacumtrans;
+			else
+				obj.zcumtrans = heterogeneity.zcumtrans;
+			end
 
-		    dierand = rand(obj.Nsim,obj.Tmax,'single');
+			obj.state_rand = rand(obj.Nsim,1,'single');
+		    obj.yPrand = rand(obj.Nsim,obj.Tmax,'single');
+		    obj.zrand = rand(obj.Nsim,obj.Tmax,'single');
+		    % obj.betarand    = rand(obj.Nsim,obj.Tmax,'single');
+		    % obj.IESrand     = rand(obj.Nsim,obj.Tmax,'single');
+		    % obj.r_rand      = rand(obj.Nsim,obj.Tmax,'single');
+		    obj.yTrand = rand(obj.Nsim,obj.Tmax,'single');
+		    % obj.betaindsim  = ones(obj.Nsim,obj.Tmax,'int8');
+		    % obj.IESindsim   = ones(obj.Nsim,obj.Tmax,'int8');
+		    % obj.r_indsim    = ones(obj.Nsim,obj.Tmax,'int8');
+		    obj.yPindsim = ones(obj.Nsim,obj.Tmax,'int8');
+		    obj.yTindsim = ones(obj.Nsim,obj.Tmax,'int8');
+		    obj.yFindsim = ones(obj.Nsim,1,'int8');
+		    obj.zindsim = ones(obj.Nsim,1,'int8');
+
+		    dierand = rand(obj.Nsim, obj.Tmax, 'single');
 		    obj.diesim = dierand < p.dieprob;
 
 		    obj.wealth_pctile_interpolant = wealth_pctile_interpolant;
 		end
 
-		function simulate(obj,p,income,grids,heterogeneity,basemodel)
+		function simulate(obj, p, income, grids, heterogeneity, basemodel)
 			obj.draw_from_stationary_dist(p, grids, basemodel);
 			obj.simulate_exog_transitions(p, income, heterogeneity);
 			obj.simulate_decisions(p, grids, basemodel, 0); % baseline
@@ -84,36 +98,22 @@ classdef MPCSimulator < handle
 		function draw_from_stationary_dist(obj, p, grids, basemodel)
 			cumdist = cumsum(basemodel.adist(:));
 
-			% indexes
+			% Indexes
 		    yPind_trans = repmat(kron((1:p.nyP)',ones(p.nx_DST,1)),p.nyF*p.nb,1);
 		    yFind_trans = repmat(kron((1:p.nyF)',ones(p.nx_DST*p.nyP,1)),p.nb,1);
-		    if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) && (numel(p.r) == 1)
-		        betaind_trans = kron((1:p.nb)',ones(p.nx_DST*p.nyP*p.nyF,1));
-		        r_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
-		        IESind_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
-		    elseif numel(p.r) > 1
-		        betaind_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
-		        r_trans = kron((1:p.nb)',ones(p.nx_DST*p.nyP*p.nyF,1));
-		        IESind_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
-		    else
-		        betaind_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
-		        r_trans = kron(ones(p.nb,1),ones(p.nx_DST*p.nyP*p.nyF,1));
-		        IESind_trans = kron((1:p.nb)',ones(p.nx_DST*p.nyP*p.nyF,1));
-		    end
+		    zind_trans = kron((1:p.nb)',ones(p.nx_DST*p.nyP*p.nyF,1));
 
 			obj.a1 = zeros(obj.Nsim,1);
 		    for ip = 1:obj.Npartition
 		        partition = obj.partitionsize*(ip-1)+1:obj.partitionsize*ip;
 
 		        % Location of each draw in SSdist
-		        [~,ind] = max(obj.state_rand(partition)<=cumdist',[],2);
+		        [~,ind] = max(obj.state_rand(partition)<=cumdist', [], 2);
 		        
-		        % (yPgrid,yFgrid,betagrid) indices
-		        obj.yPindsim(partition,1)	= yPind_trans(ind);
-		        obj.yFindsim(partition)     = yFind_trans(ind);
-		        obj.betaindsim(partition,1)	= betaind_trans(ind);
-		        obj.IESindsim(partition,1)  = IESind_trans(ind);
-		        obj.r_indsim(partition,1)   = r_trans(ind);
+		        % (yPgrid,yFgrid,z) indices
+		        obj.yPindsim(partition,1) = yPind_trans(ind);
+		        obj.yFindsim(partition) = yFind_trans(ind);
+		        obj.zindsim(partition,1) = zind_trans(ind);
 		        
 		        % Initial assets from stationary distribution
 		        obj.a1(partition) = grids.a.matrix(ind);
@@ -122,22 +122,22 @@ classdef MPCSimulator < handle
 
 		function simulate_exog_transitions(obj, p, income, heterogeneity)
 			for it = 1:obj.Tmax
-		        live = (obj.diesim(:,it)==0);
-		        [~,obj.yTindsim(:,it)] = max(obj.yTrand(:,it)<=income.yTcumdist',[],2);
+		        live = (obj.diesim(:,it) == 0);
+		        [~,obj.yTindsim(:,it)] = max(...
+		        	obj.yTrand(:,it) <= income.yTcumdist', [], 2);
 		        
 		        if it > 1
 		            if p.ResetIncomeUponDeath == 1
-		                [~,obj.yPindsim(live,it)] = max(obj.yPrand(live,it)<=income.yPcumtrans(obj.yPindsim(live,it-1),:),[],2);
-		                [~,obj.yPindsim(~live,it)] = max(obj.yPrand(~live,it)<=income.yPcumdist',[],2);
+		                [~,obj.yPindsim(live,it)] = max(...
+		                	obj.yPrand(live,it) <= income.yPcumtrans(obj.yPindsim(live,it-1),:), [], 2);
+		                [~,obj.yPindsim(~live,it)] = max(...
+		                	obj.yPrand(~live,it) <= income.yPcumdist', [], 2);
 		            else
-		                [~,obj.yPindsim(:,it)] = max(obj.yPrand(:,it)<=income.yPcumtrans(obj.yPindsim(:,it-1),:),[],2);
+		                [~,obj.yPindsim(:,it)] = max(...
+		                	obj.yPrand(:,it) <= income.yPcumtrans(obj.yPindsim(:,it-1),:), [], 2);
 		            end
-		            [~,obj.betaindsim(:,it)]    = max(obj.betarand(:,it)...
-		            	<=heterogeneity.betacumtrans(obj.betaindsim(:,it-1),:),[],2);
-		            [~,obj.IESindsim(:,it)] = max(obj.IESrand(:,it)...
-		            	<=heterogeneity.zcumtrans(obj.IESindsim(:,it-1),:),[],2);
-		            [~,obj.r_indsim(:,it)] = max(obj.r_rand(:,it)...
-		            	<=heterogeneity.rcumtrans(obj.r_indsim(:,it-1),:),[],2);
+		            [~,obj.zindsim(:,it)] = max(...
+		            	obj.zrand(:,it) <= obj.zcumtrans(obj.zindsim(:,it-1),:), [], 2);
 		        end
 		    end
 
@@ -145,8 +145,8 @@ classdef MPCSimulator < handle
             	repmat(income.yFgrid(obj.yFindsim),1,obj.Tmax)...
             	.* income.yTgrid(obj.yTindsim);
 
-		    obj.ynetsim = income.lumptransfer + (1-p.labtaxlow)*obj.ygrosssim...
-                        - p.labtaxhigh*max(obj.ygrosssim-income.labtaxthresh,0);
+		    obj.ynetsim = income.lumptransfer + (1-p.labtaxlow) * obj.ygrosssim...
+                        - p.labtaxhigh * max(obj.ygrosssim-income.labtaxthresh, 0);
 		end
 
 		function simulate_decisions(obj, p, grids, basemodel, ishock)
@@ -175,13 +175,7 @@ classdef MPCSimulator < handle
 	            for ib = 1:p.nb
 	            for iyF = 1:p.nyF
 	            for iyP = 1:p.nyP
-	                if (numel(p.risk_aver) == 1) && (numel(p.invies) == 1) && (numel(p.r) == 1)
-	                    idx = obj.yPindsim(:,it)==iyP & obj.yFindsim==iyF & obj.betaindsim(:,it)==ib;
-	                elseif numel(p.r) > 1
-	                    idx = obj.yPindsim(:,it)==iyP & obj.yFindsim==iyF & obj.r_indsim(:,it)==ib;
-	                else
-	                    idx = obj.yPindsim(:,it)==iyP & obj.yFindsim==iyF & obj.IESindsim(:,it)==ib;
-	                end
+	            	idx = obj.yPindsim(:,it)==iyP & obj.yFindsim==iyF & obj.zindsim(:,it)==ib;
 	                
 	                if (shock < 0) && (it == 1)
 	                    below_grid = obj.xsim(:,it) < grids.x.matrix(1,iyP,iyF);
@@ -199,7 +193,7 @@ classdef MPCSimulator < handle
 
 	            if it < obj.Tmax
 	                if numel(p.r) > 1
-	                    obj.asim(:,it) = p.R(obj.r_indsim(:,it))' .* obj.ssim(:,it);
+	                    obj.asim(:,it) = p.R(obj.zindsim(:,it))' .* obj.ssim(:,it);
 	                else
 	                    obj.asim(:,it) = p.R * obj.ssim(:,it);
 	                end
@@ -210,7 +204,7 @@ classdef MPCSimulator < handle
 	            end
 	        end
 	        
-	        obj.csim = obj.xsim - obj.ssim - p.savtax * max(obj.ssim-p.savtaxthresh,0);
+	        obj.csim = obj.xsim - obj.ssim - p.savtax * max(obj.ssim-p.savtaxthresh, 0);
 			
 			if ishock == 0
 				obj.csim_noshock = obj.csim;
@@ -245,7 +239,7 @@ classdef MPCSimulator < handle
 		    	obj.assets_beta_rank_corr = NaN;
 		    else
 		    	asset_ranks = obj.wealth_pctile_interpolant(obj.asim(:,3));
-		    	tmp = corrcoef([double(obj.betaindsim(:,3)), asset_ranks]);
+		    	tmp = corrcoef([double(obj.zindsim(:,3)), asset_ranks]);
                 obj.assets_beta_rank_corr = tmp(1,2);
 		    end
 		end
@@ -274,7 +268,7 @@ classdef MPCSimulator < handle
             obj.mpcs(ishock).avg_1_4 = mean(mpcs_1_4);
 
             % Cumulative MPCs over first 4 periods
-            mpcs_1_1to4 = mpcs_1_1+mpcs_1_2+mpcs_1_3+mpcs_1_4;
+            mpcs_1_1to4 = mpcs_1_1 + mpcs_1_2 + mpcs_1_3 + mpcs_1_4;
             obj.mpcs(ishock).avg_1_1to4 = mean(mpcs_1_1to4);
 		end
 
