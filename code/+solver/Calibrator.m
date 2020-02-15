@@ -10,7 +10,8 @@ classdef Calibrator < handle
 	end
 
 	methods
-		function obj = Calibrator(params, variable);
+		function obj = Calibrator(params, variable,...
+			target_name, target_value);
 			options = struct();
 			obj.options.MPCs = params.MPCs;
 			obj.options.MPCs_news = params.MPCs_news;
@@ -18,9 +19,7 @@ classdef Calibrator < handle
 			obj.options.Simulate = params.Simulate;
 			obj.options.DeterministicMPCs = params.DeterministicMPCs;
 			obj.variable = variable;
-		end
 
-		function set_target(obj, target_name, target_value)
 			obj.target_name = target_name;
 			obj.target_value = target_value;
 		end

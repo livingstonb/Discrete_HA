@@ -175,6 +175,7 @@ function [results, decomp_meanmpc] = main(p)
         results.direct.agrid_support,...
         'linear');
     results.direct.wpercentiles = wpinterp_inverse(p.percentiles/100);
+    results.direct.median_a = wpinterp_inverse(0.5);
     
     % Top shares
     % Amount of total assets that reside in each pt on sorted asset space

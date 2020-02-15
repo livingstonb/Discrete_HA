@@ -124,18 +124,21 @@ Nparams = size(params,2);
 %% ------------------------------------------------------------------------
 % CALIBRATING WITH FSOLVE
 % -------------------------------------------------------------------------
-% calibrator = solver.Calibrator(params, 'beta0');
-% calibrator.set_target('mean_a', 3.5);
-% beta_final = fsolve(@(x) calibrator.fn_handle(x, params), params.beta0);
-% calibrator.reset_param_options(params);
+% % Vary discount rate to match wealth = 3.5
+% param_name = 'beta0';
+% stat_name = 'mean_a';
+% stat_target = 3.5;
 
-%% ------------------------------------------------------------------------
-% CALIBRATING WITH FSOLVE
-% -------------------------------------------------------------------------
-% calibrator = solver.Calibrator(params, 'r');
-% calibrator.set_target('wealth_lt_1000', 0.23);
-% r_final = fsolve(@(x) calibrator.fn_handle(x, params), params.r);
-% calibrator.reset_param_options(params);
+% Vary r to match P(a < $1000) = 0.23
+param_name = 'r';
+stat_name = 'wealth_lt_1000';
+stat_target = 0.23;
+
+param_init = params.(param_name);
+calibrator = solver.Calibrator(params, param_name,...
+    stat_name, stat_target);
+beta_final = fsolve(@(x) calibrator.fn_handle(x, params), param_init);
+calibrator.reset_param_options(params);
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
