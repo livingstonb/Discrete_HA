@@ -124,21 +124,34 @@ Nparams = size(params,2);
 %% ------------------------------------------------------------------------
 % CALIBRATING WITH FSOLVE
 % -------------------------------------------------------------------------
-% % Vary discount rate to match wealth = 3.5
+n_calibrations = 0;
+
+% % Vary discount rate to match mean wealth = 3.5
 % param_name = 'beta0';
 % stat_name = 'mean_a';
 % stat_target = 3.5;
+% n_calibrations = n_calibrations + 1;
 
-% Vary r to match P(a < $1000) = 0.23
-param_name = 'r';
-stat_name = 'wealth_lt_1000';
-stat_target = 0.23;
+% % Vary r to match P(a < $1000) = 0.23
+% param_name = 'r';
+% stat_name = 'wealth_lt_1000';
+% stat_target = 0.23;
+% n_calibrations = n_calibrations + 1;
 
-param_init = params.(param_name);
-calibrator = solver.Calibrator(params, param_name,...
-    stat_name, stat_target);
-beta_final = fsolve(@(x) calibrator.fn_handle(x, params), param_init);
-calibrator.reset_param_options(params);
+% Vary discount rate to match median wealth = 1.6
+param_name = 'beta0';
+stat_name = 'median_a';
+stat_target = 1.6;
+n_calibrations = n_calibrations + 1;
+
+if n_calibrations == 1
+    param_init = params.(param_name);
+    calibrator = solver.Calibrator(params, param_name,...
+        stat_name, stat_target);
+    beta_final = fsolve(@(x) calibrator.fn_handle(x, params), param_init);
+elseif n_calibrations > 1
+    error("Ensure that a max of one calibration is selected")
+end
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION

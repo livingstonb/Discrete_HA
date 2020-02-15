@@ -66,7 +66,7 @@ function [decomp_wrt_baseline, decomp_wrt_repagent] = baseline_and_repagent_deco
             %% --------------------------------------------------------------
     		% BASELINE DISTRIBUTION AND MPCs OVER ASSET GRID
     		% ---------------------------------------------------------------
-    		dim0 = params(baseind).nyF * params(1).nyP * params(baseind).nb;
+    		dim0 = params(baseind).nyF * params(baseind).nyP * params(baseind).nb;
 
     		% distribution
             g0 = results(baseind).direct.adist(:); 
@@ -90,7 +90,7 @@ function [decomp_wrt_baseline, decomp_wrt_repagent] = baseline_and_repagent_deco
         %% --------------------------------------------------------------
 		% ALTERNATIVE MODEL DISTRIBUTION AND MPCs OVER ASSET GRID
 		% ---------------------------------------------------------------
-        if params.nb > 1
+        if params(ip).nb > 1
             continue
         end
         
