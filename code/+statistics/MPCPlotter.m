@@ -4,7 +4,6 @@ classdef MPCPlotter < handle
 		p;
 		grids;
 		dims;
-		yPdist;
 		mpcs;
 		agrid;
 		pmf_a;
@@ -21,10 +20,9 @@ classdef MPCPlotter < handle
 	end
 
 	methods
-		function obj = MPCPlotter(params, agrid, yPdist, results)
+		function obj = MPCPlotter(params, agrid, results)
 			obj.p = params;
 			obj.dims = [numel(agrid), obj.p.nyP, obj.p.nyF, obj.p.nb];
-			obj.yPdist = yPdist;
 
 			obj.mpcs = reshape(...
 				results.direct.mpcs(5).mpcs_1_t{1}, obj.dims);

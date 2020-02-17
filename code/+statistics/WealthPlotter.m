@@ -12,12 +12,12 @@ classdef WealthPlotter
 	end
 
 	methods
-		function obj = WealthPlotter(params, agrid, results)
+		function obj = WealthPlotter(params, agrid, pmf_a)
 			obj.p = params;
 			obj.dims = [obj.p.nx_DST, obj.p.nyP, obj.p.nyF, obj.p.nb];
 
 			obj.agrid = agrid;
-			obj.pmf_a = results.direct.agrid_dist;
+			obj.pmf_a = pmf_a;
 		end
 
 		function [ax, wealth_hist] = create_histogram(obj, nbins, amax)
@@ -37,7 +37,7 @@ classdef WealthPlotter
 			xlabel("Wealth (ratio to mean annual income)")
 			ylabel("Probability density")
 			set(ax, 'FontSize', obj.fontsize);
-		end
+        end
 	end
 end
 
@@ -61,7 +61,7 @@ function [bins, vals] = smoothed_histogram(agrid, pmf, nbins, amax)
 			P_lt_end = cdf_interp(bin_end);
 		else
 			P_lt_end = 1;
-		end
+        end
 
 		vals(ibin) = P_lt_end - P_lt_start;
 	end

@@ -122,7 +122,7 @@ end
 Nparams = size(params,2);
 
 %% ------------------------------------------------------------------------
-% CALIBRATING WITH FSOLVE
+% CALIBRATIONS
 % -------------------------------------------------------------------------
 n_calibrations = 0;
 
@@ -138,12 +138,15 @@ n_calibrations = 0;
 % stat_target = 0.23;
 % n_calibrations = n_calibrations + 1;
 
-% Vary discount rate to match median wealth = 1.6
-param_name = 'beta0';
-stat_name = 'median_a';
-stat_target = 1.6;
-n_calibrations = n_calibrations + 1;
+% % Vary discount rate to match median wealth = 1.6
+% param_name = 'beta0';
+% stat_name = 'median_a';
+% stat_target = 1.6;
+% n_calibrations = n_calibrations + 1;
 
+%% ------------------------------------------------------------------------
+% CALIBRATING WITH FSOLVE
+% -------------------------------------------------------------------------
 if n_calibrations == 1
     param_init = params.(param_name);
     calibrator = solver.Calibrator(params, param_name,...
@@ -180,7 +183,7 @@ end
 disp('Check the results structure for detailed results')
 % convert Params object to structure for saving
 Sparams = aux.to_structure(params);
-Sincome = aux.to_structure(params);
+% Sincome = aux.to_structure(income);
 save(runopts.savematpath, 'Sparams', 'results', 'decomp_meanmpc')
 
 if runopts.Server == 1
