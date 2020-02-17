@@ -25,7 +25,7 @@ function params = parameters(runopts)
     % Quarterly
     params(end+1) = setup.Params(4, 'baseline_Q', QIncome);
     params(end).beta0 = 0.984363510593659;
-%     params(end).gridspace_min = 0.000015;
+    params(end).gridspace_min = 0.000015;
 %     params(end).xgrid_par = 0.3;
 %     params(end).nx = 300;
 %     params(end).nx_DST = 300;
@@ -444,6 +444,7 @@ function params = parameters(runopts)
     income_b_nyT101 = 'input/income_quarterly_b_contyT';
     params(end+1) = setup.Params(4, 'quarterly_b_nyT101', income_b_nyT101);
     params(end).beta0 = 0.984363510593659;
+    params(end).gridspace_min = 0.000015;
     params(end).nyT = 101;
     params(end).Nsim = 1e5;
 

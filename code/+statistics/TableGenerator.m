@@ -57,7 +57,7 @@ classdef TableGenerator
 				if 	~isempty(obj.decomp_incrisk)
 					shock_size = p.shocks(5);
 
-					decomp_structure = obj.decomp_incrisk(ip);
+					decomp_structure = obj.decomp_incrisk{ip};
 					temp = decomp_table(decomp_structure, shock_size);
 					new_column = [new_column; temp];
 				end

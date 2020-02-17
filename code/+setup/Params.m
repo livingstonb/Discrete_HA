@@ -64,6 +64,7 @@ classdef Params < handle
         MPCs_news = 0;
         MPCs_loan_and_loss = 0;
         DeterministicMPCs = 0;
+        outdir = '';
 
         % returns
         r = 0.02; % default annual, adjusted if frequency = 4;
@@ -173,6 +174,10 @@ classdef Params < handle
                 [obj.nyP] = deal(3);
                 [obj.Tsim] = deal(100);
             end
+
+            [obj.MakePlots] = deal(runopts.MakePlots);
+
+            [obj.outdir] = deal(runopts.outdir);
             
             % iterate option
             [obj.IterateBeta] = deal(runopts.IterateBeta);

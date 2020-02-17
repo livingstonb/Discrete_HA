@@ -47,8 +47,11 @@ fontsize = 12;
 % saveas(gcf, figpath)
 
 %% Wealth pmf
-plot(agrid, results.direct.agrid_dist)
-xlim([0 0.2])
+% % plot(agrid, results.direct.agrid_dist)
+% % xlim([0 0.2])
+% 
+% plog(agrid, cumsum(results.direct.agrid_dist))
+% xlim([0 0.2])
         
 %% Wealth histogram
 nbins = 100;

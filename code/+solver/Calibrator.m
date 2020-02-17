@@ -18,6 +18,8 @@ classdef Calibrator < handle
 			obj.options.MPCs_loan_and_loss = params.MPCs_loan_and_loss;
 			obj.options.Simulate = params.Simulate;
 			obj.options.DeterministicMPCs = params.DeterministicMPCs;
+			obj.options.MakePlots = params.MakePlots;
+
 			obj.variable = variable;
 
 			obj.target_name = target_name;

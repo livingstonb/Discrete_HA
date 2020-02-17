@@ -55,6 +55,7 @@ runopts.Server = 0; % use server paths
 runopts.IterateBeta = 0;
 runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
+runopts.MakePlots = 1;
 runopts.MPCs = 1;
 runopts.MPCs_news = 0;
 runopts.MPCs_loan_and_loss = 0;
@@ -69,7 +70,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'baseline_Q'};
+runopts.names_to_run = {'quarterly_b_nyT101'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -77,6 +78,7 @@ runopts.names_to_run = {'baseline_Q'};
 if runopts.Server == 0
     runopts.path = runopts.localdir;
     runopts.number = [];
+    runopts.outdir = fullfile(runopts.localdir, 'output');
     runopts.savematpath = [runopts.localdir '/output/variables' num2str(runopts.number) '.mat'];
     if ~exist(runopts.localdir, 'dir')
         error('Directory not found')
@@ -88,6 +90,7 @@ if runopts.Server == 0
 else
     runopts.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
     runopts.path = runopts.serverdir;
+    runopts.outdir = fullfile(runopts.serverdir, 'output');
     runopts.savematpath = [runopts.serverdir '/output/variables' num2str(runopts.number) '.mat'];
     if ~exist(runopts.serverdir, 'dir')
         error('Directory not found')
@@ -126,11 +129,11 @@ Nparams = size(params,2);
 % -------------------------------------------------------------------------
 n_calibrations = 0;
 
-% % Vary discount rate to match mean wealth = 3.5
-% param_name = 'beta0';
-% stat_name = 'mean_a';
-% stat_target = 3.5;
-% n_calibrations = n_calibrations + 1;
+% Vary discount rate to match mean wealth = 3.5
+param_name = 'beta0';
+stat_name = 'mean_a';
+stat_target = 3.5;
+n_calibrations = n_calibrations + 1;
 
 % % Vary r to match P(a < $1000) = 0.23
 % param_name = 'r';
@@ -199,6 +202,8 @@ decomp_with_loose_borr_limit = false;
 [~, repagent_decomps] = statistics.baseline_repagent_decomps(params, results, return_nans);
 
 table_gen = statistics.TableGenerator();
-% table_gen.decomp_repagent = repagent_decomps;
+table_gen.decomp_repagent = repagent_decomps;
+table_gen.decomp_incrisk = decomp_meanmpc;
+
 quarterly_results = table_gen.create(params, results, 4);
 annual_results = table_gen.create(params, results, 1);
