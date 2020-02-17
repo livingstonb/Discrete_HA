@@ -1,4 +1,4 @@
-function [results, decomp_meanmpc] = main(p)
+function results = main(p)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -8,7 +8,7 @@ function [results, decomp_meanmpc] = main(p)
     % compute policy functions via the method of endogenous grip points, 
     % and to find the implied stationary distribution over the state space.
 
-    results = struct('policy',[],'direct',[],'norisk',[],'sim',[]);
+    results = struct('policy',[],'direct',[],'norisk',[],'sim',[],'decomp_meanmpc',[]);
     results.Finished = false;
 
     % throw error if more than one type of heterogeneity are added
@@ -356,7 +356,7 @@ function [results, decomp_meanmpc] = main(p)
     %% --------------------------------------------------------------------
     % DECOMPOSITION 1 (DECOMP OF E[mpc])
     % ---------------------------------------------------------------------
-    decomp_meanmpc = statistics.decomposition_of_meanmpc(p, grdDST, results);
+    results.decomp_meanmpc = statistics.decomposition_of_meanmpc(p, grdDST, results);
     
     %% --------------------------------------------------------------------
     % GINI

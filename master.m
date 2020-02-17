@@ -70,7 +70,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'quarterly_b_nyT101'};
+runopts.names_to_run = {'baseline_Q'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -129,11 +129,11 @@ Nparams = size(params,2);
 % -------------------------------------------------------------------------
 n_calibrations = 0;
 
-% Vary discount rate to match mean wealth = 3.5
-param_name = 'beta0';
-stat_name = 'mean_a';
-stat_target = 3.5;
-n_calibrations = n_calibrations + 1;
+% % Vary discount rate to match mean wealth = 3.5
+% param_name = 'beta0';
+% stat_name = 'mean_a';
+% stat_target = 3.5;
+% n_calibrations = n_calibrations + 1;
 
 % % Vary r to match P(a < $1000) = 0.23
 % param_name = 'r';
@@ -162,8 +162,6 @@ end
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
 % -------------------------------------------------------------------------
-decomp_meanmpc = cell(1, Nparams); 
-
 % iterate through specifications (or run 1)
 for ip = 1:Nparams
     if params(ip).freq == 1
@@ -174,7 +172,7 @@ for ip = 1:Nparams
     fprintf('\n Trying %s parameterization "%s"\n', msgfreq,params(ip).name)
 
     tic
-    [results(ip), decomp_meanmpc{ip}] = main(params(ip));
+    results(ip) = main(params(ip));
     toc
     disp(['Finished parameterization ' params(ip).name])
     
@@ -187,7 +185,7 @@ disp('Check the results structure for detailed results')
 % convert Params object to structure for saving
 Sparams = aux.to_structure(params);
 % Sincome = aux.to_structure(income);
-save(runopts.savematpath, 'Sparams', 'results', 'decomp_meanmpc')
+save(runopts.savematpath, 'Sparams', 'results')
 
 if runopts.Server == 1
     exit
@@ -203,7 +201,6 @@ decomp_with_loose_borr_limit = false;
 
 table_gen = statistics.TableGenerator();
 table_gen.decomp_repagent = repagent_decomps;
-table_gen.decomp_incrisk = decomp_meanmpc;
 
 quarterly_results = table_gen.create(params, results, 4);
 annual_results = table_gen.create(params, results, 1);

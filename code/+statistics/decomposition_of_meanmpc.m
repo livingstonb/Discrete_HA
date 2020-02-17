@@ -3,6 +3,7 @@ function decomp = decomposition_of_meanmpc(p,grids,results)
 
 	decomp = struct();
 	for ia = 1:numel(p.abars)
+        decomp(ia).completed = false;
         decomp(ia).term1 = NaN;
         decomp(ia).term2 = NaN;
         decomp(ia).term3 = NaN;
@@ -65,9 +66,7 @@ function decomp = decomposition_of_meanmpc(p,grids,results)
             decomp(ia).term2 = m0g0interp(abar) - m_ra * ginterp(abar);
             decomp(ia).term3 = meanmpc_nr - m1g0interp(abar) - m_ra * (1-g_nr_interp(abar));
             decomp(ia).term4 = (meanmpc - m0g0interp(abar)) - (meanmpc_nr - m1g0interp(abar));
-            
         end
+        decomp(ia).completed = true;
     end
-
-
 end

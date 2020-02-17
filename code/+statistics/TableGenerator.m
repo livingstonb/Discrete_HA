@@ -4,7 +4,6 @@ classdef TableGenerator
 	end
 
 	properties
-		decomp_incrisk;
 		decomp_repagent;
 		decomp_incrisk_alt;
 	end
@@ -20,6 +19,7 @@ classdef TableGenerator
 			mpcs_present = false;
 			mpcs_news_present = false;
 			mpcs_loan_loss_present = false;
+			decomp_meanmpc_present = false;
 			for ip = this_freq
 				if params(ip).MPCs
 					mpcs_present = true;
@@ -31,6 +31,10 @@ classdef TableGenerator
 
 				if params(ip).MPCs_loan_and_loss
 					mpcs_loan_loss_present = true;
+				end
+
+				if results(ip).decomp_meanmpc(1).completed
+					decomp_meanmpc_present = true;
 				end
 			end
 
@@ -54,10 +58,10 @@ classdef TableGenerator
 					ishock = ishock + 1;
 				end
 
-				if 	~isempty(obj.decomp_incrisk)
+				if 	~isempty(decomp_meanmpc_present)
 					shock_size = p.shocks(5);
 
-					decomp_structure = obj.decomp_incrisk{ip};
+					decomp_structure = results(ip).decomp_meanmpc;
 					temp = decomp_table(decomp_structure, shock_size);
 					new_column = [new_column; temp];
 				end
