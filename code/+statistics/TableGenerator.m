@@ -126,8 +126,14 @@ function out = wealth_constraints_table(values)
 	out = new_table_with_header('WEALTH CONSTRAINTS');
 
 	% Mean assets and saving
-	new_labels = {'Mean assets'; 'Mean saving'};
-	new_entries = {values.direct.mean_a; values.direct.mean_s};
+	new_labels = {	'Mean assets'
+					'Median assets'
+					'Mean saving'
+		};
+	new_entries = {	values.direct.mean_a
+					values.direct.median_a
+					values.direct.mean_s
+		};
 	out = append_to_table(out, new_entries, new_labels);
 
 	% Fraction with saving = 0
