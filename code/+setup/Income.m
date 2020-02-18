@@ -115,10 +115,11 @@ classdef Income < handle
                 lmu4 = 3.*obj.p.lambdaT.*(obj.p.sd_logyT^4);
 
                 %fit those moments
+                mu1 = 0;
                 optionsNLLS = optimoptions('lsqnonlin','Display','Off');
                 lpar = lsqnonlin(@(lp) aux.discretize_normal_var_kurt(...
-                    lp,obj.p.nyT,-lmu2/2,lmu2,lmu4),[2 0.1],[],[],optionsNLLS);
-                [lf,lx,lp] = aux.discretize_normal_var_kurt(lpar,obj.p.nyT,-lmu2/2,lmu2,lmu4);
+                    lp,obj.p.nyT,mu1,lmu2,lmu4,obj.p.sd_logyT),[0.1 1],[],[],optionsNLLS);
+                [lf,lx,lp] = aux.discretize_normal_var_kurt(lpar,obj.p.nyT,mu1,lmu2,lmu4,obj.p.sd_logyT);
                 obj.logyTgrid = lx;
                 obj.yTdist = lp;
                 obj.yTcumdist = cumsum(obj.yTdist,1);

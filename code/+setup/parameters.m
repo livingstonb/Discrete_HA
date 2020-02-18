@@ -457,6 +457,11 @@ function params = parameters(runopts)
     params(end).lambdaT = 0.25;
     params(end).Nsim = 1e5;
 
+    % params(end).nx = 200;
+    % params(end).nx_DST = 200;
+    % params(end).nyT = 101;
+    % params(end).gridspace_min = -1e10;
+
     %----------------------------------------------------------------------
     % ADJUST TO QUARTERLY VALUES, DO NOT CHANGE
     %----------------------------------------------------------------------

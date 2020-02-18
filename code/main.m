@@ -432,13 +432,16 @@ function results = main(p)
         [ax_main, ax_window] = mpc_plotter.create_mpcs_plot(...
                     yP_indices, zoomed_window, shock_size);
         ylim_main = ax_main.YLim;
+        ax_main.XLabel
 
         % imedian = find(p.percentiles == 50);
         % median_wealth = results.direct.wpercentiles(imedian);
         % ax_main = mpc_plotter.add_median_wealth(ax_main, median_wealth);
 
         ax_main.XLim = [0, 5];
-        ax_main.YLim = ylim_main;
+        ax_main.YLim = min(ylim_main, 1);
+        cash_label = "Cash-on-hand (ratio to mean annual income)";
+        xlabel(ax_main, cash_label)
 
         window_max_x = 0.3;
         ax_window.YLim = ax_main.YLim;
@@ -448,7 +451,7 @@ function results = main(p)
         set(ax_window, 'FontSize', fontsize-2)
         ax_window.YTick = ax_main.YTick(1:2:end);
 
-        figpath = fullfile(p.outdir, 'mpc_function.jpg');
+        figpath = fullfile(p.outdir, 'mpc_function_cash.jpg');
         saveas(gcf, figpath)
     end
     
