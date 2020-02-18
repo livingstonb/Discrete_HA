@@ -389,7 +389,7 @@ function params = parameters(runopts)
 
         name = 'Q Temptation Heterogeneity';
         params(end+1) = setup.Params(4, name, IncomeProcess);
-        params(end).temptation = [0, 0.05, 0.1]
+        params(end).temptation = [0, 0.05, 0.1];
     end
         
     % epstein-zin, quarterly
@@ -446,6 +446,15 @@ function params = parameters(runopts)
     params(end).beta0 = 0.984363510593659;
     params(end).gridspace_min = 0.000015;
     params(end).nyT = 101;
+    params(end).Nsim = 1e5;
+    
+    income_b_nyT101 = 'input/income_quarterly_b_contyT';
+    params(end+1) = setup.Params(4, 'quarterly_b_nyT101_fixed', income_b_nyT101);
+    params(end).beta0 = 0.9843914124;
+    params(end).gridspace_min = 0.000015;
+    params(end).nyT = 101;
+    params(end).sd_logyT = sqrt(0.6376);
+    params(end).lambdaT = 0.25;
     params(end).Nsim = 1e5;
 
     %----------------------------------------------------------------------

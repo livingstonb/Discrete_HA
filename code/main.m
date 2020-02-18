@@ -222,40 +222,26 @@ function results = main(p)
             p, income, basemodel, grdDST, heterogeneity);
     end
 
-%     %% --------------------------------------------------------------------
-%     % MPCs over cash-on-hand
-%     % ---------------------------------------------------------------------
-%     con_base = basemodel.con;
-%     con_shock = zeros(p.nx, p.nyP, p.nyF, p.nb);
-%     for ib = 1:p.nb
-%     for iyF = 1:p.nyF
-%     for iyP = 1:p.nyP
-%         cash_shock = grdEGP.x.matrix(:,iyP,iyF,ib) + 0.01;
-%         con_shock(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(cash_shock);
-%     end
-%     end
-%     end
-%     
-%     mpcs = (con_shock - con_base) / 0.01;
-%     iyP = 8;
-%     start = 80;
-%     
-%     mpcs = mpcs(start:end,:,:,:);
-%     results.direct.mpcs(5).mpcs_1_t{1} = mpcs(:);
-%     mpc_plotter = statistics.MPCPlotter(p, grdEGP.x.matrix(start:end,iyP,1,1), income.yPdist, results);
-%     
-%     yP_indices = [3, 8];
-%     zoomed_window = true;
-%     shock_size = 0.01;
-%     [ax_main, ax_window] = mpc_plotter.create_mpcs_plot(...
-%                 yP_indices, zoomed_window, shock_size);
-%     ax_main.XLim = [0, 10];
-% 
-%     window_max_x = 0.3;
-%     ax_window.YLim = ax_main.YLim;
-%     ax_window.XLim = [0, window_max_x];
-%     xticks(ax_window, [0:0.1:window_max_x])
-%     yticks(ax_window, [0:0.1:0.3])
+    %% --------------------------------------------------------------------
+    % MPCs over cash-on-hand
+    % ---------------------------------------------------------------------
+    con_base = basemodel.con;
+    for ishock = 1:numel(p.shocks)
+        shock_size = p.shocks(ishock);
+
+        con_shock = zeros(p.nx, p.nyP, p.nyF, p.nb);
+        for ib = 1:p.nb
+        for iyF = 1:p.nyF
+        for iyP = 1:p.nyP
+            cash_shock = grdEGP.x.matrix(:,iyP,iyF,ib) + shock_size;
+            con_shock(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(cash_shock);
+        end
+        end
+        end
+
+        mpcs = (con_shock - con_base) / shock_size;
+        results.direct.mpcs_cash{ishock} = mpcs;
+    end
 
     %% --------------------------------------------------------------------
     % DIRECTLY COMPUTED MPCs, IMPC(s,t)
@@ -401,9 +387,10 @@ function results = main(p)
         figpath = fullfile(p.outdir, 'wealth_condl_on_low_yP.jpg');
         saveas(gcf, figpath)
         
-        % MPCs Function
+        %% MPCs Function
         fontsize = 12;
-        mpc_plotter = statistics.MPCPlotter(p, grdDST.a.vec, results);
+        mpcs = results.direct.mpcs(5).mpcs_1_t{1};
+        mpc_plotter = statistics.MPCPlotter(p, grdDST.a.matrix, mpcs);
         mpc_plotter.fontsize = fontsize;
         mpc_plotter.show_grid = 'on';
 
@@ -417,6 +404,38 @@ function results = main(p)
         imedian = find(p.percentiles == 50);
         median_wealth = results.direct.wpercentiles(imedian);
         ax_main = mpc_plotter.add_median_wealth(ax_main, median_wealth);
+
+        ax_main.XLim = [0, 5];
+        ax_main.YLim = ylim_main;
+
+        window_max_x = 0.3;
+        ax_window.YLim = ax_main.YLim;
+        ax_window.XLim = [0, window_max_x];
+        xticks(ax_window, [0:0.1:window_max_x])
+        yticks(ax_window, [0:0.1:0.3])
+        set(ax_window, 'FontSize', fontsize-2)
+        ax_window.YTick = ax_main.YTick(1:2:end);
+
+        figpath = fullfile(p.outdir, 'mpc_function.jpg');
+        saveas(gcf, figpath)
+
+        %% MPCs Function over cash-on-hand
+        fontsize = 12;
+        mpcs = results.direct.mpcs_cash{5};
+        mpc_plotter = statistics.MPCPlotter(p, grdEGP.x.matrix, mpcs);
+        mpc_plotter.fontsize = fontsize;
+        mpc_plotter.show_grid = 'on';
+
+        yP_indices = [3, 8];
+        zoomed_window = true;
+        shock_size = 0.01;
+        [ax_main, ax_window] = mpc_plotter.create_mpcs_plot(...
+                    yP_indices, zoomed_window, shock_size);
+        ylim_main = ax_main.YLim;
+
+        % imedian = find(p.percentiles == 50);
+        % median_wealth = results.direct.wpercentiles(imedian);
+        % ax_main = mpc_plotter.add_median_wealth(ax_main, median_wealth);
 
         ax_main.XLim = [0, 5];
         ax_main.YLim = ylim_main;

@@ -70,7 +70,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'baseline_Q'};
+runopts.names_to_run = {'quarterly_b_nyT101_fixed'};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -129,11 +129,11 @@ Nparams = size(params,2);
 % -------------------------------------------------------------------------
 n_calibrations = 0;
 
-% % Vary discount rate to match mean wealth = 3.5
-% param_name = 'beta0';
-% stat_name = 'mean_a';
-% stat_target = 3.5;
-% n_calibrations = n_calibrations + 1;
+% Vary discount rate to match mean wealth = 3.5
+param_name = 'beta0';
+stat_name = 'mean_a';
+stat_target = 3.5;
+n_calibrations = n_calibrations + 1;
 
 % % Vary r to match P(a < $1000) = 0.23
 % param_name = 'r';
@@ -204,3 +204,13 @@ table_gen.decomp_repagent = repagent_decomps;
 
 quarterly_results = table_gen.create(params, results, 4);
 annual_results = table_gen.create(params, results, 1);
+
+if ~isempty(quarterly_results)
+    xlxpath = fullfile(runopts.outdir, 'quarterly_results.xlsx');
+    writetable(quarterly_results, xlxpath, 'WriteRowNames', true);
+end
+
+if ~isempty(annual_results)
+    xlxpath = fullfile(runopts.outdir, 'annual_results.xlsx');
+    writetable(annual_results, xlxpath, 'WriteRowNames', true);
+end

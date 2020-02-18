@@ -5,8 +5,6 @@ classdef MPCPlotter < handle
 		grids;
 		dims;
 		mpcs;
-		agrid;
-		pmf_a;
 
 		lims = [0, 10, -inf, inf];
 		fig;
@@ -20,15 +18,12 @@ classdef MPCPlotter < handle
 	end
 
 	methods
-		function obj = MPCPlotter(params, agrid, results)
+		function obj = MPCPlotter(params, grids, mpcs)
 			obj.p = params;
-			obj.dims = [numel(agrid), obj.p.nyP, obj.p.nyF, obj.p.nb];
+			obj.dims = [size(grids,1), obj.p.nyP, obj.p.nyF, obj.p.nb];
 
-			obj.mpcs = reshape(...
-				results.direct.mpcs(5).mpcs_1_t{1}, obj.dims);
-
-			obj.agrid = agrid;
-			obj.pmf_a = results.direct.agrid_dist;
+			obj.grids = grids;
+			obj.mpcs = reshape(mpcs, obj.dims);
 		end
 
 		function [ax_main, ax_window] = create_mpcs_plot(...
@@ -46,12 +41,15 @@ classdef MPCPlotter < handle
 				ax_window = obj.apply_formatting(ax_window);
 			end
 
+
 			for ii = 1:numel(yP_indices)
 			    iyP = yP_indices(ii);
-			    
-			    obj.plot_mpc_function(ax_main, iyP);
+			    mpcs_yP = obj.mpcs(:,iyP,1,1);
+			    agrid = obj.grids(:,iyP,1,1);
+
+			    obj.plot_mpc_function(ax_main, mpcs_yP, agrid);
 			    if zoomed_window
-			        obj.plot_mpc_function(ax_window, iyP);
+			        obj.plot_mpc_function(ax_window, mpcs_yP, agrid);
 			    end
 			end
 
@@ -61,18 +59,9 @@ classdef MPCPlotter < handle
 			box(ax_main.Legend, 'off');
 		end
 
-		function plot_mpc_function(obj, parent_obj, iyP, iyF, ib)
-			if nargin == 3
-				iyF = 1;
-				ib = 1;
-			elseif nargin == 4
-				ib = 1;
-			end
-
-			selected_mpcs = obj.mpcs(:,iyP,iyF,ib);
-
+		function plot_mpc_function(obj, parent_obj, mpcs, agrid)
 			hold(parent_obj, 'on');
-			plot(parent_obj, obj.agrid, selected_mpcs);
+			plot(parent_obj, agrid, mpcs);
 			hold(parent_obj, 'off');
 		end
 
