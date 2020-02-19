@@ -51,9 +51,9 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = 1; % use server paths
+runopts.Server = 0; % use server paths
 runopts.calibrate = 1;
-runopts.fast = 0; % very small asset and income grids for testing
+runopts.fast = 1; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
 runopts.MakePlots = 0;
 runopts.MPCs = 1;
@@ -70,14 +70,14 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {};
+runopts.names_to_run = {'Q Permanent r het, r in {0,2,4} p.a.'};
+runopts.number = [];
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
 % -------------------------------------------------------------------------
 if runopts.Server == 0
     runopts.path = runopts.localdir;
-    runopts.number = [];
     runopts.outdir = fullfile(runopts.localdir, 'output');
     runopts.savematpath = [runopts.localdir '/output/variables' num2str(runopts.number) '.mat'];
     if ~exist(runopts.localdir, 'dir')

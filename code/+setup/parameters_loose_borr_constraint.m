@@ -3,7 +3,11 @@ function params = parameters_loose_borr_constraint(runopts)
     % livingstonb@uchicago.edu
 
     % location of baseline income process for quarterly case
-    QIncome = 'input/income_quarterly_b_truncated.mat';
+    quarterly_b_path = 'input/income_quarterly_b_contyT.mat';
+
+    quarterly_b_params = struct();
+    quarterly_b_params.sd_logyT = sqrt(0.6376);
+    quarterly_b_params.lambdaT = 0.25;
     
     %----------------------------------------------------------------------
     % BASELINES
@@ -28,13 +32,15 @@ function params = parameters_loose_borr_constraint(runopts)
     params(end).nx_neg_DST = num_neg_pts;
 
     % Quarterly
-    params(end+1) = setup.Params(4, 'baseline_Q', QIncome);
+    params(end+1) = setup.Params(4, 'baseline_Q', quarterly_b_path);
+    params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = beta_quarterly;
     params(end).Nsim = 1e5;
 
     % Quarterly with borrowing
     num_neg_pts = 20;
-    params(end+1) = setup.Params(4, 'baseline_Q_with_borrowing', QIncome);
+    params(end+1) = setup.Params(4, 'baseline_Q_with_borrowing', quarterly_b_path);
+    params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = beta_quarterly;
     params(end).nbl_adjustment = 0.95;
     params(end).borrow_lim = -1e10;
@@ -49,7 +55,8 @@ function params = parameters_loose_borr_constraint(runopts)
     nbl_factors = 0.8:0.01:0.98
     for ii = 1:numel(nbl_factors)
         name = sprintf('baseline_Q_with_borrowing_nbl_test%d', ii);
-        params(end+1) = setup.Params(4, name, QIncome);
+        params(end+1) = setup.Params(4, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).beta0 = beta_quarterly;
         params(end).nbl_adjustment = nbl_factors(ii);
         params(end).borrow_lim = -1e10;

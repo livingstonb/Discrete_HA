@@ -1,4 +1,4 @@
-function model = solve_EGP(beta, p, grids, heterogeneity,...
+function model = solve_EGP(p, grids, heterogeneity,...
     income, nextmpcshock, prevmodel)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
@@ -22,17 +22,12 @@ function model = solve_EGP(beta, p, grids, heterogeneity,...
     % REGION WHERE NEXT PERIOD'S ASSETS GUARANTEED NON-NEG
     % ----------------------------------------------------- 
     min_nety = min(income.netymat(:));
-    svalid = p.R * grids.s.matrix + min_nety + nextmpcshock >= p.borrow_lim;
+    svalid = heterogeneity.R_broadcast .* grids.s.matrix...
+        + min_nety + nextmpcshock >= p.borrow_lim;
     
     %% ----------------------------------------------------
     % CONSTRUCT EXPECTATIONS MATRIX, ETC...
     % -----------------------------------------------------
-    if numel(p.beta_grid_forced) == 0
-        betagrid = beta + heterogeneity.betagrid0;
-    else
-        betagrid = p.beta_grid_forced;
-    end
-
     % Expectations operator (conditional on yT)
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
     if numel(p.r) > 1
@@ -66,10 +61,10 @@ function model = solve_EGP(beta, p, grids, heterogeneity,...
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
     if p.nbeta > 1
-        betastacked = kron(betagrid, ones(p.nyP*p.nyF*p.nx,1));
+        betastacked = kron(heterogeneity.betagrid, ones(p.nyP*p.nyF*p.nx,1));
         betastacked = sparse(diag(betastacked));
     else
-        betastacked = speye(p.nyP*p.nyF*p.nx*p.nb) * betagrid;
+        betastacked = speye(p.nyP*p.nyF*p.nx*p.nb) * heterogeneity.betagrid;
     end
 
     %% ----------------------------------------------------

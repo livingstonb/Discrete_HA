@@ -2,10 +2,6 @@ function [params, all_names] = parameters(runopts)
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
 
-    if nargin == 1
-        return_names = false;
-    end
-
     import aux.set_shared_fields
 
     % location of baseline income process for quarterly case
@@ -186,7 +182,7 @@ function [params, all_names] = parameters(runopts)
 %                     elseif strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.1 Death")
 %                         params(end).betaH0 = 1.5e-2;
 %                     end
-                    
+                    params(end).betaH0 = 0.005;
                     params(end).beta0 = 0.967667877287739;
                 end
             end
@@ -425,7 +421,7 @@ function [params, all_names] = parameters(runopts)
     % PART 4, Exotic Preferences
     %----------------------------------------------------------------------
     for ifreq = [4]
-         if ifreq == 1
+        if ifreq == 1
             lfreq = 'A';
             IncomeProcess = '';
             income_params = annual_params;
@@ -451,6 +447,7 @@ function [params, all_names] = parameters(runopts)
         params(end+1) = setup.Params(4, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).temptation = [0, 0.05, 0.1];
+        params(end).betaH0 = 1e-2;
     end
         
     % epstein-zin, quarterly
@@ -536,6 +533,10 @@ function [params, all_names] = parameters(runopts)
         heterogeneity = setup.Prefs_R_Heterogeneity(params);
         new_betaH = params.betaH - max(heterogeneity.betagrid0);
         params.set("betaH", new_betaH, true);
+
+        if params.beta0 >= params.betaH
+            params.beta0 = (5*params.betaH + params.betaL) / 6;
+        end
 
         [fn_handle, x0] = aux.mean_wealth_calibrator(params);
         params.set("calibrator", fn_handle, true);

@@ -34,7 +34,7 @@ function results = main(p)
     %% --------------------------------------------------------------------
     % ASSET GRIDS
     % ---------------------------------------------------------------------
-    NBL = -min(income.netymat(:)) / p.r;
+    NBL = -min(income.netymat(:)) / max(p.r);
     loose_constraint = p.nbl_adjustment * NBL;
     if p.borrow_lim <= -1e10
         p.set("borrow_lim", loose_constraint, false);
@@ -58,7 +58,7 @@ function results = main(p)
     else
         mpcshock = 0;
         basemodel = solver.solve_EGP(...
-            p.beta0, p, grdEGP, heterogeneity, income, mpcshock, []);
+            p, grdEGP, heterogeneity, income, mpcshock, []);
     end
     basemodel = solver.find_stationary_adist(...
         p, basemodel, income, grdDST, heterogeneity);
@@ -171,7 +171,7 @@ function results = main(p)
     if p.DeterministicMPCs == 1
         % Solve deterministic model
         norisk = solver.solve_EGP_deterministic(...
-            p,grdEGP, heterogeneity, income, results.direct);
+            p, grdEGP, heterogeneity, income, results.direct);
         if norisk.EGP_cdiff > p.tol_iter
             warning('EGP did not converge for norisk model')
         end
@@ -262,7 +262,7 @@ function results = main(p)
                         nextmodel = model_lagged{ishock,lag-1};
                     end
 
-                    model_lagged{ishock,lag} = solver.solve_EGP(results.direct.beta,...
+                    model_lagged{ishock,lag} = solver.solve_EGP(...
                         p, grdEGP, heterogeneity, income, nextmpcshock, nextmodel);
                 end
 
@@ -276,7 +276,8 @@ function results = main(p)
         end
     end
     
-    mpc_finder = statistics.MPCFinder(p, income, grdDST, basemodel, mpcmodels);
+    mpc_finder = statistics.MPCFinder(p, income, grdDST, heterogeneity,...
+        basemodel, mpcmodels);
     if p.MPCs == 1
         disp('Computing MPCs')
         mpc_finder.solve(p, grdDST);

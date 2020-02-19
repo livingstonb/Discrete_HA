@@ -10,6 +10,7 @@ classdef Prefs_R_Heterogeneity < handle
 		betadist;
 		betatrans;
 		betagrid0;
+		betagrid;
 		betacumdist;
 		betacumtrans;
 
@@ -20,6 +21,8 @@ classdef Prefs_R_Heterogeneity < handle
 		z_created = false;
 		nz;
 
+		R_broadcast;
+		r_broadcast;
 		rdist;
 		rtrans;
 		rcumdist;
@@ -74,19 +77,24 @@ classdef Prefs_R_Heterogeneity < handle
 		    obj.betacumtrans = cumsum(obj.betatrans,2);
 		    
 		    % Create grid - add beta to grid later since we may iterate
-		    bw = params.betawidth;
-		    switch params.nbeta
-		        case 1
-		            obj.betagrid0 = 0;
-		        case 2
-		            obj.betagrid0 = [-bw/2 bw/2]';
-		        case 3
-		            obj.betagrid0 = [-bw 0 bw]';
-		        case 4
-		            obj.betagrid0 = [-3*bw/2 -bw/2 bw/2 3*bw/2]';
-		        case 5
-		            obj.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
-		    end
+		    if isempty(params.beta_grid_forced)
+			    bw = params.betawidth;
+			    switch params.nbeta
+			        case 1
+			            obj.betagrid0 = 0;
+			        case 2
+			            obj.betagrid0 = [-bw/2 bw/2]';
+			        case 3
+			            obj.betagrid0 = [-bw 0 bw]';
+			        case 4
+			            obj.betagrid0 = [-3*bw/2 -bw/2 bw/2 3*bw/2]';
+			        case 5
+			            obj.betagrid0 = [-2*bw -bw 0 bw 2*bw]';
+			    end
+			    obj.betagrid = params.beta0 + obj.betagrid0;
+			else
+				obj.betagrid = params.beta_grid_forced;
+			end
 		end
 
 		%% -------------------------------------------------------
@@ -147,6 +155,9 @@ classdef Prefs_R_Heterogeneity < handle
 		    end
 		    obj.rcumdist = cumsum(obj.rdist);
 		    obj.rcumtrans = cumsum(obj.rtrans,2);
+
+		    obj.r_broadcast = reshape(params.r, [1 1 1 nr]);
+		    obj.R_broadcast = 1 + obj.r_broadcast;
 		end
 
 		%% -------------------------------------------------------

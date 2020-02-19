@@ -36,7 +36,8 @@ classdef MPCFinder < handle
 	end
 
 	methods
-		function obj = MPCFinder(p, income, grids, basemodel, models)
+		function obj = MPCFinder(p, income, grids, heterogeneity,...
+			basemodel, models)
 			obj.Nstates = p.nx_DST * p.nyP * p.nyF * p.nb;
 			obj.basemodel = basemodel;
 			obj.models = models;
@@ -46,11 +47,7 @@ classdef MPCFinder < handle
 			obj.xgrid_yT = grids.a.vec + income.netymat_broadcast;
 			obj.grids = grids;
 
-			if numel(p.r) > 1
-		        obj.r_mat = reshape(r_col, [1 1 1 numel(p.r)]);
-		    else
-		        obj.r_mat = p.r;
-		    end
+			obj.r_mat = heterogeneity.r_broadcast;
 
 		    for ishock = 1:6
 		    	% mean mpc in period t out of period s shock

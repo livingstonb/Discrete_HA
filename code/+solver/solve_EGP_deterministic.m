@@ -1,4 +1,5 @@
-function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_results)
+function norisk = solve_EGP_deterministic(p, grids,...
+    heterogeneity, income, direct_results)
     % This function uses the method of endogenous grid points to find the
     % policy functions of the deterministic model. Output is in the
     % 'norisk' structure.
@@ -8,17 +9,11 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
     coninterp = cell(1,p.nb);
     sav = zeros(p.nx,p.nb);
     mucnext= zeros(p.nx,p.nb);
-    
-    if numel(p.beta_grid_forced) == 0
-        betagrid = direct_results.beta + heterogeneity.betagrid0;
-    else
-        betagrid = p.beta_grid_forced;
-    end
-    
+
     if numel(p.r) > 1
         Emat = kron(heterogeneity.rtrans, kron(income.ytrans, speye(p.nx)));
-        r_col = kron(p.r', ones(p.nx,1));
-        r_mat = reshape(r_col, [p.nx,numel(p.r)]);
+        r_col = kron(p.r', ones(p.nx, 1));
+        r_mat = reshape(r_col, [p.nx, numel(p.r)]);
     else
         r_mat = p.r;
     end
@@ -64,13 +59,13 @@ function norisk = solve_EGP_deterministic(p,grids,heterogeneity,income,direct_re
         % take expectation over beta
         if numel(p.r) > 1
             emuc = mucnext * heterogeneity.rtrans';
-            betastacked = repmat(betagrid',p.nx,p.nb);
+            betastacked = repmat(heterogeneity.betagrid', p.nx, p.nb);
         elseif numel(p.risk_aver) > 1
             emuc = mucnext * heterogeneity.ztrans';
-            betastacked = repmat(betagrid',p.nx,p.nb);
+            betastacked = repmat(heterogeneity.betagrid', p.nx, p.nb);
         else
             emuc = mucnext * heterogeneity.betatrans';
-            betastacked = repmat(betagrid',p.nx,1);
+            betastacked = repmat(heterogeneity.betagrid', p.nx, 1);
         end
         muc1 = (1-p.dieprob) * (1+r_mat) .* betastacked .* emuc ...
                 ./ (1+p.savtax*(repmat(grids.s.vec,1,p.nb)>=p.savtaxthresh))...

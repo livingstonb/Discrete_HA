@@ -42,10 +42,10 @@ classdef EGP_EZ_Solver < handle
 	end
 
 	methods
-		function obj = EGP_EZ_Solver(betta, p, grids, heterogeneity, income)
+		function obj = EGP_EZ_Solver(p, grids, heterogeneity, income)
             obj.p = p;
             obj.grids = grids;
-			obj.betagrid = betta + heterogeneity.betagrid0;
+			obj.betagrid = heterogeneity.betagrid;
 
 		    % initial guess for consumption function, stacked state combinations
 		    obj.con = (obj.p.r + 0.002*(obj.p.r<0.001)) * repmat(obj.grids.x.matrix(:), obj.p.nb, 1);
