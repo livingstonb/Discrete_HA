@@ -96,14 +96,14 @@ function [params, all_names] = parameters(runopts)
         name = [lfreq ' Permanent r het, r in {0,2,4} p.a.'];
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
-        params(end).r = [0,2,4] / 100;
-        params(end).betaH0 = -1e-3;
+        params(end).r = [0, 2, 4] / 100;
+        params(end).betaH0 = -1e-4;
         
         name = [lfreq ' Permanent r het, r in {-2,2,6} p.a.'];
         params(end+1) = setup.Params(ifreq,name,IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
-        params(end).r = [-2,2,6] / 100;
-        params(end).betaH0 = -1e-3;
+        params(end).r = [-2, 2, 6] / 100;
+        params(end).betaH0 = -1e-4;
 
 %         % different tax rates
 %         for itax = [0.05, 0.1, 0.15, 0.25]
