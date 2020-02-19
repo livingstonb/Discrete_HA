@@ -47,11 +47,6 @@ classdef EGP_EZ_Solver < handle
             obj.grids = grids;
 			obj.betagrid = betta + heterogeneity.betagrid0;
 
-            if obj.p.IterateBeta == 1
-		        msg = sprintf(' %3.3f', obj.betagrid);
-		        disp([' Trying betagrid =' msg])
-            end
-
 		    % initial guess for consumption function, stacked state combinations
 		    obj.con = (obj.p.r + 0.002*(obj.p.r<0.001)) * repmat(obj.grids.x.matrix(:), obj.p.nb, 1);
 
