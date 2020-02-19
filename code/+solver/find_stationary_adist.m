@@ -1,4 +1,4 @@
-function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heterogeneity)
+function modelupdate = find_stationary_adist(p,model,income,grids,heterogeneity)
     % Finds the stationary distribution and transition matrix for a given
     % grids.a.vec.
     %
@@ -105,7 +105,6 @@ function [AYdiff,modelupdate] = find_stationary_adist(p,model,income,grids,heter
     
     mean_assets = modelupdate.mean_a;
     fprintf(' A/Y = %2.5f\n',mean_assets/(income.meany1*p.freq));
-    AYdiff = mean_assets/(income.meany1*p.freq) -  p.targetAY;
 end
 
 %% ----------------------------------------------------------------

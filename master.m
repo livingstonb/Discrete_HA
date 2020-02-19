@@ -171,7 +171,7 @@ else
 end
 fprintf('\n Trying %s parameterization "%s"\n', msgfreq, params.name)
 
-if ~isempty(params.calibrator)
+if params.calibrate
     options = optimoptions(@fsolve, 'MaxIterations', params.calibrate_maxiter,...
             'FunctionTolerance', params.calibrate_tol);
     calibrated_params = fsolve(params.calibrator, params.x0_calibration, options);
