@@ -20,17 +20,17 @@ function results = main(p)
         % find a better way to do this...
         p.nb = max([p.nbeta, numel(p.risk_aver), numel(p.r), numel(p.invies), numel(p.temptation)]);
     end
-    
+
     %% --------------------------------------------------------------------
     % HETEROGENEITY IN PREFERENCES/RETURNS
     % ---------------------------------------------------------------------
     heterogeneity = setup.Prefs_R_Heterogeneity(p);
-    
+
     %% --------------------------------------------------------------------
     % INCOME
     % ---------------------------------------------------------------------
     income = setup.Income(p, heterogeneity);
-    
+
     %% --------------------------------------------------------------------
     % ASSET GRIDS
     % ---------------------------------------------------------------------
@@ -39,7 +39,7 @@ function results = main(p)
     if p.borrow_lim <= -1e10
         p.set("borrow_lim", loose_constraint, false);
     end
-
+    
     % grids for method of EGP
     grdEGP = setup.Grid(p, income, 'EGP');
 
@@ -49,50 +49,24 @@ function results = main(p)
     %% --------------------------------------------------------------------
     % MODEL SOLUTION
     % ---------------------------------------------------------------------
-    if p.IterateBeta == 1
-        mpcshock = 0;
-        iterate_EGP_x = @(x) solver.iterate_EGP(x, p, grdEGP, grdDST,...
-            heterogeneity, income, mpcshock);
-
-        if numel(heterogeneity.betadist) == 1
-            beta_ub = p.betaH;
-        else
-            % Don't let highest beta be such that (1-dieprob)*R*beta >= 1
-            beta_ub = p.betaH  - max(heterogeneity.betagrid0);
-        end
-        beta_lb = p.betaL;
-
-        % output function that limits number of fzero iterations
-        check_evals = @(x,y,z) aux.fzero_checkiter(x, y, z, p.maxiterAY);
-        
-        options = optimset('TolX', p.tolAY, 'OutputFcn', check_evals);
-        [beta_final,~,exitflag] = fzero(iterate_EGP_x, [beta_lb,beta_ub], options);
-        if exitflag ~= 1
-            return
-        end
-    else
-        % Beta was set in parameters
-        beta_final = p.beta0;
-    end
-    
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
     if p.EpsteinZin == 1
-        egp_ez_solver = solver.EGP_EZ_Solver(beta_final, p, grdEGP, heterogeneity, income);
+        egp_ez_solver = solver.EGP_EZ_Solver(p.beta0, p, grdEGP, heterogeneity, income);
         egp_ez_solver.solve(income);
         basemodel = egp_ez_solver.return_model();
     else
         mpcshock = 0;
         basemodel = solver.solve_EGP(...
-            beta_final, p, grdEGP, heterogeneity, income, mpcshock, []);
+            p.beta0, p, grdEGP, heterogeneity, income, mpcshock, []);
     end
    [~,basemodel] = solver.find_stationary_adist(...
         p, basemodel, income, grdDST, heterogeneity);
     results.direct.adist = basemodel.adist;
 
     % Report beta and annualized beta
-    results.direct.beta_annualized = beta_final^p.freq;
-    results.direct.beta = beta_final;
+    results.direct.beta_annualized = p.beta0 ^ p.freq;
+    results.direct.beta = p.beta0;
     
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
@@ -233,7 +207,7 @@ function results = main(p)
         for ib = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            cash_shock = grdEGP.x.matrix(:,iyP,iyF,ib) + shock_size;
+            cash_shock = grdEGP.x.matrix(:,iyP,iyF) + shock_size;
             con_shock(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(cash_shock);
         end
         end

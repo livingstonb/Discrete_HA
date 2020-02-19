@@ -51,11 +51,11 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = 0; % use server paths
-runopts.IterateBeta = 0;
+runopts.Server = 1; % use server paths
+runopts.calibrate = 1;
 runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
-runopts.MakePlots = 1;
+runopts.MakePlots = 0;
 runopts.MPCs = 1;
 runopts.MPCs_news = 0;
 runopts.MPCs_loan_and_loss = 0;
@@ -70,7 +70,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'baseline_Q'};
+runopts.names_to_run = {};
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -112,9 +112,10 @@ addpath([runopts.path '/code/aux_lib']);
 cd(runopts.path);
 
 % Load parameters
+all_names = table();
 switch runopts.mode
     case 'parameters'
-        params = setup.parameters(runopts);
+        [params, all_names] = setup.parameters(runopts);
     case 'EZtests'
         params = setup.parameters_EZtests(runopts);
     case 'other'
@@ -129,11 +130,11 @@ Nparams = size(params,2);
 % -------------------------------------------------------------------------
 n_calibrations = 0;
 
-% Vary discount rate to match mean wealth = 3.5
-param_name = 'beta0';
-stat_name = 'mean_a';
-stat_target = 3.5;
-n_calibrations = n_calibrations + 1;
+% % Vary discount rate to match mean wealth = 3.5
+% param_name = 'beta0';
+% stat_name = 'mean_a';
+% stat_target = params.targetAY;
+% n_calibrations = n_calibrations + 1;
 
 % % Vary r to match P(a < $1000) = 0.23
 % param_name = 'r';
@@ -150,33 +151,34 @@ n_calibrations = n_calibrations + 1;
 %% ------------------------------------------------------------------------
 % CALIBRATING WITH FSOLVE
 % -------------------------------------------------------------------------
-if n_calibrations == 1
-    param_init = params.(param_name);
-    calibrator = solver.Calibrator(params, param_name,...
-        stat_name, stat_target);
-    beta_final = fsolve(@(x) calibrator.fn_handle(x, params), param_init);
-elseif n_calibrations > 1
-    error("Ensure that a max of one calibration is selected")
-end
+% if n_calibrations == 1
+%     param_init = params.(param_name);
+%     calibrator = solver.Calibrator(params, param_name,...
+%         stat_name, stat_target);
+%     beta_final = fsolve(@(x) calibrator.fn_handle(x, params), param_init);
+% elseif n_calibrations > 1
+%     error("Ensure that a max of one calibration is selected")
+% end
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
 % -------------------------------------------------------------------------
 % iterate through specifications (or run 1)
-for ip = 1:Nparams
-    if params(ip).freq == 1
-        msgfreq = 'annual';
-    else
-        msgfreq = 'quarterly';
-    end
-    fprintf('\n Trying %s parameterization "%s"\n', msgfreq,params(ip).name)
-
-    tic
-    results(ip) = main(params(ip));
-    toc
-    disp(['Finished parameterization ' params(ip).name])
-    
+if params.freq == 1
+    msgfreq = 'annual';
+else
+    msgfreq = 'quarterly';
 end
+fprintf('\n Trying %s parameterization "%s"\n', msgfreq, params.name)
+
+if ~isempty(params.calibrator)
+    options = optimoptions(@fsolve, 'MaxIterations', params.calibrate_maxiter,...
+            'FunctionTolerance', params.calibrate_tol);
+    calibrated_params = fsolve(params.calibrator, params.x0_calibration, options);
+end
+
+results = main(params);
+disp(['Finished parameterization ' params.name])
 
 %% ------------------------------------------------------------------------
 % DECOMPOSITION 2 AND SAVING/TABLE CREATING
@@ -191,9 +193,8 @@ if runopts.Server == 1
     exit
 end
 
-
 %% ------------------------------------------------------------------------
-% SOLVE AND CREATE TABLE OF RESULTS
+% CREATE TABLE OF RESULTS
 % -------------------------------------------------------------------------
 return_nans = false;
 decomp_with_loose_borr_limit = false;

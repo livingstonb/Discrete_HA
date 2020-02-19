@@ -7,6 +7,8 @@ classdef Calibrator < handle
 		variable;
 		target_name;
 		target_value;
+		lbound;
+		ubound;
 	end
 
 	methods
@@ -26,15 +28,27 @@ classdef Calibrator < handle
 			obj.target_value = target_value;
 		end
 
+		function set_param_bounds(obj, bounds)
+			obj.lbound = bounds(1);
+			obj.ubound = bounds(2);
+		end
+
 		function dv = fn_handle(obj, x, current_params)
 			obj.turn_off_param_options(current_params);
-			current_params.set(obj.variable, x);
+
+			if ~isempty(obj.lbound)
+				new_value = obj.convert_to_param_value(x);
+			else
+				new_value = x;
+			end
+
+			current_params.set(obj.variable, new_value);
 			results = main(current_params);
 
 			v = results.direct.(obj.target_name);
 			dv = v - obj.target_value;
 
-			fprintf('\n\n---- For %s = %g:\n', obj.variable, x)
+			fprintf('\n\n---- For %s = %g:\n', obj.variable, new_value)
 			fprintf('     Result was %s = %g\n', obj.target_name, v)
 
 			obj.reset_param_options(current_params);
@@ -54,6 +68,20 @@ classdef Calibrator < handle
 			for ip = 1:numel(props)
 				params.set(props{ip}, obj.options.(props{ip}), quiet);
 			end
+		end
+
+		function val = convert_to_param_value(obj, z)
+			lb = obj.lbound;
+			ub = obj.ubound;
+			tmp = abs(z) / (1 + abs(z));
+			val = lb + tmp * (ub - lb);
+		end
+
+		function z = convert_to_solver_input(obj, param_value)
+			lb = obj.lbound;
+			ub = obj.ubound;
+			tmp = (param_value - lb) / (ub - lb);
+			z = tmp / (1 - tmp);
 		end
 	end
 end

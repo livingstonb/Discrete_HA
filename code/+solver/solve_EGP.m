@@ -32,11 +32,6 @@ function model = solve_EGP(beta, p, grids, heterogeneity,...
     else
         betagrid = p.beta_grid_forced;
     end
-    
-    if p.IterateBeta == 1
-        msg = sprintf(' %3.3f',betagrid);
-        disp([' Trying betagrid =' msg])
-    end
 
     % Expectations operator (conditional on yT)
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb

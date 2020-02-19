@@ -22,7 +22,7 @@ classdef Params < handle
         freq;
 
         % source for income process (file, or empty string for gen in code)
-        IncomeProcess ='';
+        IncomeProcess = '';
         
         path;
 
@@ -30,10 +30,6 @@ classdef Params < handle
         max_iter    = 1e5; % EGP
         tol_iter    = 1.0e-6; % EGP
         Nsim        = 2e5; % For optional simulation
-        
-        % beta iteration
-        maxiterAY   = 50;
-        tolAY       = 1e-7;
 
         % mpc options
         shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
@@ -55,7 +51,7 @@ classdef Params < handle
         xgrid_par = 0.2; %1 for linear, 0 for L-shaped
         borrow_lim = 0;
         nbl_adjustment = 1;
-        gridspace_min = 0.001; % minimum grid space (0 for no minimum)
+        gridspace_min = 0; % minimum grid space (0 for no minimum)
         
         % OPTIONS
         MakePlots = 0;
@@ -124,11 +120,15 @@ classdef Params < handle
         IESswitch = 0;
         
         % computation
-    	Tsim        = 400; % Simulation
+    	Tsim = 400; % Simulation
 
-        % beta iteration
-        IterateBeta;
-    	targetAY    = 3.5; 
+        % calibration
+        calibrate;
+        calibrate_maxiter = 60;
+        calibrate_tol = 1e-6;
+        calibrator;
+        x0_calibration;
+        target_value = 3.5;
     end
 
     methods
@@ -180,7 +180,7 @@ classdef Params < handle
             [obj.outdir] = deal(runopts.outdir);
             
             % iterate option
-            [obj.IterateBeta] = deal(runopts.IterateBeta);
+            [obj.calibrate] = deal(runopts.calibrate);
 
             % simulate option
             [obj.Simulate] = deal(runopts.Simulate);
@@ -267,14 +267,14 @@ classdef Params < handle
 
                 objs(io).betaL = objs(io).betaL^(1/objs(io).freq);
                 
-                objs(io).betaH = 1./((max(objs(io).R))*(1-objs(io).dieprob));
-                objs(io).betaH = objs(io).betaH + objs(io).betaH0;
-	                
                 if objs(io).annuities == true
                     objs(io).Bequests = 0;
                     objs(io).r = objs(io).r + objs(io).dieprob;
                     objs(io).R = 1 + objs(io).r;
                 end
+
+                objs(io).betaH = 1./((max(objs(io).R))*(1-objs(io).dieprob));
+                objs(io).betaH = objs(io).betaH + objs(io).betaH0;
 
                 objs(io).lumptransfer = objs(io).lumptransfer / objs(io).freq;
             end
