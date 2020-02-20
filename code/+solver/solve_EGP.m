@@ -57,6 +57,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
     con = (r_mat(:) .* (r_mat(:)>=0.001) + 0.001 * (r_mat(:)<0.001) + extra) ...
     	.* repmat(grids.x.matrix(:), p.nb, 1);
     con(con<=0) = min(con(con>0));
+    con = max(con, 0.001);
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
@@ -242,7 +243,10 @@ function sav = get_saving_policy(p, grids, x_s, svalid, nextmpcshock)
         end
         savinterp = griddedInterpolant(x_s(is_valid,iyP,iyF,ib),...
             grids.s.matrix(is_valid,iyP,iyF), 'linear');
-        sav(:,iyP,iyF,ib) = savinterp(grids.x.matrix(:,iyP,iyF)); 
+        sav(:,iyP,iyF,ib) = savinterp(grids.x.matrix(:,iyP,iyF));
+        
+        adj = grids.x.matrix(:,iyP,iyF) < x_s(1,iyP,iyF,ib);
+        sav(adj,iyP,iyF,ib) = p.borrow_lim;
     end
     end
     end

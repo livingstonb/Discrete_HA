@@ -5,6 +5,7 @@ classdef TableGenerator
 
 	properties
 		decomp_repagent;
+		decomp_baseline;
 		decomp_incrisk_alt;
 	end
 
@@ -74,6 +75,13 @@ classdef TableGenerator
 					new_column = [new_column; temp];
 				end
 
+				if ~isempty(obj.decomp_baseline)
+					shock_size = p.shocks(5);
+
+					decomp_structure = obj.decomp_baseline(ip);
+					temp = baseline_decomp_table(decomp_structure, shock_size);
+					new_column = [new_column; temp];
+				end
 
 				if ~isempty(obj.decomp_incrisk_alt)
 					shock_size = p.shocks(5);
@@ -360,6 +368,37 @@ function out = repagent_decomp_table(decomp, shock_size)
                     decomp.mpc1_term3
 		};
 
+	out = append_to_table(out, new_entries, new_labels);
+end
+
+function out = baseline_decomp_table(decomp, shock_size)
+	header_name = sprintf(...
+		'DECOMP OF EM1-EM0, SHOCK OF %g', shock_size);
+	out = new_table_with_header(header_name);
+
+	new_labels = {	'Em1 - Em0'
+		            'Decomp of Em1-Em0, effect of MPC fcn'
+		            'Decomp of Em1-Em0, effect of distr'
+		            'Decomp of Em1-Em0, interaction'
+		            'Decomp of the distr effect around 0, HtM households'
+		            'Decomp of the distr effect around 0, non-HtM households'
+		            'Decomp of the distr effect around 0.01, HtM households'
+		            'Decomp of the distr effect around 0.01, non-HtM households'
+		            'Decomp of the distr effect around 0.05, HtM households'
+		            'Decomp of the distr effect around 0.05, non-HtM households'
+		};
+
+	new_entries = {	decomp.mpc1_Em1_less_Em0
+                    decomp.mpc1_term1                       
+                    decomp.mpc1_term2
+                    decomp.mpc1_term3
+                    decomp.mpc1_term2a(1)   
+                    decomp.mpc1_term2b(1)
+                    decomp.mpc1_term2a(2)   
+                    decomp.mpc1_term2b(2)
+                    decomp.mpc1_term2a(3)   
+                    decomp.mpc1_term2b(3)
+        };
 	out = append_to_table(out, new_entries, new_labels);
 end
 

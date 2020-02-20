@@ -126,7 +126,7 @@ function results = main(p)
         % create interpolant to find fraction of constrained households
         if p.epsilon(i) == 0
             % Get exact figure
-            results.direct.constrained(i) = basemodel.adist(:)' * (grdDST.a.matrix(:)==0);
+            results.direct.constrained(i) = results.direct.agrid_dist(:)' * (grdDST.a.vec==0);
 
             if p.Bequests == 1
                 results.direct.s0 = results.direct.constrained(i);

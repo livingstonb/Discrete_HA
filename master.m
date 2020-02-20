@@ -52,7 +52,7 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Server = 1; % use server paths
-runopts.calibrate = 1;
+runopts.calibrate = 0;
 runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
 runopts.MakePlots = 0;
@@ -120,6 +120,8 @@ switch runopts.mode
         params = setup.parameters_EZtests(runopts);
     case 'other'
         params = setup.parameters_other(runopts);
+    case 'loose_borr_constraint'
+        params = setup.parameters_loose_borr_constraint(runopts);
     otherwise
         error('Parameters script not found')
 end
