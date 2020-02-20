@@ -190,12 +190,12 @@ function out = wealth_distribution_table(values)
 	new_labels = {	'Wealth, top 10% share'
 					'Wealth, top 1% share'
 					'Gini coefficient'
-                    'Rank-rank correlation, assets and beta'
+                    'Rank-rank correlation, assets and pref het'
 		};
 	new_entries = {	values.direct.top10share
 					values.direct.top1share
 					values.direct.wealthgini
-                    values.direct.assets_beta_rank_corr
+                    values.direct.assets_z_rank_corr
 		};
 	out = append_to_table(out, new_entries, new_labels);
 end

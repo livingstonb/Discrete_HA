@@ -52,7 +52,7 @@ function results = main(p)
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
     if p.EpsteinZin == 1
-        egp_ez_solver = solver.EGP_EZ_Solver(p.beta0, p, grdEGP, heterogeneity, income);
+        egp_ez_solver = solver.EGP_EZ_Solver(p, grdEGP, heterogeneity, income);
         egp_ez_solver.solve(income);
         basemodel = egp_ez_solver.return_model();
     else

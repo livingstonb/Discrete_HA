@@ -44,7 +44,7 @@ classdef MPCSimulator < handle
 
     	a1;
 
-        assets_beta_rank_corr;
+        assets_z_rank_corr;
         wpercentiles;
     	wealth_pctile_interpolant;
 	end
@@ -234,13 +234,13 @@ classdef MPCSimulator < handle
             
             obj.wpercentiles = prctile(obj.asim(:,3), p.percentiles);
 
-		    % Rank-rank correlation between assets and beta
-		    if p.nbeta == 1
-		    	obj.assets_beta_rank_corr = NaN;
+		    % Rank-rank correlation between assets and z
+		    if p.nb == 1
+		    	obj.assets_z_rank_corr = NaN;
 		    else
 		    	asset_ranks = obj.wealth_pctile_interpolant(obj.asim(:,3));
 		    	tmp = corrcoef([double(obj.zindsim(:,3)), asset_ranks]);
-                obj.assets_beta_rank_corr = tmp(1,2);
+                obj.assets_z_rank_corr = tmp(1,2);
 		    end
 		end
 
@@ -278,7 +278,7 @@ classdef MPCSimulator < handle
 		    resultsUpdate.a_twelfth_sim = obj.inc_constrained.a_twelfth_Q;
 		    resultsUpdate.x_sixth_sim = obj.inc_constrained.x_sixth_Q;
 		    resultsUpdate.x_twelfth_sim = obj.inc_constrained.x_twelfth_Q;
-            resultsUpdate.assets_beta_rank_corr = obj.assets_beta_rank_corr;
+            resultsUpdate.assets_z_rank_corr = obj.assets_z_rank_corr;
 
 		    resultsUpdate.mpcs_sim = obj.mpcs;
 		end
