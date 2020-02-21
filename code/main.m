@@ -342,10 +342,11 @@ function results = main(p)
         
         % Wealth at low yP
         nbins = 100;
-        amax = {0.25};
-        amax_visible = 0.2;
+        amin = grdDST.a.vec(1);
+        amax = {1};
+        amax_visible = 0.5;
 
-        iyP = 2;
+        iyP = 1:11;
         nyP = numel(iyP);
 
         pmf_a = results.direct.adist(:,iyP,:,:);
@@ -356,7 +357,7 @@ function results = main(p)
         wealth_plotter = statistics.WealthPlotter(p, grdDST.a.vec, pmf_a);
         [ax, wealth_hist] = wealth_plotter.create_histogram(nbins, amax{:});
         title("Wealth condl on low yP, truncated above")
-        ax.XLim = [0, amax_visible];
+        ax.XLim = [amin, amax_visible];
         ax.YLim = [0, max(wealth_hist.Values(1:end-1))];
 
         figpath = fullfile(p.outdir, 'wealth_condl_on_low_yP.jpg');
@@ -407,7 +408,6 @@ function results = main(p)
         [ax_main, ax_window] = mpc_plotter.create_mpcs_plot(...
                     yP_indices, zoomed_window, shock_size);
         ylim_main = ax_main.YLim;
-        ax_main.XLabel
 
         % imedian = find(p.percentiles == 50);
         % median_wealth = results.direct.wpercentiles(imedian);

@@ -28,11 +28,11 @@ function params = parameters_loose_borr_constraint(runopts)
     annual_params.rho_logyP = 0.9525;
     annual_params.lambdaT = 1;
 
-    num_neg_pts = 20;
+    num_neg_pts = 100;
     neg_grid_params = struct();
-    neg_grid_params.nx = 500 + num_neg_pts;
+    neg_grid_params.nx = 300 + num_neg_pts;
     neg_grid_params.nx_neg = num_neg_pts;
-    neg_grid_params.nx_DST = 400 + num_neg_pts;
+    neg_grid_params.nx_DST = 300 + num_neg_pts;
     neg_grid_params.nx_neg_DST = num_neg_pts;
     neg_grid_params.borrow_lim = -1e10;
 
@@ -78,7 +78,7 @@ function params = parameters_loose_borr_constraint(runopts)
     %----------------------------------------------------------------------
     % VARYING THE PROXIMITY TO THE NBL
     %----------------------------------------------------------------------
-    nbl_factors = 0.95;
+    nbl_factors = [0.99:-0.01:0.8];
     for ii = 1:numel(nbl_factors)
         name = sprintf('baseline_Q_with_borrowing_nbl_test%d', ii);
         params(end+1) = setup.Params(4, name, quarterly_b_path);

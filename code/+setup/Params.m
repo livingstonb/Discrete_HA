@@ -49,6 +49,7 @@ classdef Params < handle
         nx_neg_DST = 0;
         xmax = 100;
         xgrid_par = 0.2; %1 for linear, 0 for L-shaped
+        xgrid_par_neg = 0.4;
         borrow_lim = 0;
         nbl_adjustment = 1;
         gridspace_min = 0; % minimum grid space (0 for no minimum)

@@ -32,8 +32,8 @@ classdef MPCPlotter < handle
 			obj.fig = figure();
 			ax_main = axes(obj.fig);
 			legend('hide');
-			xlabel("Wealth (ratio to mean annual income)")
-			ylabel(sprintf("MPC out of %g", shock_size))
+			xlabel("Wealth (ratio to mean annual income)");
+			ylabel(sprintf("MPC out of %g", shock_size));
 			ax_main = obj.apply_formatting(ax_main);
 
 			if zoomed_window

@@ -49,12 +49,12 @@ classdef Grid < handle
 				% Portion of savings grid closest to borrowing limit
 				savgrid_neg_low = create_curved_grid(...
 					params.borrow_lim, neg_midpt, pts_bottom,...
-					params.xgrid_par, false);
+					params.xgrid_par_neg, false);
 
 				% Portion of savings grid closest to soft constraint
 				savgrid_neg_high = create_curved_grid(...
 					neg_midpt, soft_constraint, pts_top,...
-					params.xgrid_par, true);
+					params.xgrid_par_neg, true);
 
 				% Combine while deleting repetitions
 				savgrid_neg = [savgrid_neg_low; savgrid_neg_high(2:end-1)];
