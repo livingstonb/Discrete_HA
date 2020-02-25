@@ -207,7 +207,7 @@ function results = main(p)
         for ib = 1:p.nb
         for iyF = 1:p.nyF
         for iyP = 1:p.nyP
-            cash_shock = grdEGP.x.matrix(:,iyP,iyF) + shock_size;
+            cash_shock = grdEGP.x.matrix(:,iyP,iyF,ib) + shock_size;
             con_shock(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(cash_shock);
         end
         end

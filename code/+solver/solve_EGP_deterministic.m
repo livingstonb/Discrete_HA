@@ -10,20 +10,30 @@ function norisk = solve_EGP_deterministic(p, grids,...
     sav = zeros(p.nx,p.nb);
     mucnext= zeros(p.nx,p.nb);
 
+    % if numel(p.r) > 1
+    %     Emat = kron(heterogeneity.rtrans, kron(income.ytrans, speye(p.nx)));
+    %     r_col = kron(p.r', ones(p.nx, 1));
+    %     r_mat = reshape(r_col, [p.nx, numel(p.r)]);
+    % else
+    %     r_mat = p.r;
+    % end
+
     if numel(p.r) > 1
-        Emat = kron(heterogeneity.rtrans, kron(income.ytrans, speye(p.nx)));
-        r_col = kron(p.r', ones(p.nx, 1));
-        r_mat = reshape(r_col, [p.nx, numel(p.r)]);
+        exog_trans = heterogeneity.rtrans;
+    elseif numel(p.nbeta) > 1
+        exog_trans = heterogeneity.betatrans;
     else
-        r_mat = p.r;
+        exog_trans = heterogeneity.ztrans;
     end
+
+    Emat = kron(exog_trans, speye(p.nx));
+    r_mat = reshape(p.r, [1 numel(p.r)]);
 
     if numel(p.risk_aver) > 1
         risk_aver_mat = kron(p.risk_aver, ones(p.nx,1));
     end
 
     % initial guess for consumption function, stacked state combinations
-    % column vector of length p.nx * p.nyP * p.nyF * p.nb
     if p.temptation > 0.005
         extra = 0.5;
     else
@@ -41,32 +51,46 @@ function norisk = solve_EGP_deterministic(p, grids,...
         conlast = con;
         
         for ib = 1:p.nb
-            coninterp{ib} = griddedInterpolant(grids.x.vec_norisk, conlast(:,ib), 'linear');
+
+            coninterp{ib} = griddedInterpolant(grids.x.matrix_norisk(:,ib), conlast(:,ib), 'linear');
+            if numel(p.r) > 1
+                con_ib = coninterp{ib}(p.R(ir) * grids.s.vec + income.meannety1);
+            else
+                con_ib = coninterp{ib}(p.R * grids.s.vec + income.meannety1);
+            end
             
             % cash-on-hand is just Rs + meany
             if numel(p.r) > 1
-                mucnext(:,ib) = aux.utility1(p.risk_aver, coninterp{ib}(p.R(ib)*grids.s.vec + income.meannety1))...
-                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver, p.R(ib)*grids.s.vec + income.meannety1);
+                mucnext(:,ib) = aux.utility1(p.risk_aver, con_ib)...
+                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver, con_ib);
             elseif numel(p.risk_aver) > 1
-                mucnext(:,ib) = aux.utility1(risk_aver_mat(:,ib),coninterp{ib}(p.R.*grids.s.vec + income.meannety1))...
-                                - p.temptation/(1+p.temptation) * aux.utility1(risk_aver_mat(:,ib), p.R.*grids.s.vec + income.meannety1);
+                mucnext(:,ib) = aux.utility1(risk_aver_mat(:,ib), con_ib)...
+                                - p.temptation/(1+p.temptation) * aux.utility1(risk_aver_mat(:,ib), con_ib);
+            elseif numel(p.temptation) > 1
+                mucnext(:,ib) = aux.utility1(p.risk_aver, con_ib)...
+                                - p.temptation(ib) / (1+p.temptation(ib)) * aux.utility1(p.risk_aver, con_ib);
             else
-                mucnext(:,ib) = aux.utility1(p.risk_aver, coninterp{ib}(p.R*grids.s.vec + income.meannety1))...
-                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver, p.R.*grids.s.vec + income.meannety1);
+                mucnext(:,ib) = aux.utility1(p.risk_aver, con_ib)...
+                                - p.temptation/(1+p.temptation) * aux.utility1(p.risk_aver, con_ib);
             end
         end
         
         % take expectation over beta
-        if numel(p.r) > 1
-            emuc = mucnext * heterogeneity.rtrans';
-            betastacked = repmat(heterogeneity.betagrid', p.nx, p.nb);
-        elseif numel(p.risk_aver) > 1
-            emuc = mucnext * heterogeneity.ztrans';
-            betastacked = repmat(heterogeneity.betagrid', p.nx, p.nb);
-        else
-            emuc = mucnext * heterogeneity.betatrans';
-            betastacked = repmat(heterogeneity.betagrid', p.nx, 1);
+        betastacked = kron(heterogeneity.betagrid(:), ones(p.nx,1));
+        if numel(p.nbeta) == 1
+            betastacked = repmat(betastacked, p.nb, 1);
         end
+
+        % if numel(p.r) > 1
+        %     emuc = mucnext * transpose(heterogeneity.rtrans);
+        % elseif numel(p.nbeta) > 1
+        %     emuc = mucnext * transpose(heterogeneity.betatrans);
+        % else
+        %     emuc = mucnext * transpose(heterogeneity.ztrans);
+        % end
+
+        emuc = Emat * mucnext(:);
+
         muc1 = (1-p.dieprob) * (1+r_mat) .* betastacked .* emuc ...
                 ./ (1+p.savtax*(repmat(grids.s.vec,1,p.nb)>=p.savtaxthresh))...
                 + p.dieprob * aux.utility_bequests1(p.bequest_curv,p.bequest_weight,...
@@ -79,15 +103,17 @@ function norisk = solve_EGP_deterministic(p, grids,...
         end
         
         cash1 = con1 + repmat(grids.s.vec, 1, p.nb)...
-            + p.savtax * max(repmat(grids.s.vec, 1, p.nb) - p.savtaxthresh,0);
+            + p.savtax * max(repmat(grids.s.vec, 1, p.nb) - p.savtaxthresh, 0);
         
         for ib = 1:p.nb
             savinterp = griddedInterpolant(cash1(:,ib), grids.s.vec, 'linear');
-            sav(:,ib) = savinterp(grids.x.vec_norisk);
+            sav(:,ib) = max(savinterp(grids.x.matrix_norisk(:,ib)), p.borrow_lim);
+
+            con = grids.x.matrix_norisk(:,ib) - sav(:,ib)...
+                - p.savtax * max(sav(:,ib) - p.savtaxthresh, 0);
         end
-        sav(sav<p.borrow_lim) = p.borrow_lim;
-        con = repmat(grids.x.vec_norisk, 1, p.nb) - sav...
-            - p.savtax * max(sav - p.savtaxthresh,0);
+
+        
         
         cdiff = max(abs(con(:)-conlast(:)));
         if mod(iter,100) ==0
@@ -100,8 +126,8 @@ function norisk = solve_EGP_deterministic(p, grids,...
     
     % Store consumption and savings function interpolants
     for ib = 1:p.nb
-        norisk.coninterp{ib} = griddedInterpolant(grids.x.vec_norisk,con(:,ib), 'linear');
-        norisk.savinterp{ib} = griddedInterpolant(grids.x.vec_norisk,sav(:,ib), 'linear');
+        norisk.coninterp{ib} = griddedInterpolant(grids.x.matrix_norisk(:,ib), con(:,ib), 'linear');
+        norisk.savinterp{ib} = griddedInterpolant(grids.x.matrix_norisk(:,ib), sav(:,ib), 'linear');
     end
     
    

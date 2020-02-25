@@ -75,15 +75,27 @@ classdef Grid < handle
 		end
 
 		function obj = create_xgrid(obj, params, income)
-			minyT = kron(min(income.netymat, [], 2), ones(obj.nx,1));
-			xgrid = min(params.R) * obj.s.matrix(:) + minyT;
+			minyT = reshape(min(income.netymat, [], 2), [1 params.nyP params.nyF]);
 
-		    obj.x.matrix = reshape(xgrid, [obj.nx params.nyP params.nyF]);
+            R_broadcast = reshape(params.R, [1 1 1 numel(params.R)]);
+			xgrid = R_broadcast .* obj.s.matrix + minyT;
+			if numel(params.r) == 1
+				xgrid = repmat(xgrid, [1 1 1 params.nb]);
+			end
+
+			obj.x.matrix = xgrid;
 		end
 
 		function obj = create_norisk_xgrid(obj, params, income)
-			obj.x.vec_norisk  = min(params.R) * obj.s.vec + income.meannety1;
-			obj.x.matrix_norisk = repmat(obj.x.vec_norisk, 1, params.nb);
+            R_broadcast = reshape(params.R, [1 1 1 numel(params.R)]);
+			xmatrix_norisk = R_broadcast .* obj.s.vec + income.meannety1;
+			xmatrix_norisk = reshape(xmatrix_norisk, obj.nx, []);
+
+			if numel(params.r) == 1
+				xmatrix_norisk = repmat(xmatrix_norisk, [1 params.nb]);
+			end
+
+			obj.x.matrix_norisk = xmatrix_norisk;
 		end
 
 		function obj = create_agrid(obj, params)

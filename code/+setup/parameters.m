@@ -443,11 +443,12 @@ function [params, all_names] = parameters(runopts)
             end
         end
 
-        name = 'Q Temptation Heterogeneity';
+        name = 'Q Temptation, uniform in {0, 0.05, 0.1}';
         params(end+1) = setup.Params(4, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
-        params(end).temptation = [0, 0.05, 0.07];
-        params(end).betaH0 = 1e-2;
+        params(end).temptation = [0 0.05 0.1];
+        params(end).beta0 = 0.998283 ^ 4;
+        params(end).betaH0 = 5e-2;
     end
         
     % epstein-zin, quarterly

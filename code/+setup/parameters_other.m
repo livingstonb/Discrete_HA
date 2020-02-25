@@ -14,6 +14,7 @@ function params = parameters_other(runopts)
     % Quarterly
     params = setup.Params(4, 'target_assets_lt_1000_no_adj_costs', QIncome);
     params.lumptransfer = 0.0081 * 2.0 * 4.0;
+    params.beta0 = 0.867871450985079;
     params.shocks = shocks;
 
 
