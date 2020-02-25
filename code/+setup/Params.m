@@ -62,6 +62,7 @@ classdef Params < handle
         MPCs_loan_and_loss = 0;
         DeterministicMPCs = 0;
         outdir = '';
+        savematpath = '';
 
         % returns
         r = 0.02; % default annual, adjusted if frequency = 4;
@@ -179,6 +180,8 @@ classdef Params < handle
             [obj.MakePlots] = deal(runopts.MakePlots);
 
             [obj.outdir] = deal(runopts.outdir);
+
+            [obj.savematpath] = deal(runopts.savematpath);
             
             % iterate option
             [obj.calibrate] = deal(runopts.calibrate);

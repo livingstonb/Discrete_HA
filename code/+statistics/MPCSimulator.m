@@ -178,10 +178,10 @@ classdef MPCSimulator < handle
 	            	idx = obj.yPindsim(:,it)==iyP & obj.yFindsim==iyF & obj.zindsim(:,it)==ib;
 	                
 	                if (shock < 0) && (it == 1)
-	                    below_grid = obj.xsim(:,it) < grids.x.matrix(1,iyP,iyF);
+	                    below_grid = obj.xsim(:,it) < grids.x.matrix(1,iyP,iyF,ib);
 	                    % Bring households pushed below grid back up to grid
 	                    idx_below = idx & below_grid;
-	                    obj.xsim(idx_below,it) = grids.x.matrix(1,iyP,iyF);
+	                    obj.xsim(idx_below,it) = grids.x.matrix(1,iyP,iyF,ib);
 	                    obj.adjust_mpc = obj.adjust_mpc | idx_below;
 	                end
 	                obj.ssim(idx,it) = basemodel.savinterp{iyP,iyF,ib}(obj.xsim(idx,it));

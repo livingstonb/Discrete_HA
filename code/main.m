@@ -102,6 +102,7 @@ function results = main(p)
     
     % Support of the distribution
     support = results.direct.agrid_dist > 1e-9;
+    results.direct.agrid = grdDST.a.vec;
     results.direct.agrid_support = grdDST.a.vec(support);
     
     % cdf(a) over the support of pmf(a)
@@ -430,4 +431,7 @@ function results = main(p)
         saveas(gcf, figpath)
     end
     
+    % convert Params object to structure for saving
+    Sparams = aux.to_structure(params);
+    save(p.savematpath, 'Sparams', 'results')
 end

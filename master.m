@@ -182,15 +182,6 @@ end
 results = main(params);
 disp(['Finished parameterization ' params.name])
 
-%% ------------------------------------------------------------------------
-% DECOMPOSITION 2 AND SAVING/TABLE CREATING
-% -------------------------------------------------------------------------
-disp('Check the results structure for detailed results')
-% convert Params object to structure for saving
-Sparams = aux.to_structure(params);
-% Sincome = aux.to_structure(income);
-save(runopts.savematpath, 'Sparams', 'results')
-
 if runopts.Server == 1
     exit
 end

@@ -27,24 +27,6 @@ function model = solve_EGP(p, grids, heterogeneity,...
     %% ----------------------------------------------------
     % CONSTRUCT EXPECTATIONS MATRIX, ETC...
     % -----------------------------------------------------
-    % Expectations operator (conditional on yT)
-    % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    % if numel(p.r) > 1
-    %     Emat = kron(heterogeneity.rtrans,kron(income.ytrans,speye(p.nx)));
-    %     r_col = kron(p.r',ones(p.nx*p.nyP*p.nyF,1));
-    %     r_mat = reshape(r_col,[p.nx,p.nyP,p.nyF,numel(p.r)]);
-    % elseif numel(p.risk_aver) > 1
-    %     Emat = kron(heterogeneity.ztrans,kron(income.ytrans,speye(p.nx)));
-    %     risk_aver_col = kron(p.risk_aver',ones(p.nx*p.nyP*p.nyF,1));
-    %     r_mat = p.r;
-    % elseif numel(p.temptation) > 1
-    %     Emat = kron(heterogeneity.ztrans,kron(income.ytrans,speye(p.nx)));
-    %     r_mat = p.r;
-    % else
-    %     Emat = kron(heterogeneity.betatrans,kron(income.ytrans,speye(p.nx)));
-    %     r_mat = p.r;
-    % end
-
     Emat = kron(income.ytrans_live, speye(p.nx));
     r_mat = heterogeneity.r_broadcast;
 

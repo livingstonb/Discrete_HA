@@ -41,7 +41,8 @@ function norisk = solve_EGP_deterministic(p, grids,...
     end
     
     con = (r_mat .* (r_mat>=0.001) + 0.001 * (r_mat<0.001) + extra) .* grids.x.matrix_norisk;
-    con(con<=0) = min(con(con>0));
+    con_vec = con(:);
+    con(con<=0) = min(con_vec(con_vec>0));
 
     iter = 0;
     cdiff = 1000;

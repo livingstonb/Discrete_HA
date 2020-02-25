@@ -2,7 +2,7 @@ function decomp = alternate_decomposition(p_baseline, results_baseline,...
 	p_no_bc, results_no_bc, return_nans)
 
 	% Construct agrid from baseline parameters
-	agrid = construct_agrid(p_baseline);
+	agrid = results_baseline.direct.agrid;
 
 	% Initialize
 	decomp = initialize_to_nan(p_baseline);
@@ -139,21 +139,6 @@ function decomp = alternate_decomposition(p_baseline, results_baseline,...
         % Term 5: Interaction
         decomp.term5(ia) = HA_with_BC.Empc - decomp.term1(ia)...
             - decomp.term2(ia) - decomp.term3(ia) - decomp.term4(ia);
-    end
-end
-
-function agrid = construct_agrid(params)
-    agrid = linspace(0, 1, params.nx_DST)';
-    agrid = agrid.^(1/params.xgrid_par);
-    agrid = params(1).borrow_lim + (params.xmax - params.borrow_lim) * agrid;
-
-    % Enforce grid spacing >= gridspace_min near 0
-    for ia = 1:params(1).nx_DST-1
-        if agrid(ia+1) - agrid(ia) < params.gridspace_min
-            agrid(ia+1) = agrid(ia) + params.gridspace_min;
-        else
-            break
-        end
     end
 end
 

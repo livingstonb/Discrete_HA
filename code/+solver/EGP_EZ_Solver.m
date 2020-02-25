@@ -48,7 +48,7 @@ classdef EGP_EZ_Solver < handle
 			obj.betagrid = heterogeneity.betagrid;
 
 		    % initial guess for consumption function, stacked state combinations
-		    obj.con = (obj.p.r + 0.002*(obj.p.r<0.001)) * repmat(obj.grids.x.matrix(:), obj.p.nb, 1);
+		    obj.con = (obj.p.r + 0.002*(obj.p.r<0.001)) * obj.grids.x.matrix(:);
 
 		    % initial guess for value function
 		    obj.V = obj.con;
@@ -139,8 +139,7 @@ classdef EGP_EZ_Solver < handle
 
 	        % update consumption
 	        savtax = aux.compute_sav_tax(obj.sav, obj.p.savtax, obj.p.savtaxthresh);
-	        obj.conupdate = repmat(obj.grids.x.matrix,[1 1 1 obj.p.nb]) ...
-	        	- obj.sav - savtax;
+	        obj.conupdate = obj.grids.x.matrix - obj.sav - savtax;
 
 	        % compute E[V(x)^(1-riskaver)]^(1/(1-riskaver))
 	        obj.update_ezval(income,xp);
@@ -161,9 +160,9 @@ classdef EGP_EZ_Solver < handle
             for iyF = 1:obj.p.nyF
             for iyP = 1:obj.p.nyP
 	            xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
-	            coninterp = griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF),obj.con(:,iyP,iyF,ib),'linear');
+	            coninterp = griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,ib),obj.con(:,iyP,iyF,ib),'linear');
 	            obj.c_xp(:,iyP,iyF,ib,:) = reshape(coninterp(xp_s_ib_iyF_iyP(:)),[],1,1,1,obj.p.nyT);
-	            obj.Vinterp{iyP,iyF,ib} = griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF),obj.V(:,iyP,iyF,ib),'linear');
+	            obj.Vinterp{iyP,iyF,ib} = griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,ib),obj.V(:,iyP,iyF,ib),'linear');
 	            obj.V_xp(:,iyP,iyF,ib,:) = reshape(obj.Vinterp{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)),[],1,1,1,obj.p.nyT);
             end
             end
@@ -224,7 +223,7 @@ classdef EGP_EZ_Solver < handle
 	        for iyF = 1:obj.p.nyF
 	        for iyP = 1:obj.p.nyP
 	            savinterp = griddedInterpolant(x_s(:,iyP,iyF,ib),obj.grids.s.matrix(:,iyP,iyF),'linear');
-	            sav(:,iyP,iyF,ib) = savinterp(obj.grids.x.matrix(:,iyP,iyF)); 
+	            sav(:,iyP,iyF,ib) = savinterp(obj.grids.x.matrix(:,iyP,iyF,ib)); 
 	        end
 	        end
 	        end
@@ -317,9 +316,9 @@ classdef EGP_EZ_Solver < handle
 		    for iyF = 1:obj.p.nyF
 		    for iyP = 1:obj.p.nyP
 		        model.savinterp{iyP,iyF,ib} = ...
-		            griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF),model.sav(:,iyP,iyF,ib),'linear');
+		            griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,ib),model.sav(:,iyP,iyF,ib),'linear');
 		        model.coninterp{iyP,iyF,ib} = ...
-		            griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF),model.con(:,iyP,iyF,ib),'linear');    
+		            griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,ib),model.con(:,iyP,iyF,ib),'linear');    
 		    end
 		    end
             end

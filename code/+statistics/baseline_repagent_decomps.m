@@ -5,21 +5,9 @@ function [decomp_wrt_baseline, decomp_wrt_repagent] = baseline_and_repagent_deco
     % computed with respect to a shock of 0.01 * mean ann gross income
 
     % Construct agrid based off params(1)
-    agrid = linspace(0,1,params(1).nx_DST)';
-    agrid = agrid.^(1/params(1).xgrid_par);
-    agrid = params(1).borrow_lim + (params(1).xmax - params(1).borrow_lim) * agrid;
-
-    % Force grid spacing >= gridspace_min near 0
-    for ia = 1:params(1).nx_DST-1
-        if agrid(ia+1) - agrid(ia) < params(1).gridspace_min
-            agrid(ia+1) = agrid(ia) + params(1).gridspace_min;
-        else
-            break
-        end
-    end
-
+    agrid = results(1).direct.agrid;
     agrid_short = agrid;
-    agrid = repmat(agrid,params(1).nyP*params(1).nyF*params(1).nb,1);
+    agrid = repmat(agrid, params(1).nyP*params(1).nyF*params(1).nb, 1);
 
     % Initialize with NaNs
     for ip = 1:numel(params)
