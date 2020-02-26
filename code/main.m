@@ -432,6 +432,6 @@ function results = main(p)
     end
     
     % convert Params object to structure for saving
-    Sparams = aux.to_structure(params);
+    Sparams = aux.to_structure(p);
     save(p.savematpath, 'Sparams', 'results')
 end

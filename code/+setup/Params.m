@@ -131,6 +131,9 @@ classdef Params < handle
         calibrator;
         x0_calibration;
         target_value = 3.5;
+
+        % other, unspecified option
+        other;
     end
 
     methods

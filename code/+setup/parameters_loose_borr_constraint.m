@@ -40,13 +40,14 @@ function params = parameters_loose_borr_constraint(runopts)
     % BASELINES
     %----------------------------------------------------------------------
     beta_annual = 0.984099818277828;
-    beta_quarterly = 0.984323067410858;
+    beta_quarterly = 0.984368055782111;
     baseline_nbl_adjustment = 0.95;
     
     % Annual
     params(1) = setup.Params(1, 'baseline_A', '');
     params(end) = set_shared_fields(params(end), annual_params);
     params(1).beta0 = beta_annual;
+    params(1).other = true;
 
     % % Annual with borrowing
     % params(end+1) = setup.Params(1, 'baseline_A_with_borrowing', '');
@@ -62,6 +63,7 @@ function params = parameters_loose_borr_constraint(runopts)
     params(end+1) = setup.Params(4, 'baseline_Q', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = beta_quarterly;
+    params(end).other = false;
 
     % % Quarterly with borrowing
     % num_neg_pts = 20;
@@ -78,7 +80,9 @@ function params = parameters_loose_borr_constraint(runopts)
     %----------------------------------------------------------------------
     % VARYING THE PROXIMITY TO THE NBL
     %----------------------------------------------------------------------
-    nbl_factors = [0.99:-0.01:0.8];
+    nbl_factors = [0.8 0.85 0.9 0.95 0.99];
+
+    % Use same discount rate as baseline
     for ii = 1:numel(nbl_factors)
         name = sprintf('baseline_Q_with_borrowing_nbl_test%d', ii);
         params(end+1) = setup.Params(4, name, quarterly_b_path);
@@ -86,6 +90,18 @@ function params = parameters_loose_borr_constraint(runopts)
         params(end) = set_shared_fields(params(end), neg_grid_params);
         params(end).beta0 = beta_quarterly;
         params(end).nbl_adjustment = nbl_factors(ii);
+        params(end).other = false;
+    end
+
+    % Calibrating to match mean wealth
+    for ii = 1:numel(nbl_factors)
+        name = sprintf('baseline_Q_with_borrowing_nbl_test%d_calibrated', ii);
+        params(end+1) = setup.Params(4, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
+        params(end) = set_shared_fields(params(end), neg_grid_params);
+        params(end).beta0 = beta_quarterly;
+        params(end).nbl_adjustment = nbl_factors(ii);
+        params(end).other = true;
     end
 
     %----------------------------------------------------------------------
@@ -118,6 +134,26 @@ function params = parameters_loose_borr_constraint(runopts)
     %----------------------------------------------------------------------
     % SET SHARED PARAMETERS
     %----------------------------------------------------------------------
-    params.calibrate = false;
     params.nyT = 3;
+
+    %----------------------------------------------------------------------
+    % ATTACH CALIBRATOR
+    %----------------------------------------------------------------------
+    if ~params.other
+        params.set("calibrate", false, true);
+    end
+
+    if params.calibrate
+        heterogeneity = setup.Prefs_R_Heterogeneity(params);
+        new_betaH = params.betaH - max(heterogeneity.betagrid0);
+        params.set("betaH", new_betaH, true);
+
+        if params.beta0 >= params.betaH
+            params.beta0 = (5*params.betaH + params.betaL) / 6;
+        end
+
+        [fn_handle, x0] = aux.mean_wealth_calibrator(params);
+        params.set("calibrator", fn_handle, true);
+        params.set("x0_calibration", x0, true);
+    end
 end
