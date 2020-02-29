@@ -96,7 +96,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
 
         % interpolate from x(s) to get s(x)
         sav = get_saving_policy(p, grids, x_s, svalid, nextmpcshock);
-        sav_tax = p.compute_savtax(sav(:)
+        sav_tax = p.compute_savtax(sav(:));
 
         % updated consumption function, column vec length of
         % length p.nx*p.nyP*p.nyF*p.nb

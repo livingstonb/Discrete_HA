@@ -112,8 +112,7 @@ function norisk = solve_EGP_deterministic(p, grids,...
             savinterp = griddedInterpolant(cash1(:,ib), grids.s.vec, 'linear');
             sav(:,ib) = max(savinterp(grids.x.matrix_norisk(:,ib)), p.borrow_lim);
 
-            con = grids.x.matrix_norisk(:,ib) - sav(:,ib)...
-                - p.compute_savtax(sav(:,ib), 0);
+            con = grids.x.matrix_norisk(:,ib) - sav(:,ib) - p.compute_savtax(sav(:,ib));
         end
 
         

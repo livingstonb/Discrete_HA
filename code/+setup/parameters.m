@@ -535,12 +535,8 @@ function [params, all_names] = parameters(runopts)
         new_betaH = params.betaH - max(heterogeneity.betagrid0);
         params.set("betaH", new_betaH, true);
 
-        if params.beta0 >= params.betaH
-            params.beta0 = (5*params.betaH + params.betaL) / 6;
-        end
-
-        [fn_handle, x0] = aux.mean_wealth_calibrator(params);
-        params.set("calibrator", fn_handle, true);
-        params.set("x0_calibration", x0, true);
+        calibrator = aux.mean_wealth_calibrator(params);
+        calibrator.set_handle(params);
+        params.set("calibrator", calibrator, true);
     end
 end

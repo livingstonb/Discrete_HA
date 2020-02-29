@@ -52,7 +52,7 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Server = 0; % use server paths
-runopts.calibrate = 0;
+runopts.calibrate = true;
 runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
 runopts.MakePlots = 0;
@@ -128,41 +128,6 @@ end
 Nparams = size(params,2);
 
 %% ------------------------------------------------------------------------
-% CALIBRATIONS
-% -------------------------------------------------------------------------
-n_calibrations = 0;
-
-% % Vary discount rate to match mean wealth = 3.5
-% param_name = 'beta0';
-% stat_name = 'mean_a';
-% stat_target = params.targetAY;
-% n_calibrations = n_calibrations + 1;
-
-% % Vary r to match P(a < $1000) = 0.23
-% param_name = 'r';
-% stat_name = 'wealth_lt_1000';
-% stat_target = 0.23;
-% n_calibrations = n_calibrations + 1;
-
-% % Vary discount rate to match median wealth = 1.6
-% param_name = 'beta0';
-% stat_name = 'median_a';
-% stat_target = 1.6;
-% n_calibrations = n_calibrations + 1;
-
-%% ------------------------------------------------------------------------
-% CALIBRATING WITH FSOLVE
-% -------------------------------------------------------------------------
-% if n_calibrations == 1
-%     param_init = params.(param_name);
-%     calibrator = solver.Calibrator(params, param_name,...
-%         stat_name, stat_target);
-%     beta_final = fsolve(@(x) calibrator.fn_handle(x, params), param_init);
-% elseif n_calibrations > 1
-%     error("Ensure that a max of one calibration is selected")
-% end
-
-%% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
 % -------------------------------------------------------------------------
 % iterate through specifications (or run 1)
@@ -174,9 +139,15 @@ end
 fprintf('\n Trying %s parameterization "%s"\n', msgfreq, params.name)
 
 if params.calibrate
-    options = optimoptions(@fsolve, 'MaxIterations', params.calibrate_maxiter,...
+    options = optimoptions(@lsqnonlin, 'MaxIterations', params.calibrate_maxiter,...
             'FunctionTolerance', params.calibrate_tol);
-    calibrated_params = fsolve(params.calibrator, params.x0_calibration, options);
+    solver_args = params.calibrator.get_args();
+    [calibrated_params, resnorm] = lsqnonlin(params.calibrator.solver_handle,...
+        solver_args{:}, options);
+    
+    if resnorm > 1e-5
+        error('Could not match targets')
+    end
 end
 
 results = main(params);
