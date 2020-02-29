@@ -54,24 +54,12 @@ classdef MPCSimulator < handle
 			obj.Nsim = p.Nsim;
 			obj.Npartition = p.Nsim / obj.partitionsize;
 
-			if numel(p.r) > 1
-				obj.zcumtrans = heterogeneity.rcumtrans;
-			elseif p.nbeta > 1
-				obj.zcumtrans = heterogeneity.betacumtrans;
-			else
-				obj.zcumtrans = heterogeneity.zcumtrans;
-			end
+			obj.zcumtrans = heterogeneity.zcumtrans;
 
 			obj.state_rand = rand(obj.Nsim,1,'single');
 		    obj.yPrand = rand(obj.Nsim,obj.Tmax,'single');
 		    obj.zrand = rand(obj.Nsim,obj.Tmax,'single');
-		    % obj.betarand    = rand(obj.Nsim,obj.Tmax,'single');
-		    % obj.IESrand     = rand(obj.Nsim,obj.Tmax,'single');
-		    % obj.r_rand      = rand(obj.Nsim,obj.Tmax,'single');
 		    obj.yTrand = rand(obj.Nsim,obj.Tmax,'single');
-		    % obj.betaindsim  = ones(obj.Nsim,obj.Tmax,'int8');
-		    % obj.IESindsim   = ones(obj.Nsim,obj.Tmax,'int8');
-		    % obj.r_indsim    = ones(obj.Nsim,obj.Tmax,'int8');
 		    obj.yPindsim = ones(obj.Nsim,obj.Tmax,'int8');
 		    obj.yTindsim = ones(obj.Nsim,obj.Tmax,'int8');
 		    obj.yFindsim = ones(obj.Nsim,1,'int8');

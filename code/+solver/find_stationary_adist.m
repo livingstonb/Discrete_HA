@@ -159,10 +159,9 @@ function q = get_distribution(p, income, nx, statetrans, heterogeneity)
 	q = ones(nx,p.nyP,p.nyF,p.nb);
 
     % create valid initial distribution for both yF & beta
-    beta_dist = reshape(heterogeneity.betadist, [1,1,1,p.nbeta]);
     yFdist = reshape(income.yFdist, [1,1,p.nyF,1]);
     zdist = reshape(heterogeneity.zdist, [1,1,1,heterogeneity.nz]);
-    q = q .* beta_dist .* yFdist .* zdist;
+    q = q .* yFdist .* zdist;
     q = q(:)' / sum(q(:));
 
     diff = 1; 

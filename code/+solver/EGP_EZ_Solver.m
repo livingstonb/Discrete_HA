@@ -70,27 +70,26 @@ classdef EGP_EZ_Solver < handle
 		    end
 		end
 
-		function create_other_objects(obj,heterogeneity,income)
+		function create_other_objects(obj, heterogeneity, income)
 			% construct xpectations operator (conditional on yT)
 		    % construct arrays of invies and riskaver
 		    if numel(obj.p.invies) > 1
-		        obj.Emat = kron(heterogeneity.ztrans,kron(income.ytrans,speye(obj.p.nx)));
-		        obj.invies_col = kron(obj.p.invies',ones(obj.p.nx*obj.p.nyP*obj.p.nyF,1));
+		        obj.invies_col = kron(obj.p.invies', ones(obj.p.nx*obj.p.nyP*obj.p.nyF, 1));
 		        obj.risk_aver_col = obj.p.risk_aver;
 		        obj.invies_col_yT = repmat(obj.invies_col,1,obj.p.nyT);
 		    elseif numel(obj.p.risk_aver) > 1
-		        obj.Emat = kron(heterogeneity.ztrans,kron(income.ytrans,speye(obj.p.nx)));
-		        obj.risk_aver_col = kron(obj.p.risk_aver',ones(obj.p.nx*obj.p.nyP*obj.p.nyF,1));
+		        obj.risk_aver_col = kron(obj.p.risk_aver', ones(obj.p.nx*obj.p.nyP*obj.p.nyF, 1));
 		        obj.invies_col = obj.p.invies;
-		        obj.risk_aver_col_yT = repmat(obj.risk_aver_col,1,obj.p.nyT);
+		        obj.risk_aver_col_yT = repmat(obj.risk_aver_col, 1, obj.p.nyT);
 		    else
-		        obj.Emat = kron(heterogeneity.betatrans,kron(income.ytrans,speye(obj.p.nx)));
 		        obj.risk_aver_col = obj.p.risk_aver;
 		        obj.invies_col = obj.p.invies;
 		    end
+
+		    Emat = kron(income.ytrans_live, speye(p.nx));
 		end
 
-		function solve(obj,income)
+		function solve(obj, income)
 			iter = 1;
 			while (iter < obj.p.max_iter) && (obj.EGP_cdiff > obj.p.tol_iter)
 				obj.iterate_once(income);

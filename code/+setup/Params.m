@@ -113,14 +113,14 @@ classdef Params < handle
         nbeta = 1;
         beta_dist = 1; % either 1 for equal prob in all, or vector summing to 1
         betawidth = 0.005;
-        betaswitch = 0;
         beta_grid_forced = []; % overrides all other beta values if used
 
         % used for different het cases
         nb = 1;
 
-        % IES shocks
-        IESswitch = 0;
+        % probability of switch in z-dimension
+        prob_zswitch = 0;
+        zdist_forced;
         
         % computation
     	Tsim = 400; % Simulation
@@ -254,7 +254,7 @@ classdef Params < handle
             obj.Tsim = obj.Tsim * obj.freq; % Increase simulation time if quarterly
             obj.beta0 = obj.beta0^(1 / obj.freq);
             obj.dieprob = 1 - (1 - obj.dieprob) ^ (1 / obj.freq);
-            obj.betaswitch = 1 - (1 - obj.betaswitch) ^ (1 / obj.freq);
+            obj.prob_zswitch = 1 - (1 - obj.prob_zswitch) ^ (1 / obj.freq);
 
             obj.betaL = obj.betaL^(1 / obj.freq);
 

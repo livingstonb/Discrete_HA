@@ -23,13 +23,12 @@ function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(...
         if im == 0
             con_baseline = con;
         else
-            % Compute m(a,beta)
-            mpcs1_a_beta = (con - con_baseline) / mpcamount;
+            % Compute m(a,z)
+            mpcs1_a_z = (con - con_baseline) / mpcamount;
 
-            % Compute m(x) = E(m(x,beta)|x)
-            %       = sum of P(beta|x) * m(x,beta) over all beta
-            % beta is exogenous so P(beta|x) = P(beta)
-            norisk_mpcs1_a_direct{im} = mpcs1_a_beta * heterogeneity.betadist;
+            % Compute m(x) = E(m(x,z)|x)
+            %       = sum of P(z|x) * m(x,z) over all z
+            norisk_mpcs1_a_direct{im} = mpcs1_a_z * heterogeneity.zdist;
         end
     end
 

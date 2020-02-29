@@ -10,19 +10,16 @@ function norisk = solve_EGP_deterministic(p, grids,...
     sav = zeros(p.nx,p.nb);
     mucnext= zeros(p.nx,p.nb);
 
-    sgrid_repeated = repmat(grids.s.vec, p.nb, 1);
+    sgrid_repeated = repmat(grids.s.vec, 1, p.nb);
     sgrid_tax = p.compute_savtax(sgrid_repeated);
 
-    if numel(p.r) > 1
-        exog_trans = heterogeneity.rtrans;
-    elseif numel(p.nbeta) > 1
-        exog_trans = heterogeneity.betatrans;
-    else
-        exog_trans = heterogeneity.ztrans;
-    end
-
-    Emat = kron(exog_trans, speye(p.nx));
+    Emat = kron(heterogeneity.ztrans, speye(p.nx));
     r_mat = reshape(p.r, [1 numel(p.r)]);
+    r_long = kron(p.r(:), ones(p.nx,1));
+
+    if numel(p.r) == 1
+        r_long = repmat(r_long, p.nb, 1);
+    end
 
     if numel(p.risk_aver) > 1
         risk_aver_mat = kron(p.risk_aver, ones(p.nx,1));
@@ -36,8 +33,9 @@ function norisk = solve_EGP_deterministic(p, grids,...
     end
     
     con = (r_mat .* (r_mat>=0.001) + 0.001 * (r_mat<0.001) + extra) .* grids.x.matrix_norisk;
-    con_vec = con(:);
-    con(con<=0) = min(con_vec(con_vec>0));
+    con = con(:);
+    con(con<=0) = min(con(con>0));
+    con = reshape(con, [], p.nb);
 
     iter = 0;
     cdiff = 1000;
@@ -50,7 +48,7 @@ function norisk = solve_EGP_deterministic(p, grids,...
 
             coninterp{ib} = griddedInterpolant(grids.x.matrix_norisk(:,ib), conlast(:,ib), 'linear');
             if numel(p.r) > 1
-                con_ib = coninterp{ib}(p.R(ir) * grids.s.vec + income.meannety1);
+                con_ib = coninterp{ib}(p.R(ib) * grids.s.vec + income.meannety1);
             else
                 con_ib = coninterp{ib}(p.R * grids.s.vec + income.meannety1);
             end
@@ -77,20 +75,12 @@ function norisk = solve_EGP_deterministic(p, grids,...
             betastacked = repmat(betastacked, p.nb, 1);
         end
 
-        % if numel(p.r) > 1
-        %     emuc = mucnext * transpose(heterogeneity.rtrans);
-        % elseif numel(p.nbeta) > 1
-        %     emuc = mucnext * transpose(heterogeneity.betatrans);
-        % else
-        %     emuc = mucnext * transpose(heterogeneity.ztrans);
-        % end
-
         emuc = Emat * mucnext(:);
 
-        muc1 = (1-p.dieprob) * (1+r_mat) .* betastacked .* emuc ...
-                ./ (1+p.savtax*(repmat(grids.s.vec,1,p.nb)>=p.savtaxthresh))...
-                + p.dieprob * aux.utility_bequests1(p.bequest_curv,p.bequest_weight,...
-                p.bequest_luxury,repmat(grids.s.vec,1,p.nb));
+        muc1 = (1-p.dieprob) * (1+r_long) .* betastacked .* emuc ...
+                ./ (1+p.savtax*(sgrid_repeated(:)>=p.savtaxthresh))...
+                + p.dieprob * aux.utility_bequests1(p.bequest_curv, p.bequest_weight,...
+                p.bequest_luxury, sgrid_repeated(:));
         
         if numel(p.risk_aver) == 1
             con1 = aux.u1inv(p.risk_aver, muc1);
@@ -98,13 +88,14 @@ function norisk = solve_EGP_deterministic(p, grids,...
             con1 = aux.u1inv(risk_aver_mat, muc1);
         end
         
-        cash1 = con1 + repmat(grids.s.vec, 1, p.nb) + sgrid_tax;
+        cash1 = con1(:) + sgrid_repeated(:) + sgrid_tax(:);
+        cash1 = reshape(cash1, [], p.nb);
         
         for ib = 1:p.nb
             savinterp = griddedInterpolant(cash1(:,ib), grids.s.vec, 'linear');
             sav(:,ib) = max(savinterp(grids.x.matrix_norisk(:,ib)), p.borrow_lim);
 
-            con = grids.x.matrix_norisk(:,ib) - sav(:,ib) - p.compute_savtax(sav(:,ib));
+            con(:,ib) = grids.x.matrix_norisk(:,ib) - sav(:,ib) - p.compute_savtax(sav(:,ib));
         end
 
         

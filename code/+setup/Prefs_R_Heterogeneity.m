@@ -7,76 +7,47 @@ classdef Prefs_R_Heterogeneity < handle
 	% livingstonb@uchicago.edu
 
 	properties (SetAccess = private)
-		betadist;
-		betatrans;
 		betagrid0;
 		betagrid;
-		betacumdist;
-		betacumtrans;
+
+		nz;
+
+		R_broadcast;
+		r_broadcast;
 
 		zdist;
 		ztrans;
 		zcumdist;
 		zcumtrans;
-		z_created = false;
-		nz;
-
-		R_broadcast;
-		r_broadcast;
-		rdist;
-		rtrans;
-		rcumdist;
-		rcumtrans;
-
 	end
 
 	methods
 		function obj = Prefs_R_Heterogeneity(params)
+			dims = [params.nbeta, numel(params.risk_aver)...
+				numel(params.r), numel(params.invies),...
+				numel(params.temptation)];
+
+			if sum(dims>1) > 1
+				error("Model only allows one source of pref het")
+			end
+			obj.nz = max(dims);
+
 			obj.initialize_discount_factor(params);
 			obj.initialize_IES_heterogeneity(params);
 			obj.initialize_temptation_heterogeneity(params);
             obj.initialize_returns_heterogeneity(params);
 
-            if ~obj.z_created
-            	obj.initialize_z();
-            end
-            obj.nz = numel(obj.zdist);
+            obj.create_dists(params);
+            obj.zcumdist = cumsum(obj.zdist);
+		    obj.zcumtrans = cumsum(obj.ztrans, 2);
 		end
+
+		
 
 		%% -------------------------------------------------------
 	    % Discount Factor Heterogeneity
 	    % --------------------------------------------------------
-		function obj = initialize_discount_factor(obj, params)
-			% discount factor distribution
-		    if  params.nbeta == 1
-		        obj.betadist = 1;
-		        obj.betatrans = 1;
-		    elseif params.nbeta > 1
-		        % Equal probability in stationary distribution
-		        if numel(params.beta_dist) == 1
-		        	obj.betadist = ones(params.nbeta,1) / params.nbeta;
-		        elseif (numel(params.beta_dist)==params.nbeta) && (sum(params.beta_dist)==1)
-		        	obj.betadist = params.beta_dist(:);
-		        else
-		        	error('Invalid distribution for betas')
-		        end
-
-		        if (numel(params.beta_dist) > 1) && (params.betaswitch>0)
-					error('Model does not allow for setting both a probability of beta switching and the stationary distribution for beta')
-				end
-		        % Probability of switching from beta_i to beta_j, for i=/=j
-		        betaswitch_ij = params.betaswitch / (params.nbeta-1);
-		        % Create matrix with (1-betaswitch) on diag and betaswitch_ij
-		        % elsewhere
-		        diagonal = (1-params.betaswitch) * ones(params.nbeta,1);
-		        off_diag = betaswitch_ij * ones(params.nbeta);
-		        off_diag = off_diag - diag(diag(off_diag));
-		        obj.betatrans = off_diag + diag(diagonal);
-		    end
-		    obj.betacumdist = cumsum(obj.betadist);
-		    obj.betacumtrans = cumsum(obj.betatrans,2);
-		    
-		    % Create grid - add beta to grid later since we may iterate
+		function initialize_discount_factor(obj, params)
 		    if isempty(params.beta_grid_forced)
 			    bw = params.betawidth;
 			    switch params.nbeta
@@ -100,39 +71,13 @@ classdef Prefs_R_Heterogeneity < handle
 		%% -------------------------------------------------------
 	    % IES Heterogeneity (Epstein-Zin only)
 	    % --------------------------------------------------------
-	    function obj = initialize_IES_heterogeneity(obj, params)
-		    if numel(params.risk_aver) > 1 || ((numel(params.invies) > 1)...
-		    	&& (params.EpsteinZin == 1))
-
-		    	obj.zdist = ones(params.nb,1) / params.nb;
-		    	zswitch_ij = params.IESswitch / (params.nb-1);
-
-		    	diagonal = (1-params.IESswitch) * ones(params.nb,1);
-		    	off_diag = zswitch_ij * ones(params.nb);
-		    	off_diag = off_diag - diag(diag(off_diag));
-		    	obj.ztrans = off_diag + diag(diagonal);
-		        
-		        obj.zcumdist = cumsum(obj.zdist);
-		        obj.zcumtrans = cumsum(obj.ztrans,2);
-
-		        obj.z_created = true;
-		    end
+	    function initialize_IES_heterogeneity(obj, params)
 		end
 
 		%% -------------------------------------------------------
 	    % Temptation heterogeneity
 	    % --------------------------------------------------------
-	    function obj = initialize_temptation_heterogeneity(obj, params)
-	    	nt = numel(params.temptation);
-		    if nt > 1
-		    	obj.zdist = ones(nt, 1) / nt;
-		    	obj.ztrans = eye(nt);
-
-		        obj.zcumdist = cumsum(obj.zdist);
-		        obj.zcumtrans = cumsum(obj.ztrans, 2);
-
-		        obj.z_created = true;
-		    end
+	    function initialize_temptation_heterogeneity(obj, params)
 		end
 
 		%% -------------------------------------------------------
@@ -140,35 +85,36 @@ classdef Prefs_R_Heterogeneity < handle
 	    % --------------------------------------------------------
 		function initialize_returns_heterogeneity(obj, params)
             nr = numel(params.r);
-			if nr > 1
-		        obj.rdist = ones(nr,1) / nr;
-		        rswitch = 0;
-
-		        diagonal = (1-rswitch) * ones(nr,1);
-		        off_diag = rswitch * ones(nr);
-		        off_diag = off_diag - diag(diag(off_diag));
-		        obj.rtrans = off_diag + diag(diagonal);
-		    else
-		        obj.rdist = 1;
-		        obj.rtrans = 1;
-		        obj.rcumdist = 1;
-		    end
-		    obj.rcumdist = cumsum(obj.rdist);
-		    obj.rcumtrans = cumsum(obj.rtrans,2);
-
-		    obj.r_broadcast = reshape(params.r, [1 1 1 nr]);
+			obj.r_broadcast = reshape(params.r, [1 1 1 nr]);
 		    obj.R_broadcast = 1 + obj.r_broadcast;
 		end
 
 		%% -------------------------------------------------------
-	    % Initialize z-Distribution
+	    % Distributions and Transition Matrix
 	    % --------------------------------------------------------
-		function initialize_z(obj)
-            obj.zdist = 1;
-	        obj.ztrans = 1;
-	        obj.zcumdist = 1;
-	        obj.zcumtrans = 1;
-		end
-	end
+	    function create_dists(obj, params)
+	    	if ~isempty(params.zdist_forced)
+	    		obj.zdist = params.zdist_forced;
+	    		switch_prob = 0;
+	    	else
+	    		switch_prob = params.prob_zswitch / (obj.nz-1);
+	    	end
 
+	    	if obj.nz == 1
+	    		obj.zdist = 1;
+		        obj.ztrans = 1;
+		    else
+		    	diagonal = (1-params.prob_zswitch) * ones(obj.nz, 1);
+		        off_diag = switch_prob * ones(obj.nz);
+		        off_diag = off_diag - diag(diag(off_diag));
+		        obj.ztrans = off_diag + diag(diagonal);
+
+		        if isempty(params.zdist_forced) && (switch_prob > 0)
+					obj.zdist = aux.ergodicdist(obj.ztrans);
+				elseif switch_prob == 0
+					obj.zdist = ones(obj.nz, 1) / obj.nz;
+				end
+		    end
+	    end
+	end
 end

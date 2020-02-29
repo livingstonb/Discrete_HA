@@ -104,6 +104,8 @@ function [params, all_names] = parameters(runopts)
         params(end) = set_shared_fields(params(end), income_params);
         params(end).r = [-2, 2, 6] / 100;
         params(end).betaH0 = -1e-4;
+        params(end).beta0 = 0.955885729527277;
+
 
 %         % different tax rates
 %         for itax = [0.05, 0.1, 0.15, 0.25]
@@ -153,7 +155,7 @@ function [params, all_names] = parameters(runopts)
                 params(end) = set_shared_fields(params(end), income_params);
                 params(end).nbeta = 5;
                 params(end).betawidth = ibw;
-                params(end).betaswitch = 0;
+                params(end).prob_zswitch = 0;
                 params(end).dieprob = deathp;
                 % params(end).beta0 = 0.956194383870642;
                 params(end).beta0 = 0.982418237966389;
@@ -174,7 +176,7 @@ function [params, all_names] = parameters(runopts)
                     params(end) = set_shared_fields(params(end), income_params);
                     params(end).nbeta = 5;
                     params(end).betawidth = ibw;
-                    params(end).betaswitch = bs;
+                    params(end).prob_zswitch = bs;
                     params(end).dieprob = deathp;
 %                     params(end).beta0 = 0.9;
 %                     if strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.02 Death")

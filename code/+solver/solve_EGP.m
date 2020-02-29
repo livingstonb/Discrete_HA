@@ -29,6 +29,12 @@ function model = solve_EGP(p, grids, heterogeneity,...
     % -----------------------------------------------------
     Emat = kron(income.ytrans_live, speye(p.nx));
     r_mat = heterogeneity.r_broadcast;
+    r_long = repmat(r_mat, [p.nx, p.nyP p.nyF, 1]);
+    r_long = r_long(:);
+
+    if numel(p.r) == 1
+        r_long = repmat(r_long, p.nb);
+    end
 
     % initial guess for consumption function, stacked state combinations
     % column vector of length p.nx * p.nyP * p.nyF * p.nb
@@ -38,8 +44,9 @@ function model = solve_EGP(p, grids, heterogeneity,...
         extra = 0;
     end
     
-    con = (r_mat(:) .* (r_mat(:)>=0.001) + 0.001 * (r_mat(:)<0.001) + extra) ...
-    	.* grids.x.matrix(:);
+    con = (r_mat .* (r_mat>=0.001) + 0.001 * (r_mat<0.001) + extra) ...
+    	.* grids.x.matrix;
+    con = con(:);
     con(con<=0) = min(con(con>0));
 
     % discount factor matrix, 
@@ -81,7 +88,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
 
         % MUC in current period, from Euler equation
         muc_s = get_marginal_util_cons(...
-        	p, income, grids, c_xp, xp_s, r_mat, Emat, betastacked);
+        	p, income, grids, c_xp, xp_s, r_long, Emat, betastacked);
      
         % c(s)
         if numel(p.risk_aver) == 1
@@ -145,7 +152,6 @@ function result = new_con_interp(old_con_interp, xprime, nextmpcshock, xmin)
     result(valid) = old_con_interp(xprime(valid));
     result(~valid) = 1e-8;
 end
-    
 
 function xprime_s = get_xprime_s(p, income, grids, r_mat, nextmpcshock)
     % find xprime as a function of s
