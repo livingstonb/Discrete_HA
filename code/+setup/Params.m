@@ -106,6 +106,7 @@ classdef Params < handle
         labtaxthreshpc  = 0.99; %percentile of earnings distribution where high tax rate kicks in
         savtax          = 0; %0.0001;  %tax rate on savings
         savtaxthresh    = 0; %multiple of mean gross labor income
+        compute_savtax;
         lumptransfer   = 0;
 
         % discount factor shocks
@@ -289,7 +290,9 @@ classdef Params < handle
 
         function objs = make_other_adjustments(objs)
             for io = 1:numel(objs)
-                objs(io).nbeta = max(1, numel(objs(io).beta_grid_forced));
+                objs(io).nbeta = max(objs(io).nbeta, numel(objs(io).beta_grid_forced));
+                objs(io).compute_savtax =...
+                    @(sav) objs(io).savtax * max(sav - objs(io).savtaxthresh, 0);
             end
         end
 

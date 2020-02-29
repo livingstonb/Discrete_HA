@@ -10,6 +10,9 @@ function norisk = solve_EGP_deterministic(p, grids,...
     sav = zeros(p.nx,p.nb);
     mucnext= zeros(p.nx,p.nb);
 
+    sgrid_repeated = repmat(grids.s.vec, p.nb, 1);
+    sgrid_tax = p.compute_savtax(sgrid_repeated);
+
     % if numel(p.r) > 1
     %     Emat = kron(heterogeneity.rtrans, kron(income.ytrans, speye(p.nx)));
     %     r_col = kron(p.r', ones(p.nx, 1));
@@ -103,15 +106,14 @@ function norisk = solve_EGP_deterministic(p, grids,...
             con1 = aux.u1inv(risk_aver_mat, muc1);
         end
         
-        cash1 = con1 + repmat(grids.s.vec, 1, p.nb)...
-            + p.savtax * max(repmat(grids.s.vec, 1, p.nb) - p.savtaxthresh, 0);
+        cash1 = con1 + repmat(grids.s.vec, 1, p.nb) + sgrid_tax;
         
         for ib = 1:p.nb
             savinterp = griddedInterpolant(cash1(:,ib), grids.s.vec, 'linear');
             sav(:,ib) = max(savinterp(grids.x.matrix_norisk(:,ib)), p.borrow_lim);
 
             con = grids.x.matrix_norisk(:,ib) - sav(:,ib)...
-                - p.savtax * max(sav(:,ib) - p.savtaxthresh, 0);
+                - p.compute_savtax(sav(:,ib), 0);
         end
 
         

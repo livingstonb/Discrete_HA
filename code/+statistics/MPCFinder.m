@@ -141,7 +141,7 @@ classdef MPCFinder < handle
 		    end
 		    end
 		    sav = max(sav, p.borrow_lim);
-		    sav_tax = aux.compute_sav_tax(sav, p.savtax, p.savtaxthresh);
+		    sav_tax = p.compute_savtax(sav);
 
 		    x_mpc = reshape(x_mpc,[p.nx_DST p.nyP p.nyF p.nb p.nyT]);
 		    con = x_mpc - sav - sav_tax;

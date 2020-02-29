@@ -97,9 +97,11 @@ function modelupdate = find_stationary_adist(p,model,income,grids,heterogeneity)
     end
 
     % Policy functions associated with xdist
+    savtax = p.compute_savtax(modelupdate.sav_x);
     modelupdate.con_x = modelupdate.xvals - modelupdate.sav_x ...
-    	- p.savtax*max(modelupdate.sav_x-p.savtaxthresh, 0);
+    	- savtax;
     
+
     % mean saving, mean assets
 	modelupdate.mean_a = modelupdate.adist(:)' * grids.a.matrix(:);
     

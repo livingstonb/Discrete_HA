@@ -503,6 +503,7 @@ function [params, all_names] = parameters(runopts)
     % ADJUST TO QUARTERLY VALUES, DO NOT CHANGE
     %----------------------------------------------------------------------
     params = setup.Params.adjust_if_quarterly(params);
+    params = setup.Params.make_other_adjustments(params);
 
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS, DO NOT CHANGE

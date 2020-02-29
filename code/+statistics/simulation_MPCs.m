@@ -49,7 +49,7 @@ function MPCs = simulation_MPCs(p,simvals,income,basemodel,grids)
             end
             end
             ssim_mpc(ssim_mpc(:,it)<p.borrow_lim,it) = p.borrow_lim;
-            csim_mpc(:,it) = xsim_mpc(:,it) - ssim_mpc(:,it) - p.savtax*max(ssim_mpc(:,it)-p.savtaxthresh,0);
+            csim_mpc(:,it) = xsim_mpc(:,it) - ssim_mpc(:,it) - p.compute_savtax(ssim_mpc(:,it));
             
             if it < Tmax
                 asim_mpc(:,it+1) = p.R * ssim_mpc(:,it);

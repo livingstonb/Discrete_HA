@@ -57,7 +57,7 @@ classdef EGP_EZ_Solver < handle
 		    obj.create_other_objects(heterogeneity, income);
 
 		    obj.sgrid_repeated = repmat(grids.s.matrix(:), p.nb, 1);
-		    obj.sgrid_tax = aux.compute_sav_tax(obj.sgrid_repeated, p.savtax, p.savtaxthresh);
+		    obj.sgrid_tax = p.compute_savtax(obj.sgrid_repeated);
 		end
 
 		function create_discount_factor_array(obj)
@@ -138,7 +138,7 @@ classdef EGP_EZ_Solver < handle
 	        xp = reshape(xp,[obj.p.nx obj.p.nyP obj.p.nyF obj.p.nb obj.p.nyT]);
 
 	        % update consumption
-	        savtax = aux.compute_sav_tax(obj.sav, obj.p.savtax, obj.p.savtaxthresh);
+	        savtax = obj.p.compute_savtax(obj.sav);
 	        obj.conupdate = obj.grids.x.matrix - obj.sav - savtax;
 
 	        % compute E[V(x)^(1-riskaver)]^(1/(1-riskaver))

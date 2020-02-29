@@ -111,7 +111,7 @@ function sim_results = simulate(p,income,model,grids,heterogeneity)
         end
         
         ssim(ssim(:,it)<p.borrow_lim,it) = p.borrow_lim;
-        csim(:,it) = xsim(:,it) - ssim(:,it) - p.savtax * max(ssim(:,it) - p.savtaxthresh,0);
+        csim(:,it) = xsim(:,it) - ssim(:,it) - p.compute_savtax(ssim(:,it));
         
         if it < p.Tsim
             asim(:,it+1) = p.R * ssim(:,it);
