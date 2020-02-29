@@ -36,6 +36,9 @@ function params = parameters_loose_borr_constraint(runopts)
     neg_grid_params.nx_neg_DST = num_neg_pts;
     neg_grid_params.borrow_lim = -1e10;
 
+    shared_params = struct();
+    shared_params.nyT = 3;
+
     %----------------------------------------------------------------------
     % BASELINES
     %----------------------------------------------------------------------
@@ -46,8 +49,9 @@ function params = parameters_loose_borr_constraint(runopts)
     % Annual
     params(1) = setup.Params(1, 'baseline_A', '');
     params(end) = set_shared_fields(params(end), annual_params);
-    params(1).beta0 = beta_annual;
-    params(1).other = true;
+    params(end) = set_shared_fields(params(end), shared_params);
+    params(end).beta0 = beta_annual;
+    params(end).other = true;
 
     % % Annual with borrowing
     % params(end+1) = setup.Params(1, 'baseline_A_with_borrowing', '');
@@ -62,6 +66,7 @@ function params = parameters_loose_borr_constraint(runopts)
     % Quarterly
     params(end+1) = setup.Params(4, 'baseline_Q', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
+    params(end) = set_shared_fields(params(end), shared_params);
     params(end).beta0 = beta_quarterly;
     params(end).other = false;
 
@@ -88,6 +93,7 @@ function params = parameters_loose_borr_constraint(runopts)
         params(end+1) = setup.Params(4, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end) = set_shared_fields(params(end), neg_grid_params);
+        params(end) = set_shared_fields(params(end), shared_params);
         params(end).beta0 = beta_quarterly;
         params(end).nbl_adjustment = nbl_factors(ii);
         params(end).other = false;
@@ -99,24 +105,15 @@ function params = parameters_loose_borr_constraint(runopts)
         params(end+1) = setup.Params(4, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end) = set_shared_fields(params(end), neg_grid_params);
+        params(end) = set_shared_fields(params(end), shared_params);
         params(end).beta0 = beta_quarterly;
         params(end).nbl_adjustment = nbl_factors(ii);
         params(end).other = true;
     end
 
     %----------------------------------------------------------------------
-    % ADJUST TO QUARTERLY VALUES, DO NOT CHANGE
-    %----------------------------------------------------------------------
-    params = setup.Params.adjust_if_quarterly(params);
-    params = setup.Params.make_other_adjustments(params);
-
-    %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS, DO NOT CHANGE
     %----------------------------------------------------------------------
-
-    params.set_run_parameters(runopts);
-
-    % creates ordered 'index' field
     params.set_index();
 
     % get list of all names
@@ -132,10 +129,8 @@ function params = parameters_loose_borr_constraint(runopts)
         params = setup.Params.select_by_names(params, runopts.names_to_run);
     end
 
-    %----------------------------------------------------------------------
-    % SET SHARED PARAMETERS
-    %----------------------------------------------------------------------
-    params.nyT = 3;
+    params.make_adjustments();
+    params.set_run_parameters(runopts);
 
     %----------------------------------------------------------------------
     % ATTACH CALIBRATOR

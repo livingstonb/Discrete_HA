@@ -202,7 +202,7 @@ classdef Income < handle
             obj.netymatDST = repmat(obj.netymat_broadcast,[obj.p.nx_DST 1 1 obj.p.nb 1]);
 
             % full transition matrix with beta and IES transitions, excluding and including death
-            if obj.p.ResetIncomeUponDeath == 1
+            if obj.p.ResetIncomeUponDeath
                 yPtrans_death = repmat(obj.yPdist',obj.p.nyP,1);
             else
                 yPtrans_death = obj.yPtrans;

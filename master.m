@@ -51,15 +51,15 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = 0; % use server paths
+runopts.Server = false; % use server paths
 runopts.calibrate = true;
-runopts.fast = 0; % very small asset and income grids for testing
-runopts.Simulate = 0; % also solve distribution via simulation
-runopts.MakePlots = 0;
-runopts.MPCs = 1;
-runopts.MPCs_news = 0;
-runopts.MPCs_loan_and_loss = 0;
-runopts.DeterministicMPCs = 1; % must be on if decompositions are needed
+runopts.fast = false; % very small asset and income grids for testing
+runopts.Simulate = false; % also solve distribution via simulation
+runopts.MakePlots = false;
+runopts.MPCs = true;
+runopts.MPCs_news = false;
+runopts.MPCs_loan_and_loss = false;
+runopts.DeterministicMPCs = true; % must be on if decompositions are needed
 
 % directories
 runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
@@ -153,7 +153,7 @@ end
 results = main(params);
 disp(['Finished parameterization ' params.name])
 
-if runopts.Server == 1
+if runopts.Server
     exit
 end
 

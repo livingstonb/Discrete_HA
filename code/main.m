@@ -51,7 +51,7 @@ function results = main(p)
     % ---------------------------------------------------------------------
     % Get policy functions and stationary distribution for final beta, in
     % 'basemodel' structure
-    if p.EpsteinZin == 1
+    if p.EpsteinZin
         egp_ez_solver = solver.EGP_EZ_Solver(p, grdEGP, heterogeneity, income);
         egp_ez_solver.solve(income);
         basemodel = egp_ez_solver.return_model();
@@ -129,7 +129,7 @@ function results = main(p)
             % Get exact figure
             results.direct.constrained(i) = results.direct.agrid_dist(:)' * (grdDST.a.vec==0);
 
-            if p.Bequests == 1
+            if p.Bequests
                 results.direct.s0 = results.direct.constrained(i);
             else
             	c = results.direct.constrained(i);
@@ -169,7 +169,7 @@ function results = main(p)
     %% --------------------------------------------------------------------
     % MPCs FOR MODEL WITHOUT INCOME RISK
     % ---------------------------------------------------------------------
-    if p.DeterministicMPCs == 1
+    if p.DeterministicMPCs
         % Solve deterministic model
         norisk = solver.solve_EGP_deterministic(...
             p, grdEGP, heterogeneity, income, results.direct);
@@ -192,7 +192,7 @@ function results = main(p)
     %% --------------------------------------------------------------------
     % SIMULATIONS
     % ---------------------------------------------------------------------
-    if p.Simulate == 1
+    if p.Simulate
         results.sim = solver.simulate(...
             p, income, basemodel, grdDST, heterogeneity);
     end
@@ -243,7 +243,7 @@ function results = main(p)
             mpcmodels{ishock,is,is} = basemodel;
         end
 
-        if p.EpsteinZin == 0
+        if ~p.EpsteinZin
             % mpcmodels{ishock,s,t} stores the policy functions associated with the case
             % where the household is currently in period t, but recieved news about
             % the period-s shock in period 1. Shock was of size shocks(ishock)
@@ -279,7 +279,7 @@ function results = main(p)
     
     mpc_finder = statistics.MPCFinder(p, income, grdDST, heterogeneity,...
         basemodel, mpcmodels);
-    if p.MPCs == 1
+    if p.MPCs
         disp('Computing MPCs')
         mpc_finder.solve(p, grdDST);
     end

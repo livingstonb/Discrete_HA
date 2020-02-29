@@ -128,7 +128,7 @@ function [params, all_names] = parameters(runopts)
         name = [lfreq ' Annuities'];
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
-        params(end).annuities_on();
+        params(end).annuities = true;
         params(end).betaH0 = - 5e-3;
 
 %         % bequest curvature
@@ -500,18 +500,8 @@ function [params, all_names] = parameters(runopts)
     params(end).gridspace_min = 0.000015;
 
     %----------------------------------------------------------------------
-    % ADJUST TO QUARTERLY VALUES, DO NOT CHANGE
-    %----------------------------------------------------------------------
-    params = setup.Params.adjust_if_quarterly(params);
-    params = setup.Params.make_other_adjustments(params);
-
-    %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS, DO NOT CHANGE
     %----------------------------------------------------------------------
-
-    params.set_run_parameters(runopts);
-
-    % creates ordered 'index' field
     params.set_index();
 
     % get list of all names
@@ -526,6 +516,9 @@ function [params, all_names] = parameters(runopts)
     else
         params = setup.Params.select_by_names(params, runopts.names_to_run);
     end
+
+    params.make_adjustments();
+    params.set_run_parameters(runopts);
 
     %----------------------------------------------------------------------
     % ATTACH CALIBRATOR

@@ -43,18 +43,12 @@ function params = parameters_other(runopts)
     
 
     %----------------------------------------------------------------------
-    % ADJUST TO QUARTERLY VALUES, DO NOT CHANGE
-    %----------------------------------------------------------------------
-    params = setup.Params.adjust_if_quarterly(params);
-
-    %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS, DO NOT CHANGE
     %----------------------------------------------------------------------
-
-    params.set_run_parameters(runopts);
-
-    % creates ordered 'index' field
     params.set_index();
+
+    % get list of all names
+    all_names = cell2table({params.name}');
     
     % select by number if there is one, otherwise select by names,
     % otherwise use all
@@ -63,7 +57,22 @@ function params = parameters_other(runopts)
     elseif numel(runopts.number) > 1
         error('runopts.number must have 1 or zero elements')
     else
-        params = setup.Params.select_by_names(params,runopts.names_to_run);
-        params.set_index(); % index within .mat file
+        params = setup.Params.select_by_names(params, runopts.names_to_run);
     end
+
+    params.make_adjustments();
+    params.set_run_parameters(runopts);
+
+    %----------------------------------------------------------------------
+    % ATTACH CALIBRATOR
+    %----------------------------------------------------------------------
+    % if params.calibrate
+    %     heterogeneity = setup.Prefs_R_Heterogeneity(params);
+    %     new_betaH = params.betaH - max(heterogeneity.betagrid0);
+    %     params.set("betaH", new_betaH, true);
+
+    %     calibrator = aux.mean_wealth_calibrator(params);
+    %     calibrator.set_handle(params);
+    %     params.set("calibrator", calibrator, true);
+    % end
 end

@@ -11,8 +11,8 @@ function decomp = alternate_decomposition(p_baseline, results_baseline,...
     end
 
 	% Check if required MPCs are available
-    baseline_mpcs_available = (p_baseline.MPCs == 1) && (p_baseline.DeterministicMPCs == 1);
-    no_bc_mpcs_available = (p_no_bc.MPCs == 1) && (p_no_bc.DeterministicMPCs == 1);
+    baseline_mpcs_available = p_baseline.MPCs && p_baseline.DeterministicMPCs;
+    no_bc_mpcs_available = p_no_bc.MPCs && p_no_bc.DeterministicMPCs;
     if ~(baseline_mpcs_available && no_bc_mpcs_available)
         return
     end

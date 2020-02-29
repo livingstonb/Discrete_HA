@@ -125,7 +125,7 @@ function trans = get_transition_matrix(p, income, grids, nx, sav, r_mat)
         interp_live = interp_live + income.yTdist(k) * interp_temp;
     end
 
-    if p.Bequests == 1
+    if p.Bequests
         interp_death = interp_live;
     else
         interp_death = sparse(nx*p.nyP*p.nyF*p.nb,nx);

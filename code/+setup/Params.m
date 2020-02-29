@@ -73,20 +73,20 @@ classdef Params < handle
         dieprob = 1/50; % default annual, adjusted if frequency = 4;
         
         % preferences
-        EpsteinZin  = 0;
-        invies      = 2.5; % only relevant for Epstein-Zin
-        risk_aver   = 1;
-    	beta0       = 0.98;
-    	temptation  = 0;
-    	betaL       = 0.80;
-        betaH0      = - 1e-3; % adjustment factor if not using theoretical upper bound
+        EpsteinZin = 0;
+        invies = 2.5; % only relevant for Epstein-Zin
+        risk_aver = 1;
+    	beta0 = 0.98;
+    	temptation = 0;
+    	betaL = 0.80;
+        betaH0 = -1e-3; % adjustment factor if not using theoretical upper bound
         betaH; % theoretical upper bound if not adjusting
         
         % warm glow bequests: bequest weight = 0 is accidental
-        bequest_weight  = 0;
-        bequest_curv    = 1;
-        bequest_luxury  = 0.01;
-        Bequests = 1; % 1 for wealth left as bequest, 0 for disappears
+        bequest_weight = 0;
+        bequest_curv = 1;
+        bequest_luxury = 0.01;
+        Bequests = true; % 1 for wealth left as bequest, 0 for disappears
         
         % income risk: AR(1) + IID in logs
     	nyT	= 11;
@@ -98,16 +98,16 @@ classdef Params < handle
         rho_logyP;
         nyF = 1;
         sd_logyF = 0;
-        ResetIncomeUponDeath = 1;
+        ResetIncomeUponDeath = true;
         
         % government
-        labtaxlow       = 0; %proportional tax
-        labtaxhigh      = 0; %additional tax on incomes above threshold
-        labtaxthreshpc  = 0.99; %percentile of earnings distribution where high tax rate kicks in
-        savtax          = 0; %0.0001;  %tax rate on savings
-        savtaxthresh    = 0; %multiple of mean gross labor income
+        labtaxlow = 0; %proportional tax
+        labtaxhigh = 0; %additional tax on incomes above threshold
+        labtaxthreshpc = 0.99; %percentile of earnings distribution where high tax rate kicks in
+        savtax = 0; %0.0001;  %tax rate on savings
+        savtaxthresh = 0; %multiple of mean gross labor income
         compute_savtax;
-        lumptransfer   = 0;
+        lumptransfer = 0;
 
         % discount factor shocks
         nbeta = 1;
@@ -116,7 +116,7 @@ classdef Params < handle
         betaswitch = 0;
         beta_grid_forced = []; % overrides all other beta values if used
 
-        % used for different het cases, need to recode this
+        % used for different het cases
         nb = 1;
 
         % IES shocks
@@ -158,65 +158,47 @@ classdef Params < handle
                 error('Frequency must be 1 or 4')
             end
         end
-        
-        function obj = annuities_on(obj)
-            % Wait until after frequency adjustments to change other
-            % variables
-            if numel(obj) > 1
-                error('Turn on annuities for single specification at a time only')
-            end
-            obj.annuities = 1;
-        end
 
         function obj = set_run_parameters(obj, runopts)
         	% use fields in runopts to set values in Params object
 
             % fast option
-            if runopts.fast == 1
-                [obj.nx_DST] = deal(10);
-                [obj.nx] = deal(10);
-                [obj.Nmpcsim] = deal(1e2);
-                [obj.nyT] = deal(3);
-                [obj.nyP] = deal(3);
-                [obj.Tsim] = deal(100);
+            if runopts.fast
+                obj.nx_DST = 10;
+                obj.nx = 11;
+                obj.Nmpcsim = 1e2;
+                obj.nyT = 5;
+                obj.nyP = 3;
+                obj.Tsim = 100;
             end
 
-            [obj.MakePlots] = deal(runopts.MakePlots);
+            obj.MakePlots = runopts.MakePlots;
 
-            [obj.outdir] = deal(runopts.outdir);
+            obj.outdir = runopts.outdir;
 
-            [obj.savematpath] = deal(runopts.savematpath);
+            obj.savematpath = runopts.savematpath;
             
             % iterate option
-            [obj.calibrate] = deal(runopts.calibrate);
+            obj.calibrate = runopts.calibrate;
 
             % simulate option
-            [obj.Simulate] = deal(runopts.Simulate);
+            obj.Simulate = runopts.Simulate;
 
             % compute mpcs
-            [obj.MPCs] = deal(runopts.MPCs);
+            obj.MPCs = runopts.MPCs;
 
             % compute mpcs for is > 1?
-            [obj.MPCs_news] = deal(runopts.MPCs_news);
+            obj.MPCs_news = runopts.MPCs_news;
 
-            [obj.MPCs_loan_and_loss] = deal(runopts.MPCs_loan_and_loss);
-
-            [obj.DeterministicMPCs] = deal(runopts.DeterministicMPCs);
-            
-            [obj.path] = deal(runopts.path);
+            obj.MPCs_loan_and_loss = runopts.MPCs_loan_and_loss;
+            obj.DeterministicMPCs = runopts.DeterministicMPCs;
+            obj.path = runopts.path;
         end
         
         function obj = set_index(obj)
         	% reset index to count from 1 to numel(params)
             ind = num2cell(1:numel(obj));
             [obj.index] = deal(ind{:});
-        end
-
-        function obj = set_grid(obj, nx, nxlong, curv)
-        	% convenient way to set grid for grid tests
-            obj.nx = nx;
-            obj.nxlong = nxlong;
-            obj.xgrid_par = curv;
         end
 
         function obj = set(obj, field, new_val, quiet)
@@ -254,48 +236,48 @@ classdef Params < handle
             matches = ismember(names, {obj.name});
             indices = find(ismember({obj.name}, names));
         end
+
+        function make_adjustments(obj)
+            obj.make_frequency_adjustments();
+            obj.make_other_adjustments();
+        end
+
+        function make_frequency_adjustments(obj)
+            % adjusts relevant parameters such as r to a quarterly frequency,
+            % i.e. r = r / 4
+            % must be called after setting all parameterizations
+
+            obj.R = (1 + obj.r) .^ (1 / obj.freq);
+            obj.r = obj.R - 1;
+
+            obj.savtax = obj.savtax / obj.freq;
+            obj.Tsim = obj.Tsim * obj.freq; % Increase simulation time if quarterly
+            obj.beta0 = obj.beta0^(1 / obj.freq);
+            obj.dieprob = 1 - (1 - obj.dieprob) ^ (1 / obj.freq);
+            obj.betaswitch = 1 - (1 - obj.betaswitch) ^ (1 / obj.freq);
+
+            obj.betaL = obj.betaL^(1 / obj.freq);
+
+            obj.betaH = 1 ./ (max(obj.R) * (1-obj.dieprob));
+            obj.betaH = obj.betaH + obj.betaH0;
+
+            obj.lumptransfer = obj.lumptransfer / obj.freq;
+        end
+
+        function make_other_adjustments(obj)
+            if obj.annuities
+                obj.Bequests = false;
+                obj.r = obj.r + obj.dieprob;
+                obj.R = 1 + obj.r;
+            end
+
+            obj.nbeta = max(obj.nbeta, numel(obj.beta_grid_forced));
+            obj.compute_savtax =...
+                @(sav) obj.savtax * max(sav - obj.savtaxthresh, 0);
+        end
     end
     
     methods (Static)
-        
-        function objs = adjust_if_quarterly(objs)
-        	% adjusts relevant parameters such as r to a quarterly frequency,
-        	% i.e. r = r / 4
-            % must be called after setting all parameterizations
-
-            for io = 1:numel(objs)
-                objs(io).R = (1+objs(io).r).^(1/objs(io).freq);
-                objs(io).r = objs(io).R - 1;
-
-                objs(io).savtax = objs(io).savtax/objs(io).freq;
-                objs(io).Tsim = objs(io).Tsim * objs(io).freq; % Increase simulation time if quarterly
-                objs(io).beta0 = objs(io).beta0^(1/objs(io).freq);
-                objs(io).dieprob = 1 - (1-objs(io).dieprob)^(1/objs(io).freq);
-                objs(io).betaswitch = 1 - (1-objs(io).betaswitch)^(1/objs(io).freq);
-
-                objs(io).betaL = objs(io).betaL^(1/objs(io).freq);
-                
-                if objs(io).annuities == true
-                    objs(io).Bequests = 0;
-                    objs(io).r = objs(io).r + objs(io).dieprob;
-                    objs(io).R = 1 + objs(io).r;
-                end
-
-                objs(io).betaH = 1./((max(objs(io).R))*(1-objs(io).dieprob));
-                objs(io).betaH = objs(io).betaH + objs(io).betaH0;
-
-                objs(io).lumptransfer = objs(io).lumptransfer / objs(io).freq;
-            end
-        end
-
-        function objs = make_other_adjustments(objs)
-            for io = 1:numel(objs)
-                objs(io).nbeta = max(objs(io).nbeta, numel(objs(io).beta_grid_forced));
-                objs(io).compute_savtax =...
-                    @(sav) objs(io).savtax * max(sav - objs(io).savtaxthresh, 0);
-            end
-        end
-
         function objs = select_by_names(objs, names_to_run)
             % discards all experiments with names not included in the
             % cell array 'names_to_run'
