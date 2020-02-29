@@ -493,12 +493,11 @@ function [params, all_names] = parameters(runopts)
     %----------------------------------------------------------------------
     % OTHER
     %----------------------------------------------------------------------
-    % income_b_nyT101 = 'input/income_quarterly_b_contyT';
-    % params(end+1) = setup.Params(4, 'quarterly_b_nyT101', income_b_nyT101);
-    % params(end) = set_shared_fields(params(end), quarterly_b_params);
-    % params(end).nyT = 101;
-    % params(end).beta0 = 0.984363510593659;
-    % params(end).gridspace_min = 0.000015;
+    params(end+1) = setup.Params(4, 'quarterly_b_nyT101', quarterly_b_path);
+    params(end) = set_shared_fields(params(end), quarterly_b_params);
+    params(end).nyT = 101;
+    params(end).beta0 = 0.984363510593659;
+    params(end).gridspace_min = 0.000015;
 
     %----------------------------------------------------------------------
     % ADJUST TO QUARTERLY VALUES, DO NOT CHANGE

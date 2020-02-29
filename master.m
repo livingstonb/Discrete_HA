@@ -51,26 +51,26 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = 1; % use server paths
-runopts.calibrate = 1;
+runopts.Server = 0; % use server paths
+runopts.calibrate = 0;
 runopts.fast = 0; % very small asset and income grids for testing
 runopts.Simulate = 0; % also solve distribution via simulation
-runopts.MakePlots = 0;
+runopts.MakePlots = 1;
 runopts.MPCs = 1;
 runopts.MPCs_news = 0;
 runopts.MPCs_loan_and_loss = 0;
 runopts.DeterministicMPCs = 1; % must be on if decompositions are needed
 
 % directories
-runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
+runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
 
 % name of parameters script
-runopts.mode = 'loose_borr_constraint'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {};
+runopts.names_to_run = {'quarterly_b_nyT101'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------

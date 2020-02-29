@@ -357,11 +357,11 @@ function results = main(p)
 
         wealth_plotter = statistics.WealthPlotter(p, grdDST.a.vec, pmf_a);
         [ax, wealth_hist] = wealth_plotter.create_histogram(nbins, amax{:});
-        title("Wealth condl on low yP, truncated above")
+        title("Wealth distribution, truncated above")
         ax.XLim = [amin, amax_visible];
         ax.YLim = [0, max(wealth_hist.Values(1:end-1))];
 
-        figpath = fullfile(p.outdir, 'wealth_condl_on_low_yP.jpg');
+        figpath = fullfile(p.outdir, 'wealth_distribution.jpg');
         saveas(gcf, figpath)
         
         %% MPCs Function
@@ -374,7 +374,7 @@ function results = main(p)
         yP_indices = [3, 8];
         zoomed_window = true;
         shock_size = 0.01;
-        [ax_main, ax_window] = mpc_plotter.create_mpcs_plot(...
+        [ax_main, ax_window] = mpc_plotter.create_mpcs_plot_yPs(...
                     yP_indices, zoomed_window, shock_size);
         ylim_main = ax_main.YLim;
 
@@ -393,31 +393,39 @@ function results = main(p)
         set(ax_window, 'FontSize', fontsize-2)
         ax_window.YTick = ax_main.YTick(1:2:end);
 
-        figpath = fullfile(p.outdir, 'mpc_function.jpg');
+        figpath = fullfile(p.outdir, 'mpc_function_yPs.jpg');
         saveas(gcf, figpath)
 
-        %% MPCs Function over cash-on-hand
+        %% MPCs Function For Diff Shock Sizes
         fontsize = 12;
-        mpcs = results.direct.mpcs_cash{5};
-        mpc_plotter = statistics.MPCPlotter(p, grdEGP.x.matrix, mpcs);
+        mpcs = {    results.direct.mpcs(2).mpcs_1_t{1}
+                    results.direct.mpcs(3).mpcs_1_t{1}
+                    results.direct.mpcs(5).mpcs_1_t{1}
+                    results.direct.mpcs(6).mpcs_1_t{1}
+               };
+           
+        for ii = 1:numel(mpcs)
+            mpcs{ii} = reshape(mpcs{ii}, [p.nx_DST p.nyP p.nyF p.nb]);
+        end
+
+        mpc_plotter = statistics.MPCPlotter(p, grdDST.a.matrix, mpcs);
         mpc_plotter.fontsize = fontsize;
         mpc_plotter.show_grid = 'on';
 
-        yP_indices = [3, 8];
+        iyP = median(1:p.nyP);
+        ishocks = [2 3 5 6];
         zoomed_window = true;
         shock_size = 0.01;
-        [ax_main, ax_window] = mpc_plotter.create_mpcs_plot(...
-                    yP_indices, zoomed_window, shock_size);
+        [ax_main, ax_window] = mpc_plotter.create_mpc_plot_shocks(...
+                    iyP, zoomed_window, ishocks);
         ylim_main = ax_main.YLim;
 
-        % imedian = find(p.percentiles == 50);
-        % median_wealth = results.direct.wpercentiles(imedian);
-        % ax_main = mpc_plotter.add_median_wealth(ax_main, median_wealth);
+        imedian = find(p.percentiles == 50);
+        median_wealth = results.direct.wpercentiles(imedian);
+        ax_main = mpc_plotter.add_median_wealth(ax_main, median_wealth);
 
         ax_main.XLim = [0, 5];
-        ax_main.YLim = min(ylim_main, 1);
-        cash_label = "Cash-on-hand (ratio to mean annual income)";
-        xlabel(ax_main, cash_label)
+        ax_main.YLim = ylim_main;
 
         window_max_x = 0.3;
         ax_window.YLim = ax_main.YLim;
@@ -427,7 +435,7 @@ function results = main(p)
         set(ax_window, 'FontSize', fontsize-2)
         ax_window.YTick = ax_main.YTick(1:2:end);
 
-        figpath = fullfile(p.outdir, 'mpc_function_cash.jpg');
+        figpath = fullfile(p.outdir, 'mpc_function_shocks.jpg');
         saveas(gcf, figpath)
     end
     

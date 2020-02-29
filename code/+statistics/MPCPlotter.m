@@ -23,11 +23,13 @@ classdef MPCPlotter < handle
 			obj.dims = [size(grids,1), obj.p.nyP, obj.p.nyF, obj.p.nb];
 
 			obj.grids = grids;
-			obj.mpcs = reshape(mpcs, obj.dims);
+			obj.mpcs = mpcs;
 		end
 
-		function [ax_main, ax_window] = create_mpcs_plot(...
+		function [ax_main, ax_window] = create_mpcs_plot_yPs(...
 			obj, yP_indices, zoomed_window, shock_size)
+
+			obj.mpcs = reshape(obj.mpcs, obj.dims);
 
 			obj.fig = figure();
 			ax_main = axes(obj.fig);
@@ -55,6 +57,40 @@ classdef MPCPlotter < handle
 
 			yP_labels = {'Low yP', 'High yP'};
 			legend(ax_main, yP_labels);
+			legend(ax_main, 'show');
+			box(ax_main.Legend, 'off');
+		end
+
+		function [ax_main, ax_window] = create_mpc_plot_shocks(...
+			obj, yP_index, zoomed_window, ishocks)
+
+			obj.fig = figure();
+			ax_main = axes(obj.fig);
+			legend('hide');
+			xlabel("Wealth (ratio to mean annual income)");
+			ylabel("MPC");
+			ax_main = obj.apply_formatting(ax_main);
+
+			if zoomed_window
+				ax_window = add_window(obj.fig, ax_main);
+				ax_window = obj.apply_formatting(ax_window);
+			end
+
+			shock_labels = {};
+			for ii = 1:numel(ishocks)
+				ishock = ishocks(ii);
+			    mpcs_ishock = obj.mpcs{ii}(:,yP_index,1,1);
+			    agrid = obj.grids(:,yP_index,1,1);
+
+			    obj.plot_mpc_function(ax_main, mpcs_ishock, agrid);
+			    if zoomed_window
+			        obj.plot_mpc_function(ax_window, mpcs_ishock, agrid);
+			    end
+
+			    shock_labels{ii} = sprintf('Shock of %g', obj.p.shocks(ishock));
+			end
+
+			legend(ax_main, shock_labels);
 			legend(ax_main, 'show');
 			box(ax_main.Legend, 'off');
 		end
