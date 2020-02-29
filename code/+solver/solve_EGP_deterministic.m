@@ -13,14 +13,6 @@ function norisk = solve_EGP_deterministic(p, grids,...
     sgrid_repeated = repmat(grids.s.vec, p.nb, 1);
     sgrid_tax = p.compute_savtax(sgrid_repeated);
 
-    % if numel(p.r) > 1
-    %     Emat = kron(heterogeneity.rtrans, kron(income.ytrans, speye(p.nx)));
-    %     r_col = kron(p.r', ones(p.nx, 1));
-    %     r_mat = reshape(r_col, [p.nx, numel(p.r)]);
-    % else
-    %     r_mat = p.r;
-    % end
-
     if numel(p.r) > 1
         exog_trans = heterogeneity.rtrans;
     elseif numel(p.nbeta) > 1
