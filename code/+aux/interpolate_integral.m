@@ -7,7 +7,7 @@ function interpolant = interpolate_integral(gridValues, integrandValues, pmf, is
 	% Brian Livingston, 2020
 	% livingstonb@uchicago.edu
 
-	if nargin < 3
+	if nargin < 4
 		is_sorted = false;
 	end
 
@@ -33,4 +33,15 @@ function interpolant = interpolate_integral(gridValues, integrandValues, pmf, is
 
 	interpolant = griddedInterpolant(gridUnique, integralUnique,'linear');
 
+	xmin = gridUnique(1);
+	xmax = gridUnique(end);
+	int0 = integralUnique(1);
+	int1 = integralUnique(2);
+	interpolant = @(x) adjust_interpolant(interpolant, x, xmin, xmax, int0, int1);
+end
+
+function vals_adj = adjust_interpolant(interpolant0, x, xmin, xmax, int0, int1)
+	vals_adj = interpolant0(x);
+	vals_adj(x<=xmin) = int0;
+	vals_adj(x>=xmax) = int1;
 end

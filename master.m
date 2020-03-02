@@ -62,15 +62,22 @@ runopts.MPCs_loan_and_loss = false;
 runopts.DeterministicMPCs = true; % must be on if decompositions are needed
 
 % directories
-runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
+
+if ismac
+    runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
+elseif isunix
+    runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
+elseif ispc
+    runopts.localdir = '/Users/brian-laptop/Documents/GitHub/Discrete_HA';
+end
 
 % name of parameters script
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'Q Permanent r het, r in {-2,2,6} p.a.'};
+runopts.names_to_run = {'baseline_Q'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------
@@ -162,10 +169,8 @@ end
 % -------------------------------------------------------------------------
 return_nans = false;
 decomp_with_loose_borr_limit = false;
-[~, repagent_decomps] = statistics.baseline_repagent_decomps(params, results, return_nans);
 
 table_gen = statistics.TableGenerator();
-table_gen.decomp_repagent = repagent_decomps;
 
 quarterly_results = table_gen.create(params, results, 4);
 annual_results = table_gen.create(params, results, 1);

@@ -4,7 +4,6 @@ classdef TableGenerator
 	end
 
 	properties
-		decomp_repagent;
 		decomp_baseline;
 		decomp_incrisk_alt;
 	end
@@ -20,7 +19,8 @@ classdef TableGenerator
 			mpcs_present = false;
 			mpcs_news_present = false;
 			mpcs_loan_loss_present = false;
-			decomp_meanmpc_present = false;
+			decomp_norisk_present = false;
+			decomp_RA_present = false;
 			for ip = this_freq
 				if params(ip).MPCs
 					mpcs_present = true;
@@ -34,8 +34,12 @@ classdef TableGenerator
 					mpcs_loan_loss_present = true;
 				end
 
-				if results(ip).decomp_meanmpc(1).completed
-					decomp_meanmpc_present = true;
+				if results(ip).decomp_norisk(1).completed
+					decomp_norisk_present = true;
+				end
+
+				if results(ip).decomp_RA.completed
+					decomp_RA_present = true;
 				end
 			end
 
@@ -59,18 +63,18 @@ classdef TableGenerator
 					ishock = ishock + 1;
 				end
 
-				if 	~isempty(decomp_meanmpc_present)
+				if 	~isempty(decomp_norisk_present)
 					shock_size = p.shocks(5);
 
-					decomp_structure = results(ip).decomp_meanmpc;
+					decomp_structure = results(ip).decomp_norisk;
 					temp = decomp_table(decomp_structure, shock_size);
 					new_column = [new_column; temp];
 				end
 
-				if ~isempty(obj.decomp_repagent)
+				if ~isempty(decomp_RA_present)
 					shock_size = p.shocks(5);
 
-					decomp_structure = obj.decomp_repagent(ip);
+					decomp_structure = results(ip).decomp_RA;
 					temp = repagent_decomp_table(decomp_structure, shock_size);
 					new_column = [new_column; temp];
 				end
@@ -362,10 +366,10 @@ function out = repagent_decomp_table(decomp, shock_size)
 		            'Decomp of E[MPC] - E[MPC_RA], effect of distr'
 		            'Decomp of E[MPC] - E[MPC_RA], interaction'
 		};
-	new_entries = {	decomp.mpc1_Em1_less_mRA
-                    decomp.mpc1_term1
-                    decomp.mpc1_term2
-                    decomp.mpc1_term3
+	new_entries = {	decomp.Em1_less_mRA
+                    decomp.term1
+                    decomp.term2
+                    decomp.term3
 		};
 
 	out = append_to_table(out, new_entries, new_labels);

@@ -318,7 +318,20 @@ function results = main(p)
     %% --------------------------------------------------------------------
     % DECOMPOSITION 1 (DECOMP OF E[mpc])
     % ---------------------------------------------------------------------
-    results.decomp_meanmpc = statistics.decomposition_of_meanmpc(p, grdDST, results);
+    decomp = statistics.Decomp(p, results.direct);
+
+    doDecomposition = (p.nb==1) && (~p.EpsteinZin) && (p.MPCs)...
+        && (p.bequest_weight==0) && isequal(p.temptation,0) && (numel(p.r)==1)...
+        && (p.DeterministicMPCs);
+
+    if doDecomposition
+        mpcs_baseline = results.direct.mpcs(5).mpcs_1_t{1};
+        mpcs_norisk = results.norisk.mpcs1_a_direct{5};
+        decomp.perform_decompositions(mpcs_baseline, mpcs_norisk);
+    end
+
+    results.decomp_RA = decomp.results_RA;
+    results.decomp_norisk = decomp.results_norisk;
     
     %% --------------------------------------------------------------------
     % GINI

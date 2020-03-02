@@ -72,7 +72,7 @@ if options.decomp_with_loose_borr_limit
 else
     return_nans = false;
 end
-[decomps_baseline, decomps_repagent] ...
+[decomps_baseline, ~] ...
     = statistics.baseline_repagent_decomps(params, results, return_nans);
 
 if options.decomp_with_loose_borr_limit
@@ -93,12 +93,8 @@ if options.decomp_with_loose_borr_limit
             p_no_bc, results_no_bc, return_nans);
     end
 end
-    
-% [T_annual, T_quarter] = statistics.create_table_old(...
-%     params, results, decomps, decomps_baseline, decomps_repagent);
 
 table_gen = statistics.TableGenerator();
-table_gen.decomp_repagent = decomps_repagent;
 table_gen.decomp_baseline = decomps_baseline;
 
 if options.decomp_with_loose_borr_limit
