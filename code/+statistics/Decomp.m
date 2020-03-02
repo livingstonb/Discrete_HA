@@ -69,8 +69,7 @@ classdef Decomp < handle
             obj.pmf = obj.stats.adist;
             obj.pmf_a = obj.stats.agrid_dist;
 
-            mpcs_a = obj.collapse_mpcs(mpcs);
-            obj.mpcs_a = mpcs_a;
+            obj.mpcs_a = aux.collapse_mpcs(mpcs, obj.pmf, obj.pmf_a);
 
             obj.Empc = dot(obj.mpcs_a, obj.pmf_a);
             obj.Empc_norisk = dot(obj.mpcs_norisk, obj.pmf_a);
@@ -144,15 +143,6 @@ classdef Decomp < handle
 				end
 				obj.results_norisk(ia).completed = true;
 			end
-		end
-
-		function mpcs_a = collapse_mpcs(obj, mpcs_states)
-			mpcs_states = reshape(mpcs_states, obj.na, []);
-			mpcs_a = sum(mpcs_states .* obj.pmf, 2)...
-				./ obj.pmf_a;
-
-			pmf_a_small = obj.pmf_a < 1e-8;
-			mpcs_a(pmf_a_small) = mean(mpcs_states(pmf_a_small,:), 2);
 		end
 	end
 end

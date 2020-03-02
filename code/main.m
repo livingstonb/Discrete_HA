@@ -332,6 +332,7 @@ function results = main(p)
 
     results.decomp_RA = decomp.results_RA;
     results.decomp_norisk = decomp.results_norisk;
+    clear decomp
     
     %% --------------------------------------------------------------------
     % GINI
