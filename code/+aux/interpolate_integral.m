@@ -24,7 +24,7 @@ function interpolant = interpolate_integral(gridValues, integrandValues, pmf, is
 
 	integralValues= cumsum(integrandSorted .* pmfSorted);
 
-	dsupport = pmfSorted > 1e-7;
+	dsupport = pmfSorted > 1e-9;
 	integralValues = integralValues(dsupport);
 	gridSorted = gridSorted(dsupport);
 

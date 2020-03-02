@@ -326,7 +326,9 @@ function results = main(p)
 
     if doDecomposition
         mpcs_baseline = results.direct.mpcs(5).mpcs_1_t{1};
+        mpcs_baseline = reshape(mpcs_baseline, p.nx_DST, []);
         mpcs_norisk = results.norisk.mpcs1_a_direct{5};
+        mpcs_norisk = reshape(mpcs_norisk, p.nx_DST, []);
         decomp.perform_decompositions(mpcs_baseline, mpcs_norisk);
     end
 
