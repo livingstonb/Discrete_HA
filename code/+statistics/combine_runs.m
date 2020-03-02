@@ -67,13 +67,29 @@ if options.FROM_MATFILE
     end
 end
 
-if options.decomp_with_loose_borr_limit
-    return_nans = true;
-else
-    return_nans = false;
-end
 [decomps_baseline, ~] ...
-    = statistics.baseline_repagent_decomps(params, results, return_nans);
+    = statistics.baseline_repagent_decomps(params, results, false);
+
+for ip = 1:ind
+    if params(ip).freq == 1
+        baseind = find(ismember({params.name}, {'baseline_A'}));
+    else
+        baseind = find(ismember({params.name}, {'baseline_Q'}));
+    end
+
+    if isempty(baseind)
+        baseind = ip;
+    end
+
+    p0 = params(baseind);
+    p1 = params(ip);
+    stats0 = results(baseind).direct;
+    stats1 = results(ip).direct;
+    cdecomp = statistics.ComparisonDecomp(p0, p1, stats0, stats1);
+
+    cdecomp.perform_decompositions();
+    decomps_wrt_baseline(ip) = cdecomp.results;
+end
 
 if options.decomp_with_loose_borr_limit
     for ip = 1:ind

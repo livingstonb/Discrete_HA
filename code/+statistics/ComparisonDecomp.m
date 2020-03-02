@@ -17,6 +17,7 @@ classdef ComparisonDecomp
 
 		agrid;
 		incompatible_params = false;
+		same_model_name;
 
 		Empc0_g0;
 		Empc0_g1;
@@ -43,12 +44,14 @@ classdef ComparisonDecomp
 				obj.incompatible_params = true;
 			end
 
+			obj.same_model_name = strcmp(p0.name, p1.name);
+
 			no_z_heterogeneity = all([p0.nb, p1.nb] == 1);
 			no_temptation = isequal(p0.temptation, 0)...
 				&& isequal(p1.temptation, 0);
 			no_bequest_prefs = isequal(p0.bequest_weight, 0)...
 				&& isequal(p1.bequest_weight, 0);
-			no_ez = all(~[p0.EpsteinZin, p1.EpsteinZin]);
+			no_ez = all([~p0.EpsteinZin, ~p1.EpsteinZin]);
 
 			obj.can_compute_RAmpc = no_z_heterogeneity...
 				&& no_temptation && no_bequest_prefs...
@@ -75,7 +78,7 @@ classdef ComparisonDecomp
 		end
 
 		function perform_decompositions(obj, mpcs0, mpcs1)
-			if obj.incompatible_params
+			if obj.incompatible_params || obj.same_model_name
 				return
 			end
 
@@ -84,19 +87,15 @@ classdef ComparisonDecomp
 			obj.results.Em1_less_Em0 = obj.Empc1_g1 - obj.Empc1_g0;
 
 			% Term 1: Effect of MPC function
-			obj.results.term1 = obj.Empc1_g1 - obj.Empc0_g1;
+			obj.results.term1 = obj.Empc1_g0 - obj.Empc0_g0;
 
 			if obj.can_compute_RAmpc
-				offset = obj.mpc1_ra - obj.mpc0_ra;
-
-
 				% Term 1a: Effect of MPC function, level
 				obj.results.term1a = obj.Empc1_g0 - obj.Empc1adj_g0;
 
 				% Term 1b: Effect of MPC function, shape
 				obj.results.term1b = obj.Empc1adj_g0 - obj.Empc0_g0;
 			end
-
 
 			% Term 2: Effect of distribution
 			obj.results.term2 = obj.Empc0_g1 - obj.Empc0_g0;
