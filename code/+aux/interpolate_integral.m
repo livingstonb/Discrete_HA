@@ -1,4 +1,4 @@
-function interpolant = interpolate_integral(gridValues, integrandValues, pmf)
+function interpolant = interpolate_integral(gridValues, integrandValues, pmf, is_sorted)
 	% Returns an interpolant that interpolates to find the value of
 	% int_0^{epsilon} values(a)g(a)da for a given epsilon.
 	%
@@ -7,16 +7,30 @@ function interpolant = interpolate_integral(gridValues, integrandValues, pmf)
 	% Brian Livingston, 2020
 	% livingstonb@uchicago.edu
 
-	sortedInputs = sortrows([gridValues(:) integrandValues(:) pmf(:)]);
-	gridSorted = sortedInputs(:,1);
-	integrandSorted = sortedInputs(:,2);
-	pmfSorted = sortedInputs(:,3);
+	if nargin < 3
+		is_sorted = false;
+	end
 
-	integralValues = cumsum(integrandSorted .* pmfSorted);
+	if ~is_sorted
+		sortedInputs = sortrows([gridValues(:) integrandValues(:) pmf(:)]);
+		gridSorted = sortedInputs(:,1);
+		integrandSorted = sortedInputs(:,2);
+		pmfSorted = sortedInputs(:,3);
+	else
+		gridSorted = gridValues;
+		integrandSorted = integrandValues;
+		pmfSorted = pmf;
+	end
 
-	[gridUnique,uniqueInds] = unique(gridSorted,'last');
+	integralValues= cumsum(integrandSorted .* pmfSorted);
+
+	dsupport = pmfSorted > 1e-7;
+	integralValues = integralValues(dsupport);
+	gridSorted = gridSorted(dsupport);
+
+	[gridUnique, uniqueInds] = unique(gridSorted,'last');
 	integralUnique = integralValues(uniqueInds);
 
-	interpolant = griddedInterpolant(gridUnique,integralUnique,'linear');
+	interpolant = griddedInterpolant(gridUnique, integralUnique,'linear');
 
 end

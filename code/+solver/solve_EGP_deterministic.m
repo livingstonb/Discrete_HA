@@ -97,8 +97,6 @@ function norisk = solve_EGP_deterministic(p, grids,...
 
             con(:,ib) = grids.x.matrix_norisk(:,ib) - sav(:,ib) - p.compute_savtax(sav(:,ib));
         end
-
-        
         
         cdiff = max(abs(con(:)-conlast(:)));
         if mod(iter,100) ==0
