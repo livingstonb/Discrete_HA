@@ -33,7 +33,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
     r_long = r_long(:);
 
     if numel(p.r) == 1
-        r_long = repmat(r_long, p.nb);
+        r_long = repmat(r_long, p.nb, 1);
     end
 
     % initial guess for consumption function, stacked state combinations
