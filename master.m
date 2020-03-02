@@ -51,8 +51,8 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = false; % use server paths
-runopts.calibrate = false;
+runopts.Server = true; % use server paths
+runopts.calibrate = true;
 runopts.fast = false; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
@@ -77,7 +77,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 % use empty cell array, {}, to run all
-runopts.names_to_run = {'baseline_Q'};
+runopts.names_to_run = {'baseline_Q_rlow'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------

@@ -50,7 +50,6 @@ function [params, all_names] = parameters(runopts)
     params(end+1) = setup.Params(4, 'baseline_Q', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
-    params(end).gridspace_min = 0.000015;
 %     params(end).xgrid_par = 0.3;
 %     params(end).nx = 300;
 %     params(end).nx_DST = 300;
@@ -119,6 +118,7 @@ function [params, all_names] = parameters(runopts)
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).dieprob = 0;
+        params(end).beta0 = 0.975363510593659;
 
         % no bequests
         name = [lfreq ' NoBequests'];
@@ -341,6 +341,7 @@ function [params, all_names] = parameters(runopts)
     % i quarterly_a
     params(end+1) = setup.Params(4,'Q b(i) quarterly_a','');
     params(end) = set_shared_fields(params(end), quarterly_a_params);
+    params(end).beta0 = 0.984363510593659;
     
     % ii
     params(end+1) = setup.Params(4,'Q b(ii) KMPTransf','');
@@ -495,11 +496,10 @@ function [params, all_names] = parameters(runopts)
     %----------------------------------------------------------------------
     % OTHER
     %----------------------------------------------------------------------
-    params(end+1) = setup.Params(4, 'quarterly_b_nyT101', quarterly_b_path);
-    params(end) = set_shared_fields(params(end), quarterly_b_params);
-    params(end).nyT = 101;
-    params(end).beta0 = 0.984363510593659;
-    params(end).gridspace_min = 0.000015;
+    % params(end+1) = setup.Params(4, 'quarterly_b_nyT101', quarterly_b_path);
+    % params(end) = set_shared_fields(params(end), quarterly_b_params);
+    % params(end).nyT = 101;
+    % params(end).beta0 = 0.984363510593659;
 
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS, DO NOT CHANGE

@@ -384,24 +384,28 @@ function out = baseline_decomp_table(decomp, shock_size)
 		            'Decomp of Em1-Em0, effect of MPC fcn'
 		            'Decomp of Em1-Em0, effect of distr'
 		            'Decomp of Em1-Em0, interaction'
-		            'Decomp of the distr effect around 0, HtM households'
-		            'Decomp of the distr effect around 0, non-HtM households'
-		            'Decomp of the distr effect around 0.01, HtM households'
-		            'Decomp of the distr effect around 0.01, non-HtM households'
-		            'Decomp of the distr effect around 0.05, HtM households'
-		            'Decomp of the distr effect around 0.05, non-HtM households'
+		            'Effect of MPC fcn, level'
+		            'Effect of MPC fcn, shape'
+		            'Effect of distr around 0, HtM households'
+		            'Effect of distr around 0, non-HtM households'
+		            'Effect of distr around 0.01, HtM households'
+		            'Effect of distr around 0.01, non-HtM households'
+		            'Effect of distr around 0.05, HtM households'
+		            'Effect of distr around 0.05, non-HtM households'
 		};
 
-	new_entries = {	decomp.mpc1_Em1_less_Em0
-                    decomp.mpc1_term1                       
-                    decomp.mpc1_term2
-                    decomp.mpc1_term3
-                    decomp.mpc1_term2a(1)   
-                    decomp.mpc1_term2b(1)
-                    decomp.mpc1_term2a(2)   
-                    decomp.mpc1_term2b(2)
-                    decomp.mpc1_term2a(3)   
-                    decomp.mpc1_term2b(3)
+	new_entries = {	decomp.Em1_less_Em0
+                    decomp.term1                       
+                    decomp.term2
+                    decomp.term3
+                    decomp.term1a
+                    decomp.term1b
+                    decomp.term2a(1)   
+                    decomp.term2b(1)
+                    decomp.term2a(2)   
+                    decomp.term2b(2)
+                    decomp.term2a(3)   
+                    decomp.term2b(3)
         };
 	out = append_to_table(out, new_entries, new_labels);
 end

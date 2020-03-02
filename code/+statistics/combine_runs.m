@@ -15,22 +15,12 @@
 % matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
 % xlxdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
 
-options.FROM_MATFILE = true;
+clear
+
 options.server = true;
 options.decomp_with_loose_borr_limit = false;
 options.index_loose_borr_limit_Q = 'baseline_Q_with_borrowing';
 options.index_loose_borr_limit_A = 'baseline_A_with_borrowing';
-
-
-if options.server
-    options.FROM_MATFILE = true;
-end
-
-if ~options.FROM_MATFILE
-    clearvars -except params results options
-else
-    clearvars -except options
-end
 
 if ~options.server
     basedir = '/home/brian/Documents/GitHub/Discrete_HA';
@@ -44,31 +34,22 @@ end
 
 addpath([basedir '/code']);
 
+%% Read .mat files into a cell array
+ind = 0;
+for irun = 1:999
+    runstr = num2str(irun);
+    fpath = [matdir, 'variables', runstr, '.mat'];
+    if exist(fpath,'file')
+        ind = ind + 1;
 
-mpcs_on_table = true;
-mpcs_news_on_table = false;
-MPCs_loan_and_loss_on_table = false;
-decomps_on_table = true;
-
-
-if options.FROM_MATFILE
-    %% Read .mat files into a cell array
-    ind = 0;
-    for irun = 1:999
-        runstr = num2str(irun);
-        fpath = [matdir, 'variables', runstr, '.mat'];
-        if exist(fpath,'file')
-            ind = ind + 1;
-            
-            S = load(fpath);
-            params(ind) = S.Sparams;
-            results(ind) = S.results;
-        end
+        S = load(fpath);
+        params(ind) = S.Sparams;
+        results(ind) = S.results;
     end
 end
 
-[decomps_baseline, ~] ...
-    = statistics.baseline_repagent_decomps(params, results, false);
+% [decomps_baseline_old, ~] ...
+%     = statistics.baseline_repagent_decomps(params, results, false);
 
 for ip = 1:ind
     if params(ip).freq == 1
@@ -87,8 +68,12 @@ for ip = 1:ind
     stats1 = results(ip).direct;
     cdecomp = statistics.ComparisonDecomp(p0, p1, stats0, stats1);
 
-    cdecomp.perform_decompositions();
-    decomps_wrt_baseline(ip) = cdecomp.results;
+    mpcs0 = reshape(stats0.mpcs(5).mpcs_1_t{1},...
+        p0.nx_DST, []);
+    mpcs1 = reshape(stats1.mpcs(5).mpcs_1_t{1},...
+        p1.nx_DST, []);
+    cdecomp.perform_decompositions(mpcs0, mpcs1);
+    decomps_baseline(ip) = cdecomp.results;
 end
 
 if options.decomp_with_loose_borr_limit

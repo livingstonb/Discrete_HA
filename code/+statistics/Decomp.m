@@ -75,7 +75,7 @@ classdef Decomp < handle
             obj.Empc_norisk = dot(obj.mpcs_norisk, obj.pmf_a);
 
             obj.integral_interp = aux.interpolate_integral(...
-            	obj.agrid, mpcs_a, obj.pmf_a, true);
+            	obj.agrid, obj.mpcs_a, obj.pmf_a, true);
 
             obj.integral_norisk_interp = aux.interpolate_integral(...
             	obj.agrid, obj.mpcs_norisk, obj.pmf_a, true);

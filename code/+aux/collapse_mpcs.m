@@ -1,6 +1,7 @@
 function mpcs_a = collapse_mpcs(mpcs_states, pmf, pmf_a)
 	na = size(mpcs_states, 1);
 	mpcs_states = reshape(mpcs_states, na, []);
+	pmf = reshape(pmf, na, []);
 
 	mpcs_a = sum(mpcs_states .* pmf, 2)...
 		./ pmf_a;
