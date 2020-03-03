@@ -526,8 +526,8 @@ function [params, all_names] = parameters(runopts)
         params = setup.Params.select_by_names(params, runopts.names_to_run);
     end
 
-    params.make_adjustments();
     params.set_run_parameters(runopts);
+    params.make_adjustments();
 
     %----------------------------------------------------------------------
     % ATTACH CALIBRATOR

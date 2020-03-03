@@ -274,6 +274,10 @@ classdef Params < handle
             obj.nbeta = max(obj.nbeta, numel(obj.beta_grid_forced));
             obj.compute_savtax =...
                 @(sav) obj.savtax * max(sav - obj.savtaxthresh, 0);
+
+            if obj.EpsteinZin
+                obj.DeterministicMPCs = false;
+            end
         end
     end
     

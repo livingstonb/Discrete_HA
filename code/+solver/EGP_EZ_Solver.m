@@ -205,8 +205,9 @@ classdef EGP_EZ_Solver < handle
 			tmp = exp(obj.Emat * log(V_xp_reshaped) * income.yTdist);
 			ezvalnext_ra_equal1 = obj.reshape_to_state_space(tmp) .^ diff_coeffs;
 
-			tmp = obj.Emat * V_xp_reshaped .^ one_less_riskaver;
-			tmp = obj.reshape_to_state_space(tmp * income.yTdist);
+			tmp = obj.V_xp .^ one_less_riskaver;
+			tmp = obj.Emat * reshape(tmp, [], obj.p.nyT) * income.yTdist;
+			tmp = obj.reshape_to_state_space(tmp);
 			ezvalnext_ra_nequal1 = tmp .^ (diff_coeffs ./ one_less_riskaver);
 
 			ezvalnext = zeros(obj.ss_dims);
