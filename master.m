@@ -77,7 +77,7 @@ end
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {};
+runopts.names_to_run = {'Q Permanent r het, r in {0,2,4} p.a.'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------
@@ -132,7 +132,7 @@ switch runopts.mode
     otherwise
         error('Parameters script not found')
 end
-Nparams = size(params,2);
+Nparams = size(params, 2);
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
@@ -151,7 +151,7 @@ if params.calibrate
     solver_args = params.calibrator.get_args();
     [calibrated_params, resnorm] = lsqnonlin(params.calibrator.solver_handle,...
         solver_args{:}, options);
-    
+
     if resnorm > 1e-5
         error('Could not match targets')
     end

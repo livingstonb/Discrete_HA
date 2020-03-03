@@ -19,6 +19,8 @@ classdef Prefs_R_Heterogeneity < handle
 		risk_aver_broadcast;
 		invies_broadcast;
 
+		temptation_broadcast;
+
 		zdist;
 		ztrans;
 		zcumdist;
@@ -45,8 +47,6 @@ classdef Prefs_R_Heterogeneity < handle
             obj.zcumdist = cumsum(obj.zdist);
 		    obj.zcumtrans = cumsum(obj.ztrans, 2);
 		end
-
-		
 
 		%% -------------------------------------------------------
 	    % Discount Factor Heterogeneity
@@ -91,6 +91,9 @@ classdef Prefs_R_Heterogeneity < handle
 	    % Temptation heterogeneity
 	    % --------------------------------------------------------
 	    function initialize_temptation_heterogeneity(obj, params)
+	    	ntempt = numel(params.temptation);
+	    	obj.temptation_broadcast = reshape(...
+	    		params.temptation, [1, 1, 1, ntempt]);
 		end
 
 		%% -------------------------------------------------------
