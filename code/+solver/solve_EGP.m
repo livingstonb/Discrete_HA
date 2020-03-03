@@ -208,10 +208,10 @@ function muc_s = get_marginal_util_cons(...
     % now get MUC this period as a function of s
     savtaxrate  = (1+p.savtax.*(repmat(grids.s.matrix(:),p.nb,1)>=p.savtaxthresh));
     mu_consumption = (1+r_mat(:)).*betastacked*Emat*(mucnext*income.yTdist);
-    mu_bequest = aux.utility_bequests1(p.bequest_curv,p.bequest_weight,...
-                    p.bequest_luxury,repmat(grids.s.matrix(:),p.nb,1));
+    mu_bequest = aux.utility_bequests1(p.bequest_curv, p.bequest_weight,...
+                    p.bequest_luxury, repmat(grids.s.matrix(:),p.nb,1));
     muc_s = (1-p.dieprob) * mu_consumption ./ savtaxrate...
-                                            + p.dieprob * mu_bequest;
+            + p.dieprob * mu_bequest;
 end
 
 function sav = get_saving_policy(p, grids, x_s, nextmpcshock)

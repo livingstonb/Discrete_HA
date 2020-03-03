@@ -358,13 +358,13 @@ end
 
 function out = repagent_decomp_table(decomp, shock_size)
 	header_name = sprintf(...
-		'DECOMP OF ONE PERIOD E[MPC] - E[MPC_RA], SHOCK OF %g', shock_size);
+		'DECOMP OF ONE PERIOD E[MPC] - MPC_RA, SHOCK OF %g', shock_size);
 	out = new_table_with_header(header_name);
 
-	new_labels = {	'E[MPC] - E[MPC_RA]'
-		            'Decomp of E[MPC] - E[MPC_RA], effect of MPC fcn'
-		            'Decomp of E[MPC] - E[MPC_RA], effect of distr'
-		            'Decomp of E[MPC] - E[MPC_RA], interaction'
+	new_labels = {	'E[MPC] - MPC_RA'
+		            'Decomp of E[MPC] - MPC_RA, effect of MPC fcn'
+		            'Decomp of E[MPC] - MPC_RA, effect of distr'
+		            'Decomp of E[MPC] - MPC_RA, interaction'
 		};
 	new_entries = {	decomp.Em1_less_mRA
                     decomp.term1

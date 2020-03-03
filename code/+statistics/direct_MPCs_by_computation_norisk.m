@@ -11,13 +11,13 @@ function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(...
         if im == 0
             mpcamount = 0;
         else
-            mpcamount = p.shocks(im) * income.meany1 * p.freq;
+            mpcamount = p.shocks(im);
         end
         
-        x_mpc = grids.a.vec + income.meannety1 + mpcamount;
+        x_mpc = grids.x.matrix_norisk + mpcamount;
         con = zeros(p.nx_DST, p.nb);
         for ib = 1:p.nb
-            con(:,ib) = norisk.coninterp{ib}(x_mpc);
+            con(:,ib) = norisk.coninterp{ib}(x_mpc(:,ib));
         end
         
         if im == 0
@@ -26,10 +26,7 @@ function norisk_mpcs1_a_direct = direct_MPCs_by_computation_norisk(...
             % Compute m(a,z)
             mpcs1_a_z = (con - con_baseline) / mpcamount;
 
-            % Compute m(x) = E(m(x,z)|x)
-            %       = sum of P(z|x) * m(x,z) over all z
-            norisk_mpcs1_a_direct{im} = mpcs1_a_z * heterogeneity.zdist;
+            norisk_mpcs1_a_direct{im} = mpcs1_a_z;
         end
     end
-
 end

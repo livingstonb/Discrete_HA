@@ -25,6 +25,7 @@ classdef Calibrator < handle
 			obj.options.Simulate = params.Simulate;
 			obj.options.DeterministicMPCs = params.DeterministicMPCs;
 			obj.options.MakePlots = params.MakePlots;
+			obj.options.SaveOutput = params.SaveOutput;
 
 			obj.variables = variables;
 			obj.n = numel(variables);

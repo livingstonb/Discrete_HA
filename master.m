@@ -60,6 +60,7 @@ runopts.MPCs = true;
 runopts.MPCs_news = false;
 runopts.MPCs_loan_and_loss = false;
 runopts.DeterministicMPCs = true; % must be on if decompositions are needed
+runopts.SaveOutput = true;
 
 % directories
 runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
@@ -76,8 +77,7 @@ end
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-% use empty cell array, {}, to run all
-runopts.names_to_run = {'Q EZ w/riskaver betw exp(-2), exp(2)'};
+runopts.names_to_run = {};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------

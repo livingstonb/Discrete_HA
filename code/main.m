@@ -169,25 +169,30 @@ function results = main(p)
     %% --------------------------------------------------------------------
     % MPCs FOR MODEL WITHOUT INCOME RISK
     % ---------------------------------------------------------------------
+    norisk = struct('complete', false);
     if p.DeterministicMPCs
         % Solve deterministic model
         norisk = solver.solve_EGP_deterministic(...
-            p, grdEGP, heterogeneity, income, results.direct);
-        if norisk.EGP_cdiff > p.tol_iter
-            warning('EGP did not converge for norisk model')
-        end
+            p, grdEGP, heterogeneity);
 
-        % Compute MPCs for deterministic model
-        results.norisk.mpcs1_a_direct = ...
-            statistics.direct_MPCs_by_computation_norisk(...
-                p, norisk, income, heterogeneity, grdDST);
-    else
+        if norisk.complete
+            % Compute MPCs for deterministic model
+            results.norisk.mpcs1_a_direct = ...
+                statistics.direct_MPCs_by_computation_norisk(...
+                    p, norisk, income, heterogeneity, grdDST);
+        else
+            p.set('DeterministicMPCs', false, true);
+        end
+    end
+
+    if ~norisk.complete
         % Fill deterministic MPCs with NaNs
         results.norisk_mpcs1_a_direct = cell(1,6);
         for im = 1:6
             results.norisk_mpcs1_a_direct{im} = NaN;
         end
     end
+
 
     %% --------------------------------------------------------------------
     % SIMULATIONS

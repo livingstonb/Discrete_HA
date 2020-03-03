@@ -43,15 +43,15 @@ classdef Params < handle
         abars = [0, 0.01, 0.05];
 
         % cash on hand / savings grid
-        nx = 500;
+        nx = 300;
         nx_neg = 0;
-        nx_DST = 400;
+        nx_DST = 300;
         nx_neg_DST = 0;
         xmax = 100;
         xgrid_par = 0.2; %1 for linear, 0 for L-shaped
         xgrid_par_neg = 0.4;
         borrow_lim = 0;
-        nbl_adjustment = 1;
+        nbl_adjustment = 0.99;
         gridspace_min = 0; % minimum grid space (0 for no minimum)
         
         % OPTIONS
@@ -63,6 +63,7 @@ classdef Params < handle
         DeterministicMPCs = 0;
         outdir = '';
         savematpath = '';
+        SaveOutput = false;
 
         % returns
         r = 0.02; % default annual, adjusted if frequency = 4;

@@ -188,8 +188,8 @@ function [params, all_names] = parameters(runopts)
 %                     elseif strcmp(name,"Q RandomBetaHet5 Width0.01 SwitchProb0.1 Death")
 %                         params(end).betaH0 = 1.5e-2;
 %                     end
-                    params(end).betaH0 = 0.005;
-                    params(end).beta0 = 0.967667877287739;
+                    % params(end).betaH0 = 0.005;
+                    params(end).beta0 = 0.9357;
                 end
             end
         end
@@ -207,7 +207,7 @@ function [params, all_names] = parameters(runopts)
         params(end) = set_shared_fields(params(end), income_params);
         params(end).risk_aver = 1./ exp([-2 -1 0 1 2]);
         if params(end).freq == 4
-            params(end).betaH0 =  - 5e-3;
+            params(end).betaH0 = -5e-3;
         end
 
         % EZ with IES heterogeneity
