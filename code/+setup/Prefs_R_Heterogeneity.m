@@ -9,11 +9,14 @@ classdef Prefs_R_Heterogeneity < handle
 	properties (SetAccess = private)
 		betagrid0;
 		betagrid;
+		betagrid_broadcast;
 
 		nz;
 
 		R_broadcast;
 		r_broadcast;
+
+		risk_aver_broadcast;
 
 		zdist;
 		ztrans;
@@ -66,12 +69,17 @@ classdef Prefs_R_Heterogeneity < handle
 			else
 				obj.betagrid = params.beta_grid_forced;
 			end
+			obj.betagrid_broadcast = reshape(...
+				obj.betagrid, [1, 1, 1, params.nbeta]);
 		end
 
 		%% -------------------------------------------------------
 	    % IES Heterogeneity (Epstein-Zin only)
 	    % --------------------------------------------------------
 	    function initialize_IES_heterogeneity(obj, params)
+	    	n_risk_aver = numel(params.risk_aver);
+	    	obj.risk_aver_broadcast = reshape(params.risk_aver,...
+	    		[1, 1, 1, n_risk_aver]);
 		end
 
 		%% -------------------------------------------------------

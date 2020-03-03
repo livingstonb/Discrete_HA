@@ -11,22 +11,26 @@ function [params, all_names] = parameters(runopts)
     quarterly_b_params = struct();
     quarterly_b_params.sd_logyT = sqrt(0.6376);
     quarterly_b_params.lambdaT = 0.25;
+    % quarterly_b_params.gridspace_min = 0.001;
 
     quarterly_c_params = struct();
     quarterly_c_params.sd_logyT = sqrt(1.6243);
     quarterly_c_params.lambdaT = 0.0727;
+    % quarterly_c_params.gridspace_min = 0.001;
 
     quarterly_a_params = struct();
     quarterly_a_params.sd_logyT = sqrt(0.2087);
     quarterly_a_params.sd_logyP = sqrt(0.01080);
     quarterly_a_params.rho_logyP = 0.9881;
     quarterly_a_params.lambdaT = 1;
+    % quarterly_a_params.gridspace_min = 0.001;
 
     annual_params = struct();
     annual_params.sd_logyT = sqrt(0.0494);
     annual_params.sd_logyP = sqrt(0.0422);
     annual_params.rho_logyP = 0.9525;
     annual_params.lambdaT = 1;
+    % annual_params.gridspace_min = 0.001;
     
     %----------------------------------------------------------------------
     % BASELINES
@@ -241,9 +245,12 @@ function [params, all_names] = parameters(runopts)
     % i
     params(end+1) = setup.Params(1, 'A a(i) NoTransShocks', '');
     params(end) = set_shared_fields(params(end), annual_params);
+    params(end).beta0 = 0.99;
     params(end).nyT = 1;
     params(end).sd_logyT = 0;
-    
+    params(end).lambdaT = 0;
+    % params(end).gridspace_min = 0.001;
+
 %     % ii
 %     params(end+1) = setup.Params(1,'A a(ii) MeasError','');
 %     params(end).sd_logyT = sqrt(0.02);

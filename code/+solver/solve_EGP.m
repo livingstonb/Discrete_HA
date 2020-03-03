@@ -14,49 +14,51 @@ function model = solve_EGP(p, grids, heterogeneity,...
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
 
-    sgrid_repeated = repmat(grids.s.matrix(:), p.nb, 1);
+    %% ----------------------------------------------------
+    % USEFUL OBJECTS
+    % -----------------------------------------------------
+    ss_dims = [p.nx, p.nyP, p.nyF, p.nb];
+    ss_dims_aug = [ss_dims p.nyT];
+
+    repmat_to_state_space = ...
+        @(arr) aux.repmat_auto(arr, ss_dims);
+    repmat_to_state_space_aug = ...
+        @(arr) aux.repmat_auto(arr, ss_dims_aug);
+
+    reshape_to_state_space = ...
+        @(arr) reshape(arr, ss_dims);
+
+    sgrid_repeated = repmat_to_state_space_aug(grids.s.vec);
     sgrid_tax = p.compute_savtax(sgrid_repeated);
 
     %% ----------------------------------------------------
     % REGION WHERE NEXT PERIOD'S ASSETS GUARANTEED NON-NEG
     % ----------------------------------------------------- 
-    min_nety = min(income.netymat(:));
-    svalid = heterogeneity.R_broadcast .* grids.s.matrix...
-        + min_nety + nextmpcshock >= grids.x.matrix(1,:,:,:);
+    % min_nety = min(income.netymat(:));
+%     svalid = heterogeneity.R_broadcast .* grids.s.matrix...
+%         + min_nety + nextmpcshock >= grids.x.matrix(1,:,:,:);
     
     %% ----------------------------------------------------
     % CONSTRUCT EXPECTATIONS MATRIX, ETC...
     % -----------------------------------------------------
+    
     Emat = kron(income.ytrans_live, speye(p.nx));
     r_mat = heterogeneity.r_broadcast;
-    r_long = repmat(r_mat, [p.nx, p.nyP p.nyF, 1]);
+    r_long = repmat_to_state_space(r_mat);
     r_long = r_long(:);
 
-    if numel(p.r) == 1
-        r_long = repmat(r_long, p.nb, 1);
-    end
-
-    % initial guess for consumption function, stacked state combinations
-    % column vector of length p.nx * p.nyP * p.nyF * p.nb
-    if max(p.temptation) > 0.05
-        extra = 0.5;
-    else
-        extra = 0;
-    end
-    
-    con = (r_mat .* (r_mat>=0.001) + 0.001 * (r_mat<0.001) + extra) ...
-    	.* grids.x.matrix;
+    % initial guess for consumption function
+    tempt_adj = 0.5 * (max(p.temptation) > 0.05);
+    r_mat_adj = max(r_mat, 0.001);
+    con = (r_mat_adj + tempt_adj) .* grids.x.matrix;
     con = con(:);
     con(con<=0) = min(con(con>0));
+    con = reshape_to_state_space(con);
 
     % discount factor matrix, 
     % square matrix of dim p.nx*p.nyP*p.nyF*p.nb
-    if p.nbeta > 1
-        betastacked = kron(heterogeneity.betagrid, ones(p.nyP*p.nyF*p.nx,1));
-        betastacked = sparse(diag(betastacked));
-    else
-        betastacked = speye(p.nyP*p.nyF*p.nx*p.nb) * heterogeneity.betagrid;
-    end
+    betastacked = repmat_to_state_space(heterogeneity.betagrid_broadcast);
+    betastacked = sparse(diag(betastacked(:)));
 
     %% ----------------------------------------------------
     % EGP ITERATION
@@ -73,9 +75,6 @@ function model = solve_EGP(p, grids, heterogeneity,...
 
         % interpolate to get c(x') using c(x)
         
-        % c(x)
-        conlast = reshape(conlast, [p.nx p.nyP p.nyF p.nb]);
-        
         % x'(s)
         xp_s = get_xprime_s(p, income, grids, r_mat, nextmpcshock);
 
@@ -89,25 +88,21 @@ function model = solve_EGP(p, grids, heterogeneity,...
         % MUC in current period, from Euler equation
         muc_s = get_marginal_util_cons(...
         	p, income, grids, c_xp, xp_s, r_long, Emat, betastacked);
+        muc_s = reshape_to_state_space(muc_s);
      
         % c(s)
-        if numel(p.risk_aver) == 1
-            con_s = aux.u1inv(p.risk_aver, muc_s);
-        else
-            con_s = aux.u1inv(risk_aver_col, muc_s);
-        end
+        con_s = aux.u1inv(heterogeneity.risk_aver_broadcast, muc_s);
         
         % x(s) = s + stax + c(s)
         x_s = sgrid_repeated + sgrid_tax + con_s;
-        x_s = reshape(x_s, [p.nx p.nyP p.nyF p.nb]);
 
         % interpolate from x(s) to get s(x)
-        sav = get_saving_policy(p, grids, x_s, svalid, nextmpcshock);
-        sav_tax = p.compute_savtax(sav(:));
+        sav = get_saving_policy(p, grids, x_s, nextmpcshock);
+        sav_tax = p.compute_savtax(sav);
 
         % updated consumption function, column vec length of
         % length p.nx*p.nyP*p.nyF*p.nb
-        conupdate = grids.x.matrix(:) - sav(:) - sav_tax;
+        conupdate = grids.x.matrix - sav - sav_tax;
 
         cdiff = max(abs(conupdate(:)-conlast(:)));
         if mod(iter,50) ==0
@@ -158,7 +153,7 @@ function xprime_s = get_xprime_s(p, income, grids, r_mat, nextmpcshock)
     xprime_s = (1+r_mat) .* grids.s.matrix + income.netymatEGP + nextmpcshock;
 end
 
-function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast,nextmpcshock)
+function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshock)
 	% find c as a function of x'
 	c_xprime = zeros(p.nx,p.nyP,p.nyF,p.nb,p.nyT);
     
@@ -192,7 +187,7 @@ function c_xprime = get_c_xprime(p,grids,xp_s,prevmodel,conlast,nextmpcshock)
 end
 
 function muc_s = get_marginal_util_cons(...
-	p,income,grids,c_xp,xp_s,r_mat,Emat,betastacked)
+	p, income, grids, c_xp, xp_s, r_mat, Emat, betastacked)
 
 	% first get marginal utility of consumption next period
 	if numel(p.risk_aver) > 1
@@ -219,7 +214,7 @@ function muc_s = get_marginal_util_cons(...
                                             + p.dieprob * mu_bequest;
 end
 
-function sav = get_saving_policy(p, grids, x_s, svalid, nextmpcshock)
+function sav = get_saving_policy(p, grids, x_s, nextmpcshock)
 	% finds s(x), the saving policy function on the
 	% cash-on-hand grid
 
@@ -228,7 +223,7 @@ function sav = get_saving_policy(p, grids, x_s, svalid, nextmpcshock)
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
         for i = 1:p.nx
-            if (x_s(i,iyP,iyF,ib) < x_s(i+1,iyP,iyF,ib)) && svalid(i,iyP,iyF,ib)
+            if x_s(i,iyP,iyF,ib) < x_s(i+1,iyP,iyF,ib)
                 is_valid = i:p.nx;
                 break;
             end
@@ -237,7 +232,7 @@ function sav = get_saving_policy(p, grids, x_s, svalid, nextmpcshock)
             grids.s.matrix(is_valid,iyP,iyF), 'linear');
         sav(:,iyP,iyF,ib) = savinterp(grids.x.matrix(:,iyP,iyF,ib));
         
-        adj = grids.x.matrix(:,iyP,iyF) < x_s(1,iyP,iyF,ib);
+        adj = grids.x.matrix(:,iyP,iyF,ib) < x_s(1,iyP,iyF,ib);
         sav(adj,iyP,iyF,ib) = p.borrow_lim;
     end
     end

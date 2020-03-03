@@ -109,7 +109,7 @@ classdef Income < handle
                 obj.logyTgrid = reshape(obj.logyTgrid,[],1);
                 obj.yTdist = reshape(obj.yTdist,[],1);
                 obj.yTcumdist = cumsum(obj.yTdist,1);
-            elseif obj.p.nyT>1
+            elseif (obj.p.nyT>1) && (obj.p.sd_logyT>0)
                 %moments of mixture distribution
                 lmu2 = obj.p.lambdaT.*obj.p.sd_logyT^2;
                 lmu4 = 3.*obj.p.lambdaT.*(obj.p.sd_logyT^4);
@@ -128,6 +128,11 @@ classdef Income < handle
                 obj.logyTgrid = 0;
                 obj.yTdist = 1;
                 obj.yTcumdist = 1;
+            elseif obj.p.sd_logyT==0
+                obj.logyTgrid = linspace(-2, 2, obj.p.nyT)';
+                obj.yTdist = zeros(obj.p.nyT, 1);
+                obj.yTdist(median(1:obj.p.nyT)) = 1;
+                obj.yTcumdist = cumsum(obj.yTdist);
             end
             
             obj.yTgrid = exp(obj.logyTgrid);
