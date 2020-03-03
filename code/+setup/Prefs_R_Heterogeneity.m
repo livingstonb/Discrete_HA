@@ -17,6 +17,7 @@ classdef Prefs_R_Heterogeneity < handle
 		r_broadcast;
 
 		risk_aver_broadcast;
+		invies_broadcast;
 
 		zdist;
 		ztrans;
@@ -80,6 +81,10 @@ classdef Prefs_R_Heterogeneity < handle
 	    	n_risk_aver = numel(params.risk_aver);
 	    	obj.risk_aver_broadcast = reshape(params.risk_aver,...
 	    		[1, 1, 1, n_risk_aver]);
+
+	    	n_IES = numel(params.invies);
+	    	obj.invies_broadcast = reshape(params.invies,...
+	    		[1, 1, 1, n_IES]);
 		end
 
 		%% -------------------------------------------------------
