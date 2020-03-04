@@ -21,20 +21,20 @@ function model = solve_EGP(p, grids, heterogeneity,...
     ss_dims_aug = [ss_dims p.nyT];
 
     repmat_to_state_space = ...
-        @(arr) aux.repmat_auto(arr, ss_dims);
+        @(arr) aux.Reshape.repmat_auto(arr, ss_dims);
     repmat_to_state_space_aug = ...
-        @(arr) aux.repmat_auto(arr, ss_dims_aug);
+        @(arr) aux.Reshape.repmat_auto(arr, ss_dims_aug);
 
     reshape_to_state_space = ...
         @(arr) reshape(arr, ss_dims);
 
     if nextmpcshock >= 0
-        adj_borr_lim = p.borrow_lim;
+        adj_borr_lim = p.borrow_lim;;
     else
-        adj_borr_lim = max((min(grids.a.vec) - nextmpcshock - min(income.netymat(:))) ./ p.R, p.borrow_lim);
+        adj_borr_lim = max((p.borrow_lim - nextmpcshock - min(income.netymat(:))) ./ p.R, p.borrow_lim);;
     end
-    svec = grids.s.vec - p.borrow_lim + adj_borr_lim;
-    xmat = grids.x.matrix + p.R * (svec(1) - grids.s.vec(1));
+    svec = grids.s.vec + (adj_borr_lim - p.borrow_lim);
+    xmat = grids.x.matrix + p.R * (adj_borr_lim - p.borrow_lim);
 
     sgrid_tax = p.compute_savtax(svec);
 
@@ -49,7 +49,6 @@ function model = solve_EGP(p, grids, heterogeneity,...
     % Find xprime as a function of s
     tmp = R_bc .* svec + income.netymatEGP + nextmpcshock;
     xprime_s = repmat_to_state_space_aug(tmp);
-    xprime_s = max(xprime_s, 1e-8);
 
     %% ----------------------------------------------------
     % CONSTRUCT EXPECTATIONS MATRIX, ETC...
@@ -128,22 +127,40 @@ function model = solve_EGP(p, grids, heterogeneity,...
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        temp_coninterp = griddedInterpolant(...
-            xmat(:,iyP,iyF,ib), model.con(:,iyP,iyF,ib), 'linear');
-
         model.savinterp{iyP,iyF,ib} = griddedInterpolant(...
             xmat(:,iyP,iyF,ib), model.sav(:,iyP,iyF,ib), 'linear');
 
-        xmin = xmat(1,iyP,iyF,ib);
-        adjusted = @(arr, x) (x>=xmin) .* arr + (x<xmin) .* (arr + xmin - x);
-        model.coninterp{iyP,iyF,ib} = @(x) adjusted(temp_coninterp(x), x);
+        model.coninterp{iyP,iyF,ib} = griddedInterpolant(...
+            xmat(:,iyP,iyF,ib), model.con(:,iyP,iyF,ib), 'linear');
 
-        model.coninterp_xprime{iyP,iyF,ib} = model.coninterp{iyP,iyF,ib};
+        xmin = xmat(1,iyP,iyF,ib);
+        cmin = model.con(1,iyP,iyF,ib);
+        adjusted = @(arr, x) (x>=xmin) .* arr + (x<xmin) .* (cmin + x - xmin);
+        % model.coninterp_ext{iyP,iyF,ib} = @(x) adjusted(model.coninterp{iyP,iyF,ib}(x), x);
+        model.coninterp_ext{iyP,iyF,ib} = @(x) extend_interp(model.coninterp{iyP,iyF,ib}, x, xmin, cmin);
     end
     end
     end
 end
 
+function out = extend_interp(old_interpolant, qvals, gridmin, valmin)
+    out = zeros(size(qvals));
+    adj = qvals < gridmin;
+    out(~adj) = old_interpolant(qvals(~adj));
+    out(adj) = valmin + qvals(adj) - gridmin;
+
+    out(adj) = min(out(adj), qvals(adj));
+    out = max(out, 1e-7);
+end
+
+% function out = extend_interp(old_interpolant, qvals, gridmin, valmin)
+%     out = size(qvals);
+%     adj = qvals < gridmin;
+%     out(adj) = qvals(adj);
+%     out(~adj) = old_interpolant(qvals(~adj));
+    
+%     out = max(out, 1e-7);
+% end
 
 function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshock, xmat)
 	% find c as a function of x'
@@ -165,7 +182,7 @@ function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshoc
             % need to compute IMPC(s,t) for s > 1, where IMPC(s,t) is MPC in period t out of period
             % s shock that was learned about in period 1 < s
             c_xprime(:,iyP,iyF,ib,:) = reshape(...
-                prevmodel.coninterp_xprime{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)), dims_nx_nyT);
+                prevmodel.coninterp_ext{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)), dims_nx_nyT);
         end
     end
     end
@@ -182,7 +199,7 @@ function muc_s = get_marginal_util_cons(...
 
 	% First get marginal utility of consumption next period
 	muc_c = aux.utility1(risk_aver_bc, c_xp);
-    muc_tempt = -tempt_expr .* aux.utility1(risk_aver_bc, xp_s);
+    muc_tempt = -tempt_expr .* aux.utility1(risk_aver_bc, xp_s+1e-7);
     mucnext = reshape(muc_c(:) + muc_tempt(:), [], p.nyT);
 
     % Integrate

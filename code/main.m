@@ -252,7 +252,7 @@ function results = main(p)
             % mpcmodels{ishock,s,t} stores the policy functions associated with the case
             % where the household is currently in period t, but recieved news about
             % the period-s shock in period 1. Shock was of size shocks(ishock)
-            model_lagged = cell(6,maxT-1);
+            model_lagged = cell(maxT-1, 1);
 
             % get consumption functions conditional on future shock
             % 'lag' is number of periods before shock
@@ -265,17 +265,17 @@ function results = main(p)
                     else
                         % no shock next period
                         nextmpcshock = 0;
-                        nextmodel = model_lagged{ishock,lag-1};
+                        nextmodel = model_lagged{lag-1};
                     end
 
-                    model_lagged{ishock,lag} = solver.solve_EGP(...
+                    model_lagged{lag} = solver.solve_EGP(...
                         p, grdEGP, heterogeneity, income, nextmpcshock, nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s
                 for is = 2:maxT
                 for it = is-1:-1:1
-                    mpcmodels{ishock,is,it} = model_lagged{ishock,is-it};
+                    mpcmodels{ishock,is,it} = model_lagged{is-it};
                 end
                 end
             end

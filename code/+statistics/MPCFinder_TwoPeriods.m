@@ -31,9 +31,6 @@ classdef MPCFinder_TwoPeriods < handle
 		    end
 		    con_baseline = xgrid - sav_baseline;
 
-
-
-
 		    xmpc = obj.grids.a.matrix + obj.income.netymat_broadcast + obj.p.shocks(5);
 
 			sav = zeros(obj.p.nx_DST,obj.p.nyP,obj.p.nyF,obj.p.nb,obj.p.nyT);

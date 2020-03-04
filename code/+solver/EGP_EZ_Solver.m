@@ -68,9 +68,9 @@ classdef EGP_EZ_Solver < handle
 		    obj.ss_dims_aug = [obj.ss_dims p.nyT];
 
 		    obj.repmat_to_state_space = ...
-		        @(arr) aux.repmat_auto(arr, obj.ss_dims);
+		        @(arr) aux.Reshape.repmat_auto(arr, obj.ss_dims);
 		    obj.repmat_to_state_space_aug = ...
-		        @(arr) aux.repmat_auto(arr, obj.ss_dims_aug);
+		        @(arr) aux.Reshape.repmat_auto(arr, obj.ss_dims_aug);
 		    obj.reshape_to_state_space = ...
 		        @(arr) reshape(arr, obj.ss_dims);
 
