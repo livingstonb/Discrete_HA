@@ -49,8 +49,7 @@ classdef MPCFinder < handle
 			obj.p = p;
 			obj.income = income;
 
-			obj.xgrid_yT = grids.a.vec + income.netymat_broadcast;
-            obj.xgrid_yT = repmat(obj.xgrid_yT, [1 1 1 p.nb]);
+			obj.xgrid_yT = grids.a.matrix + income.netymat_broadcast;
 			obj.grids = grids;
 
 			obj.ss_dims = [p.nx_DST p.nyP p.nyF p.nb];
@@ -195,11 +194,25 @@ classdef MPCFinder < handle
                 mpc_neg = sum(dist_vec(mpcs(:)<0));
                 mpc0 = sum(dist_vec(mpcs(:)==0));
 
-                sorted_mat = sortrows([mpcs(:) dist_vec]);
-                cumdist = cumsum(sorted_mat(:,2));
-                [cumdist, iunique] = unique(cumdist,'last');
-                sorted_mpcs = sorted_mat(iunique,1);
-                mpc_median = interp1(cumdist, sorted_mpcs, 0.5);
+                reshape_vec = [obj.p.nx_DST, obj.p.nyP*obj.p.nyF, obj.p.nb];
+                mpc_p = mpcs(:) .* obj.basemodel.adist(:);
+                mpc_p = reshape(mpc_p, reshape_vec);
+                p_xb = reshape(obj.basemodel.adist, reshape_vec);
+                p_xb = sum(p_xb, 2);
+
+                p_small = p_xb < 1e-8;
+
+                mpc_xb = sum(mpc_p, 2) ./ p_xb;
+                mpc_xb = mpc_xb(~p_small);
+                mpcs_sorted = sortrows([mpc_xb, p_xb(~p_small)]);
+                mpc_xb = mpcs_sorted(:,1);
+                cdf_xb = cumsum(mpcs_sorted(:,2));
+
+                [mpc_xb, uniq] = unique(mpc_xb, 'last');
+                cdf_xb = cdf_xb(uniq);
+
+                interp_mpc = griddedInterpolant(cdf_xb, mpc_xb, 'linear');
+                mpc_median = interp_mpc(0.5);
         
                 if sum(dist_vec(loc_pos)) > 0
                 	mpc_condl = dist_vec(loc_pos)' * mpcs(loc_pos) / sum(dist_vec(loc_pos));
