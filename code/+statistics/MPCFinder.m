@@ -170,7 +170,7 @@ classdef MPCFinder < handle
 					x_mpc = obj.xgrid_yT;
 				end
 
-				if shock < 0
+				if (shock < 0) && (it == shockperiod)
 	            	% record which states are pushed below asset grid after negative shock
 	                % bring back up to asset grid for interpolation
 	                below_xgrid = false(size(x_mpc));
@@ -189,11 +189,11 @@ classdef MPCFinder < handle
 	            if (shock < 0) && (it == shockperiod)
 	                % make consumption for cases pushed below xgrid equal to consumption
 	                % at bottom of xgrid - the amount borrowed
-	                x_before_shock = reshape(grids.x.matrix, [p.nx_DST p.nyP p.nyF p.nb]);
-	                x_minus_xmin = x_before_shock - grids.x.matrix(1,:,:,:);
-	            	con = ~below_xgrid .* con ...
-	            		+ below_xgrid .* (obj.con_baseline_yT(1,:,:,:,:)...
-	            							+ shock + x_minus_xmin);
+	                % x_before_shock = reshape(grids.x.matrix, [p.nx_DST p.nyP p.nyF p.nb]);
+	                % x_minus_xmin = obj.xgrid_yT - grids.x.matrix(1,:,:,:);
+
+	                xmin_minus_x = grids.x.matrix(1,:,:,:) - x_mpc;
+	            	con = con + below_xgrid .* xmin_minus_x;
 	            end
 
 	            % expectation over yT

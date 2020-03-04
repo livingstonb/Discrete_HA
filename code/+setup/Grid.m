@@ -4,6 +4,7 @@ classdef Grid < handle
 
 	properties (SetAccess = private)
 		x; % cash-on-hand grids
+		x_extended;
 		s; % savings grids
 		a; % asset grid
 		gtype;
@@ -33,6 +34,7 @@ classdef Grid < handle
 
 			obj.create_sgrid(params);
 			obj.create_xgrid(params, income);
+			obj.create_xgrid_extended(params, income);
 			obj.create_norisk_xgrid(params, income);
             obj.create_agrid(params);
 
@@ -84,6 +86,18 @@ classdef Grid < handle
 			end
 
 			obj.x.matrix = xgrid;
+		end
+
+		function obj = create_xgrid_extended(obj, params, income)
+			tmp = obj.x.matrix;
+
+			new_pts = create_curved_grid(...
+				-0.081, 0, 20,...
+				params.xgrid_par, false);
+			new_pts = params.R * new_pts(1:end-1);
+			new_pts = repmat(new_pts, [1, params.nyP, params.nyF, params.nb]);
+
+			obj.x_extended = [new_pts; tmp];
 		end
 
 		function obj = create_norisk_xgrid(obj, params, income)

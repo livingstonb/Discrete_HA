@@ -51,13 +51,13 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = true; % use server paths
-runopts.calibrate = true;
+runopts.Server = false; % use server paths
+runopts.calibrate = false;
 runopts.fast = false; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
 runopts.MPCs = true;
-runopts.MPCs_news = false;
+runopts.MPCs_news = true;
 runopts.MPCs_loan_and_loss = false;
 runopts.DeterministicMPCs = true; % must be on if decompositions are needed
 runopts.SaveOutput = true;
@@ -74,10 +74,10 @@ elseif ispc
 end
 
 % name of parameters script
-runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'parameters_other'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {'Q Permanent r het, r in {0,2,4} p.a.'};
+runopts.names_to_run = {'target_assets_lt_1000_no_adj_costs'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------
@@ -119,19 +119,7 @@ addpath([runopts.path '/code/aux_lib']);
 cd(runopts.path);
 
 % Load parameters
-all_names = table();
-switch runopts.mode
-    case 'parameters'
-        [params, all_names] = setup.parameters(runopts);
-    case 'EZtests'
-        params = setup.parameters_EZtests(runopts);
-    case 'other'
-        params = setup.parameters_other(runopts);
-    case 'loose_borr_constraint'
-        params = setup.parameters_loose_borr_constraint(runopts);
-    otherwise
-        error('Parameters script not found')
-end
+[params, all_names] = setup.(runopts.mode)(runopts);
 Nparams = size(params, 2);
 
 %% ------------------------------------------------------------------------

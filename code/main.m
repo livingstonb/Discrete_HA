@@ -294,6 +294,10 @@ function results = main(p)
     results.direct.loss_in_2_years = mpc_finder.loss_in_2_years;
     clear mpc_finder
     
+%     
+%     mpcs_twoperiods = statistics.MPCFinder_TwoPeriods(p, grdDST, income, basemodel);
+%     mpcs_twoperiods.compute_mpcs();
+    
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------

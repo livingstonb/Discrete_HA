@@ -94,7 +94,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
         x_s = grids.s.vec + sgrid_tax + con_s;
 
         % interpolate from x(s) to get s(x)
-        sav = get_saving_policy(p, grids, x_s);
+        sav = get_saving_policy(p, grids, x_s, nextmpcshock, R_bc);
         sav_tax = p.compute_savtax(sav);
 
         % updated consumption function, column vec length of
@@ -120,6 +120,9 @@ function model = solve_EGP(p, grids, heterogeneity,...
 
     % create interpolants from optimal policy functions
     % and find saving values associated with xvals
+    max_sav = (p.borrow_lim - min(income.netymat(:)) - nextmpcshock) ./ p.R;
+    xmat_adj = max(grids.x.matrix, max_sav);
+
     model.savinterp = cell(p.nyP,p.nyF,p.nb);
     model.coninterp = cell(p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
@@ -127,12 +130,15 @@ function model = solve_EGP(p, grids, heterogeneity,...
     for iyP = 1:p.nyP
         model.savinterp{iyP,iyF,ib} =  griddedInterpolant(...
             grids.x.matrix(:,iyP,iyF,ib), model.sav(:,iyP,iyF,ib), 'linear');
+
         model.coninterp{iyP,iyF,ib} = griddedInterpolant(...
             grids.x.matrix(:,iyP,iyF,ib), model.con(:,iyP,iyF,ib), 'linear');
 
-        xmin = grids.x.matrix(1,iyP,iyF,ib);
-        model.coninterp_xprime{iyP,iyF,ib} = @(xprime) new_con_interp(...
-            model.coninterp{iyP,iyF,ib}, xprime, nextmpcshock, xmin);
+        % xmin = grids.x.matrix(1,iyP,iyF,ib);
+        % model.coninterp_xprime{iyP,iyF,ib} = @(xprime) new_con_interp(...
+        %     model.coninterp{iyP,iyF,ib}, xprime, nextmpcshock, xmin);
+
+        model.coninterp_xprime{iyP,iyF,ib} = model.coninterp{iyP,iyF,ib};
     end
     end
     end
@@ -145,42 +151,43 @@ function result = new_con_interp(old_con_interp, xprime, nextmpcshock, xmin)
     result(~valid) = 1e-8;
 end
 
+function result = new_con_interp2(old_con_interp, xprime, nextmpcshock, xmin)
+    valid = xprime > xmin;
+    result = zeros(size(xprime));
+    result(valid) = old_con_interp(xprime(valid));
+    result(~valid) = old_con_interp(xmin);
+end
+
 function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshock)
 	% find c as a function of x'
 	c_xprime = zeros(size(xp_s));
     dims_nx_nyT = [p.nx, 1, 1, 1, p.nyT];
-    
-    % if nextmpcshock >= 0
-    %     ixp_valid = 1:p.nx;
-    % else
-    %     xpvalid = grids.x.matrix + nextmpcshock >= grids.x.matrix(1,:,:,:);
-    % end
-
-    ixp_valid = 1:p.nx;
 
 	for ib  = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        % if nextmpcshock < 0
-        %     ixp_valid = find(xpvalid(:,iyP,iyF,ib));
-        % end
-    	xp_s_ib_iyF_iyP = xp_s(ixp_valid,iyP,iyF,ib,:);
+    	xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
 
         if isempty(prevmodel)
             % usual method of EGP
             coninterp = griddedInterpolant(...
-                grids.x.matrix(ixp_valid,iyP,iyF,ib), conlast(ixp_valid,iyP,iyF,ib), 'linear');
-            c_xprime(ixp_valid,iyP,iyF,ib,:) = reshape(...
+                grids.x.matrix(:,iyP,iyF,ib), conlast(:,iyP,iyF,ib), 'linear');
+            c_xprime(:,iyP,iyF,ib,:) = reshape(...
                 coninterp(xp_s_ib_iyF_iyP(:)), dims_nx_nyT);
         else
             % need to compute IMPC(s,t) for s > 1, where IMPC(s,t) is MPC in period t out of period
             % s shock that was learned about in period 1 < s
-            c_xprime(ixp_valid,iyP,iyF,ib,:) = reshape(...
+            c_xprime(:,iyP,iyF,ib,:) = reshape(...
                 prevmodel.coninterp_xprime{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)), dims_nx_nyT);
         end
+
+        % c_xprime(~ixp_valid,iyP,iyF,ib,:) = 1e-10;
     end
     end
     end
+
+    % adj = xp_s < grids.x.matrix(1,:,:,:);
+    % c_xprime(adj) = 1e-10;
 end
 
 function muc_s = get_marginal_util_cons(...
@@ -207,30 +214,53 @@ function muc_s = get_marginal_util_cons(...
         + p.dieprob * muc_beq;
 end
 
-function sav = get_saving_policy(p, grids, x_s)
+function sav = get_saving_policy(p, grids, x_s, nextmpcshock, R_bc)
 	% finds s(x), the saving policy function on the
 	% cash-on-hand grid
+
+    if nextmpcshock >= 0
+        adj_borr_lim = p.borrow_lim;
+    else
+        adj_borr_lim = (min(grids.a.vec) - nextmpcshock) ./ R_bc;
+    end
+    is_valid = grids.s.vec >= adj_borr_lim;
+    svec = grids.s.vec(is_valid);
 
 	sav = zeros(size(x_s));
     for ib  = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        for i = 1:p.nx
-            if x_s(i,iyP,iyF,ib) < x_s(i+1,iyP,iyF,ib)
-                is_valid = i:p.nx;
-                break;
-            end
+        % for i = 1:p.nx
+        %     if x_s(i,iyP,iyF,ib) < x_s(i+1,iyP,iyF,ib)
+        %         is_valid = 
+        %         break;
+        %     end
+        % end
+        x_s_valid = x_s(is_valid,iyP,iyF,ib);
+        savinterp = griddedInterpolant(x_s_valid,...
+            svec, 'linear');
+        sav(is_valid,iyP,iyF,ib) = savinterp(...
+            grids.x.matrix(is_valid,iyP,iyF,ib));
+
+        if nextmpcshock >= 0     
+            adj = grids.x.matrix(:,iyP,iyF,ib) < x_s(1,iyP,iyF,ib);
+            sav(adj,iyP,iyF,ib) = adj_borr_lim;
+        else
+            % invalid_s = grids.s.vec < adj_borr_lim;
+            % x_s_star = x_s(invalid_s,iyP,iyF,ib);
+            % x_s_star = x_s_star(end);
+
+            % adj = grids.x.matrix(:,iyP,iyF,ib) < x_s_star;
+            % sav(is_valid,iyP,iyF,ib) = adj_borr_lim;
         end
-        savinterp = griddedInterpolant(x_s(is_valid,iyP,iyF,ib),...
-            grids.s.matrix(is_valid,iyP,iyF), 'linear');
-        sav(:,iyP,iyF,ib) = savinterp(grids.x.matrix(:,iyP,iyF,ib));
-        
-        adj = grids.x.matrix(:,iyP,iyF,ib) < x_s(1,iyP,iyF,ib);
-        sav(adj,iyP,iyF,ib) = p.borrow_lim;
     end
     end
     end
 
     % % deal with borrowing limit
-    % sav(sav<p.borrow_lim) = p.borrow_lim;
+    % sav = max(sav, adj_borr_lim);
+
+    if nextmpcshock < 0
+        sav(~is_valid,:,:,:) = adj_borr_lim;
+    end
 end

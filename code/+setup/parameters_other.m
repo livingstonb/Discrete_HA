@@ -1,9 +1,15 @@
-function params = parameters_other(runopts)
+function [params, all_names] = parameters_other(runopts)
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
 
+    import aux.set_shared_fields
+
     % location of baseline income process for quarterly case
-    QIncome = 'input/income_quarterly_b.mat';
+    quarterly_b_path = 'input/income_quarterly_b_contyT.mat';
+
+    quarterly_b_params = struct();
+    quarterly_b_params.sd_logyT = sqrt(0.6376);
+    quarterly_b_params.lambdaT = 0.25;
     
     %----------------------------------------------------------------------
     % EXPERIMENTS
@@ -12,11 +18,16 @@ function params = parameters_other(runopts)
     shocks = [-0.0081, -0.0405, -0.081, 0.0081, 0.0405, 0.081];
 
     % Quarterly
-    params = setup.Params(4, 'target_assets_lt_1000_no_adj_costs', QIncome);
+    params = setup.Params(4, 'target_assets_lt_1000_no_adj_costs', quarterly_b_path);
+    params = set_shared_fields(params, quarterly_b_params);
     params.lumptransfer = 0.0081 * 2.0 * 4.0;
     params.beta0 = 0.867871450985079;
     params.shocks = shocks;
-
+    params.nx = 100;
+    params.nx_DST = 100;
+    params.xgrid_par = 0.3;
+    params.xmax = 50;
+    params.gridspace_min = 0.0001;
 
     % params = setup.Params(4,'wealth3.2',QIncome);
     % params.targetAY = 3.2;
