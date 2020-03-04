@@ -130,21 +130,16 @@ classdef MPCFinder < handle
 		function con = get_policy(obj, p, x_mpc, model)
 			% Computes consumption policy function after taking expectation to get
 		    % rid of yT dependence
-		    sav = zeros(p.nx_DST,p.nyP,p.nyF,p.nb,p.nyT);
+		    con = zeros(p.nx_DST,p.nyP,p.nyF,p.nb,p.nyT);
 		    for ib = 1:p.nb
 		    for iyF = 1:p.nyF
 		    for iyP = 1:p.nyP
 		        x_iyP_iyF_iyT = x_mpc(:,iyP,iyF,ib,:);
-		        sav_iyP_iyF_iyT = model.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
-		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT, [p.nx_DST 1 1 1 p.nyT]);
+		        con_iyP_iyF_iyT = model.coninterp{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
+		        con(:,iyP,iyF,ib,:) = reshape(con_iyP_iyF_iyT, [p.nx_DST 1 1 1 p.nyT]);
 		    end
 		    end
 		    end
-		    sav = max(sav, p.borrow_lim);
-		    sav_tax = p.compute_savtax(sav);
-
-		    x_mpc = reshape(x_mpc,[p.nx_DST p.nyP p.nyF p.nb p.nyT]);
-		    con = x_mpc - sav - sav_tax;
 		end
 
 		function computeMPCs(obj, p, grids, ishock, shockperiod, loan)
@@ -192,7 +187,7 @@ classdef MPCFinder < handle
 	                % x_before_shock = reshape(grids.x.matrix, [p.nx_DST p.nyP p.nyF p.nb]);
 	                % x_minus_xmin = obj.xgrid_yT - grids.x.matrix(1,:,:,:);
 
-	                xmin_minus_x = grids.x.matrix(1,:,:,:) - x_mpc;
+	                xmin_minus_x = grids.x.matrix(1,:,:,:) - (obj.xgrid_yT + shock);
 	            	con = con + below_xgrid .* xmin_minus_x;
 	            end
 
@@ -305,6 +300,12 @@ classdef MPCFinder < handle
             end
 			x_mpc = obj.xgrid_yT + shock;
 
+			if (ii == is - 1) && (p.shocks(ishock) < 0)
+				adj_borr_lim = (min(obj.grids.a.vec) - p.shocks(ishock)) ./ p.R;
+			else
+		        adj_borr_lim = p.borrow_lim;
+		    end
+
 			% get saving policy function
 			sav = zeros(p.nx_DST,p.nyP,p.nyF,p.nb,p.nyT);
 			reshape_vec = [p.nx_DST 1 1 1 p.nyT];
@@ -319,17 +320,12 @@ classdef MPCFinder < handle
                 end
 		        
                 sav_iyP_iyF_iyT = obj.models{ishock,is,ii}.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT);
-                
-		        if (shock < 0) && (ii == is)
-		            sav_iyP_iyF_iyT(below_xgrid) = p.borrow_lim;
-		        end
-
 		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT, reshape_vec);
 			end
 			end
 			end
 
-			sav = max(sav,p.borrow_lim);
+			sav = max(sav, adj_borr_lim);
 
 			% next period's assets conditional on living
 			aprime_live = (1+repmat(obj.r_mat, [1 1 1 1 p.nyT])) .* sav;

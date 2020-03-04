@@ -10,6 +10,7 @@ function [params, all_names] = parameters_other(runopts)
     quarterly_b_params = struct();
     quarterly_b_params.sd_logyT = sqrt(0.6376);
     quarterly_b_params.lambdaT = 0.25;
+    quarterly_b_params.nyT = 3;
     
     %----------------------------------------------------------------------
     % EXPERIMENTS
@@ -86,4 +87,18 @@ function [params, all_names] = parameters_other(runopts)
     %     calibrator.set_handle(params);
     %     params.set("calibrator", calibrator, true);
     % end
+end
+
+function calibrator = lt_1000_calibrator(p)
+    import solver.Calibrator
+
+    param_name = {'beta0'};
+    stat_name = {'mean_a'};
+    stat_target = p.target_value;
+
+    calibrator = Calibrator(p, param_name,...
+        stat_name, stat_target);
+
+    beta_bounds = [p.betaL, p.betaH];
+    calibrator.set_param_bounds(beta_bounds);
 end

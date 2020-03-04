@@ -28,7 +28,15 @@ function model = solve_EGP(p, grids, heterogeneity,...
     reshape_to_state_space = ...
         @(arr) reshape(arr, ss_dims);
 
-    sgrid_tax = p.compute_savtax(grids.s.vec);
+    if nextmpcshock >= 0
+        adj_borr_lim = p.borrow_lim;
+    else
+        adj_borr_lim = max((min(grids.a.vec) - nextmpcshock - min(income.netymat(:))) ./ p.R, p.borrow_lim);
+    end
+    svec = grids.s.vec - p.borrow_lim + adj_borr_lim;
+    xmat = grids.x.matrix + p.R * (svec(1) - grids.s.vec(1));
+
+    sgrid_tax = p.compute_savtax(svec);
 
     r_bc = heterogeneity.r_broadcast;
     R_bc = heterogeneity.R_broadcast;
@@ -39,16 +47,10 @@ function model = solve_EGP(p, grids, heterogeneity,...
     betagrid_bc = heterogeneity.betagrid_broadcast;
 
     % Find xprime as a function of s
-    tmp = R_bc .* grids.s.matrix + income.netymatEGP + nextmpcshock;
+    tmp = R_bc .* svec + income.netymatEGP + nextmpcshock;
     xprime_s = repmat_to_state_space_aug(tmp);
+    xprime_s = max(xprime_s, 1e-8);
 
-    %% ----------------------------------------------------
-    % REGION WHERE NEXT PERIOD'S ASSETS GUARANTEED NON-NEG
-    % ----------------------------------------------------- 
-    % min_nety = min(income.netymat(:));
-%     svalid = heterogeneity.R_broadcast .* grids.s.matrix...
-%         + min_nety + nextmpcshock >= grids.x.matrix(1,:,:,:);
-    
     %% ----------------------------------------------------
     % CONSTRUCT EXPECTATIONS MATRIX, ETC...
     % -----------------------------------------------------
@@ -58,7 +60,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
     % Initial guess for consumption function
     tempt_adj = 0.5 * (max(p.temptation) > 0.05);
     r_mat_adj = max(r_bc, 0.001);
-    con = (r_mat_adj + tempt_adj) .* grids.x.matrix;
+    con = (r_mat_adj + tempt_adj) .* xmat;
     con = con(:);
     con(con<=0) = min(con(con>0));
     con = reshape_to_state_space(con);
@@ -79,27 +81,26 @@ function model = solve_EGP(p, grids, heterogeneity,...
         % interpolate to get c(x') using c(x)
 
         % c(x')
-        c_xp = get_c_xprime(p, grids, xprime_s, prevmodel, conlast, nextmpcshock);
+        c_xp = get_c_xprime(p, grids, xprime_s, prevmodel, conlast, nextmpcshock, xmat);
 
         % MUC in current period, from Euler equation
         muc_s = get_marginal_util_cons(...
             p, income, grids, c_xp, xprime_s, R_bc,...
             Emat, betagrid_bc, heterogeneity.risk_aver_broadcast,...
-            tempt_expr);
+            tempt_expr, svec);
      
         % c(s)
         con_s = aux.u1inv(heterogeneity.risk_aver_broadcast, muc_s);
         
         % x(s) = s + stax + c(s)
-        x_s = grids.s.vec + sgrid_tax + con_s;
+        x_s = svec + sgrid_tax + con_s;
 
         % interpolate from x(s) to get s(x)
-        sav = get_saving_policy(p, grids, x_s, nextmpcshock, R_bc);
+        sav = get_saving_policy(p, grids, x_s, nextmpcshock, R_bc, svec, xmat);
         sav_tax = p.compute_savtax(sav);
 
         % updated consumption function, column vec length of
-        % length p.nx*p.nyP*p.nyF*p.nb
-        conupdate = grids.x.matrix - sav - sav_tax;
+        conupdate = xmat - sav - sav_tax;
 
         cdiff = max(abs(conupdate(:)-conlast(:)));
         if mod(iter,50) ==0
@@ -120,23 +121,22 @@ function model = solve_EGP(p, grids, heterogeneity,...
 
     % create interpolants from optimal policy functions
     % and find saving values associated with xvals
-    max_sav = (p.borrow_lim - min(income.netymat(:)) - nextmpcshock) ./ p.R;
-    xmat_adj = max(grids.x.matrix, max_sav);
+    % max_sav = (p.borrow_lim - min(income.netymat(:)) - nextmpcshock) ./ p.R;
 
     model.savinterp = cell(p.nyP,p.nyF,p.nb);
     model.coninterp = cell(p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        model.savinterp{iyP,iyF,ib} =  griddedInterpolant(...
-            grids.x.matrix(:,iyP,iyF,ib), model.sav(:,iyP,iyF,ib), 'linear');
+        temp_coninterp = griddedInterpolant(...
+            xmat(:,iyP,iyF,ib), model.con(:,iyP,iyF,ib), 'linear');
 
-        model.coninterp{iyP,iyF,ib} = griddedInterpolant(...
-            grids.x.matrix(:,iyP,iyF,ib), model.con(:,iyP,iyF,ib), 'linear');
+        model.savinterp{iyP,iyF,ib} = griddedInterpolant(...
+            xmat(:,iyP,iyF,ib), model.sav(:,iyP,iyF,ib), 'linear');
 
-        % xmin = grids.x.matrix(1,iyP,iyF,ib);
-        % model.coninterp_xprime{iyP,iyF,ib} = @(xprime) new_con_interp(...
-        %     model.coninterp{iyP,iyF,ib}, xprime, nextmpcshock, xmin);
+        xmin = xmat(1,iyP,iyF,ib);
+        adjusted = @(arr, x) (x>=xmin) .* arr + (x<xmin) .* (arr + xmin - x);
+        model.coninterp{iyP,iyF,ib} = @(x) adjusted(temp_coninterp(x), x);
 
         model.coninterp_xprime{iyP,iyF,ib} = model.coninterp{iyP,iyF,ib};
     end
@@ -144,21 +144,8 @@ function model = solve_EGP(p, grids, heterogeneity,...
     end
 end
 
-function result = new_con_interp(old_con_interp, xprime, nextmpcshock, xmin)
-    valid = xprime + nextmpcshock >= xmin;
-    result = zeros(size(xprime));
-    result(valid) = old_con_interp(xprime(valid));
-    result(~valid) = 1e-8;
-end
 
-function result = new_con_interp2(old_con_interp, xprime, nextmpcshock, xmin)
-    valid = xprime > xmin;
-    result = zeros(size(xprime));
-    result(valid) = old_con_interp(xprime(valid));
-    result(~valid) = old_con_interp(xmin);
-end
-
-function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshock)
+function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshock, xmat)
 	% find c as a function of x'
 	c_xprime = zeros(size(xp_s));
     dims_nx_nyT = [p.nx, 1, 1, 1, p.nyT];
@@ -171,7 +158,7 @@ function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshoc
         if isempty(prevmodel)
             % usual method of EGP
             coninterp = griddedInterpolant(...
-                grids.x.matrix(:,iyP,iyF,ib), conlast(:,iyP,iyF,ib), 'linear');
+                xmat(:,iyP,iyF,ib), conlast(:,iyP,iyF,ib), 'linear');
             c_xprime(:,iyP,iyF,ib,:) = reshape(...
                 coninterp(xp_s_ib_iyF_iyP(:)), dims_nx_nyT);
         else
@@ -180,21 +167,17 @@ function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshoc
             c_xprime(:,iyP,iyF,ib,:) = reshape(...
                 prevmodel.coninterp_xprime{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)), dims_nx_nyT);
         end
-
-        % c_xprime(~ixp_valid,iyP,iyF,ib,:) = 1e-10;
     end
     end
     end
-
-    % adj = xp_s < grids.x.matrix(1,:,:,:);
-    % c_xprime(adj) = 1e-10;
 end
 
 function muc_s = get_marginal_util_cons(...
 	p, income, grids, c_xp, xp_s, R_bc,...
-    Emat, betagrid_bc, risk_aver_bc, tempt_expr)
+    Emat, betagrid_bc, risk_aver_bc, tempt_expr,...
+    svec)
 
-    savtaxrate = (1 + p.savtax .* (grids.s.matrix >= p.savtaxthresh));
+    savtaxrate = (1 + p.savtax .* (svec >= p.savtaxthresh));
     savtaxrate = repmat(savtaxrate, [1, 1, 1, p.nb]);
 
 	% First get marginal utility of consumption next period
@@ -208,59 +191,31 @@ function muc_s = get_marginal_util_cons(...
 
     muc_c_today = R_bc .* betagrid_bc .* expectation;
     muc_beq = aux.utility_bequests1(p.bequest_curv, p.bequest_weight,...
-        p.bequest_luxury, grids.s.matrix);
+        p.bequest_luxury, svec);
 
     muc_s = (1 - p.dieprob) * muc_c_today ./ savtaxrate ...
         + p.dieprob * muc_beq;
 end
 
-function sav = get_saving_policy(p, grids, x_s, nextmpcshock, R_bc)
+function sav = get_saving_policy(p, grids, x_s, nextmpcshock, R_bc,...
+    svec, xmat)
 	% finds s(x), the saving policy function on the
 	% cash-on-hand grid
 
-    if nextmpcshock >= 0
-        adj_borr_lim = p.borrow_lim;
-    else
-        adj_borr_lim = (min(grids.a.vec) - nextmpcshock) ./ R_bc;
-    end
-    is_valid = grids.s.vec >= adj_borr_lim;
-    svec = grids.s.vec(is_valid);
-
-	sav = zeros(size(x_s));
+    sav = zeros(size(x_s));
+    xstar = zeros(p.nyP,p.nyF,p.nb);
     for ib  = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
-        % for i = 1:p.nx
-        %     if x_s(i,iyP,iyF,ib) < x_s(i+1,iyP,iyF,ib)
-        %         is_valid = 
-        %         break;
-        %     end
-        % end
-        x_s_valid = x_s(is_valid,iyP,iyF,ib);
-        savinterp = griddedInterpolant(x_s_valid,...
+        adj = xmat(:,iyP,iyF,ib) < x_s(1,iyP,iyF,ib);
+        sav(adj,iyP,iyF,ib) = svec(1);
+
+        savinterp = griddedInterpolant(x_s(:,iyP,iyF,ib),...
             svec, 'linear');
-        sav(is_valid,iyP,iyF,ib) = savinterp(...
-            grids.x.matrix(is_valid,iyP,iyF,ib));
 
-        if nextmpcshock >= 0     
-            adj = grids.x.matrix(:,iyP,iyF,ib) < x_s(1,iyP,iyF,ib);
-            sav(adj,iyP,iyF,ib) = adj_borr_lim;
-        else
-            % invalid_s = grids.s.vec < adj_borr_lim;
-            % x_s_star = x_s(invalid_s,iyP,iyF,ib);
-            % x_s_star = x_s_star(end);
-
-            % adj = grids.x.matrix(:,iyP,iyF,ib) < x_s_star;
-            % sav(is_valid,iyP,iyF,ib) = adj_borr_lim;
-        end
+        sav(~adj,iyP,iyF,ib) = savinterp(...
+            xmat(~adj,iyP,iyF,ib));
     end
     end
-    end
-
-    % % deal with borrowing limit
-    % sav = max(sav, adj_borr_lim);
-
-    if nextmpcshock < 0
-        sav(~is_valid,:,:,:) = adj_borr_lim;
     end
 end

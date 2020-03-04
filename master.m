@@ -58,7 +58,7 @@ runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
 runopts.MPCs = true;
 runopts.MPCs_news = true;
-runopts.MPCs_loan_and_loss = false;
+runopts.MPCs_loan_and_loss = true;
 runopts.DeterministicMPCs = true; % must be on if decompositions are needed
 runopts.SaveOutput = true;
 
