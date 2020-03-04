@@ -18,6 +18,7 @@ classdef MPCFinder < handle
 		Nstates; % total number of states
 		r_mat; % matrix of interest rates, if more than 1
 
+		p;
 		income;
 		grids;
 
@@ -33,6 +34,9 @@ classdef MPCFinder < handle
 		mpcs = struct(); % results
 		loan = struct();
 		loss_in_2_years = struct();
+
+		ss_dims;
+		ss_dims_aug;
 	end
 
 	methods
@@ -42,11 +46,15 @@ classdef MPCFinder < handle
 			obj.basemodel = basemodel;
 			obj.models = models;
 			obj.fspace = fundef({'spli',grids.a.vec,0,1});
+			obj.p = p;
 			obj.income = income;
 
 			obj.xgrid_yT = grids.a.vec + income.netymat_broadcast;
             obj.xgrid_yT = repmat(obj.xgrid_yT, [1 1 1 p.nb]);
 			obj.grids = grids;
+
+			obj.ss_dims = [p.nx_DST p.nyP p.nyF p.nb];
+			obj.ss_dims_aug = [obj.ss_dims p.nyT];
 
 			obj.r_mat = heterogeneity.r_broadcast;
 
@@ -87,7 +95,7 @@ classdef MPCFinder < handle
 			% the MPCs.
 
 			fprintf('    Computing baseline consumption...\n')
-			obj.get_baseline_consumption(p);
+			obj.get_baseline_consumption();
 
 			for ishock = 1:6
 				shock_size = p.shocks(ishock);
@@ -98,52 +106,55 @@ classdef MPCFinder < handle
 				end
 
 				for shockperiod = shockperiods
-					loan = 0;
+					immediate_shock = 0;
 					fprintf('    Computing MPCs out of period %d shock of size %f...\n',...
 						shockperiod, shock_size)
-					obj.computeMPCs(p, grids, ishock, shockperiod, loan);
+					obj.computeMPCs(ishock, shockperiod, immediate_shock);
 				end
             end
 
             if p.MPCs_loan_and_loss == 1
                 % $500 loss in 2 years
+                immediate_shock = 0;
                 fprintf('    Computing MPCs out of anticipated loss in 2 years...\n')
-                obj.computeMPCs(p, grids, 1, 9, 0);
+                obj.computeMPCs(1, 9, immediate_shock);
 
                 % $5000 loan for one year
                 fprintf('    Computing MPCs out of loan...\n')
-                obj.computeMPCs(p, grids, 3, 5, p.shocks(6));
+                immediate_shock = p.shocks(6);
+                obj.computeMPCs(3, 5, immediate_shock);
             end
 
 			obj.compute_cumulative_mpcs();
 		end
 
-		function get_baseline_consumption(obj, p)
+		function get_baseline_consumption(obj)
 			% Each (a,yP,yF) is associated with nyT possible x values, create this
 		    % grid here
-		    obj.con_baseline_yT = obj.get_policy(p, obj.xgrid_yT, obj.basemodel);
+		    obj.con_baseline_yT = obj.get_policy(obj.xgrid_yT, obj.basemodel);
 
 		    % take expectation wrt yT
-		    obj.con_baseline = reshape(obj.con_baseline_yT, [], p.nyT) * obj.income.yTdist;
+		    obj.con_baseline = reshape(obj.con_baseline_yT, [], obj.p.nyT) * obj.income.yTdist;
 		end
 
-		function con = get_policy(obj, p, x_mpc, model)
+		function con = get_policy(obj, x_mpc, model)
 			% Computes consumption policy function after taking expectation to get
 		    % rid of yT dependence
-		    con = zeros(p.nx_DST,p.nyP,p.nyF,p.nb,p.nyT);
-		    for ib = 1:p.nb
-		    for iyF = 1:p.nyF
-		    for iyP = 1:p.nyP
+		    con = zeros(obj.ss_dims_aug);
+		    for ib = 1:obj.p.nb
+		    for iyF = 1:obj.p.nyF
+		    for iyP = 1:obj.p.nyP
 		        x_iyP_iyF_iyT = x_mpc(:,iyP,iyF,ib,:);
-		        con_iyP_iyF_iyT = model.coninterp{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
-		        con(:,iyP,iyF,ib,:) = reshape(con_iyP_iyF_iyT, [p.nx_DST 1 1 1 p.nyT]);
+		        con_iyP_iyF_iyT = model.coninterp_mpc{iyP,iyF,ib}(x_iyP_iyF_iyT(:));
+		        con(:,iyP,iyF,ib,:) = reshape(con_iyP_iyF_iyT,...
+		        	[obj.p.nx_DST 1 1 1 obj.p.nyT]);
 		    end
 		    end
 		    end
 		end
 
-		function computeMPCs(obj, p, grids, ishock, shockperiod, loan)
-			shock = p.shocks(ishock);
+		function computeMPCs(obj, ishock, shockperiod, immediate_shock)
+			shock = obj.p.shocks(ishock);
 
 			for it = 1:shockperiod
 				% transition matrix from period 1 to period t
@@ -152,53 +163,29 @@ classdef MPCFinder < handle
 				else
 					previous_period = it - 1;
 					one_period_transition = obj.transition_matrix_given_t_s(...
-						p,shockperiod,previous_period,ishock);
+						obj.p, shockperiod, previous_period, ishock);
  					trans_1_t = trans_1_t * one_period_transition;
 				end
 
 				% cash-on-hand
-				if it == shockperiod
-					x_mpc = obj.xgrid_yT + shock;
-				elseif it == 1
-					x_mpc = obj.xgrid_yT + loan;
-				else
-					x_mpc = obj.xgrid_yT;
-				end
-
-				if (shock < 0) && (it == shockperiod)
-	            	% record which states are pushed below asset grid after negative shock
-	                % bring back up to asset grid for interpolation
-	                below_xgrid = false(size(x_mpc));
-	                for iyT = 1:p.nyT
-	                    below_xgrid(:,:,:,:,iyT) = x_mpc(:,:,:,:,iyT) < grids.x.matrix(1,:,:,:);
-
-	                    x_mpc(:,:,:,:,iyT) = ~below_xgrid(:,:,:,:,iyT) .* x_mpc(:,:,:,:,iyT)...
-	                                        + below_xgrid(:,:,:,:,iyT) .* grids.x.matrix(1,:,:,:);
-	                end
-	                below_xgrid = reshape(below_xgrid, [p.nx_DST p.nyP p.nyF p.nb p.nyT]);
-	            end
+				transfer_it = (it == shockperiod) * shock ...
+					+ (it == 1) * immediate_shock;
+				x_mpc = obj.xgrid_yT + transfer_it;
 
 	            % consumption choice given the shock
-	            con = obj.get_policy(p, x_mpc, obj.models{ishock,shockperiod,it});
-
-	            if (shock < 0) && (it == shockperiod)
-	                % make consumption for cases pushed below xgrid equal to consumption
-	                % at bottom of xgrid - the amount borrowed
-	                % x_before_shock = reshape(grids.x.matrix, [p.nx_DST p.nyP p.nyF p.nb]);
-	                % x_minus_xmin = obj.xgrid_yT - grids.x.matrix(1,:,:,:);
-
-	                xmin_minus_x = grids.x.matrix(1,:,:,:) - (obj.xgrid_yT + shock);
-	            	con = con + below_xgrid .* xmin_minus_x;
-	            end
+	            con = obj.get_policy(x_mpc, obj.models{ishock,shockperiod,it});
 
 	            % expectation over yT
-	            con = reshape(con, [], p.nyT) * obj.income.yTdist;
+	            con = reshape(con, [], obj.p.nyT) * obj.income.yTdist;
 
 	            % now compute IMPC(s,t)
-	            if loan > 0
-	            	mpcs = (trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / loan;
+	            Econ = trans_1_t * con;
+	            Econ_base = obj.basemodel.statetrans^(it-1) * obj.con_baseline;
+
+	            if immediate_shock == 0
+	            	mpcs = (Econ - Econ_base) / shock;
 	            else
-	            	mpcs = (trans_1_t * con - obj.basemodel.statetrans^(it-1) * obj.con_baseline) / shock;
+	            	mpcs = (Econ - Econ_base) / immediate_shock;
 	            end
 
 	            loc_pos = mpcs(:) > 0;
@@ -220,7 +207,7 @@ classdef MPCFinder < handle
                 	mpc_condl = NaN;
                 end
 
-	            if loan > 0
+	            if immediate_shock > 0
 	            	obj.loan.avg = obj.basemodel.adist(:)' * mpcs(:);
 	            	obj.loan.mpc_condl = mpc_condl;
 	            	obj.loan.mpc_pos = mpc_pos;
@@ -251,17 +238,19 @@ classdef MPCFinder < handle
 	            end
 			end
 
-			obj.computeMPCs_periods_after_shock(p, grids, ishock,...
-				shockperiod, trans_1_t);
+			if shockperiod == 1
+				obj.computeMPCs_periods_after_shock(ishock,...
+					shockperiod, trans_1_t);
+			end
 		end
 
-		function computeMPCs_periods_after_shock(obj, p, grids,...
+		function computeMPCs_periods_after_shock(obj,...
 			ishock, shockperiod, trans_1_t)
-			shock = p.shocks(ishock);
+			shock = obj.p.shocks(ishock);
 
 			% transition probabilities from it = is to it = is + 1
 			trans_1_t = trans_1_t * obj.transition_matrix_given_t_s(...
-				p, shockperiod, shockperiod, ishock);
+				obj.p, shockperiod, shockperiod, ishock);
 
 	        RHScon = obj.basemodel.statetrans^shockperiod * obj.con_baseline(:);
 	        LHScon = obj.con_baseline(:);
@@ -274,7 +263,7 @@ classdef MPCFinder < handle
 	            RHScon = obj.basemodel.statetrans * RHScon;
 	            LHScon = obj.basemodel.statetrans * LHScon;
 	            
-	            if (shockperiod == 1) && (it >= 1 && it <= 4)
+	            if (it >= 1) && (it <= 4)
 	                obj.mpcs(ishock).mpcs_1_t{it} = mpcs;
 	            end
 	        end
@@ -301,7 +290,7 @@ classdef MPCFinder < handle
 			x_mpc = obj.xgrid_yT + shock;
 
 			if (ii == is - 1) && (p.shocks(ishock) < 0)
-				adj_borr_lim = (min(obj.grids.a.vec) - p.shocks(ishock)) ./ p.R;
+				adj_borr_lim = (obj.p.borrow_lim - p.shocks(ishock) - obj.income.minnety) ./ p.R;
 			else
 		        adj_borr_lim = p.borrow_lim;
 		    end

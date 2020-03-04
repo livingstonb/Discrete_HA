@@ -40,6 +40,7 @@ classdef Income < handle
         netymatEGP;
         netymatDST;
         meannety1;
+        minnety;
         
         fraction_net_transfer;
 
@@ -197,6 +198,8 @@ classdef Income < handle
             obj.netymat = obj.lumptransfer + (1-obj.p.labtaxlow) * obj.ymat ...
             	- obj.p.labtaxhigh * max(obj.ymat-obj.labtaxthresh,0);
             obj.meannety1 = obj.netymat(:)' * obj.ymatdist(:);
+
+            obj.minnety = min(obj.netymat(:));
             
             % fraction of households that recieve net transfer from gov
             obj.fraction_net_transfer = (obj.netymat(:)>obj.ymat(:))' * obj.ymatdist(:);

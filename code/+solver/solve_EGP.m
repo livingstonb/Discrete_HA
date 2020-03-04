@@ -124,6 +124,8 @@ function model = solve_EGP(p, grids, heterogeneity,...
 
     model.savinterp = cell(p.nyP,p.nyF,p.nb);
     model.coninterp = cell(p.nyP,p.nyF,p.nb);
+    model.coninterp_ext = cell(p.nyP,p.nyF,p.nb);
+    model.coninterp_mpc = cell(p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
@@ -135,32 +137,26 @@ function model = solve_EGP(p, grids, heterogeneity,...
 
         xmin = xmat(1,iyP,iyF,ib);
         cmin = model.con(1,iyP,iyF,ib);
-        adjusted = @(arr, x) (x>=xmin) .* arr + (x<xmin) .* (cmin + x - xmin);
-        % model.coninterp_ext{iyP,iyF,ib} = @(x) adjusted(model.coninterp{iyP,iyF,ib}(x), x);
-        model.coninterp_ext{iyP,iyF,ib} = @(x) extend_interp(model.coninterp{iyP,iyF,ib}, x, xmin, cmin);
+        lbound = 1e-7;
+        model.coninterp_ext{iyP,iyF,ib} = @(x) extend_interp(...
+            model.coninterp{iyP,iyF,ib}, x, xmin, cmin, lbound);
+
+        model.coninterp_mpc{iyP,iyF,ib} = @(x) extend_interp(...
+            model.coninterp{iyP,iyF,ib}, x, xmin, cmin, -inf);
     end
     end
     end
 end
 
-function out = extend_interp(old_interpolant, qvals, gridmin, valmin)
+function out = extend_interp(old_interpolant, qvals, gridmin, valmin, lb)
     out = zeros(size(qvals));
     adj = qvals < gridmin;
     out(~adj) = old_interpolant(qvals(~adj));
     out(adj) = valmin + qvals(adj) - gridmin;
 
     out(adj) = min(out(adj), qvals(adj));
-    out = max(out, 1e-7);
+    out = max(out, lb);
 end
-
-% function out = extend_interp(old_interpolant, qvals, gridmin, valmin)
-%     out = size(qvals);
-%     adj = qvals < gridmin;
-%     out(adj) = qvals(adj);
-%     out(~adj) = old_interpolant(qvals(~adj));
-    
-%     out = max(out, 1e-7);
-% end
 
 function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshock, xmat)
 	% find c as a function of x'
