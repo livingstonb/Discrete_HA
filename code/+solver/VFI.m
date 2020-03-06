@@ -45,7 +45,7 @@ classdef VFI < handle
 
 			dif = 1e5;
 			it = 0;
-			while (it <= obj.max_iters) && (dif >= tol)
+			while (it <= obj.max_iters) && (dif >= obj.tol)
 				it = it + 1;
 
 				val_next = zeros(obj.p.nx, obj.p.nyP, obj.p.nyF, obj.p.nb, obj.p.nyT);
