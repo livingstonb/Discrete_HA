@@ -27,12 +27,13 @@ classdef Params < handle
         path;
 
         % computation
-        max_iter    = 1e5; % EGP
-        tol_iter    = 1.0e-6; % EGP
-        Nsim        = 2e5; % For optional simulation
+        max_iter = 1e5; % EGP
+        tol_iter = 1.0e-6; % EGP
+        Nsim = 2e5; % For optional simulation
 
         % mpc options
         shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
+        shocks_labels; % labels
         Nmpcsim = 2e5; % Number of draws to compute MPCs
         
         % wealth statistics options
@@ -43,11 +44,11 @@ classdef Params < handle
         abars = [0, 0.01, 0.05];
 
         % cash on hand / savings grid
-        nx = 300;
+        nx = 250;
         nx_neg = 0;
-        nx_DST = 300;
+        nx_DST = 250;
         nx_neg_DST = 0;
-        xmax = 100;
+        xmax = 50;
         xgrid_par = 0.2; %1 for linear, 0 for L-shaped
         xgrid_par_neg = 0.4;
         borrow_lim = 0;
@@ -278,6 +279,13 @@ classdef Params < handle
 
             if obj.EpsteinZin
                 obj.DeterministicMPCs = false;
+            end
+
+            if isempty(obj.shocks_labels)
+                obj.shocks_labels = {};
+                for ishock = 1:6
+                    obj.shocks_labels{ishock} = sprintf('%g', obj.shocks(ishock));
+                end
             end
         end
     end

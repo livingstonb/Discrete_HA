@@ -56,9 +56,11 @@ function results = main(p)
         egp_ez_solver.solve(income);
         basemodel = egp_ez_solver.return_model();
     else
-        mpcshock = 0;
+        nextmpcshock = 0;
+        periods_until_shock = 0;
         basemodel = solver.solve_EGP(...
-            p, grdEGP, heterogeneity, income, mpcshock, []);
+            p, grdEGP, heterogeneity, income, nextmpcshock,...
+            periods_until_shock, []);
     end
     basemodel = solver.find_stationary_adist(...
         p, basemodel, income, grdDST, heterogeneity);
@@ -269,7 +271,8 @@ function results = main(p)
                     end
 
                     model_lagged{lag} = solver.solve_EGP(...
-                        p, grdEGP, heterogeneity, income, nextmpcshock, nextmodel);
+                        p, grdEGP, heterogeneity, income, nextmpcshock,...
+                        lag, nextmodel);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s

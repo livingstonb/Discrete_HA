@@ -1,5 +1,5 @@
 function model = solve_EGP(p, grids, heterogeneity,...
-    income, nextmpcshock, prevmodel)
+    income, futureshock, periods_until_shock, prevmodel)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
@@ -17,6 +17,8 @@ function model = solve_EGP(p, grids, heterogeneity,...
     %% ----------------------------------------------------
     % USEFUL OBJECTS/ARRAYS
     % -----------------------------------------------------
+    nextmpcshock = (periods_until_shock == 1) * futureshock;
+
     ss_dims = [p.nx, p.nyP, p.nyF, p.nb];
     ss_dims_aug = [ss_dims p.nyT];
 
@@ -28,18 +30,22 @@ function model = solve_EGP(p, grids, heterogeneity,...
     reshape_to_state_space = ...
         @(arr) reshape(arr, ss_dims);
 
-    if nextmpcshock >= 0
-        adj_borr_lim = p.borrow_lim;;
-    else
-        adj_borr_lim = max((p.borrow_lim - nextmpcshock - min(income.netymat(:))) ./ p.R, p.borrow_lim);;
-    end
-    svec = grids.s.vec + (adj_borr_lim - p.borrow_lim);
-    xmat = grids.x.matrix + p.R * (adj_borr_lim - p.borrow_lim);
-
-    sgrid_tax = p.compute_savtax(svec);
-
     r_bc = heterogeneity.r_broadcast;
     R_bc = heterogeneity.R_broadcast;
+    R_row = reshape(p.R, 1, []);
+
+    tmp = p.borrow_lim - futureshock - income.minnety;
+    adj_borr_lims = max(tmp ./ R_row, p.borrow_lim);
+    adj_borr_lims_bc = aux.Reshape.repmat_auto(adj_borr_lims,...
+        [1, 1, 1, p.nb]);
+
+    svecs = grids.s.vec + (adj_borr_lims - p.borrow_lim);
+    svecs_bc = grids.s.vec + (adj_borr_lims_bc - p.borrow_lim);
+
+    xmat = grids.x.matrix + R_bc .* (adj_borr_lims_bc - p.borrow_lim);
+
+    svecs_tax = p.compute_savtax(svecs);
+    svecs_bc_tax = p.compute_savtax(svecs_bc);
 
     tempt_bc = heterogeneity.temptation_broadcast;
     tempt_expr = tempt_bc ./ (1 + tempt_bc);
@@ -47,7 +53,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
     betagrid_bc = heterogeneity.betagrid_broadcast;
 
     % Find xprime as a function of s
-    tmp = R_bc .* svec + income.netymatEGP + nextmpcshock;
+    tmp = R_bc .* svecs_bc + income.netymatEGP + nextmpcshock;
     xprime_s = repmat_to_state_space_aug(tmp);
 
     %% ----------------------------------------------------
@@ -86,16 +92,17 @@ function model = solve_EGP(p, grids, heterogeneity,...
         muc_s = get_marginal_util_cons(...
             p, income, grids, c_xp, xprime_s, R_bc,...
             Emat, betagrid_bc, heterogeneity.risk_aver_broadcast,...
-            tempt_expr, svec);
+            tempt_expr, svecs_bc);
      
         % c(s)
         con_s = aux.u1inv(heterogeneity.risk_aver_broadcast, muc_s);
         
         % x(s) = s + stax + c(s)
-        x_s = svec + sgrid_tax + con_s;
+        x_s = svecs_bc + svecs_bc_tax + con_s;
 
         % interpolate from x(s) to get s(x)
-        sav = get_saving_policy(p, grids, x_s, nextmpcshock, R_bc, svec, xmat);
+        sav = get_saving_policy(p, grids, x_s, nextmpcshock,...
+            R_bc, svecs_bc, xmat);
         sav_tax = p.compute_savtax(sav);
 
         % updated consumption function, column vec length of
@@ -139,26 +146,33 @@ function model = solve_EGP(p, grids, heterogeneity,...
         cmin = model.con(1,iyP,iyF,ib);
         lbound = 1e-7;
         model.coninterp_ext{iyP,iyF,ib} = @(x) extend_interp(...
-            model.coninterp{iyP,iyF,ib}, x, xmin, cmin, lbound);
+            model.coninterp{iyP,iyF,ib}, x, xmin, cmin, lbound,...
+            adj_borr_lims_bc(1,1,1,ib));
 
         model.coninterp_mpc{iyP,iyF,ib} = @(x) extend_interp(...
-            model.coninterp{iyP,iyF,ib}, x, xmin, cmin, -inf);
+            model.coninterp{iyP,iyF,ib}, x, xmin, cmin, -inf,...
+            adj_borr_lims_bc(1,1,1,ib));
     end
     end
     end
+
+    model.adj_borr_lims = adj_borr_lims;
+    model.adj_borr_lims_bc = adj_borr_lims_bc;
 end
 
-function out = extend_interp(old_interpolant, qvals, gridmin, valmin, lb)
+function out = extend_interp(old_interpolant, qvals, gridmin,...
+    valmin, lb, blim)
     out = zeros(size(qvals));
     adj = qvals < gridmin;
     out(~adj) = old_interpolant(qvals(~adj));
     out(adj) = valmin + qvals(adj) - gridmin;
 
-    out(adj) = min(out(adj), qvals(adj));
+    out(adj) = min(out(adj), qvals(adj)-blim);
     out = max(out, lb);
 end
 
-function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast, nextmpcshock, xmat)
+function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast,...
+    nextmpcshock, xmat)
 	% find c as a function of x'
 	c_xprime = zeros(size(xp_s));
     dims_nx_nyT = [p.nx, 1, 1, 1, p.nyT];
@@ -188,10 +202,9 @@ end
 function muc_s = get_marginal_util_cons(...
 	p, income, grids, c_xp, xp_s, R_bc,...
     Emat, betagrid_bc, risk_aver_bc, tempt_expr,...
-    svec)
+    svecs_bc)
 
-    savtaxrate = (1 + p.savtax .* (svec >= p.savtaxthresh));
-    savtaxrate = repmat(savtaxrate, [1, 1, 1, p.nb]);
+    savtaxrate = (1 + p.savtax .* (svecs_bc >= p.savtaxthresh));
 
 	% First get marginal utility of consumption next period
 	muc_c = aux.utility1(risk_aver_bc, c_xp);
@@ -204,14 +217,14 @@ function muc_s = get_marginal_util_cons(...
 
     muc_c_today = R_bc .* betagrid_bc .* expectation;
     muc_beq = aux.utility_bequests1(p.bequest_curv, p.bequest_weight,...
-        p.bequest_luxury, svec);
+        p.bequest_luxury, svecs_bc);
 
     muc_s = (1 - p.dieprob) * muc_c_today ./ savtaxrate ...
         + p.dieprob * muc_beq;
 end
 
 function sav = get_saving_policy(p, grids, x_s, nextmpcshock, R_bc,...
-    svec, xmat)
+    svecs_bc, xmat)
 	% finds s(x), the saving policy function on the
 	% cash-on-hand grid
 
@@ -221,10 +234,10 @@ function sav = get_saving_policy(p, grids, x_s, nextmpcshock, R_bc,...
     for iyF = 1:p.nyF
     for iyP = 1:p.nyP
         adj = xmat(:,iyP,iyF,ib) < x_s(1,iyP,iyF,ib);
-        sav(adj,iyP,iyF,ib) = svec(1);
+        sav(adj,iyP,iyF,ib) = svecs_bc(1,1,1,ib);
 
         savinterp = griddedInterpolant(x_s(:,iyP,iyF,ib),...
-            svec, 'linear');
+            svecs_bc(:,1,1,ib), 'linear');
 
         sav(~adj,iyP,iyF,ib) = savinterp(...
             xmat(~adj,iyP,iyF,ib));

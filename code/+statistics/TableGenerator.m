@@ -16,6 +16,8 @@ classdef TableGenerator
 			    return;
 			end
 
+			shock_labels = params(1).shocks_labels;
+
 			mpcs_present = false;
 			mpcs_news_present = false;
 			mpcs_loan_loss_present = false;
@@ -57,14 +59,14 @@ classdef TableGenerator
 
 				ishock = 1;
 				while mpcs_present && (ishock < 7)
-					shock_size = p.shocks(ishock);
+					shock_size = shock_labels{ishock};
 					temp = mpcs_table(result_structure, p, ishock, shock_size);
 					new_column = [new_column; temp];
 					ishock = ishock + 1;
 				end
 
 				if 	~isempty(decomp_norisk_present)
-					shock_size = p.shocks(5);
+					shock_size = shock_labels{5};
 
 					decomp_structure = results(ip).decomp_norisk;
 					temp = decomp_table(decomp_structure, shock_size);
@@ -72,7 +74,7 @@ classdef TableGenerator
 				end
 
 				if ~isempty(decomp_RA_present)
-					shock_size = p.shocks(5);
+					shock_size = shock_labels{5};
 
 					decomp_structure = results(ip).decomp_RA;
 					temp = repagent_decomp_table(decomp_structure, shock_size);
@@ -80,7 +82,7 @@ classdef TableGenerator
 				end
 
 				if ~isempty(obj.decomp_baseline)
-					shock_size = p.shocks(5);
+					shock_size = shock_labels{5};
 
 					decomp_structure = obj.decomp_baseline(ip);
 					temp = baseline_decomp_table(decomp_structure, shock_size);
@@ -88,7 +90,7 @@ classdef TableGenerator
 				end
 
 				if ~isempty(obj.decomp_incrisk_alt)
-					shock_size = p.shocks(5);
+					shock_size = shock_labels{5};
 
 					decomp_structure = obj.decomp_incrisk_alt(ip);
 					temp = alt_decomp_table(decomp_structure, shock_size);
@@ -96,15 +98,18 @@ classdef TableGenerator
 				end
 
 				if mpcs_news_present
-					temp = mpcs_news_table(result_structure, p, 'MEAN');
+					temp = mpcs_news_table(result_structure, p, 'MEAN',...
+						shock_labels);
 					new_column = [new_column; temp];
 
-					temp = mpcs_news_table(result_structure, p, 'MEDIAN');
+					temp = mpcs_news_table(result_structure, p, 'MEDIAN',...
+						shock_labels);
 					new_column = [new_column; temp];
 				end
 
 				if mpcs_loan_loss_present
-					temp = specialty_mpc_tables(result_structure, p);
+					temp = specialty_mpc_tables(result_structure, p,...
+						shock_labels);
 					new_column = [new_column; temp];
 				end
 
@@ -214,15 +219,15 @@ end
 
 function out = mpcs_table(values, p, ishock, shock_size)
 	header = sprintf(...
-		'MPCs OUT OF FRACTION MEAN ANN INC (SHOCK %g)', shock_size);
+		'MPCs OUT OF FRACTION MEAN ANN INC (SHOCK %s)', shock_size);
 	out = new_table_with_header(header);
 
-	new_labels = {	sprintf('PERIOD 1 Median(MPC), shock = %g', shock_size)
-					sprintf('PERIOD 1 E[MPC], shock = %g', shock_size)
-					sprintf('PERIOD 2 E[MPC], shock = %g', shock_size)
-					sprintf('PERIOD 3 E[MPC], shock = %g', shock_size)
-					sprintf('PERIOD 4 E[MPC], shock = %g', shock_size)
-					sprintf('FOUR PERIOD E[MPC], shock = %g', shock_size)
+	new_labels = {	sprintf('PERIOD 1 Median(MPC), shock = %s', shock_size)
+					sprintf('PERIOD 1 E[MPC], shock = %s', shock_size)
+					sprintf('PERIOD 2 E[MPC], shock = %s', shock_size)
+					sprintf('PERIOD 3 E[MPC], shock = %s', shock_size)
+					sprintf('PERIOD 4 E[MPC], shock = %s', shock_size)
+					sprintf('FOUR PERIOD E[MPC], shock = %s', shock_size)
 		};
 
 	if p.MPCs
@@ -239,7 +244,7 @@ function out = mpcs_table(values, p, ishock, shock_size)
 	out = append_to_table(out, new_entries, new_labels);
 end
 
-function out = mpcs_news_table(values, p, statistic)
+function out = mpcs_news_table(values, p, statistic, shock_labels)
 	if strcmp(statistic, 'MEAN')
 		stat_label = 'E[MPC]';
 	elseif strcmp(statistic, 'MEDIAN')
@@ -256,8 +261,8 @@ function out = mpcs_news_table(values, p, statistic)
 	ilabel = 1;
 	for period = [2, 5]
 		for ishock = 1:6
-			shock_size = p.shocks(ishock);
-			shock_label = sprintf(', shock = %g in %d period(s)', shock_size, period-1);
+			shock_size = shock_labels{ishock};
+			shock_label = sprintf(', shock = %s in %d period(s)', shock_size, period-1);
 
 			new_labels{ilabel} = convertStringsToChars(...
 				strcat("ONE PERIOD ", stat_label, shock_label));
@@ -279,10 +284,10 @@ function out = mpcs_news_table(values, p, statistic)
 	out = append_to_table(out, new_entries, new_labels);
 end
 
-function out = specialty_mpc_tables(values, p)
+function out = specialty_mpc_tables(values, p, shock_labels)
 	% Loss in two years
-	loss_size = p.shocks(1);
-	header_name = sprintf('MPCs OUT OF LOSS IN 8 PERIODS (SHOCK %g)', loss_size);
+	loss_size = shock_labels{1};
+	header_name = sprintf('MPCs OUT OF LOSS IN 8 PERIODS (SHOCK %s)', loss_size);
 	loss_table = new_table_with_header(header_name);
 
 	new_entries = {	values.direct.loss_in_2_years.avg
@@ -292,7 +297,7 @@ function out = specialty_mpc_tables(values, p)
                     values.direct.loss_in_2_years.mpc_pos
                     values.direct.loss_in_2_years.median
         };
-    shock_label = sprintf(', shock = %g in 8 period(s)', loss_size);
+    shock_label = sprintf(', shock = %s in 8 period(s)', loss_size);
     new_labels = {	strcat('ONE PERIOD E[MPC]', shock_label)
     				strcat('ONE PERIOD E[MPC|MPC>0]', shock_label)
     				strcat('ONE PERIOD P(MPC<0)', shock_label)
@@ -303,8 +308,8 @@ function out = specialty_mpc_tables(values, p)
     loss_table = append_to_table(loss_table, new_entries, new_labels);
 
 	% One-year loan
-	loan_size = abs(p.shocks(3));
-	header_name = sprintf('MPCs OUT OF 4-PERIOD LOAN OF %g', loan_size);
+	loan_size = shock_labels{6};
+	header_name = sprintf('MPCs OUT OF 4-PERIOD LOAN OF %s', loan_size);
 	loan_table = new_table_with_header(header_name);
 
 	new_entries = {	values.direct.loan.avg
@@ -314,7 +319,7 @@ function out = specialty_mpc_tables(values, p)
                     values.direct.loan.mpc_pos
                     values.direct.loan.median
         };
-    shock_label = sprintf(', loan of %g', loan_size);
+    shock_label = sprintf(', loan of %s', loan_size);
     new_labels = {	strcat('ONE PERIOD E[MPC]', shock_label)
     				strcat('ONE PERIOD E[MPC|MPC>0]', shock_label)
     				strcat('ONE PERIOD P(MPC<0)', shock_label)
@@ -329,7 +334,7 @@ end
 
 function out = decomp_table(decomp, shock_size)
 	header_name = sprintf(...
-		'DECOMP OF ONE PERIOD E[MPC], SHOCK OF %g', shock_size);
+		'DECOMP OF ONE PERIOD E[MPC], SHOCK OF %s', shock_size);
 	out = new_table_with_header(header_name);
 
 	new_labels = {	'Decomp of E[MPC] around a=0, RA MPC'
@@ -358,7 +363,7 @@ end
 
 function out = repagent_decomp_table(decomp, shock_size)
 	header_name = sprintf(...
-		'DECOMP OF ONE PERIOD E[MPC] - MPC_RA, SHOCK OF %g', shock_size);
+		'DECOMP OF ONE PERIOD E[MPC] - MPC_RA, SHOCK OF %s', shock_size);
 	out = new_table_with_header(header_name);
 
 	new_labels = {	'E[MPC] - MPC_RA'
@@ -377,7 +382,7 @@ end
 
 function out = baseline_decomp_table(decomp, shock_size)
 	header_name = sprintf(...
-		'DECOMP OF EM1-EM0, SHOCK OF %g', shock_size);
+		'DECOMP OF EM1-EM0, SHOCK OF %s', shock_size);
 	out = new_table_with_header(header_name);
 
 	new_labels = {	'Em1 - Em0'
@@ -412,7 +417,7 @@ end
 
 function out = alt_decomp_table(decomp, shock_size)
 	header_name = sprintf(...
-		'ALT DECOMP OF ONE PERIOD E[MPC], SHOCK OF %g', shock_size);
+		'ALT DECOMP OF ONE PERIOD E[MPC], SHOCK OF %s', shock_size);
 	out = new_table_with_header(header_name);
 
 	new_labels = {	'Alt decomp of E[MPC] around a=0, RA MPC'

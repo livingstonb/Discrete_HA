@@ -4,28 +4,41 @@ function [params, all_names] = parameters(runopts)
 
     import aux.set_shared_fields
 
+    dollars = [-1, -500, -5000, 1, 500, 5000];
+    shared_params.shocks = dollars ./ 72000;
+
+    shared_params.shocks_labels = {};
+    for ishock = 1:6
+        val = dollars(ishock);
+        if val < 0
+            shared_params.shocks_labels{ishock} = sprintf('-$%g', abs(val));
+        else
+            shared_params.shocks_labels{ishock} = sprintf('$%g', abs(val));
+        end
+    end
+
     % location of baseline income process for quarterly case
     quarterly_b_path = 'input/income_quarterly_b_contyT.mat';
     quarterly_c_path = 'input/income_quarterly_c_contyT.mat';
 
-    quarterly_b_params = struct();
+    quarterly_b_params = shared_params;
     quarterly_b_params.sd_logyT = sqrt(0.6376);
     quarterly_b_params.lambdaT = 0.25;
     % quarterly_b_params.gridspace_min = 0.001;
 
-    quarterly_c_params = struct();
+    quarterly_c_params = shared_params;
     quarterly_c_params.sd_logyT = sqrt(1.6243);
     quarterly_c_params.lambdaT = 0.0727;
     % quarterly_c_params.gridspace_min = 0.001;
 
-    quarterly_a_params = struct();
+    quarterly_a_params = shared_params;
     quarterly_a_params.sd_logyT = sqrt(0.2087);
     quarterly_a_params.sd_logyP = sqrt(0.01080);
     quarterly_a_params.rho_logyP = 0.9881;
     quarterly_a_params.lambdaT = 1;
     % quarterly_a_params.gridspace_min = 0.001;
 
-    annual_params = struct();
+    annual_params = shared_params;
     annual_params.sd_logyT = sqrt(0.0494);
     annual_params.sd_logyP = sqrt(0.0422);
     annual_params.rho_logyP = 0.9525;

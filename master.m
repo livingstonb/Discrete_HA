@@ -74,10 +74,10 @@ elseif ispc
 end
 
 % name of parameters script
-runopts.mode = 'parameters_other'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {'target_assets_lt_1000_no_adj_costs'};
+runopts.names_to_run = {'baseline_Q'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------
