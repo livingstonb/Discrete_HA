@@ -4,18 +4,19 @@ function [params, all_names] = parameters(runopts)
 
     import aux.set_shared_fields
 
-    dollars = [-1, -500, -5000, 1, 500, 5000];
-    shared_params.shocks = dollars ./ 72000;
+    % dollars = [-1, -500, -5000, 1, 500, 5000];
+    % shared_params.shocks = dollars ./ 72000;
 
-    shared_params.shocks_labels = {};
-    for ishock = 1:6
-        val = dollars(ishock);
-        if val < 0
-            shared_params.shocks_labels{ishock} = sprintf('-$%g', abs(val));
-        else
-            shared_params.shocks_labels{ishock} = sprintf('$%g', abs(val));
-        end
-    end
+    % shared_params.shocks_labels = {};
+    % for ishock = 1:6
+    %     val = dollars(ishock);
+    %     if val < 0
+    %         shared_params.shocks_labels{ishock} = sprintf('-$%g', abs(val));
+    %     else
+    %         shared_params.shocks_labels{ishock} = sprintf('$%g', abs(val));
+    %     end
+    % end
+    shared_params = struct();
 
     % location of baseline income process for quarterly case
     quarterly_b_path = 'input/income_quarterly_b_contyT.mat';
@@ -114,6 +115,7 @@ function [params, all_names] = parameters(runopts)
         params(end) = set_shared_fields(params(end), income_params);
         params(end).r = [0, 2, 4] / 100;
         params(end).betaH0 = -1e-4;
+        params(end).beta0 = 0.973149481985717;
         
         name = [lfreq ' Permanent r het, r in {-2,2,6} p.a.'];
         params(end+1) = setup.Params(ifreq,name,IncomeProcess);

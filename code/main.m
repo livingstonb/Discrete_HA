@@ -39,7 +39,7 @@ function results = main(p)
     if p.borrow_lim <= -1e10
         p.set("borrow_lim", loose_constraint, false);
     end
-    
+
     % grids for method of EGP
     grdEGP = setup.Grid(p, income, 'EGP');
 
@@ -352,13 +352,16 @@ function results = main(p)
     % GINI
     % ---------------------------------------------------------------------
     % Wealth
-    results.direct.wealthgini = aux.direct_gini(grdDST.a.matrix, basemodel.adist);
+    results.direct.wealthgini = aux.direct_gini(grdDST.a.vec,...
+        basemodel.agrid_dist);
     
     % Gross income
-    results.direct.grossincgini = aux.direct_gini(income.ysort, income.ysortdist);
+    results.direct.grossincgini = aux.direct_gini(income.ysort,...
+        income.ysortdist);
     
     % Net income
-    results.direct.netincgini = aux.direct_gini(income.netymat, income.ymatdist);  
+    results.direct.netincgini = aux.direct_gini(income.netymat,...
+        income.ymatdist);  
 
     results.Finished = true;
     

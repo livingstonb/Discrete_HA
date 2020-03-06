@@ -16,10 +16,12 @@ function modelupdate = find_stationary_adist(...
     nx = size(grids.a.vec, 1);
     R_bc = heterogeneity.R_broadcast;
 
-    % cash-on-hand as function of (a,yP,yF,yT)
-    x = grids.a.matrix + income.netymat_broadcast;
+    % Cash-on-hand as function of (a,yP,yF,yT)
+    % start from generic 'a' distribution (even with returns het)
+    x = grids.a.vec + income.netymat_broadcast;
+    x = repmat(x, [1, 1, 1, p.nb]);
     
-    % saving interpolated onto this grid
+    % Saving interpolated onto this grid
     sav = zeros(nx,p.nyP,p.nyF,p.nb,p.nyT);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
@@ -32,16 +34,21 @@ function modelupdate = find_stationary_adist(...
     end
     sav = max(sav, p.borrow_lim);
 
-    % transition matrix over (x,yP,yF,beta) full asset space
-    modelupdate.statetrans = get_transition_matrix(p, income, grids, nx, sav, R_bc);
+    % Transition matrix over (x,yP,yF,beta) full asset space
+    modelupdate.statetrans = get_transition_matrix(p, income, grids,...
+        nx, sav, R_bc);
 
-    % stationary distribution over states
+    % Stationary distribution over states
     fprintf(' Finding ergodic distribution...\n');
-    q = get_distribution(p, income, nx, modelupdate.statetrans, heterogeneity);
+    q = get_distribution(p, grids, income, nx,...
+        modelupdate.statetrans, heterogeneity);
 %     [q,~] = eigs(modelupdate.statetrans',[],1,1);
 %     q = q / sum(q(:));
 
     modelupdate.adist = reshape(full(q'), [nx, p.nyP, p.nyF, p.nb]);
+
+    tmp = reshape(full(q'), nx, []);
+    modelupdate.agrid_dist = sum(tmp, 2);
     
     % get distribution over (x,yP,yF,beta)
     xdist = kron(income.yTdist, reshape(modelupdate.adist, nx, []));
@@ -62,7 +69,7 @@ function modelupdate = find_stationary_adist(...
     %% ----------------------------------------------------------------
     % POLICY FUNCTIONS ETC...
     % -----------------------------------------------------------------
-    % get saving policy function defined on xgrid
+    % Get saving policy function defined on xgrid
     modelupdate.sav_x = zeros(p.nx_DST*p.nyT,p.nyP,p.nyF,p.nb);
     for ib = 1:p.nb
     for iyF = 1:p.nyF
@@ -80,11 +87,10 @@ function modelupdate = find_stationary_adist(...
     	- savtax;
     
 
-    % mean saving, mean assets
-	modelupdate.mean_a = dot(modelupdate.adist(:), grids.a.matrix(:));
-    
-    mean_assets = modelupdate.mean_a;
-    fprintf(' A/Y = %2.5f\n', mean_assets);
+    % Mean mean assets
+
+	modelupdate.mean_a = dot(modelupdate.agrid_dist, grids.a.vec);
+    fprintf(' A/Y = %2.5f\n', modelupdate.mean_a);
 end
 
 %% ----------------------------------------------------------------
@@ -94,7 +100,7 @@ function trans = get_transition_matrix(p, income, grids, nx, sav, R_bc)
 	aprime_live = R_bc .* sav;
 
 	% create interpolant object
-    fspace = fundef({'spli',grids.a.vec,0,1});
+    fspace = fundef({'spli', grids.a.vec, 0, 1});
     % get interpolated probabilities and take expectation over yT
     interp_live = 0;
     for k = 1:p.nyT
@@ -133,13 +139,29 @@ end
 %% ----------------------------------------------------------------
 % iTERATIVE METHOD TO FIND STATIONARY DISTRIBUTION
 % -----------------------------------------------------------------
-function q = get_distribution(p, income, nx, statetrans, heterogeneity)
+function q = get_distribution(p, grids, income, nx, statetrans,...
+    heterogeneity)
 	q = ones(nx,p.nyP,p.nyF,p.nb);
 
-    % create valid initial distribution
+    % Create valid initial distribution
     yPdist = reshape(income.yPdist, [1,p.nyP]);
     yFdist = reshape(income.yFdist, [1,1,p.nyF,1]);
     zdist = reshape(heterogeneity.zdist, [1,1,1,heterogeneity.nz]);
+
+    % Give households valid assets only (since with returns
+    % heterogeneity, lowest asset points cannot be reached by some)
+    a_mins = grids.s.vec .* reshape(p.R, 1, []);
+    if numel(p.r) > 1
+        for ib = 1:p.nb
+            for ia = 1:p.nx
+                if grids.a.vec(ia) < a_mins(ib)
+                    q(ia,:,:,ib) = 0;
+                else
+                    break
+                end
+            end
+        end
+    end
     q = q .* yPdist .* yFdist .* zdist;
     q = q(:)' / sum(q(:));
 
@@ -150,7 +172,7 @@ function q = get_distribution(p, income, nx, statetrans, heterogeneity)
         diff = norm(z-q);
         q = z;
         
-        if mod(iter,50) == 0
+        if mod(iter,500) == 0
             fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
         end
         iter = iter + 1;

@@ -14,6 +14,8 @@ classdef Grid < handle
 		nyF;
 
 		i0;
+
+		R_broadcast;
 	end
 
 	methods
@@ -32,9 +34,11 @@ classdef Grid < handle
 				error("Must have nx_neg > 0 since borrow_lim < 0")
 			end
 
+			obj.R_broadcast = reshape(params.R,...
+				[1 1 1 numel(params.R)]);
+
 			obj.create_sgrid(params);
 			obj.create_xgrid(params, income);
-			obj.create_xgrid_extended(params, income);
 			obj.create_norisk_xgrid(params, income);
             obj.create_agrid(params);
 
@@ -78,9 +82,7 @@ classdef Grid < handle
 
 		function obj = create_xgrid(obj, params, income)
 			minyT = reshape(min(income.netymat, [], 2), [1 params.nyP params.nyF]);
-
-            R_broadcast = reshape(params.R, [1 1 1 numel(params.R)]);
-			xgrid = R_broadcast .* obj.s.matrix + minyT;
+			xgrid = obj.R_broadcast .* obj.s.matrix + minyT;
 			if numel(params.r) == 1
 				xgrid = repmat(xgrid, [1 1 1 params.nb]);
 			end
@@ -88,21 +90,8 @@ classdef Grid < handle
 			obj.x.matrix = xgrid;
 		end
 
-		function obj = create_xgrid_extended(obj, params, income)
-			tmp = obj.x.matrix;
-
-			new_pts = create_curved_grid(...
-				-0.081, 0, 20,...
-				params.xgrid_par, false);
-			new_pts = params.R * new_pts(1:end-1);
-			new_pts = repmat(new_pts, [1, params.nyP, params.nyF, params.nb]);
-
-			obj.x_extended = [new_pts; tmp];
-		end
-
 		function obj = create_norisk_xgrid(obj, params, income)
-            R_broadcast = reshape(params.R, [1 1 1 numel(params.R)]);
-			xmatrix_norisk = R_broadcast .* obj.s.vec + income.meannety1;
+			xmatrix_norisk = obj.R_broadcast .* obj.s.vec + income.meannety1;
 			xmatrix_norisk = reshape(xmatrix_norisk, obj.nx, []);
 
 			if numel(params.r) == 1
@@ -113,8 +102,19 @@ classdef Grid < handle
 		end
 
 		function obj = create_agrid(obj, params)
-			obj.a.vec = min(params.R) * obj.s.vec;
-		 	obj.a.matrix = min(params.R) * repmat(obj.s.matrix, [1 1 1 params.nb]);
+			% For returns heterogeneity:
+			% agrid vector must extend as far downward as the lowest
+			% possible assets, but allow for points close to soft constraint
+			% as well
+			R_selected = max(params.R) * (obj.s.vec < 0) ...
+				+ min(params.R) * (obj.s.vec >= 0);
+			obj.a.vec = R_selected .* obj.s.vec;
+
+		 	obj.a.matrix = obj.R_broadcast .* obj.s.matrix;
+
+		 	if numel(params.r) ==  1
+		 		obj.a.matrix = repmat(obj.a.matrix, [1 1 1 params.nb]);
+		 	end
 		end
 
 		function grid_adj = enforce_min_spacing(obj, params, gridvec)

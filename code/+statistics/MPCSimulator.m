@@ -6,21 +6,17 @@ classdef MPCSimulator < handle
 
 		state_rand;
 		yPrand;
-		% betarand;
-		% IESrand;
-		% r_rand;
 		zrand;
 		yTrand;
-		% betaindsim;
-		% IESindsim;
-		% r_indsim;
 		yPindsim;
 		yTindsim;
 		yFindsim;
 		zindsim;
 		diesim;
 
-		zcumtrans
+		zcumtrans;
+
+		agrid_long;
 
 		xsim;
 		asim;
@@ -65,6 +61,8 @@ classdef MPCSimulator < handle
 		    obj.yFindsim = ones(obj.Nsim,1,'int8');
 		    obj.zindsim = ones(obj.Nsim,1,'int8');
 
+		    
+
 		    dierand = rand(obj.Nsim, obj.Tmax, 'single');
 		    obj.diesim = dierand < p.dieprob;
 
@@ -72,6 +70,7 @@ classdef MPCSimulator < handle
 		end
 
 		function simulate(obj, p, income, grids, heterogeneity, basemodel)
+			obj.agrid_long = repmat(grids.a.vec, p.nyP*p.nyF*p.nb, 1);
 			obj.draw_from_stationary_dist(p, grids, basemodel);
 			obj.simulate_exog_transitions(p, income, heterogeneity);
 			obj.simulate_decisions(p, grids, basemodel, 0); % baseline
@@ -104,7 +103,7 @@ classdef MPCSimulator < handle
 		        obj.zindsim(partition,1) = zind_trans(ind);
 		        
 		        % Initial assets from stationary distribution
-		        obj.a1(partition) = grids.a.matrix(ind);
+		        obj.a1(partition) = obj.agrid_long(ind);
 		    end
 		end
 

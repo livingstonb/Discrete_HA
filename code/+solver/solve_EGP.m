@@ -36,8 +36,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
 
     tmp = p.borrow_lim - futureshock - income.minnety;
     adj_borr_lims = max(tmp ./ R_row, p.borrow_lim);
-    adj_borr_lims_bc = aux.Reshape.repmat_auto(adj_borr_lims,...
-        [1, 1, 1, p.nb]);
+    adj_borr_lims_bc = aux.Reshape.flatten(adj_borr_lims, 4);
 
     svecs = grids.s.vec + (adj_borr_lims - p.borrow_lim);
     svecs_bc = grids.s.vec + (adj_borr_lims_bc - p.borrow_lim);

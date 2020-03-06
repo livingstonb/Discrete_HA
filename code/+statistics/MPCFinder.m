@@ -49,7 +49,8 @@ classdef MPCFinder < handle
 			obj.p = p;
 			obj.income = income;
 
-			obj.xgrid_yT = grids.a.matrix + income.netymat_broadcast;
+			obj.xgrid_yT = repmat(grids.a.vec + income.netymat_broadcast,...
+				[1, 1, 1, p.nb, 1]);
 			obj.grids = grids;
 
 			obj.ss_dims = [p.nx_DST p.nyP p.nyF p.nb];
