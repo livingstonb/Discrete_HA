@@ -224,6 +224,7 @@ function [params, all_names] = parameters(runopts)
         if params(end).freq == 4
             params(end).betaH0 = -5e-3;
         end
+        params(end).beta0 = 0.911905140057402;
 
         % EZ with IES heterogeneity
         params(end+1) = setup.Params(ifreq, [lfreq ' EZ w/IES betw exp(-1), exp(1)'], IncomeProcess);

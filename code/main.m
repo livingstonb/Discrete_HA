@@ -98,48 +98,30 @@ function results = main(p)
     % ---------------------------------------------------------------------
     % pmf(a, yP, yF, ib)
     results.direct.adist = basemodel.adist;
-    
-    % pmf(a)
-    results.direct.agrid_dist = sum(sum(sum(basemodel.adist,4),3),2);
-    
-    % Support of the distribution
-    support = results.direct.agrid_dist > 1e-9;
     results.direct.agrid = grdDST.a.vec;
-    results.direct.agrid_support = grdDST.a.vec(support);
     
-    % cdf(a) over the support of pmf(a)
-    tmp = cumsum(results.direct.agrid_dist);
-    tmp = tmp(support);
-    tmp = tmp / tmp(end);
-    results.direct.agrid_cumdist_support = tmp;
-    
-    % pmf(a) over the support of pmf(a)
-    tmp = results.direct.agrid_dist(support);
-    results.direct.agrid_dist_support = tmp / sum(tmp);
+    % pmf(a) and cdf(a)
+    results.direct.agrid_dist = basemodel.agrid_dist;
+    cdf_a = cumsum(results.direct.agrid_dist);
 
     % Create values for fraction constrained (HtM) at every pt in asset space,
     % defining constrained as a <= epsilon * mean annual gross labor income
     wpinterp = griddedInterpolant(...
-        results.direct.agrid_support,...
-        results.direct.agrid_cumdist_support,...
-        'linear');
+        grdDST.a.vec, cdf_a, 'pchip', 'nearest');
 
     results.direct.find_wealth_pctile = @(a) 100 * wpinterp(a);
     for i = 1:numel(p.epsilon)        
         % create interpolant to find fraction of constrained households
         if p.epsilon(i) == 0
-            % Get exact figure
-            results.direct.constrained(i) = results.direct.agrid_dist(:)' * (grdDST.a.vec==0);
-
             if p.Bequests
-                results.direct.s0 = results.direct.constrained(i);
+                results.direct.s0 = wpinterp(p.epsilon(i));
             else
             	c = results.direct.constrained(i);
                 results.direct.s0 = (c - p.dieprob) / (1 - p.dieprob);
             end
-        else
-            results.direct.constrained(i) = wpinterp(p.epsilon(i));
         end
+
+        results.direct.constrained(i) = wpinterp(p.epsilon(i));
     end
 
     results.direct.wealth_lt_1000 = wpinterp(0.0081*2);
@@ -147,24 +129,25 @@ function results = main(p)
     results.direct.wealth_lt_10000 = wpinterp(0.081*2);
     
     % Wealth percentiles
+    cdf_a = cumsum(results.direct.agrid_dist);
+    [cdf_a, iunique] = unique(cdf_a);
     wpinterp_inverse = griddedInterpolant(...
-        results.direct.agrid_cumdist_support,...
-        results.direct.agrid_support,...
-        'linear');
+        cdf_a, grdDST.a.vec(iunique), 'pchip', 'nearest');
     results.direct.wpercentiles = wpinterp_inverse(p.percentiles/100);
     results.direct.median_a = wpinterp_inverse(0.5);
     
     % Top shares
     % Amount of total assets that reside in each pt on sorted asset space
-    totassets = results.direct.agrid_dist_support .* results.direct.agrid_support;
+    totassets = results.direct.agrid_dist .* grdDST.a.vec;
     % Fraction of total assets in each pt on asset space
     cumassets = cumsum(totassets) / results.direct.mean_a;
+
+    cdf_a = cumsum(results.direct.agrid_dist);
+    [cdf_a, iunique] = unique(cdf_a);
     
     % Create interpolant from wealth percentile to cumulative wealth share
     cumwealthshare_interp = griddedInterpolant(...
-        results.direct.agrid_cumdist_support,...
-        cumassets,...
-        'linear');
+        cdf_a, cumassets(iunique), 'pchip', 'nearest');
     results.direct.top10share = 1 - cumwealthshare_interp(0.9);
     results.direct.top1share = 1 - cumwealthshare_interp(0.99);
 
@@ -180,7 +163,7 @@ function results = main(p)
     [vals, iunique] = unique(vals, 'last');
     cdf_AY = cdf_AY(iunique);
 
-    interpAY = griddedInterpolant(vals, cdf_AY, 'pchip');
+    interpAY = griddedInterpolant(vals, cdf_AY, 'pchip', 'nearest');
     results.direct.a_lt_sixth = interpAY(1/6);
     results.direct.a_lt_twelfth = interpAY(1/12);
 
@@ -312,10 +295,6 @@ function results = main(p)
     results.direct.loan = mpc_finder.loan;
     results.direct.loss_in_2_years = mpc_finder.loss_in_2_years;
     clear mpc_finder
-    
-%     
-%     mpcs_twoperiods = statistics.MPCFinder_TwoPeriods(p, grdDST, income, basemodel);
-%     mpcs_twoperiods.compute_mpcs();
     
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING

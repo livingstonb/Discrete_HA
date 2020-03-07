@@ -25,14 +25,9 @@ function interpolant = interpolate_integral(...
 	end
 
 	integralValues= cumsum(integrandSorted .* pmfSorted);
-
-	dsupport = pmfSorted > 1e-9;
-	integralValues = integralValues(dsupport);
-	gridSorted = gridSorted(dsupport);
-
-	[gridUnique, uniqueInds] = unique(gridSorted,'last');
+	[gridUnique, uniqueInds] = unique(gridSorted, 'last');
 	integralUnique = integralValues(uniqueInds);
 
 	interpolant = griddedInterpolant(gridUnique, integralUnique,...
-		'linear', 'nearest');
+		'pchip', 'nearest');
 end

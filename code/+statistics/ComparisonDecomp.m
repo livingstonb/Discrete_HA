@@ -146,7 +146,7 @@ classdef ComparisonDecomp < handle
 
 				% First get cdf interpolant
                 cdf1_a_interp = griddedInterpolant(...
-                	agrid1_orig, cumsum(pmf1_a_orig), 'linear', 'nearest');
+                	agrid1_orig, cumsum(pmf1_a_orig), 'pchip', 'nearest');
 
                 cdf_a0 = pmf1_a_orig(1);
                 cdf1_a_interp = @(x) adjust_interpolant(x,...
@@ -162,7 +162,7 @@ classdef ComparisonDecomp < handle
 
             	% Next get mpc function on baseline grid
             	mpcs1_a_interp = griddedInterpolant(...
-            		agrid1_orig, mpcs1_a_orig, 'linear', 'nearest');
+            		agrid1_orig, mpcs1_a_orig, 'pchip', 'nearest');
             	mpcs1_a = mpcs1_a_interp(obj.agrid);
             else
             	pmf1 = obj.stats1.adist;
@@ -207,5 +207,4 @@ function vals_out = adjust_interpolant(x, cdf1_a_interp, agrid1_orig, cdf_a0)
     if sum(low_states) > 0
         vals_out(low_states) = interp1(x0, vals0, x(low_states));
     end
-    
 end

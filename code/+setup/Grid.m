@@ -110,11 +110,7 @@ classdef Grid < handle
 				+ min(params.R) * (obj.s.vec >= 0);
 			obj.a.vec = R_selected .* obj.s.vec;
 
-		 	obj.a.matrix = obj.R_broadcast .* obj.s.matrix;
-
-		 	if numel(params.r) ==  1
-		 		obj.a.matrix = repmat(obj.a.matrix, [1 1 1 params.nb]);
-		 	end
+		 	obj.a.matrix = repmat(obj.a.vec, [1, params.nyP, params.nyF, params.nb]);
 		end
 
 		function grid_adj = enforce_min_spacing(obj, params, gridvec)

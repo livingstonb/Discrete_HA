@@ -56,10 +56,10 @@ runopts.calibrate = false;
 runopts.fast = false; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
-runopts.MPCs = false;
+runopts.MPCs = true;
 runopts.MPCs_news = false;
 runopts.MPCs_loan_and_loss = false;
-runopts.DeterministicMPCs = false; % must be on if decompositions are needed
+runopts.DeterministicMPCs = true; % must be on if decompositions are needed
 runopts.SaveOutput = true;
 
 % directories

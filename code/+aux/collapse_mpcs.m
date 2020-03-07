@@ -6,6 +6,6 @@ function mpcs_a = collapse_mpcs(mpcs_states, pmf, pmf_a)
 	mpcs_a = sum(mpcs_states .* pmf, 2)...
 		./ pmf_a;
 
-	pmf_a_small = pmf_a < 1e-8;
+	pmf_a_small = pmf_a < 1e-9;
 	mpcs_a(pmf_a_small) = mean(mpcs_states(pmf_a_small,:), 2);
 end
