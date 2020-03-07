@@ -6,7 +6,7 @@ classdef TableGen < handle
 		mpcs_loan_loss_present = false;
 		decomp_norisk_present = false;
 		decomp_RA_present = false;
-		this_freq;
+		selected_cases;
 		freq;
 	end
 
@@ -24,7 +24,11 @@ classdef TableGen < handle
 	methods
 		function check_options(obj, params, results)
 
-			for ip = obj.this_freq
+			if isempty(obj.selected_cases)
+				return
+			end
+
+			for ip = obj.selected_cases
 				if params(ip).MPCs
 					obj.mpcs_present = true;
 				end

@@ -77,7 +77,7 @@ end
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {'baseline_Q'};
+runopts.names_to_run = {'Annual'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------
@@ -85,27 +85,21 @@ runopts.number = [];
 % -------------------------------------------------------------------------
 if runopts.Server == 0
     runopts.path = runopts.localdir;
-    runopts.outdir = fullfile(runopts.localdir, 'output');
-    runopts.savematpath = [runopts.localdir '/output/variables' num2str(runopts.number) '.mat'];
-    if ~exist(runopts.localdir, 'dir')
-        error('Directory not found')
-    end
-    
-    if ~exist([runopts.localdir '/output'], 'dir')
-        mkdir([runopts.localdir '/output']);
-    end
 else
     runopts.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
     runopts.path = runopts.serverdir;
-    runopts.outdir = fullfile(runopts.serverdir, 'output');
-    runopts.savematpath = [runopts.serverdir '/output/variables' num2str(runopts.number) '.mat'];
-    if ~exist(runopts.serverdir, 'dir')
-        error('Directory not found')
-    end
-    
-    if ~exist([runopts.localdir '/output'], 'dir')
-        mkdir([runopts.localdir '/output']);
-    end
+end
+
+matname = sprintf('variables%d.mat', runopts.number);
+runopts.outdir = fullfile(runopts.path, 'output');
+runopts.savematpath = fullfile(runopts.outdir, matname);
+
+if ~exist(runopts.path, 'dir')
+    error('Directory not found')
+end
+
+if ~exist(runopts.outdir , 'dir')
+    mkdir(runopts.outdir );
 end
 
 if exist(runopts.savematpath, 'file') == 2
@@ -114,13 +108,12 @@ if exist(runopts.savematpath, 'file') == 2
 end
 
 addpath(runopts.path);
-addpath([runopts.path '/code']);
-addpath([runopts.path '/code/aux_lib']);
+addpath(fullfile(runopts.path,'code'));
+addpath(fullfile(runopts.path,'code', 'aux_lib'));
 cd(runopts.path);
 
 % Load parameters
 [params, all_names] = setup.(runopts.mode)(runopts);
-Nparams = size(params, 2);
 
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
@@ -146,7 +139,7 @@ if params.calibrate
 end
 
 results = main(params);
-disp(['Finished parameterization ' params.name])
+fprintf('Finished parameterization %s\n', params.name)
 
 if runopts.Server
     exit

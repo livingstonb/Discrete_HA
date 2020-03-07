@@ -93,6 +93,15 @@ function results = main(p)
     
     results.direct.mean_x_check = results.direct.mean_a + results.direct.mean_nety1;
 
+    % RA mpc
+    if (p.nb == 1) && (~p.EpsteinZin) && isequal(p.temptation, 0) ...
+        && (p.bequest_weight == 0)
+        tmp = (1-p.dieprob) * p.beta0 * p.R;
+        results.direct.mpc_RA = p.R * tmp ^ (-1 / p.risk_aver) - 1;
+    else
+        results.direct.mpc_RA = NaN;
+    end
+
     %% --------------------------------------------------------------------
     % WEALTH DISTRIBUTION
     % ---------------------------------------------------------------------

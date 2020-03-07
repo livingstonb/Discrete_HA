@@ -1,6 +1,9 @@
 function [bins, vals] = smoothed_histogram(agrid, pmf, nbins, amax)
 	a_cdf = cumsum(pmf);
-	cdf_interp = griddedInterpolant(agrid, a_cdf, 'linear');
+	[agrid_u, iu] = unique(agrid, 'last');
+	a_cdf = a_cdf(iu);
+
+	cdf_interp = griddedInterpolant(agrid_u, a_cdf, 'pchip', 'nearest');
 
 	amin = agrid(1);
 	spacing = (amax - amin) / nbins;

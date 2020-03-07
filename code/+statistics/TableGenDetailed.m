@@ -6,20 +6,20 @@ classdef TableGenDetailed < statistics.TableGen
 	methods
 		function obj = TableGenDetailed(params, results, freq)
 			obj.freq = freq;
-			obj.this_freq = find([params.freq] == freq);
+			obj.selected_cases = find([params.freq] == freq);
 			obj.check_options(params, results);
 			obj.outdir = params(1).outdir;
 		end
 
 		function output_table = create(obj, params, results, freq)
 			output_table = table();
-			if isempty(obj.this_freq)
+			if isempty(obj.selected_cases)
 			    return;
 			end
 
 			shock_labels = params(1).shocks_labels;
 
-			for ip = obj.this_freq
+			for ip = obj.selected_cases
 				p = params(ip);
 				result_structure = results(ip);
 

@@ -51,7 +51,7 @@ function [params, all_names] = parameters(runopts)
     %----------------------------------------------------------------------
     
     % Annual
-    params(1) = setup.Params(1, 'baseline_A', '');
+    params(1) = setup.Params(1, 'Annual', '');
     params(1).beta0 = 0.984108034755346;
     params(1) = set_shared_fields(params(1), annual_params);
 
@@ -66,7 +66,7 @@ function [params, all_names] = parameters(runopts)
 %     params(end).nx_neg_DST = 20;
 %     
     % Quarterly
-    params(end+1) = setup.Params(4, 'baseline_Q', quarterly_b_path);
+    params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
     

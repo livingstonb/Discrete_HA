@@ -1,25 +1,47 @@
 classdef TableGenFinal < statistics.TableGen
 	properties
 		default_fname = 'Final_Output.csv';
+		included_names = {
+			'Quarterly'
+			'Annual'
+		};
 	end
 
 	methods
-		function obj = TableGenFinal(params, results, freq)
+		function obj = TableGenFinal(params, results, freq, use_all)
 			obj.freq = freq;
-			obj.this_freq = find([params.freq] == freq);
+
+			this_freq = find([params.freq] == freq);
+			if nargin < 4
+				use_all = false;
+			end
+
+			if use_all
+				obj.selected_cases = this_freq;
+			else
+				all_names = [params.name];
+				inames = [];
+				for ii = 1:numel(obj.included_names)
+					name = obj.included_names(ii);
+					inames = [inames, find(ismember(all_names, name))];
+				end
+
+				obj.selected_cases = intersect(this_freq, inames);
+			end
+
 			obj.check_options(params, results);
 			obj.outdir = params(1).outdir;
 		end
 
 		function output_table = create(obj, params, results, freq)
 			output_table = table();
-			if isempty(obj.this_freq)
+			if isempty(obj.selected_cases)
 			    return;
 			end
 
 			shocks_labels = params(1).shocks_labels;
 
-			for ip = obj.this_freq
+			for ip = obj.selected_cases
 				p = params(ip);
 				result_structure = results(ip);
 
@@ -56,8 +78,8 @@ function out = intro_panel(values, p, shocks_labels)
 		            'Annual MPC (%)'
 		            'Beta (Annualized)'
 		};
-	new_entries = {	values.direct.mpcs(5).avg_s_t(1,1) * 100
-                    values.direct.mpcs(5).avg_1_1to4 * 100
+	new_entries = {	values.direct.mpcs(5).avg_quarterly * 100
+                    values.direct.mpcs(5).avg_annual * 100
                     values.direct.beta_annualized    
 		};
 	out = statistics.TableGen.append_to_table(out,...
@@ -149,10 +171,10 @@ function out = panel_C_MPCSize(values, shocks_labels)
 		            sprintf('Quarterly MPC (%%), %s', shocks_labels{4})
 		            sprintf('Quarterly MPC (%%), %s', shocks_labels{6})
 		};
-	new_entries = {	values.direct.mpcs(4).avg_1_1to4 * 100
-					values.direct.mpcs(6).avg_1_1to4 * 100
-					values.direct.mpcs(4).avg_s_t(1,1) * 100
-					values.direct.mpcs(6).avg_s_t(1,1) * 100
+	new_entries = {	values.direct.mpcs(4).avg_annual * 100
+					values.direct.mpcs(6).avg_annual * 100
+					values.direct.mpcs(4).avg_quarterly * 100
+					values.direct.mpcs(6).avg_quarterly * 100
 		};
 	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end
@@ -167,12 +189,12 @@ function out = panel_D_MPCSign(values, shocks_labels)
 		            sprintf('Quarterly MPC (%%), %s', shocks_labels{2})
 		            sprintf('Quarterly MPC (%%), %s', shocks_labels{3})
 		};
-	new_entries = {	values.direct.mpcs(1).avg_1_1to4 * 100
-					values.direct.mpcs(2).avg_1_1to4 * 100
-					values.direct.mpcs(3).avg_1_1to4 * 100
-					values.direct.mpcs(1).avg_s_t(1,1) * 100
-					values.direct.mpcs(2).avg_s_t(1,1) * 100
-					values.direct.mpcs(3).avg_s_t(1,1) * 100
+	new_entries = {	values.direct.mpcs(1).avg_annual * 100
+					values.direct.mpcs(2).avg_annual * 100
+					values.direct.mpcs(3).avg_annual * 100
+					values.direct.mpcs(1).avg_quarterly * 100
+					values.direct.mpcs(2).avg_quarterly * 100
+					values.direct.mpcs(3).avg_quarterly * 100
 		};
 	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end

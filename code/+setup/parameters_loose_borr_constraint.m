@@ -1,4 +1,4 @@
-function params = parameters_loose_borr_constraint(runopts)
+function [params, all_names] = parameters_loose_borr_constraint(runopts)
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
 

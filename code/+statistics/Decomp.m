@@ -30,6 +30,7 @@ classdef Decomp < handle
 			obj.agrid = stats.agrid;
 			obj.na = numel(obj.agrid);
 			obj.stats = stats;
+			obj.mpc_ra = stats.mpc_RA;
 
 			obj.nthresholds = numel(obj.p.abars);
 
@@ -63,10 +64,7 @@ classdef Decomp < handle
 		end
 
 		function make_initial_computations(obj, mpcs)
-			tmp = (1-obj.p.dieprob) * obj.stats.beta * obj.p.R;
-            obj.mpc_ra = obj.p.R * tmp ^ (-1 / obj.p.risk_aver) - 1;
-
-            obj.pmf = obj.stats.adist;
+			obj.pmf = obj.stats.adist;
             obj.pmf_a = obj.stats.agrid_dist;
 
             obj.mpcs_a = aux.collapse_mpcs(mpcs, obj.pmf, obj.pmf_a);
@@ -113,34 +111,20 @@ classdef Decomp < handle
 				obj.results_norisk(ia).term1 = obj.mpc_ra;
 
 				thresh = obj.p.abars(ia);
-				if thresh == min(obj.agrid)
-					% Term 2: HtM effect
-					obj.results_norisk(ia).term2 = ...
-						(obj.mpcs_a(1) - obj.mpc_ra) * obj.pmf_a(1);
+				% Term 2: HtM effect
+				obj.results_norisk(ia).term2 = ...
+					obj.integral_interp(thresh) - obj.mpc_ra * obj.cdf_interp(thresh);
 
-					% Term 3: Constraint effect for non-HtM
-					obj.results_norisk(ia).term3 = ...
-						dot(obj.mpcs_norisk(2:end) - obj.mpc_ra, obj.pmf_a(2:end));
+				% Term 3: Constraint effect for non-HtM
+				obj.results_norisk(ia).term3 = ...
+					(obj.Empc_norisk - obj.integral_norisk_interp(thresh))...
+					- obj.mpc_ra * (1 - obj.cdf_interp(thresh));
 
-					% Term 4: Income risk effect for non-HtM
-					obj.results_norisk(ia).term4 = ...
-						dot(obj.mpcs_a(2:end), obj.pmf_a(2:end))...
-						- dot(obj.mpcs_norisk(2:end), obj.pmf_a(2:end));
-				else
-					% Term 2: HtM effect
-					obj.results_norisk(ia).term2 = ...
-						obj.integral_interp(thresh) - obj.mpc_ra * obj.cdf_interp(thresh);
+				% Term 4: Income risk effect for non-HtM
+				obj.results_norisk(ia).term4 = ...
+					(obj.Empc - obj.integral_interp(thresh))...
+					- (obj.Empc_norisk - obj.integral_norisk_interp(thresh));
 
-					% Term 3: Constraint effect for non-HtM
-					obj.results_norisk(ia).term3 = ...
-						(obj.Empc_norisk - obj.integral_norisk_interp(thresh))...
-						- obj.mpc_ra * (1 - obj.cdf_interp(thresh));
-
-					% Term 4: Income risk effect for non-HtM
-					obj.results_norisk(ia).term4 = ...
-						(obj.Empc - obj.integral_interp(thresh))...
-						- (obj.Empc_norisk - obj.integral_norisk_interp(thresh));
-				end
 				obj.results_norisk(ia).completed = true;
 			end
 		end

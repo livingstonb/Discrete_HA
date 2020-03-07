@@ -60,6 +60,8 @@ classdef MPCFinder < handle
 
 		    for ishock = 1:6
 		    	% mean mpc in period t out of period s shock
+		    	obj.mpcs(ishock).avg_quarterly = NaN;
+		    	obj.mpcs(ishock).avg_annual = NaN;
 		    	obj.mpcs(ishock).avg_s_t = NaN(5,5);
 		    	% mpcs over states for shock in period 1
 		    	obj.mpcs(ishock).mpcs_1_t = cell(1,4);
@@ -287,6 +289,14 @@ classdef MPCFinder < handle
 			for ishock = 1:6
 				obj.mpcs(ishock).avg_1_1to4 = sum(obj.mpcs(ishock).avg_s_t(1,1:4));
 				obj.mpcs(ishock).avg_5_1to4 = sum(obj.mpcs(ishock).avg_s_t(5,1:4));
+
+				if obj.p.freq == 4
+					obj.mpcs(ishock).avg_quarterly = obj.mpcs(ishock).avg_s_t(1,1);
+					obj.mpcs(ishock).avg_annual = obj.mpcs(ishock).avg_1_1to4;
+				else
+					obj.mpcs(ishock).avg_quarterly = NaN;
+					obj.mpcs(ishock).avg_annual = obj.mpcs(ishock).avg_s_t(1,1);
+				end
 			end
 		end
 
