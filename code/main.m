@@ -189,9 +189,9 @@ function results = main(p)
 
     if ~norisk.complete
         % Fill deterministic MPCs with NaNs
-        results.norisk_mpcs1_a_direct = cell(1,6);
+        results.norisk.mpcs1_a_direct = cell(1,6);
         for im = 1:6
-            results.norisk_mpcs1_a_direct{im} = NaN;
+            results.norisk.mpcs1_a_direct{im} = NaN;
         end
     end
 
