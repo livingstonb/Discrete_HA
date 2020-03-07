@@ -164,7 +164,7 @@ function results = main(p)
     results.direct.top1share = 1 - cumwealthshare_interp(0.99);
 
     % Fraction constrained by own quarterly net income
-    a_over_inc = grdDST.a.vec ./ income.netymat_broadcast * (p.freq / 4);
+    a_over_inc = grdDST.a.vec ./ (income.netymat_broadcast * (p.freq / 4));
     a_over_inc = repmat(a_over_inc, [1, 1, 1, p.nb, 1]);
     pmf_AY = results.direct.adist(:) * shiftdim(income.yTdist, -1);
     sorted_mat = sortrows([a_over_inc(:), pmf_AY(:)]);

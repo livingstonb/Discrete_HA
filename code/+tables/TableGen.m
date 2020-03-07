@@ -25,12 +25,18 @@ classdef TableGen < handle
 	methods
 		function obj = TableGen(params, results, freq, use_all)
 			obj.freq = freq;
+			if nargin < 4
+				use_all = true;
+			end
+			obj.filter_experiments(params, use_all);
+			
+			obj.check_options(params, results);
+			obj.outdir = params(1).outdir;
+		end
 
-			if ~isequal(freq, [1, 4]);
-				this_freq = find([params.freq] == freq);
-				if nargin < 4
-					use_all = true;
-				end
+		function filter_experiments(obj, params, use_all)
+			if ~isequal(obj.freq, [1, 4])
+				this_freq = find([params.freq] == obj.freq);
 			else
 				this_freq = 1:numel(params);
 			end
@@ -38,18 +44,21 @@ classdef TableGen < handle
 			if use_all || isempty(obj.included_names)
 				obj.selected_cases = this_freq;
 			else
-				all_names = [params.name];
+				all_names = {params.name};
 				inames = [];
 				for ii = 1:numel(obj.included_names)
 					name = obj.included_names(ii);
-					inames = [inames, find(ismember(all_names, name))];
+
+					inew = find(ismember(all_names, name));
+					if ~isempty(inew)
+						if ismember(params(inew).freq, obj.freq)
+							inames = [inames, inew];
+						end
+					end
 				end
 
-				obj.selected_cases = intersect(this_freq, inames);
+				obj.selected_cases = inames;
 			end
-
-			obj.check_options(params, results);
-			obj.outdir = params(1).outdir;
 		end
 
 		function check_options(obj, params, results)

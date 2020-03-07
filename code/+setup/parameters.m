@@ -86,7 +86,7 @@ function [params, all_names] = parameters(runopts)
 
         % different mean wealth targets
         for mw = [0.25, 0.5, 1]
-            name = [lfreq ' AYtarget' num2str(mw) ];
+            name = sprintf('A/Y = %g', mw);
             params(end+1) = setup.Params(ifreq, name, IncomeProcess);
             params(end) = set_shared_fields(params(end), income_params);
             params(end).target_value = mw;
@@ -97,7 +97,7 @@ function [params, all_names] = parameters(runopts)
 
         % different interest rates
         for ii = [0, 5]
-            name = [lfreq ' IntRate' num2str(ii)];
+            name = sprintf('r = %g%% p.a.', ii/100);
             params(end+1) = setup.Params(ifreq, name, IncomeProcess);
             params(end) = set_shared_fields(params(end), income_params);
             params(end).r = ii/100;

@@ -78,7 +78,7 @@ classdef ComparisonDecomp < handle
 			end
 
 			if ~all([obj.p0.MPCs, obj.p1.MPCs,...
-					obj.p0.DeterministicMPCs, obj.p1.DeterministicMPCs]);
+					obj.p0.DeterministicMPCs, obj.p1.DeterministicMPCs])
 				return
 			end
 
@@ -89,7 +89,7 @@ classdef ComparisonDecomp < handle
 			% Term 1: Effect of MPC function
 			obj.results.term1 = obj.Empc1_g0 - obj.Empc0_g0;
 
-			if obj.obj.RA_mpcs_available
+			if obj.RA_mpcs_available
 				% Term 1a: Effect of MPC function, level
 				obj.results.term1a = obj.Empc1_g0 - obj.Empc1adj_g0;
 

@@ -1,4 +1,4 @@
-classdef TableFinal_Main < tables.TableGen
+classdef TableFinal_Baselines < tables.TableGen
 	properties
 		default_fname = '';
 		included_names = {
@@ -8,7 +8,7 @@ classdef TableFinal_Main < tables.TableGen
 	end
 
 	methods
-		function obj = TableFinal_Main(...
+		function obj = TableFinal_Baselines(...
 			params, results, table_num, use_all)
             if nargin < 4
                 use_all = false;
@@ -34,7 +34,8 @@ classdef TableFinal_Main < tables.TableGen
 				p = params(ip);
 				result_structure = results(ip);
 
-				new_column = intro_panel(result_structure, p);
+				new_column = tables.OtherPanels.intro_panel(...
+					result_structure.direct, p);
 
 				temp = panel_A_Income(result_structure, p);
 				new_column = [new_column; temp];
@@ -58,23 +59,6 @@ classdef TableFinal_Main < tables.TableGen
 			obj.output = output_table;
 		end
 	end
-end
-
-function out = intro_panel(values, p, shocks_labels)
-	out = table({p.name},...
-		'VariableNames', {'results'},...
-		'RowNames', {'Model'});
-
-	new_labels = {	'Quarterly MPC (%)'
-		            'Annual MPC (%)'
-		            'Beta (Annualized)'
-		};
-	new_entries = {	round(values.direct.mpcs(5).avg_quarterly * 100, 1)
-                    round(values.direct.mpcs(5).avg_annual * 100, 1)
-                    round(values.direct.beta_annualized, 3) 
-		};
-	out = tables.TableGen.append_to_table(out,...
-		new_entries, new_labels);
 end
 
 function out = panel_A_Income(values, p)

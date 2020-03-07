@@ -77,7 +77,7 @@ end
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {'Annual'};
+runopts.names_to_run = {'A/Y = 1'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------
@@ -160,6 +160,6 @@ table_detailed = table_gen_detailed.create(params, results, params.freq);
 table_gen_detailed.save_table();
 % table_gen_final.save_table();
 
-save_tables = true;
-tables_out = tables.create_final_tables(params, results,...
-    save_tables);
+% save_tables = true;
+% tables_out = tables.create_final_tables(params, results,...
+%     save_tables);

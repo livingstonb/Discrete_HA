@@ -17,7 +17,8 @@
 
 clear
 
-options.server = true;
+options.server = false;
+options.final_tables = false;
 options.decomp_with_loose_borr_limit = false;
 options.index_loose_borr_limit_Q = 'baseline_Q_with_borrowing';
 options.index_loose_borr_limit_A = 'baseline_A_with_borrowing';
@@ -53,9 +54,9 @@ end
 
 for ip = 1:ind
     if params(ip).freq == 1
-        baseind = find(ismember({params.name}, {'baseline_A'}));
+        baseind = find(ismember({params.name}, {'Annual'}));
     else
-        baseind = find(ismember({params.name}, {'baseline_Q'}));
+        baseind = find(ismember({params.name}, {'Quarterly'}));
     end
 
     if isempty(baseind)
@@ -95,7 +96,7 @@ if options.decomp_with_loose_borr_limit
     end
 end
 
-table_gen = statistics.TableGenDetailed();
+table_gen = tables.TableGenDetailed(params, results, 4);
 table_gen.decomp_baseline = decomps_baseline;
 
 if options.decomp_with_loose_borr_limit
@@ -114,3 +115,7 @@ if ~isempty(annual_results)
     xlxpath = fullfile(xlxdir, 'annual_results.xlsx');
     writetable(annual_results, xlxpath, 'WriteRowNames', true);
 end
+
+save_tables = true;
+tables_out = tables.create_final_tables(params, results,...
+    save_tables);
