@@ -11,11 +11,13 @@ function out = wealth_panel(values, panel_name)
 	new_entries = {	values.direct.mean_a
 					values.direct.median_a
 		};
+	new_entries = aux.cellround(new_entries, 3);
 	out = tables.TableGen.append_to_table(out, new_entries, new_labels);
 
 	% Fraction with saving = 0
 	new_labels = {'s == 0'};
-	new_entries = values.direct.s0;
+	new_entries = {values.direct.s0};
+	new_entries = aux.cellround(new_entries, 3);
 	out = tables.TableGen.append_to_table(out, new_entries, new_labels);
 
 	% Fraction with assets or cash<= some value
@@ -34,6 +36,7 @@ function out = wealth_panel(values, panel_name)
 	                values.direct.a_lt_twelfth
 		};
 	new_entries = [tmp; new_entries];
+	new_entries = aux.cellround(new_entries, 3);
 	out = tables.TableGen.append_to_table(out, new_entries, new_labels);
 
 	% Percentiles
@@ -47,6 +50,7 @@ function out = wealth_panel(values, panel_name)
 		            '99.9th percentile'
 		};
 	new_entries = num2cell(values.direct.wpercentiles(:));
+	new_entries = aux.cellround(new_entries, 3);
 	out = tables.TableGen.append_to_table(out, new_entries, new_labels);
 
 	% Other stats
@@ -58,5 +62,6 @@ function out = wealth_panel(values, panel_name)
 					values.direct.top1share
 					values.direct.wealthgini
 		};
+	new_entries = aux.cellround(new_entries, 3);
 	out = tables.TableGen.append_to_table(out, new_entries, new_labels);
 end

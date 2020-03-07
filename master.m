@@ -150,12 +150,16 @@ end
 % -------------------------------------------------------------------------
 
 table_gen_detailed = tables.TableGenDetailed(params, results, params.freq);
-table_gen_final = tables.TableFinal_Main(params, results, params.freq);
-table_gen_decomps = tables.TableFinal_BaselineDecomps(params, results, params.freq);
+% table_gen_final = tables.TableFinal_Main(params, results, 1);
+% table_gen_decomps = tables.TableFinal_BaselineDecomps(params, results, 2);
 
 table_detailed = table_gen_detailed.create(params, results, params.freq);
-table_final = table_gen_final.create(params, results, params.freq);
-table_decomps = table_gen_decomps.create(params, results, params.freq);
+% table_final = table_gen_final.create(params, results);
+% table_decomps = table_gen_decomps.create(params, results);
 
 table_gen_detailed.save_table();
-table_gen_final.save_table();
+% table_gen_final.save_table();
+
+save_tables = true;
+tables_out = tables.create_final_tables(params, results,...
+    save_tables);

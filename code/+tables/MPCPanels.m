@@ -16,6 +16,7 @@ classdef MPCPanels
 							values.direct.mpcs(4).avg_quarterly * 100
 							values.direct.mpcs(6).avg_quarterly * 100
 				};
+			new_entries = aux.cellround(new_entries, 1);
 			out = tables.TableGen.append_to_table(out, new_entries, new_labels);
 		end
 
@@ -39,6 +40,7 @@ classdef MPCPanels
 							values.direct.mpcs(2).avg_quarterly * 100
 							values.direct.mpcs(3).avg_quarterly * 100
 				};
+			new_entries = aux.cellround(new_entries, 1);
 			out = tables.TableGen.append_to_table(out, new_entries, new_labels);
 		end
 	end

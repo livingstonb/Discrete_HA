@@ -1,6 +1,6 @@
 classdef TableFinal_Main < tables.TableGen
 	properties
-		default_fname = 'Final_Output.csv';
+		default_fname = '';
 		included_names = {
 			'Quarterly'
 			'Annual'
@@ -8,15 +8,21 @@ classdef TableFinal_Main < tables.TableGen
 	end
 
 	methods
-		function obj = TableFinal_Main(params, results, freq, use_all)
+		function obj = TableFinal_Main(...
+			params, results, table_num, use_all)
             if nargin < 4
                 use_all = false;
             end
+
+			frequencies = [1, 4];
 			obj = obj@tables.TableGen(...
-				params, results, freq, use_all);
+				params, results, frequencies, use_all);
+
+			obj.default_fname = sprintf(...
+            	'Table%d_baselines.csv', table_num);
 		end
 
-		function output_table = create(obj, params, results, freq)
+		function output_table = create(obj, params, results)
 			output_table = table();
 			if isempty(obj.selected_cases)
 			    return;
@@ -63,9 +69,9 @@ function out = intro_panel(values, p, shocks_labels)
 		            'Annual MPC (%)'
 		            'Beta (Annualized)'
 		};
-	new_entries = {	values.direct.mpcs(5).avg_quarterly * 100
-                    values.direct.mpcs(5).avg_annual * 100
-                    values.direct.beta_annualized    
+	new_entries = {	round(values.direct.mpcs(5).avg_quarterly * 100, 1)
+                    round(values.direct.mpcs(5).avg_annual * 100, 1)
+                    round(values.direct.beta_annualized, 3) 
 		};
 	out = tables.TableGen.append_to_table(out,...
 		new_entries, new_labels);
@@ -83,6 +89,8 @@ function out = panel_A_Income(values, p)
                     values.direct.stdev_loggrossy_A
                     values.direct.stdev_lognety_A   
 		};
+
+	new_entries = aux.cellround(new_entries, 3);
 	out = tables.TableGen.append_to_table(out,...
 		new_entries, new_labels);
 end

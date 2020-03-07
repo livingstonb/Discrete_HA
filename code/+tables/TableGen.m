@@ -26,9 +26,13 @@ classdef TableGen < handle
 		function obj = TableGen(params, results, freq, use_all)
 			obj.freq = freq;
 
-			this_freq = find([params.freq] == freq);
-			if nargin < 4
-				use_all = true;
+			if ~isequal(freq, [1, 4]);
+				this_freq = find([params.freq] == freq);
+				if nargin < 4
+					use_all = true;
+				end
+			else
+				this_freq = 1:numel(params);
 			end
 
 			if use_all || isempty(obj.included_names)
