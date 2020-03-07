@@ -167,7 +167,23 @@ function results = main(p)
         'linear');
     results.direct.top10share = 1 - cumwealthshare_interp(0.9);
     results.direct.top1share = 1 - cumwealthshare_interp(0.99);
-    
+
+    % Fraction constrained by own quarterly net income
+    a_over_inc = grdDST.a.vec ./ income.netymat_broadcast * (p.freq / 4);
+    a_over_inc = repmat(a_over_inc, [1, 1, 1, p.nb, 1]);
+    pmf_AY = results.direct.adist(:) * shiftdim(income.yTdist, -1);
+    sorted_mat = sortrows([a_over_inc(:), pmf_AY(:)]);
+
+    cdf_AY = cumsum(sorted_mat(:,2));
+    vals = sorted_mat(:,1);
+
+    [vals, iunique] = unique(vals, 'last');
+    cdf_AY = cdf_AY(iunique);
+
+    interpAY = griddedInterpolant(vals, cdf_AY, 'pchip');
+    results.direct.a_lt_sixth = interpAY(1/6);
+    results.direct.a_lt_twelfth = interpAY(1/12);
+
     %% --------------------------------------------------------------------
     % MPCs FOR MODEL WITHOUT INCOME RISK
     % ---------------------------------------------------------------------

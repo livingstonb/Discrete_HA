@@ -29,7 +29,7 @@ classdef Params < handle
         % computation
         max_iter = 1e5; % EGP
         tol_iter = 1.0e-6; % EGP
-        Nsim = 2e5; % For optional simulation
+        Nsim = 5e5; % For optional simulation
 
         % mpc options
         shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];

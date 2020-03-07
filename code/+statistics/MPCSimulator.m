@@ -61,8 +61,6 @@ classdef MPCSimulator < handle
 		    obj.yFindsim = ones(obj.Nsim,1,'int8');
 		    obj.zindsim = ones(obj.Nsim,1,'int8');
 
-		    
-
 		    dierand = rand(obj.Nsim, obj.Tmax, 'single');
 		    obj.diesim = dierand < p.dieprob;
 
@@ -86,9 +84,9 @@ classdef MPCSimulator < handle
 			cumdist = cumsum(basemodel.adist(:));
 
 			% Indexes
-		    yPind_trans = repmat(kron((1:p.nyP)',ones(p.nx_DST,1)),p.nyF*p.nb,1);
-		    yFind_trans = repmat(kron((1:p.nyF)',ones(p.nx_DST*p.nyP,1)),p.nb,1);
-		    zind_trans = kron((1:p.nb)',ones(p.nx_DST*p.nyP*p.nyF,1));
+		    yPind_trans = repmat(kron((1:p.nyP)', ones(p.nx_DST, 1)), p.nyF*p.nb, 1);
+		    yFind_trans = repmat(kron((1:p.nyF)', ones(p.nx_DST*p.nyP, 1)), p.nb, 1);
+		    zind_trans = kron((1:p.nb)', ones(p.nx_DST*p.nyP*p.nyF, 1));
 
 			obj.a1 = zeros(obj.Nsim,1);
 		    for ip = 1:obj.Npartition
@@ -129,8 +127,7 @@ classdef MPCSimulator < handle
 		    end
 
 		    obj.ygrosssim = income.yPgrid(obj.yPindsim) .*...
-            	repmat(income.yFgrid(obj.yFindsim),1,obj.Tmax)...
-            	.* income.yTgrid(obj.yTindsim);
+            	income.yFgrid(obj.yFindsim) .* income.yTgrid(obj.yTindsim);
 
 		    obj.ynetsim = income.lumptransfer + (1-p.labtaxlow) * obj.ygrosssim...
                         - p.labtaxhigh * max(obj.ygrosssim-income.labtaxthresh, 0);
@@ -147,10 +144,10 @@ classdef MPCSimulator < handle
 	        	shock = 0;
 	        end
 
-	        obj.xsim = zeros(obj.Nsim,obj.Tmax);
-	        obj.asim = zeros(obj.Nsim,obj.Tmax);
-	        obj.csim = zeros(obj.Nsim,obj.Tmax);
-	        obj.ssim = zeros(obj.Nsim,obj.Tmax);
+	        obj.xsim = zeros(obj.Nsim, obj.Tmax);
+	        obj.asim = zeros(obj.Nsim, obj.Tmax);
+	        obj.csim = zeros(obj.Nsim, obj.Tmax);
+	        obj.ssim = zeros(obj.Nsim, obj.Tmax);
 			for it = 1:obj.Tmax
 	            % Update cash-on-hand          
 	            if it == 1
@@ -196,24 +193,15 @@ classdef MPCSimulator < handle
 			if ishock == 0
 				obj.csim_noshock = obj.csim;
 			end
-
 		end
 
 		function computeStatistics(obj, p)
-			for iit = 1:3
-                y_quarter = obj.ygrosssim(:,iit) * p.freq / 4;
-
-                a_sixth_Q(iit) = mean(obj.asim(:,iit) < (y_quarter/6));
-                a_twelfth_Q(iit) = mean(obj.asim(:,iit) < (y_quarter/12));
-                x_sixth_Q(iit) = mean(obj.xsim(:,iit) < (y_quarter/6));
-                x_twelfth_Q(iit) = mean(obj.xsim(:,iit) < (y_quarter/12));
-            end
-
+            y_quarter = obj.ynetsim(:,4) * p.freq / 4;
             obj.inc_constrained = struct();
-            obj.inc_constrained.a_sixth_Q = mean(a_sixth_Q);
-            obj.inc_constrained.a_twelfth_Q = mean(a_twelfth_Q);
-            obj.inc_constrained.x_sixth_Q = mean(x_sixth_Q);
-            obj.inc_constrained.x_twelfth_Q = mean(x_twelfth_Q);
+            obj.inc_constrained.a_sixth_Q = mean(obj.asim(:,3) < (y_quarter/6));
+            obj.inc_constrained.a_twelfth_Q = mean(obj.asim(:,3) < (y_quarter/12));
+            obj.inc_constrained.x_sixth_Q = mean(obj.xsim(:,4) < (y_quarter/6));
+            obj.inc_constrained.x_twelfth_Q = mean(obj.xsim(:,4) < (y_quarter/12));
 
             obj.stdev_loggrossy_A = std(log(sum(obj.ygrosssim(:,1:p.freq),2)));
 		    obj.stdev_lognety_A = std(log(sum(obj.ynetsim(:,1:p.freq),2)));

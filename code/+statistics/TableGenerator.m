@@ -178,8 +178,8 @@ function out = wealth_constraints_table(values)
 	new_entries = {	values.direct.wealth_lt_1000
 	                values.direct.wealth_lt_5000
 	                values.direct.wealth_lt_10000
-	                values.direct.a_sixth_sim
-	                values.direct.a_twelfth_sim
+	                values.direct.a_lt_sixth
+	                values.direct.a_lt_twelfth
 	                values.direct.x_sixth_sim
                 	values.direct.x_twelfth_sim
 		};

@@ -51,15 +51,15 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = true; % use server paths
-runopts.calibrate = true;
+runopts.Server = false; % use server paths
+runopts.calibrate = false;
 runopts.fast = false; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
-runopts.MPCs = true;
+runopts.MPCs = false;
 runopts.MPCs_news = false;
 runopts.MPCs_loan_and_loss = false;
-runopts.DeterministicMPCs = true; % must be on if decompositions are needed
+runopts.DeterministicMPCs = false; % must be on if decompositions are needed
 runopts.SaveOutput = true;
 
 % directories
@@ -77,7 +77,7 @@ end
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {};
+runopts.names_to_run = {'baseline_Q'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------
