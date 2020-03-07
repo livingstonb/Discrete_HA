@@ -391,7 +391,7 @@ classdef EGP_EZ_Solver < handle
 
 		        model.coninterp_mpc{iyP,iyF,ib} = @(x) extend_interp(...
 		            model.coninterp{iyP,iyF,ib}, x, xmin, cmin, -inf,...
-		            p.borrow_lim);
+		            obj.p.borrow_lim);
 		    end
 		    end
             end
