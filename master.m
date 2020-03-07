@@ -149,11 +149,13 @@ end
 % CREATE TABLE OF RESULTS
 % -------------------------------------------------------------------------
 
-table_gen_detailed = statistics.TableGenDetailed(params, results, params.freq);
-table_gen_final = statistics.TableGenFinal(params, results, params.freq);
+table_gen_detailed = tables.TableGenDetailed(params, results, params.freq);
+table_gen_final = tables.TableFinal_Main(params, results, params.freq);
+table_gen_decomps = tables.TableFinal_BaselineDecomps(params, results, params.freq);
 
 table_detailed = table_gen_detailed.create(params, results, params.freq);
 table_final = table_gen_final.create(params, results, params.freq);
+table_decomps = table_gen_decomps.create(params, results, params.freq);
 
 table_gen_detailed.save_table();
 table_gen_final.save_table();

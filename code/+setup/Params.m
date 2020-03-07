@@ -30,6 +30,7 @@ classdef Params < handle
         annual_inc_dollars = 72000;
         convert_to_dollars;
         convert_from_dollars;
+        convert_to_dollars_str;
 
         % computation
         max_iter = 1e5; % EGP
@@ -284,6 +285,8 @@ classdef Params < handle
                 @(sav) obj.savtax * max(sav - obj.savtaxthresh, 0);
             obj.convert_to_dollars = @(num) num * obj.annual_inc_dollars;
             obj.convert_from_dollars = @(dollars) dollars / obj.annual_inc_dollars;
+            obj.convert_to_dollars_str = @(num) dollar_representation(...
+                obj.convert_to_dollars(num));
 
             if obj.EpsteinZin
                 obj.DeterministicMPCs = false;
@@ -315,5 +318,14 @@ classdef Params < handle
             end
         end
     end
+end
 
+function dollar_str = dollar_representation(quantity)
+    if quantity < 0
+        pref = '-$';
+    else
+        pref = '$';
+    end
+
+    dollar_str = sprintf('%s%g', pref, abs(quantity));
 end

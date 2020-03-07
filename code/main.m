@@ -21,6 +21,9 @@ function results = main(p)
         p.nb = max([p.nbeta, numel(p.risk_aver), numel(p.r), numel(p.invies), numel(p.temptation)]);
     end
 
+    dollar_thresholds = [0, 1000, 5000];
+    p.set('abars', p.convert_from_dollars(dollar_thresholds), true);
+
     %% --------------------------------------------------------------------
     % HETEROGENEITY IN PREFERENCES/RETURNS
     % ---------------------------------------------------------------------

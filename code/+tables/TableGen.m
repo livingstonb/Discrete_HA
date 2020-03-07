@@ -19,9 +19,35 @@ classdef TableGen < handle
 
 	properties (Abstract)
 		default_fname;
+		included_names;
 	end
 
 	methods
+		function obj = TableGen(params, results, freq, use_all)
+			obj.freq = freq;
+
+			this_freq = find([params.freq] == freq);
+			if nargin < 4
+				use_all = true;
+			end
+
+			if use_all || isempty(obj.included_names)
+				obj.selected_cases = this_freq;
+			else
+				all_names = [params.name];
+				inames = [];
+				for ii = 1:numel(obj.included_names)
+					name = obj.included_names(ii);
+					inames = [inames, find(ismember(all_names, name))];
+				end
+
+				obj.selected_cases = intersect(this_freq, inames);
+			end
+
+			obj.check_options(params, results);
+			obj.outdir = params(1).outdir;
+		end
+
 		function check_options(obj, params, results)
 
 			if isempty(obj.selected_cases)
