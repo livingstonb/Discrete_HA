@@ -155,20 +155,12 @@ end
 %% ------------------------------------------------------------------------
 % CREATE TABLE OF RESULTS
 % -------------------------------------------------------------------------
-return_nans = false;
-decomp_with_loose_borr_limit = false;
 
-table_gen = statistics.TableGenerator();
+table_gen_detailed = statistics.TableGenDetailed(params, results, params.freq);
+table_gen_final = statistics.TableGenFinal(params, results, params.freq);
 
-quarterly_results = table_gen.create(params, results, 4);
-annual_results = table_gen.create(params, results, 1);
+table_detailed = table_gen_detailed.create(params, results, params.freq);
+table_final = table_gen_final.create(params, results, params.freq);
 
-if ~isempty(quarterly_results)
-    xlxpath = fullfile(runopts.outdir, 'quarterly_results.xlsx');
-    writetable(quarterly_results, xlxpath, 'WriteRowNames', true);
-end
-
-if ~isempty(annual_results)
-    xlxpath = fullfile(runopts.outdir, 'annual_results.xlsx');
-    writetable(annual_results, xlxpath, 'WriteRowNames', true);
-end
+table_gen_detailed.save_table();
+table_gen_final.save_table();

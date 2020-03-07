@@ -26,6 +26,11 @@ classdef Params < handle
         
         path;
 
+        % mean annual income dollar interpretation
+        annual_inc_dollars = 72000;
+        convert_to_dollars;
+        convert_from_dollars;
+
         % computation
         max_iter = 1e5; % EGP
         tol_iter = 1.0e-6; % EGP
@@ -54,6 +59,7 @@ classdef Params < handle
         borrow_lim = 0;
         nbl_adjustment = 0.99;
         gridspace_min = 0; % minimum grid space (0 for no minimum)
+        alternate_gcurv = false;
         
         % OPTIONS
         MakePlots = 0;
@@ -276,6 +282,8 @@ classdef Params < handle
             obj.nbeta = max(obj.nbeta, numel(obj.beta_grid_forced));
             obj.compute_savtax =...
                 @(sav) obj.savtax * max(sav - obj.savtaxthresh, 0);
+            obj.convert_to_dollars = @(num) num * obj.annual_inc_dollars;
+            obj.convert_from_dollars = @(dollars) dollars / obj.annual_inc_dollars;
 
             if obj.EpsteinZin
                 obj.DeterministicMPCs = false;

@@ -69,9 +69,16 @@ classdef Grid < handle
 			end
 
 			nx_pos = obj.nx - obj.nx_neg;
-			savgrid_pos = create_curved_grid(...
-				soft_constraint, params.xmax, nx_pos,...
-				params.xgrid_par, false);
+            
+            if params.alternate_gcurv
+                savgrid_pos = create_alternate_grid(...
+                    soft_constraint, params.xmax, nx_pos,...
+                    params.xgrid_par);
+            else
+                savgrid_pos = create_curved_grid(...
+                    soft_constraint, params.xmax, nx_pos,...
+                    params.xgrid_par, false);
+            end
 			savgrid_pos = obj.enforce_min_spacing(params, savgrid_pos);
 
 			savgrid = [savgrid_neg; savgrid_pos];
@@ -135,4 +142,15 @@ function cgrid = create_curved_grid(lowval, highval, npts,...
     	cgrid = 1 - flip(cgrid);
     end
     cgrid = lowval + (highval - lowval) * cgrid;
+end
+
+function cgrid = create_alternate_grid(lowval, highval, npts,...
+	curvature)
+	cgrid = linspace(0, 1, npts+1)';
+    cgrid = 1 - (1 - cgrid .^ (1/curvature)) .^ curvature;
+    cgrid = cgrid(1:end-1) ./ sum(cgrid(end-1));
+    cgrid = cgrid(:);
+
+    cgrid = lowval + (highval - lowval) * cgrid;
+
 end

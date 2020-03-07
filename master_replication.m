@@ -99,5 +99,5 @@ params = setup.Params.select_by_number(params, runopts.number);
 % -------------------------------------------------------------------------
 results = main(params);
 
-table_gen = statistics.TableGenerator();
+table_gen = statistics.TableGenDetailed();
 output_table = table_gen.create(params, results, params.freq)

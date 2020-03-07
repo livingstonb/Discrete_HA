@@ -95,7 +95,7 @@ if options.decomp_with_loose_borr_limit
     end
 end
 
-table_gen = statistics.TableGenerator();
+table_gen = statistics.TableGenDetailed();
 table_gen.decomp_baseline = decomps_baseline;
 
 if options.decomp_with_loose_borr_limit

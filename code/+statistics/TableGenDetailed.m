@@ -1,51 +1,25 @@
-classdef TableGenerator
-	properties (SetAccess = private)
-		output_table;
-	end
-
+classdef TableGenDetailed < statistics.TableGen
 	properties
-		decomp_baseline;
-		decomp_incrisk_alt;
+		default_fname = 'Detailed_Output.csv';
 	end
 
 	methods
+		function obj = TableGenDetailed(params, results, freq)
+			obj.freq = freq;
+			obj.this_freq = find([params.freq] == freq);
+			obj.check_options(params, results);
+			obj.outdir = params(1).outdir;
+		end
+
 		function output_table = create(obj, params, results, freq)
 			output_table = table();
-			this_freq = find([params.freq]==freq);
-			if isempty(this_freq)
+			if isempty(obj.this_freq)
 			    return;
 			end
 
 			shock_labels = params(1).shocks_labels;
 
-			mpcs_present = false;
-			mpcs_news_present = false;
-			mpcs_loan_loss_present = false;
-			decomp_norisk_present = false;
-			decomp_RA_present = false;
-			for ip = this_freq
-				if params(ip).MPCs
-					mpcs_present = true;
-				end
-
-				if params(ip).MPCs_news
-					mpcs_news_present = true;
-				end
-
-				if params(ip).MPCs_loan_and_loss
-					mpcs_loan_loss_present = true;
-				end
-
-				if results(ip).decomp_norisk(1).completed
-					decomp_norisk_present = true;
-				end
-
-				if results(ip).decomp_RA.completed
-					decomp_RA_present = true;
-				end
-			end
-
-			for ip = this_freq
+			for ip = obj.this_freq
 				p = params(ip);
 				result_structure = results(ip);
 
@@ -58,14 +32,14 @@ classdef TableGenerator
 				new_column = [new_column; temp];
 
 				ishock = 1;
-				while mpcs_present && (ishock < 7)
+				while obj.mpcs_present && (ishock < 7)
 					shock_size = shock_labels{ishock};
 					temp = mpcs_table(result_structure, p, ishock, shock_size);
 					new_column = [new_column; temp];
 					ishock = ishock + 1;
 				end
 
-				if 	~isempty(decomp_norisk_present)
+				if 	obj.decomp_norisk_present
 					shock_size = shock_labels{5};
 
 					decomp_structure = results(ip).decomp_norisk;
@@ -73,7 +47,7 @@ classdef TableGenerator
 					new_column = [new_column; temp];
 				end
 
-				if ~isempty(decomp_RA_present)
+				if obj.decomp_RA_present
 					shock_size = shock_labels{5};
 
 					decomp_structure = results(ip).decomp_RA;
@@ -97,7 +71,7 @@ classdef TableGenerator
 					new_column = [new_column; temp];
 				end
 
-				if mpcs_news_present
+				if obj.mpcs_news_present
 					temp = mpcs_news_table(result_structure, p, 'MEAN',...
 						shock_labels);
 					new_column = [new_column; temp];
@@ -107,7 +81,7 @@ classdef TableGenerator
 					new_column = [new_column; temp];
 				end
 
-				if mpcs_loan_loss_present
+				if obj.mpcs_loan_loss_present
 					temp = specialty_mpc_tables(result_structure, p,...
 						shock_labels);
 					new_column = [new_column; temp];
@@ -117,6 +91,8 @@ classdef TableGenerator
 				new_column.Properties.VariableNames = {column_label};
 				output_table = [output_table, new_column];
 			end
+
+			obj.output = output_table;
 		end
 	end
 end
@@ -130,17 +106,19 @@ function out = intro_stats_table(values, p)
 		            'Mean gross annual income'
 		            'Stdev log annual gross income'
 		            'Stdev log annual net income'
+		            'Dollar amount of mean ann inc (numeraire)'
 		};
 	new_entries = {	values.direct.beta_annualized
                     values.direct.mean_grossy_A
                     values.direct.stdev_loggrossy_A
-                    values.direct.stdev_lognety_A    
+                    values.direct.stdev_lognety_A
+                    p.annual_inc_dollars 
 		};
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end
 
 function out = wealth_constraints_table(values)
-	out = new_table_with_header('WEALTH CONSTRAINTS');
+	out = statistics.TableGen.new_table_with_header('WEALTH CONSTRAINTS');
 
 	% Mean assets and saving
 	new_labels = {	'Mean assets'
@@ -151,15 +129,15 @@ function out = wealth_constraints_table(values)
 					values.direct.median_a
 					values.direct.mean_s
 		};
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 
 	% Fraction with saving = 0
 	new_labels = {'Fraction with s == 0'};
 	new_entries = values.direct.s0;
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 
 	% Fraction with assets or cash<= some value
-	new_labels = {	'Fraction with a == 0'
+	new_labels = {	'Fraction with a <= 0'
 		            'Fraction with a <= 0.5% mean ann gross lab inc'
 		            'Fraction with a <= 1% mean ann gross lab inc'
 		            'Fraction with a <= 2% mean ann gross lab inc'
@@ -174,21 +152,19 @@ function out = wealth_constraints_table(values)
 		            'Fraction with x <= 1/6 own quarterly income'
 		            'Fraction with x <= 1/12 own quarterly income'
 		};
-	temp = num2cell(values.direct.constrained(:));
-	new_entries = {	values.direct.wealth_lt_1000
-	                values.direct.wealth_lt_5000
-	                values.direct.wealth_lt_10000
-	                values.direct.a_lt_sixth
+	tmp1 = num2cell(values.direct.constrained(:));
+	tmp2 = num2cell(values.direct.wealth_lt_dollar_value([1000; 5000; 10000]));
+	new_entries = {	values.direct.a_lt_sixth
 	                values.direct.a_lt_twelfth
 	                values.direct.x_sixth_sim
                 	values.direct.x_twelfth_sim
 		};
-	new_entries = [temp; new_entries];
-	out = append_to_table(out, new_entries, new_labels);
+	new_entries = [tmp1; tmp2; new_entries];
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end
 
 function out = wealth_distribution_table(values)
-	out = new_table_with_header('WEALTH DISTRIBUTION');
+	out = statistics.TableGen.new_table_with_header('WEALTH DISTRIBUTION');
 
 	% Percentiles
 	new_labels = {	'Wealth, 10th percentile'
@@ -201,7 +177,7 @@ function out = wealth_distribution_table(values)
 		            'Wealth, 99.9th percentile'
 		};
 	new_entries = num2cell(values.direct.wpercentiles(:));
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 
 	% Other stats
 	new_labels = {	'Wealth, top 10% share'
@@ -214,13 +190,13 @@ function out = wealth_distribution_table(values)
 					values.direct.wealthgini
                     values.direct.assets_z_rank_corr
 		};
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end
 
 function out = mpcs_table(values, p, ishock, shock_size)
 	header = sprintf(...
 		'MPCs OUT OF FRACTION MEAN ANN INC (SHOCK %s)', shock_size);
-	out = new_table_with_header(header);
+	out = statistics.TableGen.new_table_with_header(header);
 
 	new_labels = {	sprintf('PERIOD 1 Median(MPC), shock = %s', shock_size)
 					sprintf('PERIOD 1 E[MPC], shock = %s', shock_size)
@@ -241,7 +217,7 @@ function out = mpcs_table(values, p, ishock, shock_size)
 	else
 		new_entries = num2cell(NaN(6,1));
 	end
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end
 
 function out = mpcs_news_table(values, p, statistic, shock_labels)
@@ -254,7 +230,7 @@ function out = mpcs_news_table(values, p, statistic, shock_labels)
 	end
 
 	header_name = strcat(statistic, ' MPCs OUT OF NEWS');
-	out = new_table_with_header(header_name);
+	out = statistics.TableGen.new_table_with_header(header_name);
 
 	new_labels = {};
 	new_entries = {};
@@ -281,14 +257,14 @@ function out = mpcs_news_table(values, p, statistic, shock_labels)
 	new_labels = reshape(new_labels, [], 1);
 	new_entries = reshape(new_entries, [], 1);
 
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end
 
 function out = specialty_mpc_tables(values, p, shock_labels)
 	% Loss in two years
 	loss_size = shock_labels{1};
 	header_name = sprintf('MPCs OUT OF LOSS IN 8 PERIODS (SHOCK %s)', loss_size);
-	loss_table = new_table_with_header(header_name);
+	loss_table = statistics.TableGen.new_table_with_header(header_name);
 
 	new_entries = {	values.direct.loss_in_2_years.avg
                     values.direct.loss_in_2_years.mpc_condl
@@ -305,12 +281,12 @@ function out = specialty_mpc_tables(values, p, shock_labels)
     				strcat('ONE PERIOD P(MPC>0)', shock_label)
     				strcat('ONE PERIOD Median(MPC)', shock_label)
     	};
-    loss_table = append_to_table(loss_table, new_entries, new_labels);
+    loss_table = statistics.TableGen.append_to_table(loss_table, new_entries, new_labels);
 
 	% One-year loan
 	loan_size = shock_labels{6};
 	header_name = sprintf('MPCs OUT OF 4-PERIOD LOAN OF %s', loan_size);
-	loan_table = new_table_with_header(header_name);
+	loan_table = statistics.TableGen.new_table_with_header(header_name);
 
 	new_entries = {	values.direct.loan.avg
                     values.direct.loan.mpc_condl
@@ -327,7 +303,7 @@ function out = specialty_mpc_tables(values, p, shock_labels)
     				strcat('ONE PERIOD P(MPC>0)', shock_label)
     				strcat('ONE PERIOD Median(MPC)', shock_label)
     	};
-    loan_table = append_to_table(loan_table, new_entries, new_labels);
+    loan_table = statistics.TableGen.append_to_table(loan_table, new_entries, new_labels);
 
     out = [loss_table; loan_table];
 end
@@ -335,7 +311,7 @@ end
 function out = decomp_table(decomp, shock_size)
 	header_name = sprintf(...
 		'DECOMP OF ONE PERIOD E[MPC], SHOCK OF %s', shock_size);
-	out = new_table_with_header(header_name);
+	out = statistics.TableGen.new_table_with_header(header_name);
 
 	new_labels = {	'Decomp of E[MPC] around a=0, RA MPC'
 		            'Decomp of E[MPC] around a=0, HtM Effect'
@@ -358,13 +334,13 @@ function out = decomp_table(decomp, shock_size)
 		];
 	new_entries = num2cell(temp(:));
 
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end
 
 function out = repagent_decomp_table(decomp, shock_size)
 	header_name = sprintf(...
 		'DECOMP OF ONE PERIOD E[MPC] - MPC_RA, SHOCK OF %s', shock_size);
-	out = new_table_with_header(header_name);
+	out = statistics.TableGen.new_table_with_header(header_name);
 
 	new_labels = {	'E[MPC] - MPC_RA'
 		            'Decomp of E[MPC] - MPC_RA, effect of MPC fcn'
@@ -377,13 +353,13 @@ function out = repagent_decomp_table(decomp, shock_size)
                     decomp.term3
 		};
 
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end
 
 function out = baseline_decomp_table(decomp, shock_size)
 	header_name = sprintf(...
 		'DECOMP OF EM1-EM0, SHOCK OF %s', shock_size);
-	out = new_table_with_header(header_name);
+	out = statistics.TableGen.new_table_with_header(header_name);
 
 	new_labels = {	'Em1 - Em0'
 		            'Decomp of Em1-Em0, effect of MPC fcn'
@@ -412,13 +388,13 @@ function out = baseline_decomp_table(decomp, shock_size)
                     decomp.term2a(3)   
                     decomp.term2b(3)
         };
-	out = append_to_table(out, new_entries, new_labels);
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end
 
 function out = alt_decomp_table(decomp, shock_size)
 	header_name = sprintf(...
 		'ALT DECOMP OF ONE PERIOD E[MPC], SHOCK OF %s', shock_size);
-	out = new_table_with_header(header_name);
+	out = statistics.TableGen.new_table_with_header(header_name);
 
 	new_labels = {	'Alt decomp of E[MPC] around a=0, RA MPC'
 		            'Alt decomp of E[MPC] around a=0, HtM Effect'
@@ -445,20 +421,5 @@ function out = alt_decomp_table(decomp, shock_size)
 		];
 	new_entries = num2cell(temp(:));
 
-	out = append_to_table(out, new_entries, new_labels);
-end
-
-function output_table = append_to_table(...
-		input_table, new_entries, new_labels)
-	table_to_append = table(new_entries,...
-		'VariableNames', {'results'},...
-		'RowNames', new_labels);
-	output_table = [input_table; table_to_append];
-end
-
-function new_table = new_table_with_header(header_name)
-	header_formatted = strcat('____', header_name);
-	new_table = table({NaN},...
-		'VariableNames', {'results'},...
-		'RowNames', {header_formatted});
+	out = statistics.TableGen.append_to_table(out, new_entries, new_labels);
 end

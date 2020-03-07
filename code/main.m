@@ -124,9 +124,9 @@ function results = main(p)
         results.direct.constrained(i) = wpinterp(p.epsilon(i));
     end
 
-    results.direct.wealth_lt_1000 = wpinterp(0.0081*2);
-    results.direct.wealth_lt_5000 = wpinterp(0.081);
-    results.direct.wealth_lt_10000 = wpinterp(0.081*2);
+    to_num = @(val) p.convert_from_dollars(val);
+    results.direct.wealth_lt_dollar_value = ...
+        @(val) wpinterp(to_num(val));
     
     % Wealth percentiles
     cdf_a = cumsum(results.direct.agrid_dist);
