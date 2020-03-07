@@ -374,13 +374,24 @@ classdef EGP_EZ_Solver < handle
 		    % and find saving values associated with xvals
 		    model.savinterp = cell(obj.p.nyP,obj.p.nyF,obj.p.nb);
 		    model.coninterp = cell(obj.p.nyP,obj.p.nyF,obj.p.nb);
+		    model.coninterp_mpc = cell(obj.p.nyP,obj.p.nyF,obj.p.nb);
 		    for ib = 1:obj.p.nb
 		    for iyF = 1:obj.p.nyF
 		    for iyP = 1:obj.p.nyP
 		        model.savinterp{iyP,iyF,ib} = ...
-		            griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,ib),model.sav(:,iyP,iyF,ib),'linear');
+		            griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,ib),...
+		            	model.sav(:,iyP,iyF,ib), 'linear');
 		        model.coninterp{iyP,iyF,ib} = ...
-		            griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,ib),model.con(:,iyP,iyF,ib),'linear');    
+		            griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,ib),...
+		            	model.con(:,iyP,iyF,ib),'linear'); 
+
+		        xmin = obj.grids.x.matrix(1,iyP,iyF,ib);
+		        cmin = model.con(1,iyP,iyF,ib);
+		        lbound = 1e-7;
+
+		        model.coninterp_mpc{iyP,iyF,ib} = @(x) extend_interp(...
+		            model.coninterp{iyP,iyF,ib}, x, xmin, cmin, -inf,...
+		            p.borrow_lim);
 		    end
 		    end
             end
@@ -389,4 +400,15 @@ classdef EGP_EZ_Solver < handle
 	    end
 	end
 
+end
+
+function out = extend_interp(old_interpolant, qvals, gridmin,...
+    valmin, lb, blim)
+    out = zeros(size(qvals));
+    adj = qvals < gridmin;
+    out(~adj) = old_interpolant(qvals(~adj));
+    out(adj) = valmin + qvals(adj) - gridmin;
+
+    out(adj) = min(out(adj), qvals(adj)-blim);
+    out = max(out, lb);
 end

@@ -462,7 +462,7 @@ function [params, all_names] = parameters(runopts)
             params(end) = set_shared_fields(params(end), income_params);
             params(end).temptation = itempt;
             if (ifreq==4) && (itempt==0.07)
-                params(end).betaH0 = 3.2e-4;
+                params(end).betaH0 = 6e-4;
             elseif (ifreq==4) && (itempt==0.05)
                 params(end).betaH0 = - 2e-5;
             end

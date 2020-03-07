@@ -77,7 +77,7 @@ end
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {'Q Permanent r het, r in {0,2,4} p.a.'};
+runopts.names_to_run = {};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------
