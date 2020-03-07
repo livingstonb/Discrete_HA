@@ -130,14 +130,14 @@ function [params, all_names] = parameters(runopts)
 %         end
 
         % no death
-        name = [lfreq ' NoDeath'];
+        name = [lfreq ' No Death'];
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).dieprob = 0;
         params(end).beta0 = 0.975363510593659;
 
         % no bequests
-        name = [lfreq ' NoBequests'];
+        name = [lfreq ' No Bequests'];
         params(end+1) = setup.Params(ifreq,name,IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).Bequests = 0;

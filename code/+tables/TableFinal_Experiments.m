@@ -6,7 +6,8 @@ classdef TableFinal_Experiments < tables.TableGen
 
 	methods
 		function obj = TableFinal_Experiments(...
-			params, results, table_num, included_names, use_all)
+			params, results, table_num, included_names,...
+			use_all)
             if nargin < 5
                 use_all = false;
             end
@@ -21,7 +22,8 @@ classdef TableFinal_Experiments < tables.TableGen
             	'Table%d_quarterly_models.csv', table_num);
 		end
 
-		function output_table = create(obj, params, results)
+		function output_table = create(obj, params, results,...
+			decomps_baseline)
 			output_table = table();
 			if isempty(obj.selected_cases)
 			    return;
@@ -33,6 +35,21 @@ classdef TableFinal_Experiments < tables.TableGen
 
 				new_column = tables.OtherPanels.intro_panel(...
 					result_structure, p);
+
+				% Decompositions w.r.t baseline
+				decomp = decomps_baseline(ip);
+
+				absolute = true;
+				panel_prefix = 'Panel A';
+				temp = tables.DecompComparisonPanels.decomp_wrt_baseline(...
+					decomp, p, 5, absolute, panel_prefix);
+				new_column = [new_column; temp];
+
+				absolute = false;
+				panel_prefix = 'Panel B';
+				temp = tables.DecompComparisonPanels.decomp_wrt_baseline(...
+					decomp, p, 5, absolute, panel_prefix);
+				new_column = [new_column; temp];
 
 				column_label = sprintf('Specification%d', p.index);
 				new_column.Properties.VariableNames = {column_label};

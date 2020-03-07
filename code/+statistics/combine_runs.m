@@ -118,4 +118,4 @@ end
 
 save_tables = true;
 tables_out = tables.create_final_tables(params, results,...
-    save_tables);
+    decomps_baseline, save_tables);
