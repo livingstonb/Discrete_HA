@@ -159,11 +159,11 @@ classdef EGP_EZ_Solver < handle
             for iyP = 1:obj.p.nyP
 	            % xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
 	            xp_s_ib_iyF_iyP = obj.xp_s(:,iyP,iyF,1,:);
-	            coninterp = griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,1),...
+	            coninterp = griddedInterpolant(obj.grids.x.matrix(:,iyP,iyF,ib),...
 	            	obj.con(:,iyP,iyF,ib), 'linear');
 	            obj.c_xp(:,iyP,iyF,ib,:) = reshape_nx_nyT(coninterp(xp_s_ib_iyF_iyP(:)));
 	            obj.Vinterp{iyP,iyF,ib} = griddedInterpolant(...
-	            	obj.grids.x.matrix(:,iyP,iyF,1), obj.V(:,iyP,iyF,ib), 'linear');
+	            	obj.grids.x.matrix(:,iyP,iyF,ib), obj.V(:,iyP,iyF,ib), 'linear');
 	            obj.V_xp(:,iyP,iyF,ib,:) = reshape_nx_nyT(...
 	            	obj.Vinterp{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)));
             end
@@ -176,7 +176,7 @@ classdef EGP_EZ_Solver < handle
 	        mucnext = obj.c_xp .^ (-obj.heterogeneity.invies_broadcast) ...
 	        	.* obj.V_xp .^ (obj.heterogeneity.invies_broadcast ...
 	        		- obj.heterogeneity.risk_aver_broadcast);
-	       	EyT_mucnext = reshape(mucnext, [], obj.p.nyT) *income.yTdist;
+	       	EyT_mucnext = reshape(mucnext, [], obj.p.nyT) * income.yTdist;
 	        
 	        % expected muc
 	        savtaxrate  = (1+obj.p.savtax.*(obj.sgrid_repeated(:)>=obj.p.savtaxthresh));

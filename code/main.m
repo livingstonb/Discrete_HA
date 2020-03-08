@@ -11,16 +11,6 @@ function results = main(p)
     results = struct('policy',[],'direct',[],'norisk',[],'sim',[],'decomp_meanmpc',[]);
     results.Finished = false;
 
-    % throw error if more than one type of heterogeneity are added
-    if (p.nbeta > 1) + (numel(p.risk_aver)>1) + (numel(p.r)>1)...
-        + (numel(p.temptation)>1) > 1
-
-        error('only one form of heterogeneity allowed')
-    else
-        % find a better way to do this...
-        p.nb = max([p.nbeta, numel(p.risk_aver), numel(p.r), numel(p.invies), numel(p.temptation)]);
-    end
-
     dollar_thresholds = [0, 1000, 5000];
     p.set('abars', p.convert_from_dollars(dollar_thresholds), true);
 
@@ -28,6 +18,7 @@ function results = main(p)
     % HETEROGENEITY IN PREFERENCES/RETURNS
     % ---------------------------------------------------------------------
     heterogeneity = setup.Prefs_R_Heterogeneity(p);
+    p.set("nb", heterogeneity.nz, true);
 
     %% --------------------------------------------------------------------
     % INCOME

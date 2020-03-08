@@ -294,7 +294,7 @@ function [params, all_names] = parameters(runopts)
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).invies = 1 ./ exp([-2 -1 0 1 2]);
-        params(end).EpsteinZin = 1;
+        params(end).EpsteinZin = true;
         if (ifreq == 4)
             params(end).betaH0 = - 3e-3;
         end
