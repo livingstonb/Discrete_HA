@@ -172,16 +172,7 @@ classdef EGP_EZ_Solver < handle
 		end
 
 		function emuc = get_expected_muc(obj, income)
-			% % nexts period's muc(x',yP',yF)
-	  %       if numel(obj.p.invies) > 1
-	  %           mucnext = obj.c_xp .^ (-obj.invies_col_yT) ...
-	  %           	.* obj.V_xp.^(obj.invies_col_yT-obj.p.risk_aver);
-	  %       elseif numel(obj.p.risk_aver) > 1
-	  %           mucnext = obj.c_xp.^(-obj.p.invies) .* obj.V_xp.^(obj.p.invies-obj.risk_aver_col_yT);
-	  %       else
-	  %           mucnext = obj.c_xp.^(-obj.p.invies) .* obj.V_xp.^(obj.p.invies-obj.p.risk_aver);
-	  %       end
-
+			% nexts period's muc(x',yP',yF)
 	        mucnext = obj.c_xp .^ (-obj.heterogeneity.invies_broadcast) ...
 	        	.* obj.V_xp .^ (obj.heterogeneity.invies_broadcast ...
 	        		- obj.heterogeneity.risk_aver_broadcast);
@@ -217,27 +208,6 @@ classdef EGP_EZ_Solver < handle
 			ezvalnext(equals_one) = ezvalnext_ra_equal1(equals_one);
 			ezvalnext(~equals_one) = ezvalnext_ra_nequal1(~equals_one);
 
-            % if numel(obj.p.risk_aver) > 1
-	           %  % ezvalnext_ra_equal1 = exp(obj.Emat * log(V_xp_reshaped) * income.yTdist)...
-	           %  %     .^ (obj.risk_aver_col-obj.invies_col);
-
-	           %  ezvalnext_ra_nequal1 = (obj.Emat * V_xp_reshaped.^(1-obj.risk_aver_col)...
-	           %  	* income.yTdist)...
-	           %  	.^ ((obj.risk_aver_col-obj.invies_col)./(1-obj.risk_aver_col));
-
-	           %  ezvalnext = zeros(obj.p.nx*obj.p.nyP*obj.p.nyF*obj.p.nb,1);
-	           %  ezvalnext(obj.risk_aver_col==1) = ezvalnext_ra_equal1(obj.risk_aver_col==1);
-	           %  ezvalnext(obj.risk_aver_col~=1) = ezvalnext_ra_nequal1(obj.risk_aver_col~=1);
-            % else
-            %     if obj.p.risk_aver == 1
-	           %      % ezvalnext = exp(obj.Emat * log(V_xp_reshaped) * income.yTdist)...
-	           %      %     .^ (obj.risk_aver_col - obj.invies_col);
-	           %  else
-	           %      ezvalnext = (obj.Emat * V_xp_reshaped .^ (1-obj.risk_aver_col) * income.yTdist)...
-	           %          .^ ((obj.risk_aver_col - obj.invies_col)./(1 - obj.risk_aver_col));
-            %     end
-            % end
-	        
 	        muc_s = emuc .* ezvalnext;
 	    end
 
@@ -292,25 +262,6 @@ classdef EGP_EZ_Solver < handle
 	        	(1 ./ (1 - obj.heterogeneity.risk_aver_broadcast));
 	        obj.ezval(equals_one) = ezval_ra_equal1(equals_one);
 	        obj.ezval(~equals_one) = ezval_ra_nequal1(~equals_one);
-
-
-	        % if numel(obj.p.risk_aver) > 1
-	        %     ezval_ra_equal1 = (obj.risk_aver_col==1) .* exp(obj.ezval);
-	        %     ezval_ra_nequal1 = (obj.risk_aver_col~=1) ...
-	        %     	.* obj.ezval .^ (1./(1-obj.risk_aver_col));
-
-	        %     obj.ezval = zeros(obj.p.nx*obj.p.nyP*obj.p.nyF*obj.p.nb,1);
-	        %     obj.ezval(obj.risk_aver_col==1) = ezval_ra_equal1(obj.risk_aver_col==1);
-	        %     obj.ezval(obj.risk_aver_col~=1) = ezval_ra_nequal1(obj.risk_aver_col~=1);
-	        % else
-	        %     if obj.p.risk_aver == 1
-	        %         obj.ezval = exp(obj.ezval);
-	        %     else
-	        %         obj.ezval = obj.ezval .^(1./(1-obj.p.risk_aver));
-	        %     end
-	        % end
-
-	        % obj.ezval = reshape(obj.ezval,obj.p.nx,obj.p.nyP,obj.p.nyF,obj.p.nb);
 	    end
 
 	    function update_value_fn(obj)
@@ -330,35 +281,6 @@ classdef EGP_EZ_Solver < handle
 
 	    	obj.Vupdate(equals_one) = V_ra_1(equals_one);
 	    	obj.Vupdate(~equals_one) = V_ra_not1(~equals_one);
-
-	        % for ib = 1:obj.p.nb
-	        %     if numel(obj.p.invies) == 1
-
-	        %         if numel(obj.p.risk_aver) == 1
-	        %             ibeta = ib; % possible beta heterogeneity
-	        %         else
-	        %             ibeta = 1;
-	        %         end
-
-	        %         if obj.p.invies == 1
-	        %             obj.Vupdate(:,:,:,ib) = obj.conupdate(:,:,:,ib) .^ (1-obj.betagrid(ibeta)) ...
-	        %             	.* obj.ezval(:,:,:,ib) .^ obj.betagrid(ibeta);
-	        %         else
-	        %         	obj.Vupdate(:,:,:,ib) = (1-obj.betagrid(ibeta)) * obj.conupdate(:,:,:,ib) .^ (1-obj.p.invies) ...
-	        %                             + obj.betagrid(ibeta) * obj.ezval(:,:,:,ib) .^ (1-obj.p.invies);
-	        %             obj.Vupdate(:,:,:,ib) = obj.Vupdate(:,:,:,ib) .^ (1/(1-obj.p.invies));
-	        %         end
-	        %     elseif numel(obj.p.invies) > 1
-	        %         if obj.p.invies(ib) == 1
-	        %             obj.Vupdate(:,:,:,ib) = obj.conupdate(:,:,:,ib) .^ (1-obj.betagrid) ...
-	        %             	.* obj.ezval(:,:,:,ib) .^ obj.betagrid;
-	        %         else
-	        %             obj.Vupdate(:,:,:,ib) = (1-obj.betagrid) * obj.conupdate(:,:,:,ib) .^ (1-obj.p.invies(ib)) ...
-	        %                             + obj.betagrid * obj.ezval(:,:,:,ib) .^ (1-obj.p.invies(ib));
-	        %             obj.Vupdate(:,:,:,ib) = obj.Vupdate(:,:,:,ib) .^ (1/(1-obj.p.invies(ib)));
-	        %         end
-	        %     end
-	        % end
 
 	        assert(sum(~isfinite(obj.Vupdate(:)))==0)
 	        assert(all(obj.Vupdate(:)>=0))

@@ -13,7 +13,7 @@ function results = main(p)
 
     % throw error if more than one type of heterogeneity are added
     if (p.nbeta > 1) + (numel(p.risk_aver)>1) + (numel(p.r)>1)...
-        + (numel(p.temptation)>1) + (numel(p.invies)>1) > 1
+        + (numel(p.temptation)>1) > 1
 
         error('only one form of heterogeneity allowed')
     else

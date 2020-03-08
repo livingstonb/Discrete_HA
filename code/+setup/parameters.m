@@ -202,9 +202,14 @@ function [params, all_names] = parameters(runopts)
                     params(end).betawidth = ibw;
                     params(end).prob_zswitch = bs;
                     params(end).dieprob = deathp;
-                    params(end).betaH0 = -1e-2;
                     params(end).group = {'Q2'};
                     params(end).label = 'beta Heterogeneity';
+
+                    if bs == 1 / 50
+                        params(end).betaH0 = -1e-2;
+                    else
+                        params(end).betaH0 = -1e-3;
+                    end
                 end
             end
         end

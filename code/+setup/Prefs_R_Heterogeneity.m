@@ -30,8 +30,7 @@ classdef Prefs_R_Heterogeneity < handle
 	methods
 		function obj = Prefs_R_Heterogeneity(params)
 			dims = [params.nbeta, numel(params.risk_aver)...
-				numel(params.r), numel(params.invies),...
-				numel(params.temptation)];
+				numel(params.r), numel(params.temptation)];
 
 			if sum(dims>1) > 1
 				error("Model only allows one source of pref het")
