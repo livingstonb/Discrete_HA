@@ -253,7 +253,7 @@ classdef Params < handle
             obj.make_other_adjustments();
 
             if ~obj.EpsteinZin
-                obj.invies = obj.p.risk_aver;
+                obj.invies = obj.risk_aver;
             end
         end
 

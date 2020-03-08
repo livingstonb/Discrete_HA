@@ -42,6 +42,26 @@ classdef OtherPanels
 
 				out = tables.TableGen.append_to_table(out,...
 				new_entries, new_labels);
+			elseif strcmp(group, 'Q5')
+				new_labels = {'Temptation Parameter'};
+
+				if isempty(p.other)
+					new_entries = {p.temptation};
+				else
+					new_entries = { p.other{1} };
+				end
+				out = tables.TableGen.append_to_table(out,...
+				new_entries, new_labels);
+			elseif strcmp(group, 'Q6')
+				new_labels = {'Annualized returns (%)'};
+
+				if isempty(p.other)
+					new_entries = { (p.R^(p.freq) - 1) * 100 };
+				else
+					new_entries = { p.other{1} };
+				end
+				out = tables.TableGen.append_to_table(out,...
+				new_entries, new_labels);
 			end
 
 			new_labels = {	'Quarterly MPC (%)'

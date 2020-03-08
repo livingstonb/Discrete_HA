@@ -48,6 +48,26 @@ function [tables_out, table_gens] = create_final_tables(...
 	table_gens{ntable}.default_fname = ...
 		sprintf('Table%d_ez_experiments.csv', ntable);
 
+	% Quarterly, temptation experiments
+	ntable = 6;
+	group = 'Q5';
+	table_gens{ntable} = tables.TableFinal_Experiments(...
+		params, results, ntable, group);
+	tables_out{ntable} = table_gens{ntable}.create(params, results,...
+		decomps_baseline);
+	table_gens{ntable}.default_fname = ...
+		sprintf('Table%d_temptation_experiments.csv', ntable);
+
+	% Quarterly, returns experiments
+	ntable = 6;
+	group = 'Q6';
+	table_gens{ntable} = tables.TableFinal_Experiments(...
+		params, results, ntable, group);
+	tables_out{ntable} = table_gens{ntable}.create(params, results,...
+		decomps_baseline);
+	table_gens{ntable}.default_fname = ...
+		sprintf('Table%d_returns_experiments.csv', ntable);
+
 	for itable = 1:numel(table_gens)
 		if save_tables
 			table_gens{itable}.save_table();

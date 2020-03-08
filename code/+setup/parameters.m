@@ -70,7 +70,7 @@ function [params, all_names] = parameters(runopts)
     params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
-    params(end).group = {'Baseline', 'Q1', 'Q2', 'Q3', 'Q4'};
+    params(end).group = {'Baseline', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'};
     
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -96,19 +96,6 @@ function [params, all_names] = parameters(runopts)
             params(end).betaL = 0.5;
         end
 
-        % different interest rates
-        for ii = [0, 5]
-            name = sprintf('r = %g%% p.a.', ii);
-            params(end+1) = setup.Params(ifreq, name, IncomeProcess);
-            params(end) = set_shared_fields(params(end), income_params);
-            params(end).r = ii/100;
-            params(end).group = {'Q1'};
-            if ii == 5
-                params(end).betaH0 = -3e-3;
-                params(end).beta0 = 0.8;
-            end
-        end
-
         % no death
         name = 'No Death';
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
@@ -131,21 +118,44 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q1'};
         params(end).annuities = true;
         params(end).betaH0 = - 5e-3;
+
+        % different interest rates
+        for ii = [0, 5]
+            name = sprintf('r = %g%% p.a.', ii);
+            params(end+1) = setup.Params(ifreq, name, IncomeProcess);
+            params(end) = set_shared_fields(params(end), income_params);
+            params(end).r = ii/100;
+            params(end).group = {'Q6'};
+            
+            if ii == 0
+                params(end).label = {'Low r'};
+            else
+                params(end).label = {'High r'};
+                params(end).betaH0 = -3e-3;
+                params(end).beta0 = 0.8;
+            end
+        end
         
         % interest rate heterogeneity
-        name = [lfreq ' Permanent r het, r in {0,2,4} p.a.'];
+        name = 'Permanent r het, r in {0,2,4} p.a.';
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).r = [0, 2, 4] / 100;
         params(end).betaH0 = -1e-4;
         params(end).beta0 = 0.973149481985717;
+        params(end).group = {'Q6'};
+        params(end).label = {'Heterogeneity in r'};
+        params(end).other = {'{0, 2, 4}'};
         
-        name = [lfreq ' Permanent r het, r in {-2,2,6} p.a.'];
-        params(end+1) = setup.Params(ifreq,name,IncomeProcess);
+        name = 'Permanent r het, r in {-2,2,6} p.a.';
+        params(end+1) = setup.Params(ifreq,name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).r = [-2, 2, 6] / 100;
         params(end).betaH0 = -1e-4;
         params(end).beta0 = 0.955885729527277;
+        params(end).group = {'Q6'};
+        params(end).label = {'Heterogeneity in r'};
+        params(end).other = {'{-2,2,6}'};
 
 
 %         % different tax rates
@@ -311,6 +321,31 @@ function [params, all_names] = parameters(runopts)
         params(end).label = 'EZ';
         params(end).other = {'exp(-2), ..., exp(2)', 1};
     end
+
+    % temptation
+    for tempt = [0.01 0.05 0.07]
+        name = sprintf('Temptation = %g', tempt);
+        params(end+1) = setup.Params(4, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
+        params(end).temptation = tempt;
+        if tempt == 0.07
+            params(end).betaH0 = 6e-4;
+        elseif  tempt == 0.05
+            params(end).betaH0 = -2e-5;
+        end
+        params(end).group = {'Q5'};
+        params(end).label = 'Temptation';
+    end
+
+    name = 'Temptation, uniform in {0, 0.05, 0.1}';
+    params(end+1) = setup.Params(4, name, quarterly_b_path);
+    params(end) = set_shared_fields(params(end), quarterly_b_params);
+    params(end).temptation = [0 0.05 0.1];
+    params(end).beta0 = 0.998283 ^ 4;
+    params(end).betaH0 = 5e-2;
+    params(end).group = {'Q5'};
+    params(end).label = 'Temptation';
+    params(end).other = {'{0, 0.05, 0.1}'};
 
     %----------------------------------------------------------------------
     % PART 3a, ANNUAL MODEL
@@ -502,24 +537,7 @@ function [params, all_names] = parameters(runopts)
             income_params = quarterly_b_params;
         end
         
-        % temptation
-        for itempt = [0.01 0.05 0.07]
-            params(end+1) = setup.Params(ifreq,[lfreq ' Temptation' num2str(itempt)], IncomeProcess);
-            params(end) = set_shared_fields(params(end), income_params);
-            params(end).temptation = itempt;
-            if (ifreq==4) && (itempt==0.07)
-                params(end).betaH0 = 6e-4;
-            elseif (ifreq==4) && (itempt==0.05)
-                params(end).betaH0 = - 2e-5;
-            end
-        end
-
-        name = 'Q Temptation, uniform in {0, 0.05, 0.1}';
-        params(end+1) = setup.Params(4, name, IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
-        params(end).temptation = [0 0.05 0.1];
-        params(end).beta0 = 0.998283 ^ 4;
-        params(end).betaH0 = 5e-2;
+        
     end
         
     
