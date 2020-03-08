@@ -129,6 +129,8 @@ function results = main(p)
     to_num = @(val) p.convert_from_dollars(val);
     results.direct.wealth_lt_dollar_value = ...
         @(val) wpinterp(to_num(val));
+    results.direct.wealth_lt_1000 = ...
+        results.direct.wealth_lt_dollar_value(1000);
     
     % Wealth percentiles
     cdf_a = cumsum(results.direct.agrid_dist);

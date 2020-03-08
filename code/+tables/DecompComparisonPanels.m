@@ -37,8 +37,8 @@ classdef DecompComparisonPanels
 				};
 			new_entries = [	values.term1
 							values.term2
-							values.term2a(2)
-							values.term2b(2)
+							values.term2a(3)
+							values.term2b(3)
 							values.term3
 				];
 
