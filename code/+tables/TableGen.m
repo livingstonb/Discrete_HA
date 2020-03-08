@@ -44,20 +44,15 @@ classdef TableGen < handle
 			if use_all || isempty(obj.included_names)
 				obj.selected_cases = this_freq;
 			else
-				all_names = {params.name};
+				all_names = {params.group};
 				inames = [];
-				for ii = 1:numel(obj.included_names)
-					name = obj.included_names(ii);
-
-					inew = find(ismember(all_names, name));
-					if ~isempty(inew)
-						if ismember(params(inew).freq, obj.freq)
-							inames = [inames, inew];
-						end
+				for ii = 1:numel(all_names)
+					if ismember(obj.included_names, all_names{ii})
+						inames = [inames, ii];
 					end
 				end
 
-				obj.selected_cases = inames;
+				obj.selected_cases = unique(inames);
 			end
 		end
 

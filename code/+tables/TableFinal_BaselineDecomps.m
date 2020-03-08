@@ -1,10 +1,7 @@
 classdef TableFinal_BaselineDecomps < tables.TableGen
 	properties
 		default_fname = '';
-		included_names = {
-			'Quarterly'
-			'Annual'
-		};
+		included_names = 'Baseline';
 	end
 
 	methods

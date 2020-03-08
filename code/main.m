@@ -128,11 +128,10 @@ function results = main(p)
             if p.Bequests
                 results.direct.s0 = wpinterp(p.epsilon(i));
             else
-            	c = results.direct.constrained(i);
+            	c = wpinterp(p.epsilon(i));
                 results.direct.s0 = (c - p.dieprob) / (1 - p.dieprob);
             end
         end
-
         results.direct.constrained(i) = wpinterp(p.epsilon(i));
     end
 

@@ -54,6 +54,7 @@ function [params, all_names] = parameters(runopts)
     params(1) = setup.Params(1, 'Annual', '');
     params(1).beta0 = 0.984108034755346;
     params(1) = set_shared_fields(params(1), annual_params);
+    params(1).group = {'Baseline', 'A1'};
 
 
 %     % Annual with borrowing
@@ -69,6 +70,7 @@ function [params, all_names] = parameters(runopts)
     params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
+    params(end).group = {'Baseline', 'Q1', 'Q2', 'Q3', 'Q4'};
     
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -85,26 +87,50 @@ function [params, all_names] = parameters(runopts)
         end
 
         % different mean wealth targets
-        for mw = [0.25, 0.5, 1]
+        for mw = [1, 0.5, 0.25]
             name = sprintf('A/Y = %g', mw);
             params(end+1) = setup.Params(ifreq, name, IncomeProcess);
             params(end) = set_shared_fields(params(end), income_params);
             params(end).target_value = mw;
-            if ifreq == 4
-                params(end).betaL = 0.5;
-            end
+            params(end).group = {'Q1'};
+            params(end).betaL = 0.5;
         end
 
         % different interest rates
         for ii = [0, 5]
-            name = sprintf('r = %g%% p.a.', ii/100);
+            name = sprintf('r = %g%% p.a.', ii);
             params(end+1) = setup.Params(ifreq, name, IncomeProcess);
             params(end) = set_shared_fields(params(end), income_params);
             params(end).r = ii/100;
+            params(end).group = {'Q1'};
             if ii == 5
                 params(end).betaH0 = -3e-3;
+                params(end).beta0 = 0.8;
             end
         end
+
+        % no death
+        name = 'No Death';
+        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
+        params(end) = set_shared_fields(params(end), income_params);
+        params(end).group = {'Q1'};
+        params(end).dieprob = 0;
+        params(end).beta0 = 0.975363510593659;
+
+        % no bequests
+        name = 'No Bequests';
+        params(end+1) = setup.Params(ifreq,name,IncomeProcess);
+        params(end) = set_shared_fields(params(end), income_params);
+        params(end).group = {'Q1'};
+        params(end).Bequests = 0;
+
+        % perfect annuities
+        name = 'Annuities';
+        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
+        params(end) = set_shared_fields(params(end), income_params);
+        params(end).group = {'Q1'};
+        params(end).annuities = true;
+        params(end).betaH0 = - 5e-3;
         
         % interest rate heterogeneity
         name = [lfreq ' Permanent r het, r in {0,2,4} p.a.'];
@@ -129,25 +155,7 @@ function [params, all_names] = parameters(runopts)
 %             params(end).labtaxlow = itax;
 %         end
 
-        % no death
-        name = [lfreq ' No Death'];
-        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
-        params(end).dieprob = 0;
-        params(end).beta0 = 0.975363510593659;
-
-        % no bequests
-        name = [lfreq ' No Bequests'];
-        params(end+1) = setup.Params(ifreq,name,IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
-        params(end).Bequests = 0;
-
-        % perfect annuities
-        name = [lfreq ' Annuities'];
-        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
-        params(end).annuities = true;
-        params(end).betaH0 = - 5e-3;
+        
 
 %         % bequest curvature
 %         for bcurv = [0.1 0.5 1 2 5]
@@ -166,16 +174,16 @@ function [params, all_names] = parameters(runopts)
             end
              % fixed beta heterogeneity
             for ibw = [0.001, 0.005, 0.01]
-                name = [lfreq ' FixedBetaHet5 Width' num2str(ibw) deathind];
+                name = sprintf('Beta5, pSwitch0, pSpacing%g', ibw);
                 params(end+1) = setup.Params(ifreq, name, IncomeProcess);
                 params(end) = set_shared_fields(params(end), income_params);
                 params(end).nbeta = 5;
                 params(end).betawidth = ibw;
                 params(end).prob_zswitch = 0;
                 params(end).dieprob = deathp;
-                % params(end).beta0 = 0.956194383870642;
-                params(end).beta0 = 0.982418237966389;
                 params(end).beta0 = 0.956194383870642;
+                params(end).group = {'Q2'};
+                params(end).label = 'beta Heterogeneity';
                 
                 % if ibw == 0.005
                 %     params(end).betaH0 = -1e-3;
@@ -187,7 +195,7 @@ function [params, all_names] = parameters(runopts)
             % random beta heterogeneity
             for ibw = [0.01]
                 for bs = [1/50, 1/10]
-                    name = [lfreq ' RandomBetaHet5 Width' num2str(ibw) ' SwitchProb' num2str(bs) deathind];
+                    name = sprintf('Beta5, pSwitch%g, pSpacing%g', bs, ibw);
                     params(end+1) = setup.Params(ifreq, name, IncomeProcess);
                     params(end) = set_shared_fields(params(end), income_params);
                     params(end).nbeta = 5;
@@ -195,46 +203,103 @@ function [params, all_names] = parameters(runopts)
                     params(end).prob_zswitch = bs;
                     params(end).dieprob = deathp;
                     params(end).betaH0 = -1e-2;
+                    params(end).group = {'Q2'};
+                    params(end).label = 'beta Heterogeneity';
                 end
             end
         end
 
+        % Different risk aversion coeffs
+        for ira = [0.5, 2, 6]
+            name = sprintf('CRRA = %g', ira);
+            params(end+1) = setup.Params(4, name, quarterly_b_path);
+            params(end) = set_shared_fields(params(end), quarterly_b_params);
+            params(end).risk_aver = ira;
+            if (ifreq==4 && ira==4) || ira==6
+                params(end).betaL = 0.5;
+            end
+
+            if ira == 6
+                params(end).betaH0 = -1e-3;
+            end
+            params(end).group = {'Q3'};
+            params(end).label = 'CRRA';
+        end
         
         % CRRA with IES heterogeneity
-        params(end+1) = setup.Params(ifreq, [lfreq ' CRRA w/IES betw exp(-1), exp(1)'], IncomeProcess);
+        name = 'CRRA w/IES betw exp(-1), exp(1)';
+        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).risk_aver = 1./ exp([-1 -0.5 0 0.5 1]);
         if params(end).freq == 4
             params(end).betaH0 =  - 5e-3;
         end
+        params(end).group = {'Q3'};
+        params(end).label = 'CRRA';
+        params(end).other = {'exp(1), ..., exp(-1)', 'exp(-1), ..., exp(1)'};
         
-        params(end+1) = setup.Params(ifreq, [lfreq ' CRRA w/IES betw exp(-2), exp(2)'], IncomeProcess);
+        name = 'CRRA w/IES betw exp(-2), exp(2)';
+        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).risk_aver = 1./ exp([-2 -1 0 1 2]);
         if params(end).freq == 4
             params(end).betaH0 = -5e-3;
         end
         params(end).beta0 = 0.911905140057402;
+        params(end).group = {'Q3'};
+        params(end).label = 'CRRA';
+        params(end).other = {'exp(2), ..., exp(-2)', 'exp(-2), ..., exp(2)'};
+
+        % epstein-zin, quarterly
+        ras = [0.5 8  1    1 8];
+        ies = [1   1  0.25 2 2];
+        for i = 1:5
+            ra_i = ras(i);
+            ies_i = ies(i);
+            name = sprintf('EZ, ra%g, ies%g', ra_i, ies_i);
+            params(end+1) = setup.Params(4, name, IncomeProcess);
+            params(end) = set_shared_fields(params(end), income_params);
+            params(end).risk_aver = ra_i;
+            params(end).invies = 1 / ies_i;
+            params(end).EpsteinZin = true;
+            params(end).group = {'Q4'};
+            params(end).label = 'EZ';
+
+            if i <= 3
+                params(end).betaH0 = - 3e-3;
+            else
+                params(end).betaH0 = - 1e-3;
+            end
+        end
 
         % EZ with IES heterogeneity
-        params(end+1) = setup.Params(ifreq, [lfreq ' EZ w/IES betw exp(-1), exp(1)'], IncomeProcess);
+        name = 'EZ w/ IES betw exp(-1), exp(1)';
+        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).invies = 1 ./ exp([-1 -0.5 0 0.5 1]);
-        params(end).EpsteinZin = 1;
+        params(end).EpsteinZin = true;
         if (ifreq == 4)
             params(end).betaH0 = - 3e-3;
         end
+        params(end).group = {'Q4'};
+        params(end).label = 'EZ';
+        params(end).other = {1, 'exp(-1), ..., exp(1)'};
         
-        params(end+1) = setup.Params(ifreq, [lfreq ' EZ w/IES betw exp(-2), exp(2)'], IncomeProcess);
+        name = 'EZ w/ IES betw exp(-2), exp(2)';
+        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).invies = 1 ./ exp([-2 -1 0 1 2]);
         params(end).EpsteinZin = 1;
         if (ifreq == 4)
             params(end).betaH0 = - 3e-3;
         end
+        params(end).group = {'Q4'};
+        params(end).label = 'EZ';
+        params(end).other = {1, 'exp(-2), ..., exp(2)'};
 
         % EZ with risk aversion heterogeneity
-        params(end+1) = setup.Params(ifreq, [lfreq ' EZ w/riskaver betw exp(-2), exp(2)'], IncomeProcess);
+        name = 'EZ w/ RA betw exp(-2), exp(2)';
+        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
         params(end) = set_shared_fields(params(end), income_params);
         params(end).invies = 1;
         params(end).risk_aver = exp([-2 -1 0 1 2]);
@@ -242,6 +307,9 @@ function [params, all_names] = parameters(runopts)
         params(end).betaH0 = - 3e-3;
         params(end).betaL = 0.96;
         params(end).beta0 = 0.99^4;
+        params(end).group = {'Q4'};
+        params(end).label = 'EZ';
+        params(end).other = {'exp(-2), ..., exp(2)', 1};
     end
 
     %----------------------------------------------------------------------
@@ -336,20 +404,7 @@ function [params, all_names] = parameters(runopts)
     % PART 3b, QUARTERLY MODEL
     %----------------------------------------------------------------------
     
-    % different risk aversion coeffs
-    for ira = [0.5, 2, 6]
-        name = ['Q RiskAver' num2str(ira)];
-        params(end+1) = setup.Params(4, name, quarterly_b_path);
-        params(end) = set_shared_fields(params(end), quarterly_b_params);
-        params(end).risk_aver = ira;
-        if (ifreq==4 && ira==4) || ira==6
-            params(end).betaL = 0.5;
-        end
-
-        if ira == 6
-            params(end).betaH0 = -1e-3;
-        end
-    end
+    
     
     % i quarterly_a
     params(end+1) = setup.Params(4,'Q b(i) quarterly_a','');
@@ -467,28 +522,7 @@ function [params, all_names] = parameters(runopts)
         params(end).betaH0 = 5e-2;
     end
         
-    % epstein-zin, quarterly
-    ras = [0.5 8  1    1 8];
-    ies = [1   1  0.25 2 2];
-    for i = 1:5
-        params(end+1) = setup.Params(4, ['Q EZ ra' num2str(ras(i)) ' ies' num2str(ies(i))], IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
-        params(end).risk_aver = ras(i);
-        params(end).invies = 1 / ies(i);
-        params(end).EpsteinZin = 1;
-        switch i
-            case 1
-                params(end).betaH0 = - 3e-3;
-            case 2
-                params(end).betaH0 = - 3e-3;
-            case 3
-                params(end).betaH0 = - 3e-3;
-            case 4
-                params(end).betaH0 = - 1e-3;
-            case 5
-                params(end).betaH0 = - 1e-3;
-        end
-    end
+    
         
 %         % epstein-zin: vary risk_aver
 %         for ra = [0.5 0.75 1.5 2 4 8]

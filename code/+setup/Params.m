@@ -17,6 +17,8 @@ classdef Params < handle
         % identifiers
         name;
         index;
+        group;
+        label;
         
         % data frequency
         freq;
@@ -121,7 +123,7 @@ classdef Params < handle
         % discount factor shocks
         nbeta = 1;
         beta_dist = 1; % either 1 for equal prob in all, or vector summing to 1
-        betawidth = 0.005;
+        betawidth = 0;
         beta_grid_forced = []; % overrides all other beta values if used
 
         % used for different het cases
@@ -249,6 +251,10 @@ classdef Params < handle
         function make_adjustments(obj)
             obj.make_frequency_adjustments();
             obj.make_other_adjustments();
+
+            if ~obj.EpsteinZin
+                obj.invies = obj.p.risk_aver;
+            end
         end
 
         function make_frequency_adjustments(obj)

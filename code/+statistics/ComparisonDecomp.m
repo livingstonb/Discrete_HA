@@ -77,8 +77,7 @@ classdef ComparisonDecomp < handle
 				return
 			end
 
-			if ~all([obj.p0.MPCs, obj.p1.MPCs,...
-					obj.p0.DeterministicMPCs, obj.p1.DeterministicMPCs])
+			if ~all([obj.p0.MPCs, obj.p1.MPCs])
 				return
 			end
 

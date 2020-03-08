@@ -1,7 +1,7 @@
 classdef TableFinal_Experiments < tables.TableGen
 	properties
 		default_fname = '';
-		included_names = {};
+		included_names = '';
 	end
 
 	methods
@@ -29,12 +29,14 @@ classdef TableFinal_Experiments < tables.TableGen
 			    return;
 			end
 
+			shocks_labels = params(1).shocks_labels;
+
 			for ip = obj.selected_cases
 				p = params(ip);
 				result_structure = results(ip).direct;
 
 				new_column = tables.OtherPanels.intro_panel(...
-					result_structure, p);
+					result_structure, p, obj.included_names);
 
 				% Decompositions w.r.t baseline
 				decomp = decomps_baseline(ip);
@@ -46,9 +48,23 @@ classdef TableFinal_Experiments < tables.TableGen
 				new_column = [new_column; temp];
 
 				absolute = false;
-				panel_prefix = 'Panel B';
+				panel_prefix = 'Panel A2';
 				temp = tables.DecompComparisonPanels.decomp_wrt_baseline(...
 					decomp, p, 5, absolute, panel_prefix);
+				new_column = [new_column; temp];
+
+				panel_name = 'Panel B: Wealth statistics';
+				include_pctiles = false;
+				temp = tables.wealth_panel(results(ip), panel_name,...
+					include_pctiles);
+				new_column = [new_column; temp];
+
+				temp = tables.MPCPanels.size_effects(...
+					results(ip), shocks_labels);
+				new_column = [new_column; temp];
+
+				temp = tables.MPCPanels.sign_effects(...
+					results(ip), shocks_labels);
 				new_column = [new_column; temp];
 
 				column_label = sprintf('Specification%d', p.index);

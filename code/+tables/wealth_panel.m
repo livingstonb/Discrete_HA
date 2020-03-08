@@ -1,7 +1,11 @@
-function out = wealth_panel(values, panel_name)
-	if nargin < 2
-		panel_name = 'Panel B: Wealth tables';
+function out = wealth_panel(values, panel_name, include_pctiles)
+	if nargin == 1
+		panel_name = 'Panel B: Wealth statistics';
+		include_pctiles = true;
+	elseif nargin == 2
+		include_pctiles = true;
 	end
+
 	out = tables.TableGen.new_table_with_header(panel_name);
 
 	% Mean assets and saving
@@ -40,18 +44,20 @@ function out = wealth_panel(values, panel_name)
 	out = tables.TableGen.append_to_table(out, new_entries, new_labels);
 
 	% Percentiles
-	new_labels = {	'10th percentile'
-		            '25th percentile'
-		            '50th percentile'
-		            '75th percentile'
-		            '90th percentile'
-		            '95th percentile'
-		            '99th percentile'
-		            '99.9th percentile'
-		};
-	new_entries = num2cell(values.direct.wpercentiles(:));
-	new_entries = aux.cellround(new_entries, 3);
-	out = tables.TableGen.append_to_table(out, new_entries, new_labels);
+	if include_pctiles
+		new_labels = {	'10th percentile'
+			            '25th percentile'
+			            '50th percentile'
+			            '75th percentile'
+			            '90th percentile'
+			            '95th percentile'
+			            '99th percentile'
+			            '99.9th percentile'
+			};
+		new_entries = num2cell(values.direct.wpercentiles(:));
+		new_entries = aux.cellround(new_entries, 3);
+		out = tables.TableGen.append_to_table(out, new_entries, new_labels);
+	end
 
 	% Other stats
 	new_labels = {	'Top 10% share'

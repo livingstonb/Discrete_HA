@@ -12,20 +12,41 @@ function [tables_out, table_gens] = create_final_tables(...
 
 	% Quarterly models
 	ntable = 3;
-	included_names = {	'Quarterly'
-						'A/Y = 1'
-						'A/Y = 0.5'
-						'A/Y = 0.25'
-						'r = 0% p.a.'
-						'r = 5% p.a.'
-						'No Death'
-						'No Bequests'
-						'Annuities'
-						};
+	group = 'Q1';
 	table_gens{ntable} = tables.TableFinal_Experiments(...
-		params, results, 3, included_names);
+		params, results, ntable, group);
 	tables_out{ntable} = table_gens{ntable}.create(params, results,...
 		decomps_baseline);
+
+	% Quarterly, beta heterogeneity
+	ntable = 4;
+	group = 'Q2';
+	table_gens{ntable} = tables.TableFinal_Experiments(...
+		params, results, ntable, group);
+	tables_out{ntable} = table_gens{ntable}.create(params, results,...
+		decomps_baseline);
+	table_gens{ntable}.default_fname = ...
+		sprintf('Table%d_beta_heterogeneity.csv', ntable);
+
+	% Quarterly, CRRA experiments
+	ntable = 5;
+	group = 'Q3';
+	table_gens{ntable} = tables.TableFinal_Experiments(...
+		params, results, ntable, group);
+	tables_out{ntable} = table_gens{ntable}.create(params, results,...
+		decomps_baseline);
+	table_gens{ntable}.default_fname = ...
+		sprintf('Table%d_crra_experiments.csv', ntable);
+
+	% Quarterly, EZ experiments
+	ntable = 6;
+	group = 'Q4';
+	table_gens{ntable} = tables.TableFinal_Experiments(...
+		params, results, ntable, group);
+	tables_out{ntable} = table_gens{ntable}.create(params, results,...
+		decomps_baseline);
+	table_gens{ntable}.default_fname = ...
+		sprintf('Table%d_ez_experiments.csv', ntable);
 
 	for itable = 1:numel(table_gens)
 		if save_tables
