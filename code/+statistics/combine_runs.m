@@ -17,7 +17,7 @@
 
 clear
 
-options.server = false;
+options.server = true;
 options.final_tables = false;
 options.decomp_with_loose_borr_limit = false;
 options.index_loose_borr_limit_Q = 'baseline_Q_with_borrowing';

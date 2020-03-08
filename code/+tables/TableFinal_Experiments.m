@@ -23,7 +23,7 @@ classdef TableFinal_Experiments < tables.TableGen
 		end
 
 		function output_table = create(obj, params, results,...
-			decomps_baseline)
+			decomps_baseline, include_annual_mpcs)
 			output_table = table();
 			if isempty(obj.selected_cases)
 			    return;
@@ -60,11 +60,11 @@ classdef TableFinal_Experiments < tables.TableGen
 				new_column = [new_column; temp];
 
 				temp = tables.MPCPanels.size_effects(...
-					results(ip), shocks_labels);
+					results(ip), shocks_labels, include_annual_mpcs);
 				new_column = [new_column; temp];
 
 				temp = tables.MPCPanels.sign_effects(...
-					results(ip), shocks_labels);
+					results(ip), shocks_labels, include_annual_mpcs);
 				new_column = [new_column; temp];
 
 				column_label = sprintf('Specification%d', p.index);

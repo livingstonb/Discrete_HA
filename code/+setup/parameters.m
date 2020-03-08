@@ -55,16 +55,6 @@ function [params, all_names] = parameters(runopts)
     params(1).beta0 = 0.984108034755346;
     params(1) = set_shared_fields(params(1), annual_params);
     params(1).group = {'Baseline', 'A1'};
-
-
-%     % Annual with borrowing
-%     params(end+1) = setup.Params(1, 'baseline_A_with_borrowing', '');
-    % params(end) = set_shared_fields(params(end), annual_params);
-%     params(end).borrow_lim = -1e10;
-%     params(end).nx = 520;
-%     params(end).nx_neg = 20;
-%     params(end).nx_DST = 420;
-%     params(end).nx_neg_DST = 20;
 %     
     % Quarterly
     params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path);
@@ -89,8 +79,8 @@ function [params, all_names] = parameters(runopts)
         % different mean wealth targets
         for mw = [1, 0.5, 0.25]
             name = sprintf('A/Y = %g', mw);
-            params(end+1) = setup.Params(ifreq, name, IncomeProcess);
-            params(end) = set_shared_fields(params(end), income_params);
+            params(end+1) = setup.Params(4, name, quarterly_b_path);
+            params(end) = set_shared_fields(params(end), quarterly_b_params);
             params(end).target_value = mw;
             params(end).group = {'Q1'};
             params(end).betaL = 0.5;
@@ -98,23 +88,23 @@ function [params, all_names] = parameters(runopts)
 
         % no death
         name = 'No Death';
-        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
+        params(end+1) = setup.Params(4, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).group = {'Q1'};
         params(end).dieprob = 0;
         params(end).beta0 = 0.975363510593659;
 
         % no bequests
         name = 'No Bequests';
-        params(end+1) = setup.Params(ifreq,name,IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
+        params(end+1) = setup.Params(4, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).group = {'Q1'};
         params(end).Bequests = 0;
 
         % perfect annuities
         name = 'Annuities';
-        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
+        params(end+1) = setup.Params(ifreq, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).group = {'Q1'};
         params(end).annuities = true;
         params(end).betaH0 = - 5e-3;
@@ -122,8 +112,8 @@ function [params, all_names] = parameters(runopts)
         % different interest rates
         for ii = [0, 5]
             name = sprintf('r = %g%% p.a.', ii);
-            params(end+1) = setup.Params(ifreq, name, IncomeProcess);
-            params(end) = set_shared_fields(params(end), income_params);
+            params(end+1) = setup.Params(ifreq, name, quarterly_b_path);
+            params(end) = set_shared_fields(params(end), quarterly_b_params);
             params(end).r = ii/100;
             params(end).group = {'Q6'};
             
@@ -138,8 +128,8 @@ function [params, all_names] = parameters(runopts)
         
         % interest rate heterogeneity
         name = 'Permanent r het, r in {0,2,4} p.a.';
-        params(end+1) = setup.Params(ifreq, name, IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
+        params(end+1) = setup.Params(ifreq, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).r = [0, 2, 4] / 100;
         params(end).betaH0 = -1e-4;
         params(end).beta0 = 0.973149481985717;
@@ -148,8 +138,8 @@ function [params, all_names] = parameters(runopts)
         params(end).other = {'{0, 2, 4}'};
         
         name = 'Permanent r het, r in {-2,2,6} p.a.';
-        params(end+1) = setup.Params(ifreq,name, IncomeProcess);
-        params(end) = set_shared_fields(params(end), income_params);
+        params(end+1) = setup.Params(ifreq,name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).r = [-2, 2, 6] / 100;
         params(end).betaH0 = -1e-4;
         params(end).beta0 = 0.955885729527277;
@@ -352,13 +342,16 @@ function [params, all_names] = parameters(runopts)
     %----------------------------------------------------------------------
     
     % i
-    params(end+1) = setup.Params(1, 'A a(i) NoTransShocks', '');
+    name = 'Annual, no yT';
+    params(end+1) = setup.Params(1, name, '');
     params(end) = set_shared_fields(params(end), annual_params);
     params(end).beta0 = 0.99;
     params(end).nyT = 1;
     params(end).sd_logyT = 0;
     params(end).lambdaT = 0;
-    % params(end).gridspace_min = 0.001;
+    params(end).group = {'Q7'};
+    params(end).label = 'Annual (i)';
+    params(end).other = {'no trans shocks'};
 
 %     % ii
 %     params(end+1) = setup.Params(1,'A a(ii) MeasError','');
@@ -372,11 +365,15 @@ function [params, all_names] = parameters(runopts)
 %     params(end).sd_logyT = 0;
 
     % iv
-    params(end+1) = setup.Params(1, 'A a(iv) HighPersistCarrol', '');
+    name = 'Annual, Carrol';
+    params(end+1) = setup.Params(1, name, '');
     params(end) = set_shared_fields(params(end), annual_params);
     params(end).rho_logyP = 0.999;
     params(end).sd_logyP = sqrt(0.015);
     params(end).sd_logyT = sqrt(0.01);
+    params(end).group = {'Q7'};
+    params(end).label = 'Annual (iv)';
+    params(end).other = {'Carrol process'};
     
 %     % v
 %     params(end+1) = setup.Params(1,'A a(v) HighPersNotReEst','');
@@ -393,11 +390,15 @@ function [params, all_names] = parameters(runopts)
 %     params(end).sd_logyT = sqrt(0.0667);
     
     % viii
-    params(end+1) = setup.Params(1, 'A a(viii) EvenHigherPersReEst', '');
+    name = 'Annual, high persistence';
+    params(end+1) = setup.Params(1, name, '');
     params(end).rho_logyP = 0.995;
     params(end).sd_logyP = sqrt(0.0043);
     params(end).sd_logyT = sqrt(0.0688);
     params(end).lambdaT = 1;
+    params(end).group = {'Q7'};
+    params(end).label = 'Annual (viii)';
+    params(end).other = {'high persistence'};
 %     
 %     % ix
 %     params(end+1) = Params(1,'A a(ix) HighPersNoTransReEst','');
@@ -407,13 +408,17 @@ function [params, all_names] = parameters(runopts)
 %     params(end).sd_logyT = sqrt(0);
     
     % x
-    params(end+1) = setup.Params(1, 'A WithFE nyF 5', '');
+    name = 'Annual, high nyF = 5';
+    params(end+1) = setup.Params(1, name, '');
     params(end).rho_logyP = 0.9158;
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
     params(end).sd_logyF = sqrt(0.1801);
     params(end).lambdaT = 1;
     params(end).nyF = 5;
+    params(end).group = {'Q7'};
+    params(end).label = 'Annual (x)';
+    params(end).other = {'FE heterogeneity'};
 
 %     % xi
 %     params(end+1) = setup.Params(1,'A a(xi) MatchSSA','');
@@ -440,17 +445,24 @@ function [params, all_names] = parameters(runopts)
     %----------------------------------------------------------------------
     
     
-    
     % i quarterly_a
-    params(end+1) = setup.Params(4,'Q b(i) quarterly_a','');
+    name = 'quarterly_a';
+    params(end+1) = setup.Params(4, name , '');
     params(end) = set_shared_fields(params(end), quarterly_a_params);
     params(end).beta0 = 0.984363510593659;
+    params(end).group = {'Q7'};
+    params(end).label = 'Quart (i)';
+    params(end).other = {'quart_a'};
     
     % ii
-    params(end+1) = setup.Params(4,'Q b(ii) KMPTransf','');
+    name = 'KMP';
+    params(end+1) = setup.Params(4, name, '');
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
+    params(end).group = {'Q7'};
+    params(end).label = 'Quart (ii)';
+    params(end).other = {'KMP'};
 
     % % KMP with tax and transfer - Mitman inc process
     % params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, no discount het', 'input/income_mitman.mat');

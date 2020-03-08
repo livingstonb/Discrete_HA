@@ -40,12 +40,14 @@ classdef TableFinal_Baselines < tables.TableGen
 				temp = tables.wealth_panel(result_structure);
 				new_column = [new_column; temp];
 
+				include_annual = true;
 				temp = tables.MPCPanels.size_effects(...
-					result_structure, shocks_labels);
+					result_structure, shocks_labels, include_annual);
 				new_column = [new_column; temp];
 
+				include_annual = true;
 				temp = tables.MPCPanels.sign_effects(...
-					result_structure, shocks_labels);
+					result_structure, shocks_labels, include_annual);
 				new_column = [new_column; temp];
 
 				column_label = sprintf('Specification%d', p.index);

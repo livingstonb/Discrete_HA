@@ -23,7 +23,7 @@ classdef OtherPanels
 								p.prob_zswitch
 					};
 				out = tables.TableGen.append_to_table(out,...
-				new_entries, new_labels);
+					new_entries, new_labels);
 			elseif ismember(group, {'Q3', 'Q4'})
 				new_labels = {	'Risk aversion'
 								'IES'
@@ -41,7 +41,7 @@ classdef OtherPanels
 				end
 
 				out = tables.TableGen.append_to_table(out,...
-				new_entries, new_labels);
+					new_entries, new_labels);
 			elseif strcmp(group, 'Q5')
 				new_labels = {'Temptation Parameter'};
 
@@ -51,7 +51,7 @@ classdef OtherPanels
 					new_entries = { p.other{1} };
 				end
 				out = tables.TableGen.append_to_table(out,...
-				new_entries, new_labels);
+					new_entries, new_labels);
 			elseif strcmp(group, 'Q6')
 				new_labels = {'Annualized returns (%)'};
 
@@ -61,7 +61,12 @@ classdef OtherPanels
 					new_entries = { p.other{1} };
 				end
 				out = tables.TableGen.append_to_table(out,...
-				new_entries, new_labels);
+					new_entries, new_labels);
+			elseif strcmp(group, 'Q7')
+				new_labels = {'Description'};
+				new_entries = { p.other{1} };
+				out = tables.TableGen.append_to_table(out,...
+					new_entries, new_labels);
 			end
 
 			new_labels = {	'Quarterly MPC (%)'

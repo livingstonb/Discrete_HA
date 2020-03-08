@@ -86,9 +86,7 @@ function modelupdate = find_stationary_adist(...
     modelupdate.con_x = modelupdate.xvals - modelupdate.sav_x ...
     	- savtax;
     
-
-    % Mean mean assets
-
+    % Mean assets
 	modelupdate.mean_a = dot(modelupdate.agrid_dist, grids.a.vec);
     fprintf(' A/Y = %2.5f\n', modelupdate.mean_a);
 end
