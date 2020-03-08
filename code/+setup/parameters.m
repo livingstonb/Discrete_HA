@@ -397,6 +397,7 @@ function [params, all_names] = parameters(runopts)
     % viii
     name = 'Annual, high persistence';
     params(end+1) = setup.Params(1, name, '');
+    params(end) = set_shared_fields(params(end), shared_params);
     params(end).rho_logyP = 0.995;
     params(end).sd_logyP = sqrt(0.0043);
     params(end).sd_logyT = sqrt(0.0688);
@@ -415,6 +416,7 @@ function [params, all_names] = parameters(runopts)
     % x
     name = 'Annual, high nyF = 5';
     params(end+1) = setup.Params(1, name, '');
+    params(end) = set_shared_fields(params(end), shared_params);
     params(end).rho_logyP = 0.9158;
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
@@ -462,6 +464,7 @@ function [params, all_names] = parameters(runopts)
     % ii
     name = 'KMP';
     params(end+1) = setup.Params(4, name, '');
+    params(end) = set_shared_fields(params(end), shared_params);
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
@@ -530,9 +533,14 @@ function [params, all_names] = parameters(runopts)
     
     
     % iii quarterly_c
-    params(end+1) = setup.Params(4, 'Q b(iii) quarterly_c', quarterly_c_path);
+    name = 'quarterly_c';
+    params(end+1) = setup.Params(4, name, quarterly_c_path);
     params(end) = set_shared_fields(params(end), quarterly_c_params);
-    
+    params(end).beta0 = 0.984363510593659;
+    params(end).group = {'Q7'};
+    params(end).label = 'Quart (iii)';
+    params(end).other = {'quart_c'};
+
 %     % iv
 %     params(end+1) = setup.Params(4,'Q b(iv) PersEveryPeriod','');
 %     params(end).rho_logyP = 0.9884;
