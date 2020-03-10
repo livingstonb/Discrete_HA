@@ -197,25 +197,44 @@ classdef MPCFinder < handle
                 mpc_neg = sum(dist_vec(mpcs(:)<0));
                 mpc0 = sum(dist_vec(mpcs(:)==0));
 
-                reshape_vec = [obj.p.nx_DST, obj.p.nyP*obj.p.nyF, obj.p.nb];
-                mpc_p = mpcs(:) .* obj.basemodel.adist(:);
-                mpc_p = reshape(mpc_p, reshape_vec);
-                p_xb = reshape(obj.basemodel.adist, reshape_vec);
-                p_xb = sum(p_xb, 2);
+                % reshape_vec = [obj.p.nx_DST, obj.p.nyP*obj.p.nyF, obj.p.nb];
+                % mpc_p = mpcs(:) .* obj.basemodel.adist(:);
+                % mpc_p = reshape(mpc_p, reshape_vec);
+                % p_xb = reshape(obj.basemodel.adist, reshape_vec);
+                % p_xb = sum(p_xb, 2);
 
-                p_small = p_xb < 1e-8;
+                % p_small = p_xb < 1e-8;
 
-                mpc_xb = sum(mpc_p, 2) ./ p_xb;
-                mpc_xb = mpc_xb(~p_small);
-                mpcs_sorted = sortrows([mpc_xb, p_xb(~p_small)]);
-                mpc_xb = mpcs_sorted(:,1);
-                cdf_xb = cumsum(mpcs_sorted(:,2));
+                % mpc_xb = sum(mpc_p, 2) ./ p_xb;
+                % mpc_xb = mpc_xb(~p_small);
+                % mpcs_sorted = sortrows([mpc_xb, p_xb(~p_small)]);
+                % mpc_xb = mpcs_sorted(:,1);
+                % cdf_xb = cumsum(mpcs_sorted(:,2));
 
-                [mpc_xb, uniq] = unique(mpc_xb, 'last');
-                cdf_xb = cdf_xb(uniq);
+                % [mpc_xb, uniq] = unique(mpc_xb, 'last');
+                % cdf_xb = cdf_xb(uniq);
 
-                interp_mpc = griddedInterpolant(cdf_xb, mpc_xb, 'linear');
-                mpc_median = interp_mpc(0.5);
+                % interp_mpc = griddedInterpolant(cdf_xb, mpc_xb, 'linear');
+                % mpc_median = interp_mpc(0.5);
+
+                % pmf = obj.basemodel.adist;
+                % tmp = reshape(pmf, obj.p.nx_DST, []);
+                % pmf_x = sum(tmp, 2);
+
+                % mpcs_states = reshape(mpcs, obj.p.nx_DST, []);
+                % mpc_x = aux.(mpcs_states, pmf, pmf_x);
+
+                % mpcs_sorted = sortrows([mpc_x])
+                % mpc_interp = griddedInterpolant()
+
+                pmf = obj.basemodel.adist;
+                mpc_ss = reshape(mpcs, size(pmf));
+                mpcs_sorted = sortrows([mpc_ss(:), pmf(:)]);
+
+                [cdf_m, iu] = unique(cumsum(mpcs_sorted(:,2)), 'last');
+                mpc_pct_interp = griddedInterpolant(cdf_m, mpcs_sorted(iu),...
+                	'pchip', 'nearest');
+                mpc_median = mpc_pct_interp(0.5);
         
                 if sum(dist_vec(loc_pos)) > 0
                 	mpc_condl = dist_vec(loc_pos)' * mpcs(loc_pos) / sum(dist_vec(loc_pos));

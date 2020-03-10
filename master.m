@@ -15,7 +15,7 @@
 % input/income_quarterly_b.mat. Also note that if frequency is set to 4
 % (quarterly), then annual parameter values should be used and they will
 % be automatically adjusted in Params.adjust_if_quarterly()
-%
+
 % Note that all parameter defaults
 % are set in the class file code/+setup/Params.m, and parameters.m overrides
 % these defaults. Any parameters not in parameters.m are set to their
@@ -51,7 +51,7 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = true; % use server paths
+runopts.Server = false; % use server paths
 runopts.calibrate = true;
 runopts.fast = false; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
@@ -74,10 +74,10 @@ elseif ispc
 end
 
 % name of parameters script
-runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'parameters_con_adj_costs'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {'Quarterly'};
+runopts.names_to_run = {'baseline'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------

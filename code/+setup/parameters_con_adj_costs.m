@@ -31,7 +31,7 @@ function [params, all_names] = parameters_con_adj_costs(runopts)
     params.nx_DST = 150;
     params.xgrid_par = 0.3;
     params.xmax = 20;
-    params.target_value = 0.23;
+    params.target_value = 0.210464;
     params.ResetIncomeUponDeath = false;
 
     % params = setup.Params(4,'wealth3.2',QIncome);

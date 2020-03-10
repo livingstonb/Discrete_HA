@@ -7,7 +7,7 @@ classdef DecompComparisonPanels
 			shock_str = params.convert_to_dollars_str(shock_size);
 
 			if absolute
-				panel_suffix = 'Quarterly MPC decomposition relative to baseline';
+				panel_suffix = 'Quarterly MPC decomposition E[MPC] - E[MPC_baseline]';
 			else
 				panel_suffix = ...
 					'Quarterly MPC decomposition, % of E[MPC] - E[MPC_baseline]';
