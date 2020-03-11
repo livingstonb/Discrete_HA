@@ -72,6 +72,9 @@ function results = main(p)
     %% --------------------------------------------------------------------
     % IMPORTANT MOMENTS
     % ---------------------------------------------------------------------
+%     results.stats = statistics.Statistics(p, income, grdDST, basemodel);
+
+
     results.direct.mean_s = basemodel.xdist(:)' * basemodel.sav_x(:);
     results.direct.mean_a = basemodel.mean_a;
     results.direct.mean_x = basemodel.xdist(:)' * basemodel.xvals(:);
@@ -316,7 +319,10 @@ function results = main(p)
         results.direct.mean_grossy_A = results.direct.mean_grossy1 * 4;
         % from simulations
         results.direct.stdev_loggrossy_A = mpc_simulator.stdev_loggrossy_A;
-        results.direct.stdev_lognety_A = mpc_simulator.stdev_lognety_A;     
+        results.direct.stdev_lognety_A = mpc_simulator.stdev_lognety_A;  
+
+        results.stats.std_log_gross_y_annual.value = mpc_simulator.stdev_loggrossy_A;
+        results.stats.std_log_net_y_annual.value = mpc_simulator.stdev_lognety_A;
     else
         % direct computations
         results.direct.mean_grossy_A = results.direct.mean_grossy1;

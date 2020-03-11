@@ -52,7 +52,7 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.Server = false; % use server paths
-runopts.calibrate = true;
+runopts.calibrate = false;
 runopts.fast = false; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
