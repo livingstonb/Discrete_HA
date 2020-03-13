@@ -139,10 +139,6 @@ classdef ComparisonDecomp < handle
                 cdf1_a_interp = griddedInterpolant(...
                 	agrid1_orig, cumsum(pmf1_a_orig), 'pchip', 'nearest');
 
-                % cdf_a0 = pmf1_a_orig(1);
-                % cdf1_a_interp = @(x) adjust_interpolant(x,...
-                % 	cdf1_a_interp, agrid1_orig, cdf_a0);
-
             	% Next get pmf on the baseline grid
             	obj.pmf1_a = zeros(obj.na, 1);
             	obj.pmf1_a(1) = cdf1_a_interp(obj.agrid(1));
@@ -178,17 +174,4 @@ classdef ComparisonDecomp < handle
             	obj.agrid, mpcs0_a, obj.pmf1_a, true);
 		end
 	end
-end
-
-function vals_out = adjust_interpolant(x, cdf1_a_interp, agrid1_orig, cdf_a0)
-	vals_out = cdf1_a_interp(x);
-
-	x0 = [0; agrid1_orig(1)];
-	vals0 = [0; cdf_a0];
-
-	low_states = x < agrid1_orig(1);
-    
-    if sum(low_states) > 0
-        vals_out(low_states) = interp1(x0, vals0, x(low_states));
-    end
 end
