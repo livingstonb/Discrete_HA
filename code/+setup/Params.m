@@ -59,9 +59,10 @@ classdef Params < handle
         xmax = 50;
         xgrid_par = 0.2; %1 for linear, 0 for L-shaped
         xgrid_par_neg = 0.4;
+        xgrid_term1wt = 0.01;
+        xgrid_term1curv = 0.8;
         borrow_lim = 0;
         nbl_adjustment = 0.99;
-        gridspace_min = 0; % minimum grid space (0 for no minimum)
         alternate_gcurv = false;
         
         % OPTIONS
