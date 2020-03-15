@@ -56,7 +56,7 @@ runopts.calibrate = false;
 runopts.fast = false; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
-runopts.MPCs = true;
+runopts.MPCs = false;
 runopts.MPCs_news = false;
 runopts.MPCs_loan_and_loss = false;
 runopts.DeterministicMPCs = true; % must be on if decompositions are needed
@@ -74,10 +74,10 @@ elseif ispc
 end
 
 % name of parameters script
-runopts.mode = 'parameters_con_adj_costs'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {'baseline'};
+runopts.names_to_run = {'Quarterly'};
 runopts.number = [];
 
 %% ------------------------------------------------------------------------

@@ -75,11 +75,13 @@ classdef Grid < handle
                     soft_constraint, params.xmax, nx_pos,...
                     params.xgrid_par);
             else
-                savgrid_pos = create_curved_grid(...
-                    soft_constraint, params.xmax, nx_pos,...
-                    params.xgrid_par, false);
+                % savgrid_pos = create_curved_grid(...
+                %     soft_constraint, params.xmax, nx_pos,...
+                %     params.xgrid_par, false);
+                savgrid_pos = create_curved_grid_alt(soft_constraint,...
+                	params.xmax, params.xgrid_term1wt,...
+                	params.xgrid_term1curv, params.xgrid_par, nx_pos);
             end
-			savgrid_pos = obj.enforce_min_spacing(params, savgrid_pos);
 
 			savgrid = [savgrid_neg; savgrid_pos];
 
@@ -119,17 +121,6 @@ classdef Grid < handle
 
 		 	obj.a.matrix = repmat(obj.a.vec, [1, params.nyP, params.nyF, params.nb]);
 		end
-
-		function grid_adj = enforce_min_spacing(obj, params, gridvec)
-			grid_adj = gridvec;
-			for ii = 1:numel(gridvec)-1
-				if grid_adj(ii+1) - grid_adj(ii) < params.gridspace_min
-					grid_adj(ii+1) = grid_adj(ii) + params.gridspace_min;
-				else
-					break
-				end
-			end
-		end
 	end
 
 end
@@ -144,13 +135,22 @@ function cgrid = create_curved_grid(lowval, highval, npts,...
     cgrid = lowval + (highval - lowval) * cgrid;
 end
 
-function cgrid = create_alternate_grid(lowval, highval, npts,...
-	curvature)
-	cgrid = linspace(0, 1, npts+1)';
-    cgrid = 1 - (1 - cgrid .^ (1/curvature)) .^ curvature;
-    cgrid = cgrid(1:end-1) ./ sum(cgrid(end-1));
-    cgrid = cgrid(:);
-
-    cgrid = lowval + (highval - lowval) * cgrid;
-
+function vgrid = create_curved_grid_alt(vmin, vmax,...
+	term1_wt, term1_curv, curv, npts)
+	vgrid = linspace(0, 1, npts)';
+	vgrid = term1_wt * vgrid .^ (1 / term1_curv) ...
+		+ vgrid .^ (1 / curv);
+	vgrid = vgrid / vgrid(end);
+	vgrid = vmin + (vmax - vmin) * vgrid;
 end
+
+% function cgrid = create_alternate_grid(lowval, highval, npts,...
+% 	curvature)
+% 	cgrid = linspace(0, 1, npts+1)';
+%     cgrid = 1 - (1 - cgrid .^ (1/curvature)) .^ curvature;
+%     cgrid = cgrid(1:end-1) ./ sum(cgrid(end-1));
+%     cgrid = cgrid(:);
+
+%     cgrid = lowval + (highval - lowval) * cgrid;
+
+% end
