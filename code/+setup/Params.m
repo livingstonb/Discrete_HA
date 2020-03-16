@@ -305,6 +305,10 @@ classdef Params < handle
                     obj.shocks_labels{ishock} = sprintf('%g', obj.shocks(ishock));
                 end
             end
+
+            if isempty(obj.label)
+                obj.label = obj.name;
+            end
         end
     end
     

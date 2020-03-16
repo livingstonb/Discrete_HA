@@ -53,10 +53,10 @@ close all;
 % options
 runopts.Server = false; % use server paths
 runopts.calibrate = false;
-runopts.fast = false; % very small asset and income grids for testing
+runopts.fast = true; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
-runopts.MPCs = false;
+runopts.MPCs = true;
 runopts.MPCs_news = false;
 runopts.MPCs_loan_and_loss = false;
 runopts.DeterministicMPCs = true; % must be on if decompositions are needed
@@ -149,17 +149,20 @@ end
 % CREATE TABLE OF RESULTS
 % -------------------------------------------------------------------------
 
-table_gen_detailed = tables.TableGenDetailed(params, results, params.freq);
-% table_gen_final = tables.TableFinal_Main(params, results, 1);
-% table_gen_decomps = tables.TableFinal_BaselineDecomps(params, results, 2);
+% table_gen_detailed = tables.TableGenDetailed(params, results, params.freq);
+% % table_gen_final = tables.TableFinal_Main(params, results, 1);
+% % table_gen_decomps = tables.TableFinal_BaselineDecomps(params, results, 2);
 
-table_detailed = table_gen_detailed.create(params, results, params.freq);
-% table_final = table_gen_final.create(params, results);
-% table_decomps = table_gen_decomps.create(params, results);
+% table_detailed = table_gen_detailed.create(params, results, params.freq);
+% % table_final = table_gen_final.create(params, results);
+% % table_decomps = table_gen_decomps.create(params, results);
 
-table_gen_detailed.save_table();
-% table_gen_final.save_table();
+% table_gen_detailed.save_table();
+% % table_gen_final.save_table();
 
-% save_tables = true;
-% tables_out = tables.create_final_tables(params, results,...
-%     save_tables);
+% % save_tables = true;
+% % tables_out = tables.create_final_tables(params, results,...
+% %     save_tables);
+
+table_gen = tables.StatsTable(params, {results.stats});
+table_out = table_gen.create(params, {results.stats})

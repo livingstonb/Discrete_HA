@@ -72,8 +72,8 @@ function results = main(p)
     %% --------------------------------------------------------------------
     % IMPORTANT MOMENTS
     % ---------------------------------------------------------------------
-%     results.stats = statistics.Statistics(p, income, grdDST, basemodel);
-
+    results.stats = statistics.Statistics(p, income, grdDST, basemodel);
+    results.stats.compute_statistics();
 
     results.direct.mean_s = basemodel.xdist(:)' * basemodel.sav_x(:);
     results.direct.mean_a = basemodel.mean_a;
@@ -297,6 +297,8 @@ function results = main(p)
         disp('Computing MPCs')
         mpc_finder.solve(p, grdDST);
     end
+
+    results.stats.add_mpcs(mpc_finder);
 
     results.direct.mpcs = mpc_finder.mpcs;
     results.direct.loan = mpc_finder.loan;

@@ -22,6 +22,9 @@ classdef Statistics < handle
 
 		w_top10share;
 		w_top1share;
+		wgini;
+
+		mpcs;
 
 		constrained;
 	end
@@ -59,6 +62,64 @@ classdef Statistics < handle
 			% obj.compute_deposit_stats();
 		end
 
+		function add_mpcs(obj, mpcs_obj)
+			obj.mpcs = mpcs_obj.mpcs;
+
+			% if mpc_obj.options.liquid_mpc
+			% 	asset_indicator = 0;
+			% 	mpc_type = '';
+			% else
+			% 	asset_indicator = 2;
+			% 	mpc_type = 'illiq';
+			% end
+			% sfill2 = @(x,y) sfill(x, y, asset_indicator);
+
+			% empty_stat = sfill2([], []);
+
+		% 	empty_mpc_struct = struct(...
+		% 		'shock_normalized', empty_stat,...
+		% 		'shock', empty_stat,...
+		% 		'quarterly', empty_stat,...
+		% 		'annual', empty_stat...
+		% 	);
+
+		% 	nshocks = numel(obj.p.mpc_shocks);
+		% 	for ishock = 1:nshocks
+		% 		shock = obj.p.mpc_shocks(ishock);
+		% 		shock_label = obj.p.quantity2label(shock);
+		% 		mpcs_stats(ishock) = empty_mpc_struct;
+
+		% 		mpcs_stats(ishock).shock_normalized = sfill2(...
+		% 			shock * 100, 'Shock size, (% of mean ann inc)');
+
+		% 		mpcs_stats(ishock).shock = sfill2(shock_label,...
+		% 			'Shock size');
+
+		% 		tmp = 100 * mpc_obj.mpcs(ishock).quarterly(1);
+		% 		label = sprintf(...
+		% 			'Quarterly %s MPC (%%), out of %s',...
+		% 			mpc_type, shock_label);
+		% 		mpcs_stats(ishock).quarterly = sfill2(tmp, label);
+
+		% 		tmp = 100 * mpc_obj.mpcs(ishock).annual;
+		% 		label = sprintf(...
+		% 			'Annual %s MPC (%%), out of %s',...
+		% 			mpc_type, shock_label);
+		% 		mpcs_stats(ishock).annual = sfill2(tmp, label);
+		% 	end
+
+		% 	if mpc_obj.options.liquid_mpc
+		% 		obj.mpcs = mpcs_stats;
+
+		% 		obj.mpcs_over_ss = cell(1, nshocks);
+		% 		for ishock = 1:nshocks
+		% 			obj.mpcs_over_ss{ishock} =  mpc_obj.mpcs(ishock).mpcs(:,1);
+		% 		end
+		% 	else
+		% 		obj.illiquid_mpcs = mpcs_stats;
+		% 	end
+		% end
+		end
 	end
 
 	methods (Access=protected)
@@ -107,8 +168,8 @@ classdef Statistics < handle
 		end
 
 		function construct_distributions(obj)
-			obj.pmf_x = sum(reshape(obj.pmf, obj.nx, []), 2);
-		    obj.cdf_x = cumsum(obj.pmf_x);
+			obj.pmf_a = sum(reshape(obj.pmf, obj.nx, []), 2);
+		    obj.cdf_a = cumsum(obj.pmf_a);
 		end
 
 		function compute_percentiles(obj)
@@ -137,14 +198,14 @@ classdef Statistics < handle
 			wshare_interp = griddedInterpolant(obj.cdf_a,...
 				cum_share, 'pchip', 'nearest');
 
-			tmp = 1 - lwshare_interp(0.9);
+			tmp = 1 - wshare_interp(0.9);
 			obj.w_top10share = sfill(tmp, 'Wealth, top 10% share');
 
-			tmp = 1 - lwshare_interp(0.99);
+			tmp = 1 - wshare_interp(0.99);
 			obj.w_top1share = sfill(tmp, 'Wealth, top 1% share');
 			
 			% Gini coefficient
-			tmp = aux.direct_gini(obj.wealth_sorted, obj.pmf);
+			tmp = aux.direct_gini(obj.grdDST.a.vec, obj.pmf_a);
 			obj.wgini = sfill(tmp, 'Gini coefficient, wealth');
 		end
 
@@ -190,7 +251,7 @@ end
 function out = sfill(value, label)
 	out = struct(...
 		'value', value,...
-		'label', label,...
+		'label', label...
 	);
 end
 

@@ -59,9 +59,25 @@ classdef MPCFinder < handle
 			obj.r_mat = heterogeneity.r_broadcast;
 
 		    for ishock = 1:6
+		    	shock_label = p.shocks_labels{ishock};
+		    	shock_size = p.shocks(ishock);
+
 		    	% mean mpc in period t out of period s shock
-		    	obj.mpcs(ishock).avg_quarterly = NaN;
-		    	obj.mpcs(ishock).avg_annual = NaN;
+		    	obj.mpcs(ishock).quarterly = sfill(NaN,...
+		    		sprintf('Quarterly MPC (%%), out of %s',...
+						shock_label));
+		    	obj.mpcs(ishock).annual = sfill(NaN,...
+		    		sprintf('Annual MPC (%%), out of %s',...
+						shock_label));
+
+		    	obj.mpcs(ishock).shock = sfill(shock_label,...
+					'Shock description');
+				obj.mpcs(ishock).shock_normalized = sfill(shock_size,...
+					'Shock size as fraction of mean ann inc');
+				obj.mpcs(ishock).median_mpc = sfill(NaN,...
+					sprintf('Median one-period MPC (%%), out of %s',...
+						shock_label));
+
 		    	obj.mpcs(ishock).avg_s_t = NaN(5,5);
 		    	% mpcs over states for shock in period 1
 		    	obj.mpcs(ishock).mpcs_1_t = cell(1,4);
@@ -308,14 +324,15 @@ classdef MPCFinder < handle
 			for ishock = 1:6
 				obj.mpcs(ishock).avg_1_1to4 = sum(obj.mpcs(ishock).avg_s_t(1,1:4));
 				obj.mpcs(ishock).avg_5_1to4 = sum(obj.mpcs(ishock).avg_s_t(5,1:4));
-
 				if obj.p.freq == 4
-					obj.mpcs(ishock).avg_quarterly = obj.mpcs(ishock).avg_s_t(1,1);
-					obj.mpcs(ishock).avg_annual = obj.mpcs(ishock).avg_1_1to4;
+					obj.mpcs(ishock).quarterly.value = 100 * obj.mpcs(ishock).avg_s_t(1,1);
+					obj.mpcs(ishock).annual.value = 100 * obj.mpcs(ishock).avg_1_1to4;
 				else
-					obj.mpcs(ishock).avg_quarterly = NaN;
-					obj.mpcs(ishock).avg_annual = obj.mpcs(ishock).avg_s_t(1,1);
+					obj.mpcs(ishock).quarterly.value = NaN;
+					obj.mpcs(ishock).annual.value = 100 * obj.mpcs(ishock).avg_s_t(1,1);
 				end
+
+				obj.mpcs(ishock).median_mpc.value = 100 * obj.mpcs(ishock).median(1,1);
 			end
 		end
 
@@ -386,5 +403,11 @@ classdef MPCFinder < handle
 		    end
 		end
 	end
+end
 
+function out = sfill(value, label)
+	out = struct(...
+		'value', value,...
+		'label', label...
+	);
 end
