@@ -46,21 +46,32 @@ classdef Decomp < handle
 		end
 
 		function initialize(obj)
+			nfill = @(x) sfill(NaN, x);
+
 			obj.results_norisk = struct();
+			obj.results_norisk.completed = false;
+			obj.results_norisk.term1 = nfill('RA MPC');
+			obj.results_norisk.term1_pct = nfill('RA MPC (%)');
 			for ia = 1:obj.nthresholds
-				obj.results_norisk(ia).completed = false;
-				obj.results_norisk(ia).term1 = NaN;
-				obj.results_norisk(ia).term2 = NaN;
-				obj.results_norisk(ia).term3 = NaN;
-				obj.results_norisk(ia).term4 = NaN;
+				thresh = obj.p.abars(ia);
+				obj.results_norisk.term2(ia) = nfill(...
+					sprintf('HtM effect (a <= %g)', thresh));
+				obj.results_norisk.term3(ia) = nfill(...
+					sprintf('Non-HtM (a <= %g), constraint effect', thresh));
+				obj.results_norisk.term4(ia) = nfill(...
+					sprintf('Non-HtM (a <= %g), inc risk effect', thresh));
 			end
 
 			obj.results_RA = struct();
 			obj.results_RA.completed = false;
-			obj.results_RA.Em1_less_mRA = NaN;
-			obj.results_RA.term1 = NaN;
-			obj.results_RA.term2 = NaN;
-			obj.results_RA.term3 = NaN;
+			obj.results_RA.Em1_less_mRA = nfill(...
+				'E[MPC] - RA MPC');
+			obj.results_RA.term1 = nfill(...
+				'Effect of MPC function');
+			obj.results_RA.term2 = nfill(...
+				'Effect of distribution');
+			obj.results_RA.term3 = nfill(...
+				'Interaction');
 		end
 
 		function make_initial_computations(obj, mpcs)
@@ -84,7 +95,7 @@ classdef Decomp < handle
 		end
 
 		function decomp_RA(obj)
-			obj.results_RA.Em1_less_mRA = obj.Empc - obj.mpc_ra;
+			obj.results_RA.Em1_less_mRA.value = obj.Empc - obj.mpc_ra;
 
 			% Interpolant to compute E[MPC|a=E[a]]
 			dsupport = obj.pmf_a > 1e-7;
@@ -93,40 +104,48 @@ classdef Decomp < handle
 			mpc_atmean = mpc_a_interp(obj.stats.mean_a);
 
 			% Term 1: Effect of MPC function
-			obj.results_RA.term1 = mpc_atmean - obj.mpc_ra;
+			obj.results_RA.term1.value = mpc_atmean - obj.mpc_ra;
 
 			% Term 2: Effect of distribution
-			obj.results_RA.term2 = 0;
+			obj.results_RA.term2.value = 0;
 
 			% Term 3: Interaction
-			obj.results_RA.term3 = (obj.Empc - obj.mpc_ra)...
+			obj.results_RA.term3.value = (obj.Empc - obj.mpc_ra)...
 				- (mpc_atmean - obj.mpc_ra);
 
 			obj.results_RA.completed = true;
 		end
 
 		function decomp_norisk(obj)
-			for ia = 1:obj.nthresholds
-				% Term 1: RA mpc
-				obj.results_norisk(ia).term1 = obj.mpc_ra;
+			% Term 1: RA mpc
+			obj.results_norisk.term1.value = obj.mpc_ra;
+			obj.results_norisk.term1_pct.value = obj.mpc_ra * 100;
 
+			for ia = 1:obj.nthresholds
 				thresh = obj.p.abars(ia);
 				% Term 2: HtM effect
-				obj.results_norisk(ia).term2 = ...
+				obj.results_norisk.term2(ia).value = ...
 					obj.integral_interp(thresh) - obj.mpc_ra * obj.cdf_interp(thresh);
 
 				% Term 3: Constraint effect for non-HtM
-				obj.results_norisk(ia).term3 = ...
+				obj.results_norisk.term3(ia).value = ...
 					(obj.Empc_norisk - obj.integral_norisk_interp(thresh))...
 					- obj.mpc_ra * (1 - obj.cdf_interp(thresh));
 
 				% Term 4: Income risk effect for non-HtM
-				obj.results_norisk(ia).term4 = ...
+				obj.results_norisk.term4(ia).value = ...
 					(obj.Empc - obj.integral_interp(thresh))...
 					- (obj.Empc_norisk - obj.integral_norisk_interp(thresh));
-
-				obj.results_norisk(ia).completed = true;
 			end
+
+			obj.results_norisk.completed = true;
 		end
 	end
+end
+
+function out = sfill(value, label)
+	out = struct(...
+		'value', value,...
+		'label', label...
+	);
 end

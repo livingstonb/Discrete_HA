@@ -8,27 +8,19 @@ classdef StatsTable < tables.BaseTable
 
 				obj.current_column = table();
 				obj.intro_stats_table(p_ip, stats_ip);
-
-				% obj.income_stats_table();
 				obj.wealth_stats_table(stats_ip);
-				% obj.mpc_size_table(stats_ip);
-				% obj.mpc_sign_table(stats_ip);
-
-				% obj.decomp_norisk_table(p_ip, stats_ip);
+				obj.mpc_size_table(stats_ip);
+				obj.mpc_sign_table(stats_ip);
 
 				% shock = stats_ip.mpcs(5).shock.value;
 				% obj.mpc_comparison(stats_ip, shock);
 				% obj.mpc_comparison_pct(stats_ip, shock);
 
-				% if obj.one_asset_only
-				% 	assets = {'b'};
-				% else
-				% 	assets = {'w', 'b', 'a'};
-				% end
-				% obj.percentiles_tables(stats_ip, assets);
-    %             obj.illiquid_mpcs_table(stats_ip);
-    %             obj.adj_costs_table(stats_ip);
+				obj.percentiles_tables(stats_ip);
+
     %             obj.other_params_table(stats_ip);
+    			obj.decomp_ra(stats_ip);
+    			obj.decomp_norisk_table(p_ip, stats_ip);
                 obj.other_stats_table(stats_ip);
 
                 obj.add_column(ip)
@@ -76,6 +68,88 @@ classdef StatsTable < tables.BaseTable
 			};
 
 			obj.update_current_column(out, new_entries);
+		end
+
+		function mpc_size_table(obj, stats)
+			panel_name = 'MPC size effects';
+			out = obj.new_table_with_header(panel_name);
+
+			new_entries = {
+				stats.mpcs(4).quarterly
+				stats.mpcs(6).quarterly
+				stats.mpcs(4).annual
+				stats.mpcs(6).annual
+			};
+
+			obj.update_current_column(out, new_entries);
+		end
+
+		function mpc_sign_table(obj, stats)
+			panel_name = 'MPC sign effects';
+			out = obj.new_table_with_header(panel_name);
+
+			new_entries = {
+				stats.mpcs(1).quarterly
+				stats.mpcs(2).quarterly
+				stats.mpcs(3).quarterly
+				stats.mpcs(1).annual
+				stats.mpcs(2).annual
+				stats.mpcs(3).annual
+			};
+
+			obj.update_current_column(out, new_entries);
+		end
+
+		function percentiles_tables(obj, stats)
+			panel_name = 'Wealth Distribution';
+			out = obj.new_table_with_header(panel_name);
+
+			new_entries = {
+				stats.wpercentiles{1}
+				stats.wpercentiles{2}
+				stats.wpercentiles{3}
+				stats.wpercentiles{5}
+				stats.wpercentiles{7}
+				stats.wpercentiles{8}
+			};
+
+			obj.update_current_column(out, new_entries);
+		end
+
+		function decomp_ra(obj, stats)
+			panel_name = 'Decomposition of E[MPC] - MPC_RA';
+			out = obj.new_table_with_header(panel_name);
+
+			new_entries = {	stats.decomp_RA.Em1_less_mRA
+							stats.decomp_RA.term1
+		                    stats.decomp_RA.term2
+		                    stats.decomp_RA.term3
+				};
+			obj.update_current_column(out, new_entries);
+		end
+
+		function decomp_norisk_table(obj, p, stats)
+			panel_name = 'Decomps of E[MPC] wrt RA and no inc risk, $500 shock';
+			out = obj.new_table_with_header(panel_name);
+
+			tmp = stats.mpcs(5).quarterly;
+			tmp.label = 'Quarterly MPC (%)'
+			new_entries = {tmp, stats.decomp_norisk.term1_pct};
+			obj.update_current_column(out, new_entries);
+
+			for ithresh = 1:numel(p.abars)
+				threshold = p.abars(ithresh);
+				panel_name = sprintf('For HtM threshold #%d', ithresh);
+				out = obj.new_table_with_header(panel_name);
+
+				new_entries = {
+					stats.decomp_norisk.term2(ithresh);
+					stats.decomp_norisk.term3(ithresh);
+					stats.decomp_norisk.term4(ithresh);
+				};
+
+				obj.update_current_column(out, new_entries);
+			end
 		end
 
 		function other_stats_table(obj, stats)

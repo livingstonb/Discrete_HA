@@ -353,6 +353,8 @@ function results = main(p)
 
     results.decomp_RA = decomp.results_RA;
     results.decomp_norisk = decomp.results_norisk;
+
+    results.stats.add_decomps(decomp);
     clear decomp
     
     %% --------------------------------------------------------------------

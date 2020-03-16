@@ -26,6 +26,8 @@ classdef Statistics < handle
 		wgini;
 
 		mpcs;
+		decomp_RA;
+		decomp_norisk;
 
 		constrained;
 		constrained_pct;
@@ -70,6 +72,11 @@ classdef Statistics < handle
 
 		function add_mpcs(obj, mpcs_obj)
 			obj.mpcs = mpcs_obj.mpcs;
+		end
+
+		function add_decomps(obj, decomps)
+			obj.decomp_RA = decomps.results_RA;
+			obj.decomp_norisk = decomps.results_norisk;
 		end
 	end
 
