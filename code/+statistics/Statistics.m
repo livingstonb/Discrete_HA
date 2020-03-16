@@ -156,8 +156,10 @@ classdef Statistics < handle
 			% Top liquid wealth shares
 			cum_share = cumsum(obj.grdDST.a.vec .* obj.pmf_a);
 			cum_share = cum_share / obj.mean_a.value;
-			wshare_interp = griddedInterpolant(obj.cdf_a,...
-				cum_share, 'pchip', 'nearest');
+            
+            [cdf_u, iu] = unique(obj.cdf_a, 'last');
+			wshare_interp = griddedInterpolant(cdf_u,...
+				cum_share(iu), 'pchip', 'nearest');
 
 			tmp = 1 - wshare_interp(0.9);
 			obj.w_top10share = sfill(tmp, 'Wealth, top 10% share');

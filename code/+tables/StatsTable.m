@@ -13,8 +13,8 @@ classdef StatsTable < tables.BaseTable
 				obj.mpc_sign_table(stats_ip);
 
 				% shock = stats_ip.mpcs(5).shock.value;
-				% obj.mpc_comparison(stats_ip, shock);
-				% obj.mpc_comparison_pct(stats_ip, shock);
+				obj.mpc_comparison(ip);
+				obj.mpc_comparison_pct(ip);
 
 				obj.percentiles_tables(stats_ip);
 
@@ -133,7 +133,7 @@ classdef StatsTable < tables.BaseTable
 			out = obj.new_table_with_header(panel_name);
 
 			tmp = stats.mpcs(5).quarterly;
-			tmp.label = 'Quarterly MPC (%)'
+			tmp.label = 'Quarterly MPC (%)';
 			new_entries = {tmp, stats.decomp_norisk.term1_pct};
 			obj.update_current_column(out, new_entries);
 
@@ -152,6 +152,51 @@ classdef StatsTable < tables.BaseTable
 			end
 		end
 
+		function mpc_comparison(obj, ip)
+			if isempty(obj.decomp_baseline)
+				return
+			end
+
+			decomp_ip = obj.decomp_baseline(ip);
+			panel_name = decomp_ip.description.value;
+			out = obj.new_table_with_header(panel_name);
+
+			new_entries = {
+				decomp_ip.Em1_less_Em0
+				decomp_ip.term1
+				decomp_ip.term1a
+				decomp_ip.term1b
+				decomp_ip.term2
+				decomp_ip.term2a(3)
+				decomp_ip.term2b(3)
+				decomp_ip.term3
+			};
+
+			obj.update_current_column(out, new_entries);
+		end
+
+		function mpc_comparison_pct(obj, ip)
+			if isempty(obj.decomp_baseline)
+				return
+			end
+
+			decomp_ip = obj.decomp_baseline(ip);
+			panel_name = 'Decomposition in terms of % of E[MPC] - E[MPC_b]';
+			out = obj.new_table_with_header(panel_name);
+
+			new_entries = {
+				decomp_ip.term1_pct
+				decomp_ip.term1a_pct
+				decomp_ip.term1b_pct
+				decomp_ip.term2_pct
+				decomp_ip.term2a_pct(3)
+				decomp_ip.term2b_pct(3)
+				decomp_ip.term3_pct
+			};
+
+			obj.update_current_column(out, new_entries);
+		end
+
 		function other_stats_table(obj, stats)
 			panel_name = 'Other Statistics';
 			out = obj.new_table_with_header(panel_name);
@@ -162,7 +207,7 @@ classdef StatsTable < tables.BaseTable
 				stats.constrained_dollars{3}
 				stats.constrained_dollars{4}
 				stats.constrained_dollars{5}
-			}
+			};
 
 			obj.update_current_column(out, new_entries);
 		end

@@ -17,7 +17,7 @@
 
 clear
 
-options.server = true;
+options.server = false;
 options.final_tables = false;
 options.decomp_with_loose_borr_limit = false;
 options.index_loose_borr_limit_Q = 'baseline_Q_with_borrowing';
@@ -25,8 +25,8 @@ options.index_loose_borr_limit_A = 'baseline_A_with_borrowing';
 
 if ~options.server
     basedir = '/home/brian/Documents/GitHub/Discrete_HA';
-    matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
-    xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
+    matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/experiments/';
+    xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/experiments/';
 else
     basedir = '/home/livingstonb/GitHub/Discrete_HA';
     matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
@@ -46,11 +46,9 @@ for irun = 1:999
         S = load(fpath);
         params(ind) = S.Sparams;
         results(ind) = S.results;
+        stats{ind} = S.results.stats;
     end
 end
-
-% [decomps_baseline_old, ~] ...
-%     = statistics.baseline_repagent_decomps(params, results, false);
 
 for ip = 1:ind
     if params(ip).freq == 1
@@ -96,26 +94,33 @@ if options.decomp_with_loose_borr_limit
     end
 end
 
-table_gen = tables.TableGenDetailed(params, results, 4);
+table_gen = tables.StatsTable(params, stats);
 table_gen.decomp_baseline = decomps_baseline;
 
 if options.decomp_with_loose_borr_limit
     table_gen.decomp_incrisk_alt = decomp_alt;
 end
 
-quarterly_results = table_gen.create(params, results, 4);
-annual_results = table_gen.create(params, results, 1);
+table_out = table_gen.create(params, stats);
 
-if ~isempty(quarterly_results)
-    xlxpath = fullfile(xlxdir, 'quarterly_results.xlsx');
-    writetable(quarterly_results, xlxpath, 'WriteRowNames', true);
+if ~isempty(table_out)
+    xlxpath = fullfile(xlxdir, 'discrete_time_results.xlsx');
+    writetable(table_out, xlxpath, 'WriteRowNames', true);
 end
 
-if ~isempty(annual_results)
-    xlxpath = fullfile(xlxdir, 'annual_results.xlsx');
-    writetable(annual_results, xlxpath, 'WriteRowNames', true);
-end
+% quarterly_results = table_gen.create(params, results);
+% annual_results = table_gen.create(params, results);
 
-save_tables = true;
-tables_out = tables.create_final_tables(params, results,...
-    decomps_baseline, save_tables);
+% if ~isempty(quarterly_results)
+%     xlxpath = fullfile(xlxdir, 'quarterly_results.xlsx');
+%     writetable(quarterly_results, xlxpath, 'WriteRowNames', true);
+% end
+
+% if ~isempty(annual_results)
+%     xlxpath = fullfile(xlxdir, 'annual_results.xlsx');
+%     writetable(annual_results, xlxpath, 'WriteRowNames', true);
+% end
+
+% save_tables = true;
+% tables_out = tables.create_final_tables(params, results,...
+%     decomps_baseline, save_tables);

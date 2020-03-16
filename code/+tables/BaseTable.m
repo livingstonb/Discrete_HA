@@ -14,6 +14,7 @@ classdef BaseTable < handle
 		outdir;
 		output;
 		decomp_incrisk_alt;
+		decomp_baseline;
 	end
 
 	methods

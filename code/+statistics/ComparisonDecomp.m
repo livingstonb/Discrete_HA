@@ -61,15 +61,32 @@ classdef ComparisonDecomp < handle
 		end
 
 		function initialize(obj)
-			obj.results.Em1_less_Em0 = NaN;
-			obj.results.term1 = NaN;
-			obj.results.term1a = NaN;
-			obj.results.term1b = NaN;
-			obj.results.term2 = NaN;
-			obj.results.term2a = NaN(obj.nthresholds, 1);
-			obj.results.term2b = NaN(obj.nthresholds, 1);
-			obj.results.term3 = NaN;
+			nfill = @(x) sfill(NaN, x);
+			decomp_name = strcat('Quarterly MPC decomposition of',...
+				' ', 'E[MPC] - E[MPC_baseline]');
+			obj.results.description = sfill(decomp_name, 'Description');
+			obj.results.Em1_less_Em0 = nfill('E[MPC] - E[MPC_baseline]');
+			obj.results.term1 = nfill('Effect of MPC fcn');
+			obj.results.term1a = nfill('Effect of MPC fcn, level');
+			obj.results.term1b = nfill('Effect of MPC fcn, shape');
+			obj.results.term2 = nfill('Effect of distr');
+			obj.results.term3 = nfill('Interaction of MPCs and distr');
+
+			obj.results.term1_pct = nfill('Effect of MPC fcn (%)');
+			obj.results.term1a_pct = nfill('Effect of MPC fcn (%), level');
+			obj.results.term1b_pct = nfill('Effect of MPC fcn (%), shape');
+			obj.results.term2_pct = nfill('Effect of distr (%)');
+			obj.results.term3_pct = nfill('Interaction of MPCs and distr (%)');
+
 			obj.results.complete = false;
+
+			for ia = 1:obj.nthresholds
+				obj.results.term2a(ia) = nfill('Effect of distr, HtM');
+				obj.results.term2b(ia) = nfill('Effect of distr, NHtM');
+
+				obj.results.term2a_pct(ia) = nfill('Effect of distr (%), HtM');
+				obj.results.term2b_pct(ia) = nfill('Effect of distr (%), NHtM');
+			end
 		end
 
 		function perform_decompositions(obj, mpcs0, mpcs1)
@@ -83,37 +100,48 @@ classdef ComparisonDecomp < handle
 
 			obj.make_initial_computations(mpcs0, mpcs1);
 
-			obj.results.Em1_less_Em0 = obj.Empc1_g1 - obj.Empc0_g0;
+			obj.results.Em1_less_Em0.value = obj.Empc1_g1 - obj.Empc0_g0;
+			benchmark = obj.results.Em1_less_Em0.value / 100;
+			if benchmark == 0
+				benchmark = NaN;
+			end
 
 			% Term 1: Effect of MPC function
-			obj.results.term1 = obj.Empc1_g0 - obj.Empc0_g0;
+			obj.results.term1.value = obj.Empc1_g0 - obj.Empc0_g0;
+			obj.results.term1_pct.value = obj.results.term1.value / benchmark;
 
 			if obj.RA_mpcs_available
 				% Term 1a: Effect of MPC function, level
-				obj.results.term1a = obj.Empc1_g0 - obj.Empc1adj_g0;
+				obj.results.term1a.value = obj.Empc1_g0 - obj.Empc1adj_g0;
+				obj.results.term1a_pct.value = obj.results.term1a.value / benchmark;
 
 				% Term 1b: Effect of MPC function, shape
-				obj.results.term1b = obj.Empc1adj_g0 - obj.Empc0_g0;
+				obj.results.term1b.value = obj.Empc1adj_g0 - obj.Empc0_g0;
+				obj.results.term1b_pct.value = obj.results.term1b.value / benchmark;
 			end
 
 			% Term 2: Effect of distribution
-			obj.results.term2 = obj.Empc0_g1 - obj.Empc0_g0;
+			obj.results.term2.value = obj.Empc0_g1 - obj.Empc0_g0;
+			obj.results.term2_pct.value = obj.results.term2.value / benchmark;
 
 			% Term 3: Interaction
-			obj.results.term3 = (obj.Empc1_g1 - obj.Empc0_g1)...
+			obj.results.term3.value = (obj.Empc1_g1 - obj.Empc0_g1)...
 				- (obj.Empc1_g0 - obj.Empc0_g0);
+			obj.results.term3_pct.value = obj.results.term3.value / benchmark;
 
 			for ia = 1:obj.nthresholds
 				thresh = obj.thresholds(ia);
 
 				% Term 2a: Dist effect for HtM households
-				obj.results.term2a(ia) = obj.integral_m0g1_interp(thresh)...
+				obj.results.term2a(ia).value = obj.integral_m0g1_interp(thresh)...
 					- obj.integral_m0g0_interp(thresh);
+				obj.results.term2a_pct(ia).value = obj.results.term2a(ia).value / benchmark;
 
 				% Term 2b: Dist effect for NHtM households
-				obj.results.term2b(ia) =...
+				obj.results.term2b(ia).value =...
 					(obj.Empc0_g1 - obj.integral_m0g1_interp(thresh))...
 					- (obj.Empc0_g0 - obj.integral_m0g0_interp(thresh));
+				obj.results.term2b_pct(ia).value = obj.results.term2b(ia).value / benchmark;
 			end
 
 			obj.results.complete = true;
@@ -174,4 +202,11 @@ classdef ComparisonDecomp < handle
             	obj.agrid, mpcs0_a, obj.pmf1_a, true);
 		end
 	end
+end
+
+function out = sfill(value, label)
+	out = struct(...
+		'value', value,...
+		'label', label...
+	);
 end
