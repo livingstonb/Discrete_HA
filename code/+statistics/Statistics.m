@@ -12,6 +12,7 @@ classdef Statistics < handle
 		mean_s;
 		mean_x;
 		median_a;
+		sav0
 
 		mean_gross_y_annual;
 		std_log_gross_y_annual;
@@ -27,6 +28,11 @@ classdef Statistics < handle
 		mpcs;
 
 		constrained;
+		constrained_pct;
+		constrained_dollars;
+
+		a_lt_ysixth;
+		a_lt_ytwelfth;
 	end
 
 	properties (Access=protected)
@@ -58,67 +64,12 @@ classdef Statistics < handle
 			obj.construct_distributions();
 			obj.compute_percentiles();
 			obj.compute_inequality();
-			% obj.compute_constrained();
+			obj.compute_constrained();
 			% obj.compute_deposit_stats();
 		end
 
 		function add_mpcs(obj, mpcs_obj)
 			obj.mpcs = mpcs_obj.mpcs;
-
-			% if mpc_obj.options.liquid_mpc
-			% 	asset_indicator = 0;
-			% 	mpc_type = '';
-			% else
-			% 	asset_indicator = 2;
-			% 	mpc_type = 'illiq';
-			% end
-			% sfill2 = @(x,y) sfill(x, y, asset_indicator);
-
-			% empty_stat = sfill2([], []);
-
-		% 	empty_mpc_struct = struct(...
-		% 		'shock_normalized', empty_stat,...
-		% 		'shock', empty_stat,...
-		% 		'quarterly', empty_stat,...
-		% 		'annual', empty_stat...
-		% 	);
-
-		% 	nshocks = numel(obj.p.mpc_shocks);
-		% 	for ishock = 1:nshocks
-		% 		shock = obj.p.mpc_shocks(ishock);
-		% 		shock_label = obj.p.quantity2label(shock);
-		% 		mpcs_stats(ishock) = empty_mpc_struct;
-
-		% 		mpcs_stats(ishock).shock_normalized = sfill2(...
-		% 			shock * 100, 'Shock size, (% of mean ann inc)');
-
-		% 		mpcs_stats(ishock).shock = sfill2(shock_label,...
-		% 			'Shock size');
-
-		% 		tmp = 100 * mpc_obj.mpcs(ishock).quarterly(1);
-		% 		label = sprintf(...
-		% 			'Quarterly %s MPC (%%), out of %s',...
-		% 			mpc_type, shock_label);
-		% 		mpcs_stats(ishock).quarterly = sfill2(tmp, label);
-
-		% 		tmp = 100 * mpc_obj.mpcs(ishock).annual;
-		% 		label = sprintf(...
-		% 			'Annual %s MPC (%%), out of %s',...
-		% 			mpc_type, shock_label);
-		% 		mpcs_stats(ishock).annual = sfill2(tmp, label);
-		% 	end
-
-		% 	if mpc_obj.options.liquid_mpc
-		% 		obj.mpcs = mpcs_stats;
-
-		% 		obj.mpcs_over_ss = cell(1, nshocks);
-		% 		for ishock = 1:nshocks
-		% 			obj.mpcs_over_ss{ishock} =  mpc_obj.mpcs(ishock).mpcs(:,1);
-		% 		end
-		% 	else
-		% 		obj.illiquid_mpcs = mpcs_stats;
-		% 	end
-		% end
 		end
 	end
 
@@ -136,6 +87,9 @@ classdef Statistics < handle
 
 		    mean_s = dot(obj.model.sav_x(:), xdist);
 		    obj.mean_s = sfill(mean_s, 'Mean s');
+
+		    tmp = dot(obj.model.sav_x(:)==0, xdist);
+		    obj.sav0 = sfill(tmp, 's = 0');
 
 		    mean_x = dot(obj.model.xvals(:), xdist);
 		    obj.mean_x = sfill(mean_x, 'Mean x');
@@ -211,22 +165,36 @@ classdef Statistics < handle
 
 		function compute_constrained(obj)
 			% Constrained by fraction of mean ann inc
-			constrained_interp = constrained_interp(...
+			cinterp = constrained_interp(...
 	        	obj.grdDST.a.vec, obj.cdf_a);
 
 		    neps = numel(obj.p.epsilon);
 		    obj.constrained = cell(1, neps);
+		    obj.constrained_pct = cell(1, neps);
 		    for ip = 1:neps
 				htm = obj.p.epsilon(ip);
 
-				tmp = constrained_interp(htm);
+				tmp = cinterp(htm);
 				obj.constrained{ip} = sfill(tmp,...
 					sprintf('a <= %g', htm));
+
+				obj.constrained_pct{ip} = sfill(tmp,...
+					sprintf('a <= %g%% mean ann inc', 100 * htm));
+			end
+
+			obj.constrained_dollars = {};
+			for ip = 1:numel(obj.p.dollar_thresholds)
+				htm = obj.p.dollar_thresholds(ip);
+				label = obj.p.dollar_threshold_labels{ip};
+
+				tmp = cinterp(htm);
+				obj.constrained_dollars{ip} = sfill(tmp,...
+					sprintf('a <= %s', label));
 			end
 
 			% Wealth / (quarterly earnings) < epsilon
 			a_over_inc = obj.grdDST.a.vec ./ ...
-				(obj.income.netymat_broadcast * (p.freq / 4));
+				(obj.income.netymat_broadcast * (obj.p.freq / 4));
 		    a_over_inc = repmat(a_over_inc, [1, 1, 1, obj.p.nb, 1]);
 		    pmf_AY = obj.pmf(:) * shiftdim(obj.income.yTdist, -1);
 		    sorted_mat = sortrows([a_over_inc(:), pmf_AY(:)]);

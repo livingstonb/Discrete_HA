@@ -45,6 +45,8 @@ classdef Params < handle
         Nmpcsim = 2e5; % Number of draws to compute MPCs
         
         % wealth statistics options
+        dollar_thresholds = [1000, 5000, 10000, 25000, 250000]; 
+        dollar_threshold_labels;
         epsilon = [0, 0.005, 0.01, 0.02, 0.05, 0.1 0.15]; % fraction of mean ann labor income
         percentiles = [10, 25, 50, 75, 90, 95, 99, 99.9]; % in percent
         
@@ -304,6 +306,18 @@ classdef Params < handle
                 for ishock = 1:6
                     obj.shocks_labels{ishock} = sprintf('%g', obj.shocks(ishock));
                 end
+            end
+
+            if isempty(obj.dollar_threshold_labels)
+                obj.dollar_threshold_labels = {};
+                for ii = 1:numel(obj.dollar_thresholds)
+                    obj.dollar_threshold_labels{ii} = sprintf(...
+                        '$%g', obj.dollar_thresholds(ii));
+                end
+            end
+
+            for ii = 1:numel(obj.dollar_thresholds)
+                obj.dollar_thresholds(ii) = obj.dollar_thresholds(ii) / obj.annual_inc_dollars;
             end
 
             if isempty(obj.label)
