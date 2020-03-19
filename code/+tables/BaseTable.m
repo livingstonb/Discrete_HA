@@ -78,4 +78,11 @@ classdef BaseTable < handle
 				'RowNames', {header_formatted});
 		end
 	end
+
+	methods (Static)
+		function s_out = sround(sstruct, n)
+			s_out = sstruct;
+			s_out.value = round(s_out.value, n);
+		end
+	end
 end

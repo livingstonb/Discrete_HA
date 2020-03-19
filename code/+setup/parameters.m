@@ -55,13 +55,15 @@ function [params, all_names] = parameters(runopts)
     params(1).beta0 = 0.984108034755346;
     params(1) = set_shared_fields(params(1), annual_params);
     params(1).group = {'Baseline', 'A1'};
+    params(1).other = {'Baseline (A)'};
 %     
     % Quarterly
     params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
     params(end).group = {'Baseline', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'};
-    
+    params(1).other = {'Baseline (Q)'};
+
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
     %----------------------------------------------------------------------

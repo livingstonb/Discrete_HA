@@ -33,7 +33,16 @@ classdef StatsTable < tables.BaseTable
 				'VariableNames', {'results'},...
 				'RowNames', {'Model'});
 
+			descr = struct();
+			if isempty(p.other)
+				descr.value = '';
+			else
+				descr.value = p.other{1};
+			end
+			descr.label = 'Description';
+
 			new_entries = {
+				descr
 				stats.mpcs(5).quarterly
 				stats.mpcs(5).annual
 				stats.beta_A
@@ -131,8 +140,12 @@ classdef StatsTable < tables.BaseTable
 			panel_name = 'Decomps of E[MPC] wrt RA and no inc risk, $500 shock';
 			out = obj.new_table_with_header(panel_name);
 
-			tmp = stats.mpcs(5).quarterly;
-			tmp.label = 'Quarterly MPC (%)';
+			if p.freq == 1
+				tmp = stats.mpcs(5).annual;
+			else
+				tmp = stats.mpcs(5).quarterly;
+			end
+			tmp.label = 'MPC (%)';
 			new_entries = {tmp, stats.decomp_norisk.term1_pct};
 			obj.update_current_column(out, new_entries);
 

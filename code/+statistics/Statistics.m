@@ -61,8 +61,8 @@ classdef Statistics < handle
 		end
 
 		function compute_statistics(obj)
-			% obj.add_params();
 			obj.compute_intro_stats();
+			obj.add_params();
 			obj.construct_distributions();
 			obj.compute_percentiles();
 			obj.compute_inequality();
