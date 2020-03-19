@@ -41,15 +41,27 @@ classdef StatsTable < tables.BaseTable
 			end
 			descr.label = 'Description';
 
-			new_entries = {
+			new_entries1 = {
+				stats.params.freq
 				descr
+			};
+
+			new_entries2 = {
 				stats.mpcs(5).quarterly
 				stats.mpcs(5).annual
+			};
+
+			new_entries3 = {
 				stats.beta_A
 				stats.mean_gross_y_annual
 				stats.std_log_gross_y_annual
 				stats.std_log_net_y_annual
 			};
+
+
+			new_entries2 = obj.sround_mult(new_entries2, 1);
+			new_entries3 = obj.sround_mult(new_entries3, 3);
+			new_entries = [new_entries1; new_entries2; new_entries3];
 
 			obj.update_current_column(out, new_entries);
 		end
@@ -75,6 +87,8 @@ classdef StatsTable < tables.BaseTable
 				stats.wgini
 			};
 
+			new_entries = obj.sround_mult(new_entries, 3);
+
 			obj.update_current_column(out, new_entries);
 		end
 
@@ -88,6 +102,8 @@ classdef StatsTable < tables.BaseTable
 				stats.mpcs(4).annual
 				stats.mpcs(6).annual
 			};
+
+			new_entries = obj.sround_mult(new_entries, 1);
 
 			obj.update_current_column(out, new_entries);
 		end
@@ -105,6 +121,8 @@ classdef StatsTable < tables.BaseTable
 				stats.mpcs(3).annual
 			};
 
+			new_entries = obj.sround_mult(new_entries, 1);
+
 			obj.update_current_column(out, new_entries);
 		end
 
@@ -121,6 +139,8 @@ classdef StatsTable < tables.BaseTable
 				stats.wpercentiles{8}
 			};
 
+			new_entries = obj.sround_mult(new_entries, 3);
+
 			obj.update_current_column(out, new_entries);
 		end
 
@@ -133,6 +153,9 @@ classdef StatsTable < tables.BaseTable
 		                    stats.decomp_RA.term2
 		                    stats.decomp_RA.term3
 				};
+
+			new_entries = obj.sround_mult(new_entries, 3);
+
 			obj.update_current_column(out, new_entries);
 		end
 
@@ -146,7 +169,11 @@ classdef StatsTable < tables.BaseTable
 				tmp = stats.mpcs(5).quarterly;
 			end
 			tmp.label = 'MPC (%)';
-			new_entries = {tmp, stats.decomp_norisk.term1_pct};
+			new_entries = {
+				tmp
+				stats.decomp_norisk.term1_pct
+				};
+			obj.sround_mult(new_entries, 3);
 			obj.update_current_column(out, new_entries);
 
 			for ithresh = 1:numel(p.abars)
@@ -155,10 +182,12 @@ classdef StatsTable < tables.BaseTable
 				out = obj.new_table_with_header(panel_name);
 
 				new_entries = {
-					stats.decomp_norisk.term2(ithresh);
-					stats.decomp_norisk.term3(ithresh);
-					stats.decomp_norisk.term4(ithresh);
+					stats.decomp_norisk.term2(ithresh)
+					stats.decomp_norisk.term3(ithresh)
+					stats.decomp_norisk.term4(ithresh)
 				};
+
+				new_entries = obj.sround_mult(new_entries, 3);
 
 				obj.update_current_column(out, new_entries);
 			end
@@ -184,6 +213,8 @@ classdef StatsTable < tables.BaseTable
 				decomp_ip.term3
 			};
 
+			new_entries = obj.sround_mult(new_entries, 3);
+
 			obj.update_current_column(out, new_entries);
 		end
 
@@ -206,6 +237,8 @@ classdef StatsTable < tables.BaseTable
 				decomp_ip.term3_pct
 			};
 
+			new_entries = obj.sround_mult(new_entries, 1);
+
 			obj.update_current_column(out, new_entries);
 		end
 
@@ -220,6 +253,8 @@ classdef StatsTable < tables.BaseTable
 				stats.constrained_dollars{4}
 				stats.constrained_dollars{5}
 			};
+
+			new_entries = obj.sround_mult(new_entries, 3);
 
 			obj.update_current_column(out, new_entries);
 		end

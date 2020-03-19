@@ -58,7 +58,7 @@ classdef Params < handle
         nx_neg = 0;
         nx_DST = 250;
         nx_neg_DST = 0;
-        xmax = 50;
+        xmax = 100;
         xgrid_par = 0.2; %1 for linear, 0 for L-shaped
         xgrid_par_neg = 0.4;
         xgrid_term1wt = 0.01;

@@ -84,5 +84,13 @@ classdef BaseTable < handle
 			s_out = sstruct;
 			s_out.value = round(s_out.value, n);
 		end
+
+		function s_out = sround_mult(scell, n)
+			s_out = cell(numel(scell), 1);
+			for ii = 1:numel(scell)
+				s_out{ii} = scell{ii};
+				s_out{ii}.value = round(s_out{ii}.value, n);
+			end
+		end
 	end
 end

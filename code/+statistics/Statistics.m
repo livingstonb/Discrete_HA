@@ -12,7 +12,9 @@ classdef Statistics < handle
 		mean_s;
 		mean_x;
 		median_a;
-		sav0
+		sav0;
+
+		params;
 
 		mean_gross_y_annual;
 		std_log_gross_y_annual;
@@ -67,7 +69,6 @@ classdef Statistics < handle
 			obj.compute_percentiles();
 			obj.compute_inequality();
 			obj.compute_constrained();
-			% obj.compute_deposit_stats();
 		end
 
 		function add_mpcs(obj, mpcs_obj)
@@ -126,6 +127,18 @@ classdef Statistics < handle
 			dollars = sprintf('$%g', obj.p.annual_inc_dollars);
 			obj.annual_inc_dollars = sfill(dollars,...
 			    'Dollar value of mean gross ann inc (numeraire)');
+		end
+
+		function add_params(obj)
+			obj.params = struct();
+
+			if obj.p.freq == 1
+				tmp = 'Annual';
+			else
+				tmp = 'Quarterly';
+			end
+			obj.params.freq = sfill(tmp,...
+				'Frequency');
 		end
 
 		function construct_distributions(obj)

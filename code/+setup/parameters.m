@@ -7,9 +7,9 @@ function [params, all_names] = parameters(runopts)
     dollars = [-1, -500, -5000, 1, 500, 5000];
     shared_params.shocks = dollars ./ 72000;
 
-    shared_params.xgrid_par = 0.2;
-    shared_params.xgrid_term1wt = 0;
-    shared_params.xgrid_term1curv = 1;
+    shared_params.xgrid_par = 0.1;
+    shared_params.xgrid_term1wt = 0.02;
+    shared_params.xgrid_term1curv = 0.9;
 
     shared_params.shocks_labels = {};
     for ishock = 1:6
@@ -55,14 +55,14 @@ function [params, all_names] = parameters(runopts)
     params(1).beta0 = 0.984108034755346;
     params(1) = set_shared_fields(params(1), annual_params);
     params(1).group = {'Baseline', 'A1'};
-    params(1).other = {'Baseline (A)'};
+    params(1).other = {'Baseline'};
 %     
     % Quarterly
     params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
     params(end).group = {'Baseline', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'};
-    params(1).other = {'Baseline (Q)'};
+    params(1).other = {'Baseline'};
 
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -86,6 +86,7 @@ function [params, all_names] = parameters(runopts)
             params(end).target_value = mw;
             params(end).group = {'Q1'};
             params(end).betaL = 0.5;
+            params(end).other = {'Low mean wealth target'};
         end
 
         % no death
@@ -118,6 +119,7 @@ function [params, all_names] = parameters(runopts)
             params(end) = set_shared_fields(params(end), quarterly_b_params);
             params(end).r = ii/100;
             params(end).group = {'Q6'};
+            params(end).other = {name};
             
             if ii == 0
                 params(end).label = {'Low r'};
@@ -137,7 +139,7 @@ function [params, all_names] = parameters(runopts)
         params(end).beta0 = 0.973149481985717;
         params(end).group = {'Q6'};
         params(end).label = {'Heterogeneity in r'};
-        params(end).other = {'{0, 2, 4}'};
+        params(end).other = {'r in {0, 2, 4}'};
         
         name = 'Permanent r het, r in {-2,2,6} p.a.';
         params(end+1) = setup.Params(ifreq,name, quarterly_b_path);
@@ -147,7 +149,7 @@ function [params, all_names] = parameters(runopts)
         params(end).beta0 = 0.955885729527277;
         params(end).group = {'Q6'};
         params(end).label = {'Heterogeneity in r'};
-        params(end).other = {'{-2,2,6}'};
+        params(end).other = {'r in {-2,2,6}'};
 
 
 %         % different tax rates
@@ -185,7 +187,8 @@ function [params, all_names] = parameters(runopts)
                 params(end).dieprob = deathp;
                 params(end).beta0 = 0.956194383870642;
                 params(end).group = {'Q2'};
-                params(end).label = 'beta Heterogeneity';
+                params(end).label = 'Beta Heterogeneity (5 pts)';
+                params(end).other = {sprintf('p = %g, spacing = %g', 0, ibw)};
                 
                 % if ibw == 0.005
                 %     params(end).betaH0 = -1e-3;
@@ -205,7 +208,8 @@ function [params, all_names] = parameters(runopts)
                     params(end).prob_zswitch = bs;
                     params(end).dieprob = deathp;
                     params(end).group = {'Q2'};
-                    params(end).label = 'beta Heterogeneity';
+                    params(end).label = 'Beta Heterogeneity';
+                    params(end).other = {sprintf('p = %g, spacing = %g', bs, ibw)};
 
                     if bs == 1 / 50
                         params(end).betaH0 = -1e-2;
@@ -243,7 +247,7 @@ function [params, all_names] = parameters(runopts)
         end
         params(end).group = {'Q3'};
         params(end).label = 'CRRA';
-        params(end).other = {'exp(1), ..., exp(-1)', 'exp(-1), ..., exp(1)'};
+        params(end).other = {'RA = exp(1), ..., exp(-1), IES = exp(-1), ..., exp(1)'};
         
         name = 'CRRA w/IES betw exp(-2), exp(2)';
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
@@ -255,7 +259,7 @@ function [params, all_names] = parameters(runopts)
         params(end).beta0 = 0.911905140057402;
         params(end).group = {'Q3'};
         params(end).label = 'CRRA';
-        params(end).other = {'exp(2), ..., exp(-2)', 'exp(-2), ..., exp(2)'};
+        params(end).other = {'RA = exp(2), ..., exp(-2), IES = exp(-2), ..., exp(2)'};
 
         % epstein-zin, quarterly
         ras = [0.5 8  1    1 8];
@@ -271,6 +275,7 @@ function [params, all_names] = parameters(runopts)
             params(end).EpsteinZin = true;
             params(end).group = {'Q4'};
             params(end).label = 'EZ';
+            params(end).other = {sprintf('RA = %g, IES = %g', ra_i, ies_i)};
 
             if i <= 3
                 params(end).betaH0 = - 3e-3;
@@ -290,7 +295,7 @@ function [params, all_names] = parameters(runopts)
         end
         params(end).group = {'Q4'};
         params(end).label = 'EZ';
-        params(end).other = {1, 'exp(-1), ..., exp(1)'};
+        params(end).other = {'RA = 1, IES = exp(-1), ..., exp(1)'};
         
         name = 'EZ w/ IES betw exp(-2), exp(2)';
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
@@ -302,7 +307,7 @@ function [params, all_names] = parameters(runopts)
         end
         params(end).group = {'Q4'};
         params(end).label = 'EZ';
-        params(end).other = {1, 'exp(-2), ..., exp(2)'};
+        params(end).other = {'RA = 1, IES = exp(-2), ..., exp(2)'};
 
         % EZ with risk aversion heterogeneity
         name = 'EZ w/ RA betw exp(-2), exp(2)';
@@ -316,7 +321,7 @@ function [params, all_names] = parameters(runopts)
         params(end).beta0 = 0.99^4;
         params(end).group = {'Q4'};
         params(end).label = 'EZ';
-        params(end).other = {'exp(-2), ..., exp(2)', 1};
+        params(end).other = {'RA = exp(-2), ..., exp(2), IES = 1'};
     end
 
     % temptation
@@ -332,6 +337,7 @@ function [params, all_names] = parameters(runopts)
         end
         params(end).group = {'Q5'};
         params(end).label = 'Temptation';
+        params(end).other = {name};
     end
 
     name = 'Temptation, uniform in {0, 0.05, 0.1}';
@@ -342,7 +348,7 @@ function [params, all_names] = parameters(runopts)
     params(end).betaH0 = 5e-2;
     params(end).group = {'Q5'};
     params(end).label = 'Temptation';
-    params(end).other = {'{0, 0.05, 0.1}'};
+    params(end).other = {'Temptation in {0, 0.05, 0.1}'};
 
     %----------------------------------------------------------------------
     % PART 3a, ANNUAL MODEL
@@ -358,7 +364,7 @@ function [params, all_names] = parameters(runopts)
     params(end).lambdaT = 0;
     params(end).group = {'Q7'};
     params(end).label = 'Annual (i)';
-    params(end).other = {'no trans shocks'};
+    params(end).other = {'No trans shocks'};
 
 %     % ii
 %     params(end+1) = setup.Params(1,'A a(ii) MeasError','');
@@ -406,7 +412,7 @@ function [params, all_names] = parameters(runopts)
     params(end).lambdaT = 1;
     params(end).group = {'Q7'};
     params(end).label = 'Annual (viii)';
-    params(end).other = {'high persistence'};
+    params(end).other = {'High persistence'};
 %     
 %     % ix
 %     params(end+1) = Params(1,'A a(ix) HighPersNoTransReEst','');
