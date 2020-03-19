@@ -11,9 +11,6 @@ function results = main(p)
     results = struct('policy',[],'direct',[],'norisk',[],'sim',[],'decomp_meanmpc',[]);
     results.Finished = false;
 
-    dollar_thresholds = [0, 1000, 5000];
-    p.set('abars', p.convert_from_dollars(dollar_thresholds), true);
-
     %% --------------------------------------------------------------------
     % HETEROGENEITY IN PREFERENCES/RETURNS
     % ---------------------------------------------------------------------

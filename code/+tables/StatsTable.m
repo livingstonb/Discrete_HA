@@ -12,7 +12,6 @@ classdef StatsTable < tables.BaseTable
 				obj.mpc_size_table(stats_ip);
 				obj.mpc_sign_table(stats_ip);
 
-				% shock = stats_ip.mpcs(5).shock.value;
 				obj.mpc_comparison(ip);
 				obj.mpc_comparison_pct(ip);
 

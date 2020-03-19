@@ -81,11 +81,16 @@ classdef ComparisonDecomp < handle
 			obj.results.complete = false;
 
 			for ia = 1:obj.nthresholds
-				obj.results.term2a(ia) = nfill('Effect of distr, HtM');
-				obj.results.term2b(ia) = nfill('Effect of distr, NHtM');
+				thresh = obj.p.thresholds(ia);
+				obj.results.term2a(ia) = nfill(...
+					sprintf('Effect of distr, HtM (a <= %g)', thresh));
+				obj.results.term2b(ia) = nfill(...
+					sprintf('Effect of distr, NHtM (a > %g)', thresh));
 
-				obj.results.term2a_pct(ia) = nfill('Effect of distr (%), HtM');
-				obj.results.term2b_pct(ia) = nfill('Effect of distr (%), NHtM');
+				obj.results.term2a_pct(ia) = nfill(...
+					sprintf('Effect of distr (%%), HtM (a <= %g)', thresh));
+				obj.results.term2b_pct(ia) = nfill(...
+					sprintf('Effect of distr (%%), NHtM (a > %g)', thresh));
 			end
 		end
 

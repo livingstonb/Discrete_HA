@@ -25,8 +25,8 @@ options.index_loose_borr_limit_A = 'baseline_A_with_borrowing';
 
 if ~options.server
     basedir = '/home/brian/Documents/GitHub/Discrete_HA';
-    matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/experiments/';
-    xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/experiments/';
+    matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
+    xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/';
 else
     basedir = '/home/livingstonb/GitHub/Discrete_HA';
     matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
