@@ -147,17 +147,20 @@ function q = get_distribution(p, grids, income, nx, statetrans,...
     zdist = reshape(heterogeneity.zdist, [1,1,1,heterogeneity.nz]);
 
     % Give households valid assets only (since with returns
-    % heterogeneity, lowest asset points cannot be reached by some)
-    a_mins = grids.s.vec .* reshape(p.R, 1, []);
+    % heterogeneity and borrowing, lowest asset points cannot
+    % be reached or left by some households)
     if numel(p.r) > 1
         for ib = 1:p.nb
+            tmp1 = sum(reshape(q(:,:,:,ib), [], 1));
             for ia = 1:p.nx
-                if grids.a.vec(ia) < a_mins(ib)
+                if grids.a.vec(ia) < grids.s.vec(1) * p.R(ib)
                     q(ia,:,:,ib) = 0;
                 else
                     break
                 end
             end
+            tmp2 = sum(reshape(q(:,:,:,ib), [], 1));
+            q(:,:,:,ib) = q(:,:,:,ib) * tmp1 / tmp2;
         end
     end
     q = q .* yPdist .* yFdist .* zdist;

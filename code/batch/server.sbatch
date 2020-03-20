@@ -9,6 +9,6 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem-per-cpu=10000
 
-module load matlab
+module load matlab/2019b
 
 matlab -nodisplay < /home/livingstonb/GitHub/Discrete_HA/master.m

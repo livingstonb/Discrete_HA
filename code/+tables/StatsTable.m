@@ -80,6 +80,7 @@ classdef StatsTable < tables.BaseTable
 				stats.constrained_pct{4}
 				stats.constrained_pct{5}
 				stats.constrained_pct{6}
+				stats.constrained_pct{7}
 				stats.a_lt_ysixth
 				stats.a_lt_ytwelfth
 				stats.w_top10share
@@ -173,7 +174,7 @@ classdef StatsTable < tables.BaseTable
 				tmp
 				stats.decomp_norisk.term1_pct
 				};
-			obj.sround_mult(new_entries, 3);
+			new_entries = obj.sround_mult(new_entries, 3);
 			obj.update_current_column(out, new_entries);
 
 			for ithresh = 1:numel(p.abars)
