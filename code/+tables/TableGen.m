@@ -11,7 +11,6 @@ classdef TableGen < handle
 	end
 
 	properties
-		outdir;
 		output = table();
 		decomp_baseline;
 		decomp_incrisk_alt;
@@ -31,7 +30,6 @@ classdef TableGen < handle
 			obj.filter_experiments(params, use_all);
 			
 			obj.check_options(params, results);
-			obj.outdir = params(1).outdir;
 		end
 
 		function filter_experiments(obj, params, use_all)
@@ -87,9 +85,9 @@ classdef TableGen < handle
 
 		function save_table(obj, fname)
 			if nargin == 1
-				fpath = fullfile(obj.outdir, obj.default_fname);
+				fpath = fullfile('output', obj.default_fname);
 			else
-				fpath = fullfile(obj.outdir, fname);
+				fpath = fullfile('output', fname);
 			end
 			writetable(obj.output, fpath, 'WriteRowNames', true,...
 				'WriteVariableNames', false);

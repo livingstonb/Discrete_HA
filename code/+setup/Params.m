@@ -26,8 +26,6 @@ classdef Params < handle
         % source for income process (file, or empty string for gen in code)
         IncomeProcess = '';
         
-        path;
-
         % mean annual income dollar interpretation
         annual_inc_dollars = 72000;
         convert_to_dollars;
@@ -74,7 +72,6 @@ classdef Params < handle
         MPCs_news = 0;
         MPCs_loan_and_loss = 0;
         DeterministicMPCs = 0;
-        outdir = '';
         savematpath = '';
         SaveOutput = false;
 
@@ -188,8 +185,6 @@ classdef Params < handle
 
             obj.MakePlots = runopts.MakePlots;
 
-            obj.outdir = runopts.outdir;
-
             obj.savematpath = runopts.savematpath;
             
             % iterate option
@@ -206,7 +201,6 @@ classdef Params < handle
 
             obj.MPCs_loan_and_loss = runopts.MPCs_loan_and_loss;
             obj.DeterministicMPCs = runopts.DeterministicMPCs;
-            obj.path = runopts.path;
         end
         
         function obj = set_index(obj)

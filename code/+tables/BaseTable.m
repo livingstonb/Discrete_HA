@@ -11,7 +11,6 @@ classdef BaseTable < handle
 	end
 
 	properties
-		outdir;
 		output;
 		decomp_incrisk_alt;
 		decomp_baseline;
@@ -19,7 +18,6 @@ classdef BaseTable < handle
 
 	methods
 		function obj = BaseTable(params, stats)
-            obj.outdir = params(1).outdir;
 			obj.n_cols = numel(params);
 
 			obj.set_options(params, stats);

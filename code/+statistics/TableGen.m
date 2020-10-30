@@ -49,9 +49,9 @@ classdef TableGen < handle
 
 		function save_table(obj, fname)
 			if nargin == 1
-				fpath = fullfile(obj.outdir, obj.default_fname);
+				fpath = fullfile('output', obj.default_fname);
 			else
-				fpath = fullfile(obj.outdir, fname);
+				fpath = fullfile('output', fname);
 			end
 			writetable(obj.output, fpath, 'WriteRowNames', true,...
 				'WriteVariableNames', false);

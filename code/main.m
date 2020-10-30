@@ -398,7 +398,7 @@ function results = main(p)
         ax.XLim = [amin, amax_visible];
         ax.YLim = [0, max(wealth_hist.Values(1:end-1))];
 
-        figpath = fullfile(p.outdir, 'wealth_distribution.jpg');
+        figpath = fullfile('output', 'wealth_distribution.jpg');
         saveas(gcf, figpath)
         
         %% MPCs Function
@@ -430,7 +430,7 @@ function results = main(p)
         set(ax_window, 'FontSize', fontsize-2)
         ax_window.YTick = ax_main.YTick(1:2:end);
 
-        figpath = fullfile(p.outdir, 'mpc_function_yPs.jpg');
+        figpath = fullfile('output', 'mpc_function_yPs.jpg');
         saveas(gcf, figpath)
 
         %% MPCs Function For Diff Shock Sizes
@@ -472,7 +472,7 @@ function results = main(p)
         set(ax_window, 'FontSize', fontsize-2)
         ax_window.YTick = ax_main.YTick(1:2:end);
 
-        figpath = fullfile(p.outdir, 'mpc_function_shocks.jpg');
+        figpath = fullfile('output', 'mpc_function_shocks.jpg');
         saveas(gcf, figpath)
     end
     

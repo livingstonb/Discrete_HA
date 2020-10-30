@@ -51,9 +51,8 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.Server = true; % use server paths
-runopts.calibrate = true;
-runopts.fast = false; % very small asset and income grids for testing
+runopts.calibrate = false;
+runopts.fast = true; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
 runopts.MPCs = true;
@@ -61,17 +60,6 @@ runopts.MPCs_news = false;
 runopts.MPCs_loan_and_loss = false;
 runopts.DeterministicMPCs = true; % must be on if decompositions are needed
 runopts.SaveOutput = true;
-
-% directories
-runopts.serverdir = '/home/livingstonb/GitHub/Discrete_HA';
-
-if ismac
-    runopts.localdir = '/Users/brianlivingston/Documents/GitHub/Discrete_HA';
-elseif isunix
-    runopts.localdir = '/home/brian/Documents/GitHub/Discrete_HA';
-elseif ispc
-    runopts.localdir = '/Users/brian-laptop/Documents/GitHub/Discrete_HA';
-end
 
 % name of parameters script
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
@@ -83,34 +71,34 @@ runopts.number = [1];
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
 % -------------------------------------------------------------------------
-if runopts.Server == 0
-    runopts.path = runopts.localdir;
-else
-    runopts.number = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-    runopts.path = runopts.serverdir;
+[~, currdir] = fileparts(pwd());
+if ~strcmp(currdir, 'Discrete_HA')
+    msg = 'The user must cd into the Discrete_HA directory';
+    bad_dir = MException('Discrete_HA:master', msg);
+    throw(bad_dir);
+end
+
+server_array_id = str2num(getenv('SLURM_ARRAY_TASK_ID'));
+running_on_server = ~isempty(server_array_id);
+
+if running_on_server
+    runopts.number = server_array_id;
 end
 
 matname = sprintf('variables%d.mat', runopts.number);
-runopts.outdir = fullfile(runopts.path, 'output');
-runopts.savematpath = fullfile(runopts.outdir, matname);
+runopts.savematpath = fullfile('output', matname);
 
-if ~exist(runopts.path, 'dir')
-    error('Directory not found')
-end
-
-if ~exist(runopts.outdir , 'dir')
-    mkdir(runopts.outdir );
-end
+warning('off', 'MATLAB:MKDIR:DirectoryExists')
+mkdir('output')
+mkdir('temp')
 
 if exist(runopts.savematpath, 'file') == 2
     % Delete old results
     delete runopts.savematpath;
 end
 
-addpath(runopts.path);
-addpath(fullfile(runopts.path,'code'));
-addpath(fullfile(runopts.path,'code', 'aux_lib'));
-cd(runopts.path);
+addpath('code');
+addpath(fullfile('code', 'aux_lib'));
 
 % Load parameters
 [params, all_names] = setup.(runopts.mode)(runopts);
@@ -141,7 +129,7 @@ end
 results = main(params);
 fprintf('Finished parameterization %s\n', params.name)
 
-if runopts.Server
+if running_on_server
     exit
 end
 
