@@ -1,19 +1,6 @@
 
-% this script combines .mat files named variablesX.mat into
+% This script combines .mat files named variablesX.mat into
 % an excel spreadsheet
-%
-% 'codedir' is the location of the 'code' directory
-%
-% 'matdir' is the location of the .mat files, if used
-%
-% 'FROM_MATFILE' indicates whether this script should use
-% .mat files or should be run immediately after master.m
-%
-% 'xlxdir' is the desired directory of the output spreadsheet
-
-% basedir = '/home/livingstonb/GitHub/Discrete_HA';
-% matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
-% xlxdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
 
 clear
 
@@ -35,16 +22,16 @@ options.index_loose_borr_limit_A = 'baseline_A_with_borrowing';
 if ~running_on_server
     outdir = fullfile('output', 'server');
 else
-    outdir = fullfile('output');
+    outdir = 'output';
 end
 
-addpath([basedir '/code']);
+addpath('code');
 
 %% Read .mat files into a cell array
 ind = 0;
 for irun = 1:999
-    runstr = num2str(irun);
-    fpath = [outdir, 'variables', runstr, '.mat'];
+    fname = sprintf('variables%d.mat', irun);
+    fpath = fullfile(outdir, fname);
     if exist(fpath,'file')
         ind = ind + 1;
 
@@ -53,6 +40,10 @@ for irun = 1:999
         results(ind) = S.results;
         stats{ind} = S.results.stats;
     end
+end
+
+if (ind == 0)
+    error('No mat files found')
 end
 
 for ip = 1:ind
