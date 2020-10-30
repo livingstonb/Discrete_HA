@@ -124,7 +124,8 @@ if params.calibrate
     end
 end
 
-results = main(params);
+converged = true;
+results = main(params, converged);
 fprintf('Finished parameterization %s\n', params.name)
 
 if running_on_server

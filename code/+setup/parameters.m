@@ -86,7 +86,7 @@ function [params, all_names] = parameters(runopts)
         end
         
         % Total wealth calibration, mean assets = 9.4
-        name = sprintf('A/Y = %g', 9.4);
+        name = sprintf('E[a] = %g', 9.4);
         params(end+1) = setup.Params(4, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).target_value = 9.4;
@@ -95,7 +95,7 @@ function [params, all_names] = parameters(runopts)
         idx_mean_wealth_calibrations = [idx_mean_wealth_calibrations; numel(params)];
         
         % Liquid wealth calibration, mean assets = 2.25
-        name = sprintf('A/Y = %g', 2.25);
+        name = sprintf('E[a] = %g', 2.25);
         params(end+1) = setup.Params(4, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).target_value = 2.25;

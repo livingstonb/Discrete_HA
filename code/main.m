@@ -1,4 +1,4 @@
-function results = main(p)
+function results = main(p, converged)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -10,6 +10,10 @@ function results = main(p)
 
     results = struct('policy',[],'direct',[],'norisk',[],'sim',[],'decomp_meanmpc',[]);
     results.Finished = false;
+    
+    if nargin < 2
+        converged = false;
+    end
 
     %% --------------------------------------------------------------------
     % HETEROGENEITY IN PREFERENCES/RETURNS
@@ -479,5 +483,5 @@ function results = main(p)
     % convert Params object to structure for saving
     results.stats = aux.to_structure(results.stats);
     Sparams = aux.to_structure(p);
-    save(p.savematpath, 'Sparams', 'results')
+    save(p.savematpath, 'Sparams', 'results', 'converged')
 end
