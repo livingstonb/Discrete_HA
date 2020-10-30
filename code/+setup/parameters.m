@@ -14,7 +14,6 @@ function [params, all_names] = parameters(runopts)
     shared_params.xgrid_par = 0.1;
     shared_params.xgrid_term1wt = 0.02;
     shared_params.xgrid_term1curv = 0.9;
-    shared_params.target_value = scf.median_totw;
 
     shared_params.shocks_labels = {};
     for ishock = 1:6
@@ -53,6 +52,16 @@ function [params, all_names] = parameters(runopts)
     
     idx_mean_wealth_calibrations = [];
 
+    % Main calibration
+    calibrations = struct();
+    calibrations.variables = {'beta0'};
+    calibrations.target_names = {'median_a'};
+    calibrations.target_values = [scf.median_totw];
+
+    for ii = 2:999
+        calibrations(ii) = calibrations(1);
+    end
+
     %----------------------------------------------------------------------
     % BASELINES
     %----------------------------------------------------------------------
@@ -89,28 +98,32 @@ function [params, all_names] = parameters(runopts)
         name = sprintf('E[a] = %g', 9.4);
         params(end+1) = setup.Params(4, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
-        params(end).target_value = 9.4;
         params(end).group = {'Q1'};
         params(end).other = {'Calibration to total wealth, E[a] = 9.4'};
-        idx_mean_wealth_calibrations = [idx_mean_wealth_calibrations; numel(params)];
+        n = numel(params);
+        calibrations(n).target_names = {'mean_a'};
+        calibrations(n).target_values = [9.4];
         
         % Liquid wealth calibration, mean assets = 2.25
         name = sprintf('E[a] = %g', 2.25);
         params(end+1) = setup.Params(4, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
-        params(end).target_value = 2.25;
         params(end).group = {'Q1'};
         params(end).other = {'Calibration to liquid wealth, E[a] = 2.25'};
-        idx_mean_wealth_calibrations = [idx_mean_wealth_calibrations; numel(params)];
+        n = numel(params);
+        calibrations(n).target_names = {'mean_a'};
+        calibrations(n).target_values = [2.25];
         
         % Liquid wealth calibration, median assets = 0.05, 0.5, 1.0
         for mw = [0.05, 0.5, 1.0]
             name = sprintf('median(a) = %g', mw);
             params(end+1) = setup.Params(4, name, quarterly_b_path);
             params(end) = set_shared_fields(params(end), quarterly_b_params);
-            params(end).target_value = mw;
             params(end).group = {'Q1'};
             params(end).other = {sprintf('Calibration to liquid wealth, median(a) = %g', mw)};
+            n = numel(params);
+            calibrations(n).target_names = {'mean_a'};
+            calibrations(n).target_values = [mw];
         end
 
         % no death
@@ -182,8 +195,7 @@ function [params, all_names] = parameters(runopts)
 %             params(end+1) = setup.Params(ifreq,name,'');
 %             params(end).labtaxlow = itax;
 %         end
-
-        
+    
 
 %         % bequest curvature
 %         for bcurv = [0.1 0.5 1 2 5]
@@ -458,26 +470,6 @@ function [params, all_names] = parameters(runopts)
     params(end).group = {'Q7'};
     params(end).label = 'Annual (x)';
     params(end).other = {'FE heterogeneity'};
-
-%     % xi
-%     params(end+1) = setup.Params(1,'A a(xi) MatchSSA','');
-%     params(end).rho_logyP = 0.9468;
-%     params(end).sd_logyP = sqrt(0.0641);
-%     params(end).sd_logyT = sqrt(0.0479);
-%     params(end).lambdaT  = 0.0821;
-%     
-%     % xii
-%     params(end+1) = setup.Params(1,'A a(xii) WithSCF m0','');
-%     params(end).rho_logyP = 0.9787;
-%     params(end).sd_logyP = sqrt(0.0400);
-%     params(end).sd_logyT = sqrt(0.0508);
-%     
-%     % xiv
-%     params(end+1) = setup.Params(1,'A a(xiv) MassPointTrans','');
-%     params(end).rho_logyP = sqrt(0.9516);
-%     params(end).sd_logyP = sqrt(0.0434);
-%     params(end).sd_logyT = sqrt(0.6431);
-%     params(end).lambdaT = 0.0760;
     
     %----------------------------------------------------------------------
     % PART 3b, QUARTERLY MODEL
@@ -504,66 +496,6 @@ function [params, all_names] = parameters(runopts)
     params(end).label = 'Quart (ii)';
     params(end).other = {'KMP'};
 
-    % % KMP with tax and transfer - Mitman inc process
-    % params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, no discount het', 'input/income_mitman.mat');
-    % params(end).sd_logyT = sqrt(0.0522);
-    % params(end).labtaxlow = 0.25;
-    % params(end).lumptransfer = 0.0363;
-    % params(end).target_value = 4.9;
-    % params(end).r = 0;
-    
-    
-    % % KMP with tax and transfer - our inc process
-    % params(end+1) = setup.Params(4, 'Q KMP (our income) w/tax and transfer, no discount het', '');
-    % params(end).rho_logyP = 0.9879;
-    % params(end).sd_logyP = sqrt(0.0109);
-    % params(end).sd_logyT = sqrt(0.0494);
-    % params(end).lambdaT = 1;
-    % params(end).labtaxlow = 0.25;
-    % params(end).lumptransfer = 0.0363;
-    % params(end).target_value = 4.9;
-    % params(end).r = 0;
-    
-    % % IMP with tax and transfer, and discount factor heterogeneity- Mitman inc process
-    % params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta width 0.01', 'input/mitman.mat');
-    % params(end).sd_logyT = sqrt(0.0522);
-    % params(end).lambdaT = 1;
-    % params(end).labtaxlow = 0.25;
-    % params(end).lumptransfer = 0.0363;
-    % params(end).target_value = 4.9;
-    % params(end).r = 0;
-    % params(end).nbeta = 2;
-    % params(end).betawidth = 0.01;
-    % params(end).beta_dist = [0.2, 0.8];
-    % params(end).beta0 = 0.9;
-    % params(end).betaH0 = -1e-3;
-
-    %  % IMP with tax and transfer, and discount factor heterogeneity- Mitman inc process
-    % params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta width 0.1', 'input/mitman.mat');
-    % params(end).sd_logyT = sqrt(0.0522);
-    % params(end).lambdaT = 1;
-    % params(end).labtaxlow = 0.25;
-    % params(end).lumptransfer = 0.0363;
-    % params(end).target_value = 4.9;
-    % params(end).r = 0;
-    % params(end).nbeta = 2;
-    % params(end).betawidth = 0.1;
-    % params(end).beta_dist = [0.2, 0.8];
-    % params(end).beta0 = 0.9;
-    % params(end).betaH0 = -1e-3;
-
-    % % IMP with tax and transfer, and discount factor heterogeneity- Mitman inc process
-    % params(end+1) = setup.Params(4, 'Q KMP (Mitman income) w/tax and transfer, beta 0.9929, 0.9994', 'input/mitman.mat');
-    % params(end).sd_logyT = sqrt(0.0522);
-    % params(end).lambdaT = 1;
-    % params(end).labtaxlow = 0.25;
-    % params(end).lumptransfer = 0.0363;
-    % params(end).r = 0;
-    % params(end).nbeta = 2;
-    % params(end).beta_dist = [0.2, 0.8];
-    % params(end).beta_grid_forced = [0.9929; 0.9994];
-    
-    
     % iii quarterly_c
     name = 'quarterly_c';
     params(end+1) = setup.Params(4, name, quarterly_c_path);
@@ -572,13 +504,6 @@ function [params, all_names] = parameters(runopts)
     params(end).group = {'Q7'};
     params(end).label = 'Quart (iii)';
     params(end).other = {'quart_c'};
-
-%     % iv
-%     params(end+1) = setup.Params(4,'Q b(iv) PersEveryPeriod','');
-%     params(end).rho_logyP = 0.9884;
-%     params(end).sd_logyP = sqrt(0.0105);
-%     params(end).sd_logyT = sqrt(1.5298);
-%     params(end).lambdaT = 0.0813;
 
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences
@@ -597,32 +522,6 @@ function [params, all_names] = parameters(runopts)
         
     end
         
-    
-        
-%         % epstein-zin: vary risk_aver
-%         for ra = [0.5 0.75 1.5 2 4 8]
-%             params(end+1) = setup.Params(ifreq,['EZ ra' num2str(ra) ' ies1'],IncomeProcess);
-%             params(end).risk_aver = ra;
-%             params(end).invies = 1;
-%             params(end).EpsteinZin = 1;
-%         end
-%         
-%         % epstein-zin: vary invies
-%         for ies = [1/4 1/2 3/4 1.5 2 5]
-%             params(end+1) = setup.Params(ifreq,['EZ ra1 ies' num2str(ies)],IncomeProcess);
-%             params(end).risk_aver = 1;
-%             params(end).invies = 1/ies;
-%             params(end).EpsteinZin = 1;
-%         end
-
-    %----------------------------------------------------------------------
-    % OTHER
-    %----------------------------------------------------------------------
-    % params(end+1) = setup.Params(4, 'quarterly_b_nyT101', quarterly_b_path);
-    % params(end) = set_shared_fields(params(end), quarterly_b_params);
-    % params(end).nyT = 101;
-    % params(end).beta0 = 0.984363510593659;
-
     %----------------------------------------------------------------------
     % CALL METHODS/CHANGE SELECTED PARAMETERS, DO NOT CHANGE
     %----------------------------------------------------------------------
@@ -648,6 +547,9 @@ function [params, all_names] = parameters(runopts)
     % ATTACH CALIBRATOR
     %----------------------------------------------------------------------
     if params.calibrate
+        calibration = calibrations(params.index);
+        calibrator = Calibrator(params, calibration.variables,...
+            calibration.target_names, calibration.target_values)
         heterogeneity = setup.Prefs_R_Heterogeneity(params);
 
         if (params.nbeta > 1) && isequal(heterogeneity.ztrans, eye(params.nbeta))
@@ -655,12 +557,8 @@ function [params, all_names] = parameters(runopts)
             params.set("betaH", new_betaH, true);
         end
 
-        if ismember(params.index, idx_mean_wealth_calibrations)
-            calibrator = aux.mean_wealth_calibrator(params);
-        else
-            calibrator = aux.median_wealth_calibrator(params);
-        end
-        
+        beta_bounds = [p.betaL, p.betaH];
+        calibrator.set_param_bounds(beta_bounds);
         calibrator.set_handle(params);
         params.set("calibrator", calibrator, true);
     end
