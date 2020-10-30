@@ -49,7 +49,7 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.calibrate = false;
+runopts.calibrate = true;
 runopts.fast = true; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
@@ -64,7 +64,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 runopts.names_to_run = {};
-runopts.number = [36];
+runopts.number = [1];
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -104,15 +104,10 @@ addpath(fullfile('code', 'aux_lib'));
 %% ------------------------------------------------------------------------
 % CALL MAIN FUNCTION
 % -------------------------------------------------------------------------
-% iterate through specifications (or run 1)
-if params.freq == 1
-    msgfreq = 'annual';
-else
-    msgfreq = 'quarterly';
-end
-fprintf('\n Trying %s parameterization "%s"\n', msgfreq, params.name)
+fprintf('\nParameterization "%s" was chosen.\n', params.name)
 
 if params.calibrate
+    disp('Beginning model calibration...')
     options = optimoptions(@lsqnonlin, 'MaxIterations', params.calibrate_maxiter,...
             'FunctionTolerance', params.calibrate_tol);
     solver_args = params.calibrator.get_args();
@@ -124,8 +119,7 @@ if params.calibrate
     end
 end
 
-converged = true;
-results = main(params, converged);
+results = main(params, 'iterating', false);
 fprintf('Finished parameterization %s\n', params.name)
 
 if running_on_server

@@ -11,6 +11,7 @@ classdef Calibrator < handle
 		ubounds = [];
 		n;
 		x0;
+		iter = 1;
 
 		solver_handle;
 	end
@@ -70,35 +71,34 @@ classdef Calibrator < handle
 
 		function dv = fn_handle(obj, x, current_params)
 			obj.turn_off_param_options(current_params);
+			quiet = true;
 
 			for i_var = 1:obj.n
-				current_params.set(obj.variables{i_var}, x(i_var));
+				current_params.set(obj.variables{i_var}, x(i_var), quiet);
 			end
-			results = main(current_params);
+			results = main(current_params, 'iterating', true);
 
-			fprintf('\n\n---- For ')
+			fprintf('  -- function evaluation %d --\n    evaluated at: ', obj.iter)
 			for i_var = 1:obj.n
 				v(i_var) = results.direct.(obj.target_names{i_var});
 				fprintf('%s = %g', obj.variables{i_var}, x(i_var))
 				if i_var < obj.n
 					fprintf(", ")
-				else
-					fprintf(':\n')
 				end
 			end
 			dv = v - obj.target_values;
 
-			fprintf('    Result was ')
+			fprintf('\n    target variables: ')
 			for i_var = 1:obj.n
 				fprintf('%s = %g', obj.target_names{i_var}, v(i_var))
 				if i_var < obj.n
 					fprintf(", ")
-				else
-					fprintf('\n')
 				end
 			end
+			fprintf('\n    norm: %f\n', norm(dv))
 
 			obj.reset_param_options(current_params);
+			obj.iter = obj.iter + 1;
 		end
 
 		function solver_args = get_args(obj)

@@ -1,4 +1,4 @@
-function results = main(p, converged)
+function results = main(p, varargin)
     % Endogenous Grid Points with AR1 + IID Income
     % Cash on Hand as State variable
     % Includes NIT and discount factor heterogeneity
@@ -10,10 +10,11 @@ function results = main(p, converged)
 
     results = struct('policy',[],'direct',[],'norisk',[],'sim',[],'decomp_meanmpc',[]);
     results.Finished = false;
-    
-    if nargin < 2
-        converged = false;
-    end
+
+    parser = inputParser;
+    addOptional(parser, 'iterating', false);
+    parse(parser, varargin{:});
+    iterating = parser.Results.iterating;
 
     %% --------------------------------------------------------------------
     % HETEROGENEITY IN PREFERENCES/RETURNS
@@ -55,10 +56,10 @@ function results = main(p, converged)
         periods_until_shock = 0;
         basemodel = solver.solve_EGP(...
             p, grdEGP, heterogeneity, income, nextmpcshock,...
-            periods_until_shock, []);
+            periods_until_shock, [], 'quiet', iterating);
     end
     basemodel = solver.find_stationary_adist(...
-        p, basemodel, income, grdDST, heterogeneity);
+        p, basemodel, income, grdDST, heterogeneity, 'quiet', iterating);
     results.direct.adist = basemodel.adist;
 
     % Report beta and annualized beta
@@ -279,7 +280,7 @@ function results = main(p, converged)
 
                     model_lagged{lag} = solver.solve_EGP(...
                         p, grdEGP, heterogeneity, income, nextmpcshock,...
-                        lag, nextmodel);
+                        lag, nextmodel, iterating);
                 end
 
                 % populate mpcmodels with remaining (s,t) combinations for t < s
@@ -483,5 +484,6 @@ function results = main(p, converged)
     % convert Params object to structure for saving
     results.stats = aux.to_structure(results.stats);
     Sparams = aux.to_structure(p);
+    converged = iterating;
     save(p.savematpath, 'Sparams', 'results', 'converged')
 end

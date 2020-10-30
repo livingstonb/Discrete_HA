@@ -549,7 +549,7 @@ function [params, all_names] = parameters(runopts)
     if params.calibrate
         calibration = calibrations(params.index);
         calibrator = Calibrator(params, calibration.variables,...
-            calibration.target_names, calibration.target_values)
+            calibration.target_names, calibration.target_values);
         heterogeneity = setup.Prefs_R_Heterogeneity(params);
 
         if (params.nbeta > 1) && isequal(heterogeneity.ztrans, eye(params.nbeta))
@@ -557,7 +557,7 @@ function [params, all_names] = parameters(runopts)
             params.set("betaH", new_betaH, true);
         end
 
-        beta_bounds = [p.betaL, p.betaH];
+        beta_bounds = [params.betaL, params.betaH];
         calibrator.set_param_bounds(beta_bounds);
         calibrator.set_handle(params);
         params.set("calibrator", calibrator, true);

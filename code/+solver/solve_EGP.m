@@ -1,5 +1,5 @@
 function model = solve_EGP(p, grids, heterogeneity,...
-    income, futureshock, periods_until_shock, prevmodel)
+    income, futureshock, periods_until_shock, prevmodel, varargin)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
@@ -13,6 +13,11 @@ function model = solve_EGP(p, grids, heterogeneity,...
     %
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
+
+    parser = inputParser;
+    addParameter(parser, 'quiet', false);
+    parse(parser, varargin{:});
+    quiet = parser.Results.quiet;
 
     %% ----------------------------------------------------
     % USEFUL OBJECTS/ARRAYS
@@ -110,7 +115,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
         conupdate = xmat - sav - sav_tax;
 
         cdiff = max(abs(conupdate(:)-conlast(:)));
-        if mod(iter,50) ==0
+        if (mod(iter, 50) == 0) && ~quiet
             disp(['  EGP Iteration ' int2str(iter), ' max con fn diff is ' num2str(cdiff)]);
         end
     end

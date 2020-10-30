@@ -1,17 +1,24 @@
 function modelupdate = find_stationary_adist(...
-    p, model, income, grids, heterogeneity)
+    p, model, income, grids, heterogeneity, varargin)
     % Finds the stationary distribution and transition matrix for a given
     % grids.a.vec.
     %
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
 
+    parser = inputParser;
+    addParameter(parser, 'quiet', false);
+    parse(parser, varargin{:});
+    quiet = parser.Results.quiet;
+
     %% ----------------------------------------------------------------
     % FIND STATIONARY DISTRIBUTION
     % -----------------------------------------------------------------
     modelupdate = model;
 
-    fprintf(' Computing state-to-state transition probabilities... \n');
+    if ~quiet
+        fprintf(' Computing state-to-state transition probabilities... \n');
+    end
 
     nx = size(grids.a.vec, 1);
     R_bc = heterogeneity.R_broadcast;
@@ -39,9 +46,11 @@ function modelupdate = find_stationary_adist(...
         nx, sav, R_bc);
 
     % Stationary distribution over states
-    fprintf(' Finding ergodic distribution...\n');
+    if ~quiet
+        fprintf(' Finding ergodic distribution...\n');
+    end
     q = get_distribution(p, grids, income, nx,...
-        modelupdate.statetrans, heterogeneity);
+        modelupdate.statetrans, heterogeneity, quiet);
 %     [q,~] = eigs(modelupdate.statetrans',[],1,1);
 %     q = q / sum(q(:));
 
@@ -88,7 +97,10 @@ function modelupdate = find_stationary_adist(...
     
     % Mean assets
 	modelupdate.mean_a = dot(modelupdate.agrid_dist, grids.a.vec);
-    fprintf(' A/Y = %2.5f\n', modelupdate.mean_a);
+
+    if ~quiet
+        fprintf(' A/Y = %2.5f\n', modelupdate.mean_a);
+    end
 end
 
 %% ----------------------------------------------------------------
@@ -138,7 +150,7 @@ end
 % iTERATIVE METHOD TO FIND STATIONARY DISTRIBUTION
 % -----------------------------------------------------------------
 function q = get_distribution(p, grids, income, nx, statetrans,...
-    heterogeneity)
+    heterogeneity, quiet)
 	q = ones(nx,p.nyP,p.nyF,p.nb);
 
     % Create valid initial distribution
@@ -173,7 +185,7 @@ function q = get_distribution(p, grids, income, nx, statetrans,...
         diff = norm(z-q);
         q = z;
         
-        if mod(iter,500) == 0
+        if ~quiet && (mod(iter,500) == 0)
             fprintf('  Diff = %5.3E, Iteration = %u \n',diff,iter);
         end
         iter = iter + 1;

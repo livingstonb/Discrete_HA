@@ -1,10 +1,15 @@
 function norisk = solve_EGP_deterministic(p, grids,...
-    heterogeneity)
+    heterogeneity, varargin)
     % This function uses the method of endogenous grid points to find the
     % policy functions of the deterministic model. Output is in the
     % 'norisk' structure.
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
+
+    parser = inputParser;
+    addParameter(parser, 'quiet', false);
+    parse(parser, varargin{:});
+    quiet = parser.Results.quiet;
 
     sgrid_bc = repmat(grids.s.vec, 1, p.nb);
     sgrid_tax = p.compute_savtax(sgrid_bc);
@@ -62,7 +67,7 @@ function norisk = solve_EGP_deterministic(p, grids,...
         con = grids.x.matrix_norisk - sav - p.compute_savtax(sav);
         
         cdiff = max(abs(con(:)-conlast(:)));
-        if (mod(iter,500) == 0) || (iter == 1)
+        if ~quiet && ((mod(iter,500) == 0) || (iter == 1))
             fprintf(' EGP for norisk model, iteration %d, norm = %g\n', iter, cdiff)
         end
     end
