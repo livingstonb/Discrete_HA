@@ -17,8 +17,8 @@ classdef Calibrator < handle
 
 	methods
 		function obj = Calibrator(params, variables,...
-			target_names, target_values);
-			options = struct();
+			target_names, target_values)
+			obj.options = struct();
 			obj.options.MPCs = params.MPCs;
 			obj.options.MPCs_news = params.MPCs_news;
 			obj.options.MPCs_loan_and_loss = params.MPCs_loan_and_loss;

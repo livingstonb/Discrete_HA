@@ -45,7 +45,7 @@ classdef Params < handle
         Nmpcsim = 2e5; % Number of draws to compute MPCs
         
         % wealth statistics options
-        dollar_thresholds = [1000, 5000, 10000, 25000, 250000]; 
+        dollar_thresholds = [1000, 2000, 5000, 10000, 25000]; 
         dollar_threshold_labels;
         epsilon = [0, 0.005, 0.01, 0.02, 0.05, 0.1 0.15]; % fraction of mean ann labor income
         percentiles = [10, 25, 50, 75, 90, 95, 99, 99.9]; % in percent

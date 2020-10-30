@@ -3,13 +3,18 @@ function [params, all_names] = parameters(runopts)
     % livingstonb@uchicago.edu
 
     import aux.set_shared_fields
+    import solver.Calibrator
+    
+    scf = setup.scf2019struct();
 
     dollars = [-1, -500, -5000, 1, 500, 5000];
-    shared_params.shocks = dollars ./ 72000;
+    shared_params.annual_inc_dollars = scf.quarterly_earnings * 4;
+    shared_params.shocks = dollars ./ shared_params.annual_inc_dollars;
 
     shared_params.xgrid_par = 0.1;
     shared_params.xgrid_term1wt = 0.02;
     shared_params.xgrid_term1curv = 0.9;
+    shared_params.target_value = scf.median_totw;
 
     shared_params.shocks_labels = {};
     for ishock = 1:6
@@ -46,6 +51,8 @@ function [params, all_names] = parameters(runopts)
     annual_params.rho_logyP = 0.9525;
     annual_params.lambdaT = 1;
     
+    idx_mean_wealth_calibrations = [];
+
     %----------------------------------------------------------------------
     % BASELINES
     %----------------------------------------------------------------------
@@ -56,13 +63,13 @@ function [params, all_names] = parameters(runopts)
     params(1) = set_shared_fields(params(1), annual_params);
     params(1).group = {'Baseline', 'A1'};
     params(1).other = {'Baseline'};
-%     
+     
     % Quarterly
     params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
     params(end).group = {'Baseline', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'};
-    params(1).other = {'Baseline'};
+    params(end).other = {'Baseline'};
 
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -77,16 +84,33 @@ function [params, all_names] = parameters(runopts)
             IncomeProcess = quarterly_b_path;
             income_params = quarterly_b_params;
         end
-
-        % different mean wealth targets
-        for mw = [1, 0.5, 0.25]
-            name = sprintf('A/Y = %g', mw);
+        
+        % Total wealth calibration, mean assets = 9.4
+        name = sprintf('A/Y = %g', 9.4);
+        params(end+1) = setup.Params(4, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
+        params(end).target_value = 9.4;
+        params(end).group = {'Q1'};
+        params(end).other = {'Calibration to total wealth, E[a] = 9.4'};
+        idx_mean_wealth_calibrations = [idx_mean_wealth_calibrations; numel(params)];
+        
+        % Liquid wealth calibration, mean assets = 2.25
+        name = sprintf('A/Y = %g', 2.25);
+        params(end+1) = setup.Params(4, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
+        params(end).target_value = 2.25;
+        params(end).group = {'Q1'};
+        params(end).other = {'Calibration to liquid wealth, E[a] = 2.25'};
+        idx_mean_wealth_calibrations = [idx_mean_wealth_calibrations; numel(params)];
+        
+        % Liquid wealth calibration, median assets = 0.05, 0.5, 1.0
+        for mw = [0.05, 0.5, 1.0]
+            name = sprintf('median(a) = %g', mw);
             params(end+1) = setup.Params(4, name, quarterly_b_path);
             params(end) = set_shared_fields(params(end), quarterly_b_params);
             params(end).target_value = mw;
             params(end).group = {'Q1'};
-            params(end).betaL = 0.5;
-            params(end).other = {'Low mean wealth target'};
+            params(end).other = {sprintf('Calibration to liquid wealth, median(a) = %g', mw)};
         end
 
         % no death
@@ -167,7 +191,7 @@ function [params, all_names] = parameters(runopts)
 %             params(end+1) = setup.Params(ifreq,name,IncomeProcess);
 %             params(end).bequest_weight = 0.02;
 %             params(end).bequest_luxury = 0.01;
-%             params(end).bequest_curv   = bcurv;
+%             params(end).bequest_curv   = bcurv;target_value
 %         endR
        
         for deathp = 1/50 %[0 1/50]
@@ -631,7 +655,12 @@ function [params, all_names] = parameters(runopts)
             params.set("betaH", new_betaH, true);
         end
 
-        calibrator = aux.mean_wealth_calibrator(params);
+        if ismember(params.index, idx_mean_wealth_calibrations)
+            calibrator = aux.mean_wealth_calibrator(params);
+        else
+            calibrator = aux.median_wealth_calibrator(params);
+        end
+        
         calibrator.set_handle(params);
         params.set("calibrator", calibrator, true);
     end

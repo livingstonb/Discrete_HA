@@ -227,9 +227,9 @@ classdef Statistics < handle
 		    ay_interp = constrained_interp(vals, cdf_AY);
 
 			obj.a_lt_ysixth = sfill(...
-				ay_interp(1/6), 'a_i <= y_i / 6 (biweekly earnings)');
+				ay_interp(1/6), 'a_i <= y_i / 6');
 			obj.a_lt_ytwelfth = sfill(...
-				ay_interp(1/12), 'a_i <= y_i / 12 (weekly earnings)');
+				ay_interp(1/12), 'a_i <= y_i / 12');
 		end
 
 		function out = expectation(obj, vals)
