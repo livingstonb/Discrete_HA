@@ -17,20 +17,25 @@
 
 clear
 
-options.server = false;
+[~, currdir] = fileparts(pwd());
+if ~strcmp(currdir, 'Discrete_HA')
+    msg = 'The user must cd into the Discrete_HA directory';
+    bad_dir = MException('Discrete_HA:master', msg);
+    throw(bad_dir);
+end
+
+taskid = str2num(getenv('SLURM_ARRAY_TASK_ID'));
+running_on_server = ~isempty(taskid);
+
 options.final_tables = false;
 options.decomp_with_loose_borr_limit = false;
 options.index_loose_borr_limit_Q = 'baseline_Q_with_borrowing';
 options.index_loose_borr_limit_A = 'baseline_A_with_borrowing';
 
-if ~options.server
-    basedir = '/home/brian/Documents/GitHub/Discrete_HA';
-    matdir = '/home/brian/Documents/GitHub/Discrete_HA/output/server/';
-    xlxdir = '/home/brian/Documents/GitHub/Discrete_HA/output/server/';
+if ~running_on_server
+    outdir = fullfile('output', 'server');
 else
-    basedir = '/home/livingstonb/GitHub/Discrete_HA';
-    matdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
-    xlxdir = '/home/livingstonb/GitHub/Discrete_HA/output/';
+    outdir = fullfile('output');
 end
 
 addpath([basedir '/code']);
@@ -39,7 +44,7 @@ addpath([basedir '/code']);
 ind = 0;
 for irun = 1:999
     runstr = num2str(irun);
-    fpath = [matdir, 'variables', runstr, '.mat'];
+    fpath = [outdir, 'variables', runstr, '.mat'];
     if exist(fpath,'file')
         ind = ind + 1;
 
@@ -104,7 +109,7 @@ end
 table_out = table_gen.create(params, stats);
 
 if ~isempty(table_out)
-    xlxpath = fullfile(xlxdir, 'discrete_time_results.xlsx');
+    xlxpath = fullfile(outdir, 'discrete_time_results.xlsx');
     writetable(table_out, xlxpath, 'WriteRowNames', true);
 end
 

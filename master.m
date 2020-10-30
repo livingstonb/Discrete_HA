@@ -4,9 +4,7 @@
 
 % Prior to running this script:
 
-% (1) Set options in the section below. Directory only needs to be set for
-% either the server or the local directory, depending on whether
-% runopts.Server = 0 or 1
+% (1) Set options in the section below.
 
 % (2) In code/Model_Setup, modify the parameters script 'parameters.m' and make sure that 
 % runopts.mode is equal to 'parameters'. Alternatively, create a new
@@ -66,7 +64,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 runopts.names_to_run = {};
-runopts.number = [1];
+runopts.number = [36];
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
