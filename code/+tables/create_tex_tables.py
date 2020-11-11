@@ -102,7 +102,18 @@ def save_tex_table1_panels(dirpath):
 
 def save_tex_table2_panels(dirpath):
 	table2_header = header_panel(os.path.join(dirpath, 'table2_header.xlsx'))
-	tex = table2_header
+	table2_panelA = other_panel(dirpath, 2, 'A', 'Decomposition of Mean MPC, around 0')
+	table2_panelB = other_panel(dirpath, 2, 'B', 'Decomposition of Mean MPC, around 0.01')
+	table2_panelC = other_panel(dirpath, 2, 'C', 'Decomposition of Mean MPC, around 0.05')
+	table2_panelD = other_panel(dirpath, 2, 'D', 'Decomposition of Mean MPC - MPC$_{RA}$')
+
+	tex = '\n'.join([
+		table2_header,
+		table2_panelA,
+		table2_panelB,
+		table2_panelC,
+		table2_panelD,
+		])
 	tex += '\n\\end{tabular}'
 
 	texfilepath = os.path.join(dirpath, 'table2.tex')

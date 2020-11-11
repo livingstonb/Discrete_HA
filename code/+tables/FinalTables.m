@@ -31,9 +31,23 @@ classdef FinalTables
 
         function save_table2(params_in, results, dirpath)
             header = tables.FinalTables.table2header(params_in, results);
+            panelsABC = tables.FinalTables.table2panelABC(params_in, results);
+            panelD = tables.FinalTables.table2panelD(params_in, results);
 
             headerpath = fullfile(dirpath, 'table2_header.xlsx');
             writetable(header, headerpath, 'WriteRowNames', true);
+
+            panelApath = fullfile(dirpath, 'table2_panelA.xlsx');
+            writetable(panelsABC{1}, panelApath, 'WriteRowNames', true);
+            
+            panelBpath = fullfile(dirpath, 'table2_panelB.xlsx');
+            writetable(panelsABC{2}, panelBpath, 'WriteRowNames', true);
+
+            panelCpath = fullfile(dirpath, 'table2_panelC.xlsx');
+            writetable(panelsABC{3}, panelCpath, 'WriteRowNames', true);
+
+            panelDpath = fullfile(dirpath, 'table2_panelD.xlsx');
+            writetable(panelD, panelDpath, 'WriteRowNames', true);
         end
 
         function table_out = table1header(params_in, results)
@@ -121,7 +135,7 @@ classdef FinalTables
         end
 
         function table_out = table2header(params_in, results)
-            params = filter_param_names(params_in, tables.FinalTables.table1includes);
+            params = filter_param_names(params_in, tables.FinalTables.table2includes);
             import statistics.Statistics.sfill
 
             statistics = cell(numel(params), 1);
@@ -137,6 +151,43 @@ classdef FinalTables
                 end
                 statistics{ii} = {  mean_mpc
                                     results(ip).stats.decomp_norisk.term1_pct
+                                  };
+            end
+            table_out = make_table(statistics, params);
+        end
+
+        function table_out = table2panelABC(params_in, results)
+            params = filter_param_names(params_in, tables.FinalTables.table2includes);
+            import statistics.Statistics.sfill
+
+            table_out = cell(1, 3);
+
+            for kk = 1:3
+                statistics = cell(numel(params), 1);
+
+                for ii = 1:numel(params)
+                    ip = params(ii).index;
+                    statistics{ii} = {  results(ip).stats.decomp_norisk.term2(kk)
+                                        results(ip).stats.decomp_norisk.term3(kk)
+                                        results(ip).stats.decomp_norisk.term4(kk)
+                                      };
+                end
+                table_out{kk} = make_table(statistics, params);
+            end
+        end
+
+        function table_out = table2panelD(params_in, results)
+            params = filter_param_names(params_in, tables.FinalTables.table2includes);
+            import statistics.Statistics.sfill
+
+            statistics = cell(numel(params), 1);
+            
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                statistics{ii} = {  results(ip).stats.decomp_RA.Em1_less_mRA
+                                    results(ip).stats.decomp_RA.term1
+                                    results(ip).stats.decomp_RA.term2
+                                    results(ip).stats.decomp_RA.term3
                                   };
             end
             table_out = make_table(statistics, params);

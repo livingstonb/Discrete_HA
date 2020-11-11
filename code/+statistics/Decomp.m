@@ -56,11 +56,11 @@ classdef Decomp < handle
 			for ia = 1:obj.nthresholds
 				thresh = obj.p.abars(ia);
 				obj.results_norisk.term2(ia) = nfill(...
-					sprintf('HtM effect (a <= %g)', thresh), 1, 'HtM effect');
+					sprintf('HtM effect (a <= %g)', thresh), 3, 'HtM effect');
 				obj.results_norisk.term3(ia) = nfill(...
-					sprintf('Non-HtM (a <= %g), constraint effect', thresh), 1, 'Non-HtM, constraint effect');
+					sprintf('Non-HtM (a <= %g), constraint effect', thresh), 3, 'Non-HtM, constraint effect');
 				obj.results_norisk.term4(ia) = nfill(...
-					sprintf('Non-HtM (a <= %g), inc risk effect', thresh), 1, 'Non-HtM, inc risk effect');
+					sprintf('Non-HtM (a <= %g), inc risk effect', thresh), 3, 'Non-HtM, inc risk effect');
 			end
 
 			obj.results_RA = struct();
