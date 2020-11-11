@@ -2,6 +2,7 @@ classdef FinalTables
     
     properties (Constant)
         table1includes = {'Quarterly', 'Annual'};
+        table2includes = {'Quarterly', 'Annual'};
     end
 
     methods (Static)
@@ -26,6 +27,13 @@ classdef FinalTables
 
             panelDpath = fullfile(dirpath, 'table1_panelD.xlsx');
             writetable(panelD, panelDpath, 'WriteRowNames', true);
+        end
+
+        function save_table2(params_in, results, dirpath)
+            header = tables.FinalTables.table2header(params_in, results);
+
+            headerpath = fullfile(dirpath, 'table2_header.xlsx');
+            writetable(header, headerpath, 'WriteRowNames', true);
         end
 
         function table_out = table1header(params_in, results)
@@ -107,6 +115,28 @@ classdef FinalTables
                                     results(ip).stats.mpcs(1).quarterly
                                     results(ip).stats.mpcs(2).quarterly
                                     results(ip).stats.mpcs(3).quarterly
+                                  };
+            end
+            table_out = make_table(statistics, params);
+        end
+
+        function table_out = table2header(params_in, results)
+            params = filter_param_names(params_in, tables.FinalTables.table1includes);
+            import statistics.Statistics.sfill
+
+            statistics = cell(numel(params), 1);
+
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                if (params(ii).freq == 1)
+                    mean_mpc = sfill(results(ip).stats.mpcs(5).annual.value,...
+                        'MPC, quarterly or annual (\%)', 1, 'MPC, quarterly or annual (\%)');
+                else
+                    mean_mpc = sfill(results(ip).stats.mpcs(5).quarterly.value,...
+                        'MPC, quarterly or annual (\%)', 1, 'MPC, quarterly or annual (\%)');
+                end
+                statistics{ii} = {  mean_mpc
+                                    results(ip).stats.decomp_norisk.term1_pct
                                   };
             end
             table_out = make_table(statistics, params);

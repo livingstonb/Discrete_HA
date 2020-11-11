@@ -79,7 +79,7 @@ def other_panel(dirpath, table, panel, panelname):
 
 	return tex
 
-def save_tex_table_panels(dirpath):
+def save_tex_table1_panels(dirpath):
 	table1_header = header_panel(os.path.join(dirpath, 'table1_header.xlsx'))
 	table1_panelA = other_panel(dirpath, 1, 'A', 'Income Statistics')
 	table1_panelB = other_panel(dirpath, 1, 'B', 'Wealth Statistics')
@@ -100,5 +100,16 @@ def save_tex_table_panels(dirpath):
 	fobj.write(tex)
 	fobj.close()
 
+def save_tex_table2_panels(dirpath):
+	table2_header = header_panel(os.path.join(dirpath, 'table2_header.xlsx'))
+	tex = table2_header
+	tex += '\n\\end{tabular}'
+
+	texfilepath = os.path.join(dirpath, 'table2.tex')
+	fobj = open(texfilepath, 'w')
+	fobj.write(tex)
+	fobj.close()
+
 if __name__ == '__main__':
-	save_tex_table_panels(sys.argv[1])
+	save_tex_table1_panels(sys.argv[1])
+	save_tex_table2_panels(sys.argv[1])

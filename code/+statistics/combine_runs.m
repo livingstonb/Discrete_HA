@@ -122,3 +122,4 @@ end
 % tables.FinalTables.table1header(params, results)
 % tables.FinalTables.table1panelA(params, results)
 tables.FinalTables.save_table1(params, results, outdir);
+tables.FinalTables.save_table2(params, results, outdir);

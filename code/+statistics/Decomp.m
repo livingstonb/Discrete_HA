@@ -47,20 +47,20 @@ classdef Decomp < handle
 
 		function initialize(obj)
 			import statistics.Statistics.sfill
-			nfill = @(x) sfill(NaN, x);
+			nfill = @(varargin) sfill(NaN, varargin{:});
 
 			obj.results_norisk = struct();
 			obj.results_norisk.completed = false;
 			obj.results_norisk.term1 = nfill('RA MPC');
-			obj.results_norisk.term1_pct = nfill('RA MPC (%)');
+			obj.results_norisk.term1_pct = nfill('RA MPC (%)', 1, 'RA MPC (\%)');
 			for ia = 1:obj.nthresholds
 				thresh = obj.p.abars(ia);
 				obj.results_norisk.term2(ia) = nfill(...
-					sprintf('HtM effect (a <= %g)', thresh));
+					sprintf('HtM effect (a <= %g)', thresh), 1, 'HtM effect');
 				obj.results_norisk.term3(ia) = nfill(...
-					sprintf('Non-HtM (a <= %g), constraint effect', thresh));
+					sprintf('Non-HtM (a <= %g), constraint effect', thresh), 1, 'Non-HtM, constraint effect');
 				obj.results_norisk.term4(ia) = nfill(...
-					sprintf('Non-HtM (a <= %g), inc risk effect', thresh));
+					sprintf('Non-HtM (a <= %g), inc risk effect', thresh), 1, 'Non-HtM, inc risk effect');
 			end
 
 			obj.results_RA = struct();

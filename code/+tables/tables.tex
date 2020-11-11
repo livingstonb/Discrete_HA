@@ -2,9 +2,26 @@
 
 \usepackage{booktabs}
 \usepackage{amsmath}
+\usepackage[tableposition=top]{caption}
+\usepackage{geometry}
+
+\addtolength{\topmargin}{-0.75in}
+\addtolength{\textheight}{1.5in}
 
 \begin{document}
 
+\begin{table}
+\centering
+\caption{Baselines}
 \input{table1.tex}
+\end{table}
+
+\clearpage
+
+\begin{table}
+\centering
+\caption{Baseline Decompositions}
+\input{table2.tex}
+\end{table}
 
 \end{document}
