@@ -4,6 +4,7 @@ import sys
 import os
 import pandas as pd
 import numpy as np
+import re
 
 def drop_lines(text, linenos):
 	lines = text.splitlines()
@@ -47,10 +48,7 @@ def header_panel(filepath):
 	n = nlines(tex)
 	lines_to_drop = [3, n-2, n-1]
 	tex = drop_lines(tex, lines_to_drop)
-	# tex = drop_lines(tex, 3)
-	# tex = drop_line(tex, 0)
-	# tex = drop_line(tex, -1)
-	# tex = drop_line(tex, -1)
+	tex = re.sub(r'__v\d+__', '', tex)
 
 	return tex
 
@@ -76,6 +74,7 @@ def other_panel(dirpath, table, panel, panelname):
 	headername = f'Panel {panel}: {panelname}'
 	newline = f'\\multicolumn{{{cols+1}}}{{c}}{{\\textbf{{{headername}}}}}\\\\'
 	tex = replace_line(tex, 2, newline)
+	tex = re.sub(r'__v\d+__', '', tex)
 
 	return tex
 
@@ -93,6 +92,7 @@ def save_tex_table1_panels(dirpath):
 		table1_panelC,
 		table1_panelD,
 		])
+	tex += '\n\\bottomrule';
 	tex += '\n\\end{tabular}'
 	
 	texfilepath = os.path.join(dirpath, 'table1.tex')
@@ -114,6 +114,7 @@ def save_tex_table2_panels(dirpath):
 		table2_panelC,
 		table2_panelD,
 		])
+	tex += '\n\\bottomrule';
 	tex += '\n\\end{tabular}'
 
 	texfilepath = os.path.join(dirpath, 'table2.tex')
@@ -123,14 +124,21 @@ def save_tex_table2_panels(dirpath):
 
 def save_tex_experiment_table(dirpath, tableno):
 	table_header = header_panel(os.path.join(dirpath, f'table{tableno}_header.xlsx'))
-	table_panelA = other_panel(dirpath, tableno, 'A', 'Quarterly MPC Decomp w.r.t. Baseline\\footnotemark[1]')
+	table_panelA = other_panel(dirpath, tableno, 'A', 'Quarterly MPC Decomp w.r.t. Baseline')
 	table_panelA2 = other_panel(dirpath, tableno, 'A2',
-		'Quarterly MPC Decomp as \\% of $E[m_1]-E[m_0]$\\footnotemark[1]')
+		'Quarterly MPC Decomp as \\% of $E[m_1]-E[m_0]$')
+	table_panelB = other_panel(dirpath, tableno, 'B', 'Wealth Statistics')
+	table_panelC = other_panel(dirpath, tableno, 'C', 'MPC Size Effects')
+	table_panelD = other_panel(dirpath, tableno, 'D', 'MPC Sign Effects')
 	tex = '\n'.join([
 		table_header,
 		table_panelA,
 		table_panelA2,
+		table_panelB,
+		table_panelC,
+		table_panelD,
 		])
+	tex += '\n\\bottomrule';
 	tex += '\n\\end{tabular}'
 
 	texfilepath = os.path.join(dirpath, f'table{tableno}.tex')

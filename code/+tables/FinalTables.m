@@ -53,17 +53,22 @@ classdef FinalTables
 
         function save_experiment_table(params_in, results, comparison_decomps, dirpath, tableno)
             header = tables.FinalTables.experiment_table_header(params_in, results, tableno);
-            panelA = tables.FinalTables.experiment_table_panelA(params_in, comparison_decomps, tableno);
-            panelA2 = tables.FinalTables.experiment_table_panelA2(params_in, comparison_decomps, tableno);
+            panels = {tables.FinalTables.experiment_table_panelA(params_in, comparison_decomps, tableno)};
+            panels{2} = tables.FinalTables.experiment_table_panelA2(params_in, comparison_decomps, tableno);
+            panels{3} = tables.FinalTables.experiment_table_panelB(params_in, results, tableno);
+            panels{4} = tables.FinalTables.experiment_table_panelC(params_in, results, tableno);
+            panels{5} = tables.FinalTables.experiment_table_panelD(params_in, results, tableno);
+
+            panel_labels = {'A', 'A2', 'B', 'C', 'D'};
 
             headerpath = fullfile(dirpath, sprintf('table%d_header.xlsx', tableno));
             writetable(header, headerpath, 'WriteRowNames', true);
 
-            panelApath = fullfile(dirpath, sprintf('table%d_panelA.xlsx', tableno));
-            writetable(panelA, panelApath, 'WriteRowNames', true);
-
-            panelA2path = fullfile(dirpath, sprintf('table%d_panelA2.xlsx', tableno));
-            writetable(panelA2, panelA2path, 'WriteRowNames', true);
+            for ii = 1:numel(panel_labels)
+                label = panel_labels{ii};
+                panel_path = fullfile(dirpath, sprintf('table%d_panel%s.xlsx', tableno, label));
+                writetable(panels{ii}, panel_path, 'WriteRowNames', true);
+            end
         end
 
         function table_out = table1header(params_in, results)
@@ -258,6 +263,59 @@ classdef FinalTables
             end
             table_out = make_table(statistics, params, true);
         end
+
+        function table_out = experiment_table_panelB(params_in, results, tableno)
+            if (tableno == 3)
+                params = filter_param_group(params_in, tables.FinalTables.table3includes);
+            end
+
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                statistics{ii} = {  results(ip).stats.mean_a
+                                    results(ip).stats.sav0
+                                    results(ip).stats.constrained{1}
+                                    results(ip).stats.constrained_dollars{1}
+                                    results(ip).stats.constrained_dollars{2}
+                                    results(ip).stats.constrained_dollars{3}
+                                    results(ip).stats.constrained_dollars{4}
+                                    results(ip).stats.a_lt_ysixth
+                                    results(ip).stats.a_lt_ytwelfth
+                                    results(ip).stats.w_top10share
+                                    results(ip).stats.w_top1share
+                                    results(ip).stats.wgini
+                                  };
+            end
+            table_out = make_table(statistics, params, true);
+        end
+
+        function table_out = experiment_table_panelC(params_in, results, tableno)
+            if (tableno == 3)
+                params = filter_param_group(params_in, tables.FinalTables.table3includes);
+            end
+
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                statistics{ii} = {  results(ip).stats.mpcs(4).quarterly
+                                    results(ip).stats.mpcs(6).quarterly
+                                  };
+            end
+            table_out = make_table(statistics, params, true);
+        end
+
+        function table_out = experiment_table_panelD(params_in, results, tableno)
+            if (tableno == 3)
+                params = filter_param_group(params_in, tables.FinalTables.table3includes);
+            end
+
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                statistics{ii} = {  results(ip).stats.mpcs(1).quarterly
+                                    results(ip).stats.mpcs(2).quarterly
+                                    results(ip).stats.mpcs(3).quarterly
+                                  };
+            end
+            table_out = make_table(statistics, params, true);
+        end
     end
     
 end
@@ -309,7 +367,7 @@ function table_out = make_table(statistics, params, experiment)
         vars{ii} = get_values(statistics{ii});
 
         if experiment
-            varnames{ii} = params(ii).tex_header;
+            varnames{ii} = char(params(ii).tex_header + string(sprintf('__v%d__', ii)));
         else
             varnames{ii} = params(ii).name;
         end

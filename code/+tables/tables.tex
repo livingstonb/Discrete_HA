@@ -4,6 +4,8 @@
 \usepackage{amsmath}
 \usepackage[tableposition=top]{caption}
 \usepackage{geometry}
+\usepackage{pdflscape}
+\usepackage{threeparttable}
 
 \addtolength{\topmargin}{-0.75in}
 \addtolength{\textheight}{1.5in}
@@ -16,8 +18,6 @@
 \input{table1.tex}
 \end{table}
 
-\clearpage
-
 \begin{table}
 \centering
 \caption{Baseline Decompositions}
@@ -26,11 +26,18 @@
 
 \clearpage
 
-\begin{table}
-\centering
+\begin{table}[h]
 \caption{Alternative Asset Targets}
+\begin{threeparttable}
+\centering
 \input{table3.tex}
+
+\begin{tablenotes}
+	\item[*] Where indicated, households are classified as HtM when $a \leq 1\%$ mean annual income.
+\end{tablenotes}
+\end{threeparttable}
 \end{table}
-\footnotetext[1]{HtM is defined here as $a \leq 1\%$ mean annual income.}
+
+
 
 \end{document}
