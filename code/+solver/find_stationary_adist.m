@@ -180,7 +180,7 @@ function q = get_distribution(p, grids, income, nx, statetrans,...
 
     diff = 1; 
     iter = 1;
-    while diff>1e-9 && iter < 5e4
+    while diff>1e-9 && iter < 5e5
         z = q * statetrans;
         diff = norm(z-q);
         q = z;
@@ -191,7 +191,7 @@ function q = get_distribution(p, grids, income, nx, statetrans,...
         iter = iter + 1;
     end
 
-    if iter >= 5e4
+    if iter >= 5e5
         error('No conv to statdist, diff = %5.3e',diff)
     end
 end

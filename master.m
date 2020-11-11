@@ -50,7 +50,7 @@ close all;
 % -------------------------------------------------------------------------
 % options
 runopts.calibrate = true;
-runopts.fast = true; % very small asset and income grids for testing
+runopts.fast = false; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
 runopts.MPCs = true;
@@ -64,7 +64,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 runopts.names_to_run = {};
-runopts.number = [1];
+runopts.number = [];
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -93,6 +93,10 @@ mkdir('temp')
 if exist(runopts.savematpath, 'file') == 2
     % Delete old results
     delete runopts.savematpath;
+end
+
+if ~exist('+EconTools', 'dir')
+    error("EconTools not found")
 end
 
 addpath('code');

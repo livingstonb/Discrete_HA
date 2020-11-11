@@ -3,7 +3,7 @@ function [params, all_names] = parameters(runopts)
     % livingstonb@uchicago.edu
 
     import aux.set_shared_fields
-    import solver.Calibrator
+    import solver.DHACalibrator
     
     scf = setup.scf2019struct();
 
@@ -11,9 +11,14 @@ function [params, all_names] = parameters(runopts)
     shared_params.annual_inc_dollars = scf.quarterly_earnings * 4;
     shared_params.shocks = dollars ./ shared_params.annual_inc_dollars;
 
+%     shared_params.xgrid_par = 0.1;
+%     shared_params.xgrid_term1wt = 0.02;
+%     shared_params.xgrid_term1curv = 0.9;
+    
     shared_params.xgrid_par = 0.1;
-    shared_params.xgrid_term1wt = 0.02;
-    shared_params.xgrid_term1curv = 0.9;
+    shared_params.xgrid_term1wt = 0.01;
+    shared_params.xgrid_term1curv = 0.5;
+    shared_params.xmax = 500;
 
     shared_params.shocks_labels = {};
     for ishock = 1:6
@@ -73,7 +78,7 @@ function [params, all_names] = parameters(runopts)
     params(1).group = {'Baseline', 'A1'};
     params(1).other = {'Baseline'};
      
-    % Quarterly
+    % Quarterly35
     params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
@@ -182,8 +187,8 @@ function [params, all_names] = parameters(runopts)
         params(end+1) = setup.Params(ifreq,name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).r = [-2, 2, 6] / 100;
-        params(end).betaH0 = -1e-4;
-        params(end).beta0 = 0.955885729527277;
+        params(end).betaH0 = 1e-5;
+        params(end).beta0 = 0.960885729527277;
         params(end).group = {'Q6'};
         params(end).label = {'Heterogeneity in r'};
         params(end).other = {'r in {-2,2,6}'};
@@ -226,11 +231,11 @@ function [params, all_names] = parameters(runopts)
                 params(end).label = 'Beta Heterogeneity (5 pts)';
                 params(end).other = {sprintf('p = %g, spacing = %g', 0, ibw)};
                 
-                % if ibw == 0.005
-                %     params(end).betaH0 = -1e-3;
-                % elseif ibw == 0.01
-                %     params(end).betaH0 = -1e-3;
-                % end
+                if ibw == 0.005
+                    params(end).betaH0 = -1e-4;
+                elseif ibw == 0.01
+                    params(end).betaH0 = -1e-3;
+                end
             end
 
             % random beta heterogeneity
@@ -248,7 +253,7 @@ function [params, all_names] = parameters(runopts)
                     params(end).other = {sprintf('p = %g, spacing = %g', bs, ibw)};
 
                     if bs == 1 / 50
-                        params(end).betaH0 = -1e-2;
+                        params(end).betaH0 = -1.2e-2;
                     else
                         params(end).betaH0 = -1e-3;
                     end
@@ -279,7 +284,7 @@ function [params, all_names] = parameters(runopts)
         params(end) = set_shared_fields(params(end), income_params);
         params(end).risk_aver = 1./ exp([-1 -0.5 0 0.5 1]);
         if params(end).freq == 4
-            params(end).betaH0 =  - 5e-3;
+            params(end).betaH0 =  - 2e-3;
         end
         params(end).group = {'Q3'};
         params(end).label = 'CRRA';
@@ -290,7 +295,7 @@ function [params, all_names] = parameters(runopts)
         params(end) = set_shared_fields(params(end), income_params);
         params(end).risk_aver = 1./ exp([-2 -1 0 1 2]);
         if params(end).freq == 4
-            params(end).betaH0 = -5e-3;
+            params(end).betaH0 = -1e-3;
         end
         params(end).beta0 = 0.911905140057402;
         params(end).group = {'Q3'};
@@ -367,7 +372,8 @@ function [params, all_names] = parameters(runopts)
         params(end) = set_shared_fields(params(end), quarterly_b_params);
         params(end).temptation = tempt;
         if tempt == 0.07
-            params(end).betaH0 = 6e-4;
+            params(end).beta0 = 1;
+            params(end).betaH0 = 4e-4;
         elseif  tempt == 0.05
             params(end).betaH0 = -2e-5;
         end
@@ -380,8 +386,8 @@ function [params, all_names] = parameters(runopts)
     params(end+1) = setup.Params(4, name, quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).temptation = [0 0.05 0.1];
-    params(end).beta0 = 0.998283 ^ 4;
-    params(end).betaH0 = 5e-2;
+    params(end).beta0 = 0.999083 ^ 4;
+    params(end).betaH0 = -4e-5;
     params(end).group = {'Q5'};
     params(end).label = 'Temptation';
     params(end).other = {'Temptation in {0, 0.05, 0.1}'};
@@ -548,7 +554,7 @@ function [params, all_names] = parameters(runopts)
     %----------------------------------------------------------------------
     if params.calibrate
         calibration = calibrations(params.index);
-        calibrator = Calibrator(params, calibration.variables,...
+        calibrator = DHACalibrator(params, calibration.variables,...
             calibration.target_names, calibration.target_values);
         heterogeneity = setup.Prefs_R_Heterogeneity(params);
 
