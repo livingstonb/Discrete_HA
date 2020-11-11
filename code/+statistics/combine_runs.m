@@ -19,10 +19,9 @@ options.decomp_with_loose_borr_limit = false;
 options.index_loose_borr_limit_Q = 'baseline_Q_with_borrowing';
 options.index_loose_borr_limit_A = 'baseline_A_with_borrowing';
 
-if ~running_on_server
-    outdir = fullfile('output', 'server');
-else
-    outdir = 'output';
+outdir = fullfile('output', 'tables');
+if ~exist(outdir, 'dir')
+    mkdir(outdir);
 end
 
 addpath('code');
@@ -31,7 +30,7 @@ addpath('code');
 ind = 0;
 for irun = 1:999
     fname = sprintf('variables%d.mat', irun);
-    fpath = fullfile(outdir, fname);
+    fpath = fullfile('output', fname);
     if exist(fpath,'file')
         ind = ind + 1;
 
@@ -120,3 +119,6 @@ end
 % save_tables = true;
 % tables_out = tables.create_final_tables(params, results,...
 %     decomps_baseline, save_tables);
+% tables.FinalTables.table1header(params, results)
+% tables.FinalTables.table1panelA(params, results)
+tables.FinalTables.save_table1(params, results, outdir);

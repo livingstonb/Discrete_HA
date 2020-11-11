@@ -12,8 +12,8 @@ classdef MPCPanels
 				new_labels = {	sprintf('Annual MPC (%%), %s', shocks_labels{4})
 				            	sprintf('Annual MPC (%%), %s', shocks_labels{6})
 					};
-				new_entries = {	values.direct.mpcs(4).avg_annual * 100
-								values.direct.mpcs(6).avg_annual * 100
+				new_entries = {	values.direct.mpcs(4).annual.value * 100
+								values.direct.mpcs(6).annual.value * 100
 					};
 				new_entries = aux.cellround(new_entries, 1);
 				out = tables.TableGen.append_to_table(out, new_entries, new_labels);
@@ -22,8 +22,8 @@ classdef MPCPanels
 			new_labels = {	sprintf('Quarterly MPC (%%), %s', shocks_labels{4})
 				            sprintf('Quarterly MPC (%%), %s', shocks_labels{6})
 				};
-			new_entries = {	values.direct.mpcs(4).avg_quarterly * 100
-							values.direct.mpcs(6).avg_quarterly * 100
+			new_entries = {	values.direct.mpcs(4).quarterly.value * 100
+							values.direct.mpcs(6).quarterly.value * 100
 				};
 			new_entries = aux.cellround(new_entries, 1);
 			out = tables.TableGen.append_to_table(out, new_entries, new_labels);
@@ -42,9 +42,9 @@ classdef MPCPanels
 								sprintf('Annual MPC (%%), %s', shocks_labels{2})
 					            sprintf('Annual MPC (%%), %s', shocks_labels{3})
 					};
-				new_entries = {	values.direct.mpcs(1).avg_annual * 100
-								values.direct.mpcs(2).avg_annual * 100
-								values.direct.mpcs(3).avg_annual * 100
+				new_entries = {	values.direct.mpcs(1).annual.value * 100
+								values.direct.mpcs(2).annual.value * 100
+								values.direct.mpcs(3).annual.value * 100
 					};
 				new_entries = aux.cellround(new_entries, 1);
 				out = tables.TableGen.append_to_table(out, new_entries, new_labels);
@@ -54,9 +54,9 @@ classdef MPCPanels
 				            sprintf('Quarterly MPC (%%), %s', shocks_labels{2})
 				            sprintf('Quarterly MPC (%%), %s', shocks_labels{3})
 				};
-			new_entries = {	values.direct.mpcs(1).avg_quarterly * 100
-							values.direct.mpcs(2).avg_quarterly * 100
-							values.direct.mpcs(3).avg_quarterly * 100
+			new_entries = {	values.direct.mpcs(1).quarterly.value * 100
+							values.direct.mpcs(2).quarterly.value * 100
+							values.direct.mpcs(3).quarterly.value * 100
 				};
 			new_entries = aux.cellround(new_entries, 1);
 			out = tables.TableGen.append_to_table(out, new_entries, new_labels);

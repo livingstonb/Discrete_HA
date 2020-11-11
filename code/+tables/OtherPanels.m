@@ -73,8 +73,8 @@ classdef OtherPanels
 				            'Annual MPC (%)'
 				            'Beta (Annualized)'
 				};
-			new_entries = {	round(values.mpcs(5).avg_quarterly * 100, 1)
-		                    round(values.mpcs(5).avg_annual * 100, 1)
+			new_entries = {	round(values.mpcs(5).quarterly.value * 100, 1)
+		                    round(values.mpcs(5).annual.value * 100, 1)
 		                    round(values.beta_annualized, 3) 
 				};
 			out = tables.TableGen.append_to_table(out,...

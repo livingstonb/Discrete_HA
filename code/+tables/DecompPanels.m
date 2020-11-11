@@ -33,9 +33,9 @@ classdef DecompPanels
 				            sprintf('Non-HtM (a > %s), constraint effect', thresh)
 				            sprintf('Non-HtM (a > %s), inc risk effect', thresh)
 				};
-			new_entries = {	decomp(ithresh).term2
-							decomp(ithresh).term3
-							decomp(ithresh).term4
+			new_entries = {	decomp(ithresh).term2.value
+							decomp(ithresh).term3.value
+							decomp(ithresh).term4.value
 				};
 
 			new_entries = aux.cellround(new_entries, 3);
@@ -57,10 +57,10 @@ classdef DecompPanels
 				            'Effect of distribution'
 				            'Interaction'
 				};
-			new_entries = {	decomp.Em1_less_mRA
-							decomp.term1
-		                    decomp.term2
-		                    decomp.term3
+			new_entries = {	decomp.Em1_less_mRA.value
+							decomp.term1.value
+		                    decomp.term2.value
+		                    decomp.term3.value
 				};
 			new_entries = aux.cellround(new_entries, 3);
 			out = tables.TableGen.append_to_table(...

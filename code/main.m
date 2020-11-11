@@ -483,6 +483,7 @@ function results = main(p, varargin)
     
     % convert Params object to structure for saving
     results.stats = aux.to_structure(results.stats);
+    p.set('calibrator', [], false);
     Sparams = aux.to_structure(p);
     converged = iterating;
     save(p.savematpath, 'Sparams', 'results', 'converged')
