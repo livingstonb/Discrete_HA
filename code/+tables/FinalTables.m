@@ -60,12 +60,12 @@ classdef FinalTables
                                     results(ip).stats.constrained_dollars{4}
                                     results(ip).stats.a_lt_ysixth
                                     results(ip).stats.a_lt_ytwelfth
-                                    results(ip).stats.constrained_pct{2}
-                                    results(ip).stats.constrained_pct{3}
-                                    results(ip).stats.constrained_pct{4}
-                                    results(ip).stats.constrained_pct{5}
-                                    results(ip).stats.constrained_pct{6}
-                                    results(ip).stats.constrained_pct{7}
+                                    results(ip).stats.wpercentiles{1}
+                                    results(ip).stats.wpercentiles{2}
+                                    results(ip).stats.wpercentiles{3}
+                                    results(ip).stats.wpercentiles{5}
+                                    results(ip).stats.wpercentiles{7}
+                                    results(ip).stats.wpercentiles{8}
                                     results(ip).stats.w_top10share
                                     results(ip).stats.w_top1share
                                     results(ip).stats.wgini
@@ -98,6 +98,8 @@ function table_out = make_table(statistics, params)
         vars{ii} = get_values(statistics{ii});
         varnames{ii} = params(ii).name;
     end
+    vars{n+1} = get_precision(statistics{1});
+    varnames{n+1} = 'decimals';
     rows = get_names(statistics{1});
     
     table_out = table(vars{:}, 'RowNames', rows(:), 'VariableNames', varnames(:));
@@ -111,10 +113,18 @@ function values = get_values(entries)
     values = values(:);
 end
 
+function decimals = get_precision(entries)
+    decimals = {};
+    for ii = 1:numel(entries)
+        decimals{ii} = entries{ii}.decimals;
+    end
+    decimals = decimals(:);
+end
+
 function names = get_names(entries)
     names = {};
     for ii = 1:numel(entries)
-        names{ii} = entries{ii}.label;
+        names{ii} = entries{ii}.tex_label;
     end
     names = names(:);
 end

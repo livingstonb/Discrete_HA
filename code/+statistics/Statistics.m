@@ -84,9 +84,9 @@ classdef Statistics < handle
 	methods (Access=protected)
 		function compute_intro_stats(obj)
 			obj.beta_A = sfill(obj.p.beta0 ^ obj.freq,...
-				'beta (annualized)');
+				'Beta (annualized)');
 		    obj.beta_Q = sfill(obj.p.beta0 ^ (obj.freq/4),...
-		    	'beta (quarterly)');
+		    	'Beta (quarterly)');
 		    
 		    tmp = obj.expectation(obj.grdDST.a.matrix);
 		    obj.mean_a = sfill(tmp, 'Mean wealth');
@@ -105,23 +105,23 @@ classdef Statistics < handle
 		    % Income
 		    mean_y = dot(obj.model.y_x(:) * obj.freq, xdist);
 		    obj.mean_gross_y_annual = sfill(mean_y,...
-		    	'Mean gross annual income');
+		    	'Mean gross annual income', 3);
 
 		    if obj.freq == 1
 		    	demeaned2 = (obj.model.y_x(:) - mean_y) .^ 2;
 			    stdev_y = dot(demeaned2, xdist);
 			    obj.std_log_gross_y_annual = sfill(stdev_y,...
-			    	'Stdev log gross annual income');
+			    	'Stdev log gross annual income', 3);
 
 			    demeaned2 = (obj.model.nety_x(:) - mean_y) .^ 2;
 			    stdev_y = dot(demeaned2, xdist);
 			    obj.std_log_net_y_annual = sfill(stdev_y,...
-			    	'Stdev log net annual income');
+			    	'Stdev log net annual income', 3);
 			else
 				obj.std_log_gross_y_annual = sfill(NaN,...
-			    	'Stdev log gross annual income');
+			    	'Stdev log gross annual income', 3);
 				obj.std_log_net_y_annual = sfill(NaN,...
-			    	'Stdev log net annual income');
+			    	'Stdev log net annual income', 3);
 			end
 
 			dollars = sprintf('$%g', obj.p.annual_inc_dollars);
@@ -175,14 +175,14 @@ classdef Statistics < handle
 				cum_share(iu), 'pchip', 'nearest');
 
 			tmp = 1 - wshare_interp(0.9);
-			obj.w_top10share = sfill(tmp, 'Wealth, top 10% share');
+			obj.w_top10share = sfill(tmp, 'Wealth, top 10% share', 3, 'Wealth, top 10\% share');
 
 			tmp = 1 - wshare_interp(0.99);
-			obj.w_top1share = sfill(tmp, 'Wealth, top 1% share');
+			obj.w_top1share = sfill(tmp, 'Wealth, top 1% share', 3, 'Wealth, top 1\% share');
 			
 			% Gini coefficient
 			tmp = aux.direct_gini(obj.grdDST.a.vec, obj.pmf_a);
-			obj.wgini = sfill(tmp, 'Gini coefficient, wealth');
+			obj.wgini = sfill(tmp, 'Gini coefficient, wealth', 3, 'Wealth, Gini coeff');
 		end
 
 		function compute_constrained(obj)
@@ -198,7 +198,7 @@ classdef Statistics < handle
 
 				tmp = cinterp(htm);
 				obj.constrained{ip} = sfill(tmp,...
-					sprintf('a <= %g', htm));
+					sprintf('a <= %g', htm), 3, sprintf('$a <= %g$', htm));
 
 				obj.constrained_pct{ip} = sfill(tmp,...
 					sprintf('a <= %g%% mean ann inc', 100 * htm));
@@ -211,7 +211,7 @@ classdef Statistics < handle
 
 				tmp = cinterp(htm);
 				obj.constrained_dollars{ip} = sfill(tmp,...
-					sprintf('a <= %s', label));
+					sprintf('a <= %s', label), 3, sprintf('$a <= %s$', "\" + label));
 			end
 
 			% Wealth / (quarterly earnings) < epsilon
@@ -227,21 +227,37 @@ classdef Statistics < handle
 		    ay_interp = constrained_interp(vals, cdf_AY);
 
 			obj.a_lt_ysixth = sfill(...
-				ay_interp(1/6), 'a_i <= y_i / 6');
+				ay_interp(1/6), 'a_i <= y_i / 6', 3, '$a <= 1 / 6$ own quarterly inc');
 			obj.a_lt_ytwelfth = sfill(...
-				ay_interp(1/12), 'a_i <= y_i / 12');
+				ay_interp(1/12), 'a_i <= y_i / 12', 3, '$a <= 1 / 12$ own quarterly inc');
 		end
 
 		function out = expectation(obj, vals)
 			out = dot(obj.pmf(:), vals(:));
 		end
 	end
+
+	methods (Static)
+		function out = sfill(value, label, varargin)
+			out = sfill(value, label, varargin{:});
+		end
+	end
 end
 
-function out = sfill(value, label)
+function out = sfill(value, label, decimals, tex_label)
+	if (nargin < 3)
+		decimals = 1;
+	end
+
+	if (nargin < 4)
+		tex_label = label;
+	end
+
 	out = struct(...
 		'value', value,...
-		'label', label...
+		'label', label,...
+		'tex_label', tex_label,...
+		'decimals', decimals...
 	);
 end
 

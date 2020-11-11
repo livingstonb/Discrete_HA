@@ -42,6 +42,8 @@ classdef MPCFinder < handle
 	methods
 		function obj = MPCFinder(p, income, grids, heterogeneity,...
 			basemodel, models)
+			import statistics.Statistics.sfill
+
 			obj.Nstates = p.nx_DST * p.nyP * p.nyF * p.nb;
 			obj.basemodel = basemodel;
 			obj.models = models;
@@ -403,11 +405,4 @@ classdef MPCFinder < handle
 		    end
 		end
 	end
-end
-
-function out = sfill(value, label)
-	out = struct(...
-		'value', value,...
-		'label', label...
-	);
 end

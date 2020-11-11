@@ -46,6 +46,7 @@ classdef Decomp < handle
 		end
 
 		function initialize(obj)
+			import statistics.Statistics.sfill
 			nfill = @(x) sfill(NaN, x);
 
 			obj.results_norisk = struct();
@@ -141,11 +142,4 @@ classdef Decomp < handle
 			obj.results_norisk.completed = true;
 		end
 	end
-end
-
-function out = sfill(value, label)
-	out = struct(...
-		'value', value,...
-		'label', label...
-	);
 end

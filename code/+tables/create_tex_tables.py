@@ -3,6 +3,7 @@
 import sys
 import os
 import pandas as pd
+import numpy as np
 
 def drop_lines(text, linenos):
 	lines = text.splitlines()
@@ -21,9 +22,27 @@ def nlines(text):
 	lines = text.splitlines()
 	return len(lines)
 
+def apply_float_formatting(df):
+	for col in df.columns:
+		if col != 'decimals':
+			new_col = df.apply(lambda x: float2string(x, col), axis=1)
+			df[col] = new_col
+
+	del df['decimals']
+
+	return df
+
+def float2string(data, colname):
+	precision = int(data['decimals'])
+	if np.isnan(data[colname]):
+		return ''
+	else:
+		return f'{data[colname]:.{int(data["decimals"])}f}'
+
 def header_panel(filepath):
 	df = pd.read_excel(filepath, index_col=0, header=0)
-	tex = df.to_latex(float_format="%.1f")
+	df = apply_float_formatting(df)
+	tex = df.to_latex(float_format="%.1f", na_rep='')
 
 	n = nlines(tex)
 	lines_to_drop = [3, n-2, n-1]
@@ -40,7 +59,8 @@ def other_panel(dirpath, table, panel, panelname):
 	filepath = os.path.join(dirpath, filename)
 
 	df = pd.read_excel(filepath, index_col=0, header=0)
-	tex = df.to_latex(float_format="%.1f")
+	df = apply_float_formatting(df)
+	tex = df.to_latex(float_format="%.1f", escape=False, na_rep='')
 
 	cols = len(df.columns)
 	newline = ''

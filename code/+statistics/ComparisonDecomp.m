@@ -61,6 +61,8 @@ classdef ComparisonDecomp < handle
 		end
 
 		function initialize(obj)
+			import statistics.Statistics.sfill
+
 			nfill = @(x) sfill(NaN, x);
 			decomp_name = strcat('Quarterly MPC decomposition of',...
 				' ', 'E[MPC] - E[MPC_baseline]');
@@ -207,11 +209,4 @@ classdef ComparisonDecomp < handle
             	obj.agrid, mpcs0_a, obj.pmf1_a, true);
 		end
 	end
-end
-
-function out = sfill(value, label)
-	out = struct(...
-		'value', value,...
-		'label', label...
-	);
 end
