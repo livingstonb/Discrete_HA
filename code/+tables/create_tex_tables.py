@@ -150,3 +150,5 @@ if __name__ == '__main__':
 	save_tex_table1_panels(sys.argv[1])
 	save_tex_table2_panels(sys.argv[1])
 	save_tex_experiment_table(sys.argv[1], 3)
+	save_tex_experiment_table(sys.argv[1], 4)
+	save_tex_experiment_table(sys.argv[1], 5)

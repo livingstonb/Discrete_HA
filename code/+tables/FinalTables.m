@@ -1,9 +1,13 @@
 classdef FinalTables
     
     properties (Constant)
-        table1includes = {'Quarterly', 'Annual'};
-        table2includes = {'Quarterly', 'Annual'};
-        table3includes = {'Q1a'};
+        table_includes = {
+            {'Quarterly', 'Annual'}
+            {'Quarterly', 'Annual'}
+            {'Q1a'}
+            {'Q1b'}
+            {'Q2'}
+        };
     end
 
     methods (Static)
@@ -72,7 +76,7 @@ classdef FinalTables
         end
 
         function table_out = table1header(params_in, results)
-            params = filter_param_names(params_in, tables.FinalTables.table1includes);
+            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
             for ii = 1:numel(params)
                 ip = params(ii).index;
@@ -85,7 +89,7 @@ classdef FinalTables
         end
 
         function table_out = table1panelA(params_in, results)
-            params = filter_param_names(params_in, tables.FinalTables.table1includes);
+            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
             for ii = 1:numel(params)
                 ip = params(ii).index;
@@ -98,7 +102,7 @@ classdef FinalTables
         end
         
         function table_out = table1panelB(params_in, results)
-            params = filter_param_names(params_in, tables.FinalTables.table1includes);
+            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
             for ii = 1:numel(params)
                 ip = params(ii).index;
@@ -126,7 +130,7 @@ classdef FinalTables
         end
 
         function table_out = table1panelC(params_in, results)
-            params = filter_param_names(params_in, tables.FinalTables.table1includes);
+            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
             for ii = 1:numel(params)
                 ip = params(ii).index;
@@ -140,7 +144,7 @@ classdef FinalTables
         end
 
         function table_out = table1panelD(params_in, results)
-            params = filter_param_names(params_in, tables.FinalTables.table1includes);
+            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
             for ii = 1:numel(params)
                 ip = params(ii).index;
@@ -156,7 +160,7 @@ classdef FinalTables
         end
 
         function table_out = table2header(params_in, results)
-            params = filter_param_names(params_in, tables.FinalTables.table2includes);
+            params = filter_param_names(params_in, tables.FinalTables.table_includes{2});
             import statistics.Statistics.sfill
 
             statistics = cell(numel(params), 1);
@@ -178,7 +182,7 @@ classdef FinalTables
         end
 
         function table_out = table2panelABC(params_in, results)
-            params = filter_param_names(params_in, tables.FinalTables.table2includes);
+            params = filter_param_names(params_in, tables.FinalTables.table_includes{2});
             table_out = cell(1, 3);
 
             for kk = 1:3
@@ -196,7 +200,7 @@ classdef FinalTables
         end
 
         function table_out = table2panelD(params_in, results)
-            params = filter_param_names(params_in, tables.FinalTables.table2includes);
+            params = filter_param_names(params_in, tables.FinalTables.table_includes{2});
             statistics = cell(numel(params), 1);
             
             for ii = 1:numel(params)
@@ -210,32 +214,52 @@ classdef FinalTables
             table_out = make_table(statistics, params);
         end
 
-        function table_out = experiment_table_header(params_in, results, table)
-            if (table == 3)
-                params = filter_param_group(params_in, tables.FinalTables.table3includes);
-            end
+        function table_out = experiment_table_header(params_in, results, tableno)
+            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
 
             import statistics.Statistics.sfill
 
-            for ii = 1:numel(params)
-                ip = params(ii).index;
-                variable_value = sfill(params(ii).tex_header_value, 'Value', 2);
-                statistics{ii} = {  variable_value
-                                    results(ip).stats.mpcs(5).quarterly
+            for ii = 1:numel(indices)
+                ip = indices(ii);
+                if tableno == 5
+                    if ~isempty(params_in(ip).tex_header_values)
+                        tex_vals = params_in(ip).tex_header_values{1};
+                        variable_values = {
+                            sfill(tex_vals.pswitch, 'Switch probability', 2)
+                            sfill(tex_vals.width, 'Spacing', 3)
+                        };
+                    else
+                        variable_values = {
+                            sfill(nan, 'Switch probability', 2)
+                            sfill(nan, 'Spacing', 3)
+                        };
+                    end
+                elseif tableno == 4
+                    variable_values = {};
+                elseif tableno == 3
+                    if ~isempty(params_in(ip).tex_header_values)
+                        tex_vals = params_in(ip).tex_header_values{1};
+                        variable_values = {sfill(tex_vals.value, 'Value', 2)};
+                    else
+                        variable_values = {sfill(nan, 'Value', 2)};
+                    end
+                end
+                statistics{ii} = {  results(ip).stats.mpcs(5).quarterly
                                     results(ip).stats.mpcs(5).annual
                                     results(ip).stats.beta_A
                                   };
+                statistics{ii} = [variable_values(:); statistics{ii}];
+                params(ii) = params_in(ip);
             end
+
             table_out = make_table(statistics, params, true);
         end
 
         function table_out = experiment_table_panelA(params_in, comparison_decomps, tableno)
-            if (tableno == 3)
-                params = filter_param_group(params_in, tables.FinalTables.table3includes);
-            end
+            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
 
-            for ii = 1:numel(params)
-                ip = params(ii).index;
+            for ii = 1:numel(indices)
+                ip = indices(ii);
                 statistics{ii} = {  comparison_decomps(ip).Em1_less_Em0
                                     comparison_decomps(ip).term1
                                     comparison_decomps(ip).term2
@@ -243,34 +267,33 @@ classdef FinalTables
                                     comparison_decomps(ip).term2b(2)
                                     comparison_decomps(ip).term3
                                   };
+                params(ii) = params_in(ip);
             end
             table_out = make_table(statistics, params, true);
         end
 
         function table_out = experiment_table_panelA2(params_in, comparison_decomps, tableno)
-            if (tableno == 3)
-                params = filter_param_group(params_in, tables.FinalTables.table3includes);
-            end
+            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
 
-            for ii = 1:numel(params)
-                ip = params(ii).index;
+            for ii = 1:numel(indices)
+                ip = indices(ii);
                 statistics{ii} = {  comparison_decomps(ip).term1_pct
                                     comparison_decomps(ip).term2_pct
                                     comparison_decomps(ip).term2a_pct(2)
                                     comparison_decomps(ip).term2b_pct(2)
                                     comparison_decomps(ip).term3_pct
                                   };
+
+                params(ii) = params_in(ip);
             end
             table_out = make_table(statistics, params, true);
         end
 
         function table_out = experiment_table_panelB(params_in, results, tableno)
-            if (tableno == 3)
-                params = filter_param_group(params_in, tables.FinalTables.table3includes);
-            end
+            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
 
-            for ii = 1:numel(params)
-                ip = params(ii).index;
+            for ii = 1:numel(indices)
+                ip = indices(ii);
                 statistics{ii} = {  results(ip).stats.mean_a
                                     results(ip).stats.sav0
                                     results(ip).stats.constrained{1}
@@ -284,35 +307,34 @@ classdef FinalTables
                                     results(ip).stats.w_top1share
                                     results(ip).stats.wgini
                                   };
+                params(ii) = params_in(ip);
             end
             table_out = make_table(statistics, params, true);
         end
 
         function table_out = experiment_table_panelC(params_in, results, tableno)
-            if (tableno == 3)
-                params = filter_param_group(params_in, tables.FinalTables.table3includes);
-            end
+            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
 
-            for ii = 1:numel(params)
-                ip = params(ii).index;
+            for ii = 1:numel(indices)
+                ip = indices(ii);
                 statistics{ii} = {  results(ip).stats.mpcs(4).quarterly
                                     results(ip).stats.mpcs(6).quarterly
                                   };
+                params(ii) = params_in(ip);
             end
             table_out = make_table(statistics, params, true);
         end
 
         function table_out = experiment_table_panelD(params_in, results, tableno)
-            if (tableno == 3)
-                params = filter_param_group(params_in, tables.FinalTables.table3includes);
-            end
+            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
 
-            for ii = 1:numel(params)
-                ip = params(ii).index;
+            for ii = 1:numel(indices)
+                ip = indices(ii);
                 statistics{ii} = {  results(ip).stats.mpcs(1).quarterly
                                     results(ip).stats.mpcs(2).quarterly
                                     results(ip).stats.mpcs(3).quarterly
                                   };
+                params(ii) = params_in(ip);
             end
             table_out = make_table(statistics, params, true);
         end
@@ -334,7 +356,8 @@ function params = filter_param_names(params_in, includes)
     end
 end
 
-function params = filter_param_group(params_in, includes)
+function indices = filter_param_group(params_in, includes)
+    indices = [];
     jj = 1;
     for ii = 1:numel(params_in)
         keep = false;
@@ -346,11 +369,7 @@ function params = filter_param_group(params_in, includes)
         end
 
         if keep
-            if jj == 1
-                params = params_in(ii);
-            else
-                params(jj) = params_in(ii);
-            end
+            indices(jj) = ii;
             jj = jj + 1;
         end
     end

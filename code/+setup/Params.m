@@ -20,7 +20,7 @@ classdef Params < handle
         group;
         label;
         tex_header;
-        tex_header_value;
+        tex_header_values = {};
         
         % data frequency
         freq;

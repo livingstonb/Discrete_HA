@@ -85,7 +85,6 @@ function [params, all_names] = parameters(runopts)
     params(end).group = {'Baseline', 'Q1a', 'Q1b', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'};
     params(end).other = {'Baseline'};
     params(end).tex_header = 'Baseline';
-    params(end).tex_header_value = nan;
 
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -108,7 +107,7 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q1a'};
         params(end).other = {'Calibration to liquid wealth, E[a] = 2.25'};
         params(end).tex_header = 'E[a]';
-        params(end).tex_header_value = 2.25;
+        params(end).tex_header_values = {struct('value', 2.25)};
         n = numel(params);
         calibrations(n).target_names = {'mean_a'};
         calibrations(n).target_values = [2.25];
@@ -120,7 +119,7 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q1a'};
         params(end).other = {'Calibration to total wealth, E[a] = 9.4'};
         params(end).tex_header = 'E[a]';
-        params(end).tex_header_value = 9.4;
+        params(end).tex_header_values = {struct('value', 9.4)};
         n = numel(params);
         calibrations(n).target_names = {'mean_a'};
         calibrations(n).target_values = [9.4];
@@ -133,9 +132,9 @@ function [params, all_names] = parameters(runopts)
             params(end).group = {'Q1a'};
             params(end).other = {sprintf('Calibration to liquid wealth, median(a) = %g', mw)};
             params(end).tex_header = 'Median(a)';
-            params(end).tex_header_value = mw;
+            params(end).tex_header_values = {struct('value', mw)};
             n = numel(params);
-            calibrations(n).target_names = {'mean_a'};
+            calibrations(n).target_names = {'median_a'};
             calibrations(n).target_values = [mw];
         end
 
@@ -147,7 +146,6 @@ function [params, all_names] = parameters(runopts)
         params(end).dieprob = 0;
         params(end).beta0 = 0.975363510593659;
         params(end).tex_header = 'No Death';
-        params(end).tex_header_value = nan;
 
         % no bequests
         name = 'No Bequests';
@@ -156,7 +154,6 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q1b'};
         params(end).Bequests = 0;
         params(end).tex_header = 'No Bequests';
-        params(end).tex_header_value = nan;
 
         % perfect annuities
         name = 'Annuities';
@@ -165,8 +162,7 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q1b'};
         params(end).annuities = true;
         params(end).betaH0 = - 5e-3;
-        params(end).tex_header = 'No Annuities';
-        params(end).tex_header_value = nan;
+        params(end).tex_header = 'Annuities';
 
         % different interest rates
         for ii = [0, 5]
@@ -244,6 +240,8 @@ function [params, all_names] = parameters(runopts)
                 params(end).group = {'Q2'};
                 params(end).label = 'Beta Heterogeneity (5 pts)';
                 params(end).other = {sprintf('p = %g, spacing = %g', 0, ibw)};
+                params(end).tex_header = '$\beta$ het.';
+                params(end).tex_header_values = {struct('pswitch', 0, 'width', ibw)};
                 
                 if ibw == 0.005
                     params(end).betaH0 = -1e-4;
@@ -265,6 +263,8 @@ function [params, all_names] = parameters(runopts)
                     params(end).group = {'Q2'};
                     params(end).label = 'Beta Heterogeneity';
                     params(end).other = {sprintf('p = %g, spacing = %g', bs, ibw)};
+                    params(end).tex_header = '$\beta$ het.';
+                    params(end).tex_header_values = {struct('pswitch', bs, 'width', ibw)};
 
                     if bs == 1 / 50
                         params(end).betaH0 = -1.2e-2;
