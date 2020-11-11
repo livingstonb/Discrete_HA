@@ -19,6 +19,8 @@ classdef Params < handle
         index;
         group;
         label;
+        tex_header;
+        tex_header_value;
         
         % data frequency
         freq;

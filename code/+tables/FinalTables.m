@@ -3,6 +3,7 @@ classdef FinalTables
     properties (Constant)
         table1includes = {'Quarterly', 'Annual'};
         table2includes = {'Quarterly', 'Annual'};
+        table3includes = {'Q1a'};
     end
 
     methods (Static)
@@ -48,6 +49,12 @@ classdef FinalTables
 
             panelDpath = fullfile(dirpath, 'table2_panelD.xlsx');
             writetable(panelD, panelDpath, 'WriteRowNames', true);
+        end
+
+        function save_experiment_table(params_in, results, dirpath, tableno)
+            header = tables.FinalTables.experiment_table_header(params_in, results, tableno);
+            headerpath = fullfile(dirpath, sprintf('table%d_header.xlsx', tableno));
+            writetable(header, headerpath, 'WriteRowNames', true);
         end
 
         function table_out = table1header(params_in, results)
@@ -158,8 +165,6 @@ classdef FinalTables
 
         function table_out = table2panelABC(params_in, results)
             params = filter_param_names(params_in, tables.FinalTables.table2includes);
-            import statistics.Statistics.sfill
-
             table_out = cell(1, 3);
 
             for kk = 1:3
@@ -178,8 +183,6 @@ classdef FinalTables
 
         function table_out = table2panelD(params_in, results)
             params = filter_param_names(params_in, tables.FinalTables.table2includes);
-            import statistics.Statistics.sfill
-
             statistics = cell(numel(params), 1);
             
             for ii = 1:numel(params)
@@ -191,6 +194,25 @@ classdef FinalTables
                                   };
             end
             table_out = make_table(statistics, params);
+        end
+
+        function table_out = experiment_table_header(params_in, results, table)
+            if (table == 3)
+                params = filter_param_group(params_in, tables.FinalTables.table3includes);
+            end
+
+            import statistics.Statistics.sfill
+
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                variable_value = sfill(params(ii).tex_header_value, 'Value', 2);
+                statistics{ii} = {  variable_value
+                                    results(ip).stats.mpcs(5).quarterly
+                                    results(ip).stats.mpcs(5).annual
+                                    results(ip).stats.beta_A
+                                  };
+            end
+            table_out = make_table(statistics, params, true);
         end
     end
     
@@ -210,15 +232,47 @@ function params = filter_param_names(params_in, includes)
     end
 end
 
-function table_out = make_table(statistics, params)
+function params = filter_param_group(params_in, includes)
+    jj = 1;
+    for ii = 1:numel(params_in)
+        keep = false;
+        for kk = 1:numel(params_in(ii).group)
+            if ismember(params_in(ii).group{kk}, includes)
+                keep = true;
+                break;
+            end
+        end
+
+        if keep
+            if jj == 1
+                params = params_in(ii);
+            else
+                params(jj) = params_in(ii);
+            end
+            jj = jj + 1;
+        end
+    end
+end
+
+function table_out = make_table(statistics, params, experiment)
+    if nargin < 3
+        experiment = false;
+    end
+
     n = numel(statistics);
     
     for ii = 1:n
         vars{ii} = get_values(statistics{ii});
-        varnames{ii} = params(ii).name;
+
+        if experiment
+            varnames{ii} = params(ii).tex_header;
+        else
+            varnames{ii} = params(ii).name;
+        end
     end
     vars{n+1} = get_precision(statistics{1});
     varnames{n+1} = 'decimals';
+
     rows = get_names(statistics{1});
     
     table_out = table(vars{:}, 'RowNames', rows(:), 'VariableNames', varnames(:));

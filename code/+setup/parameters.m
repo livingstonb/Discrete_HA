@@ -82,8 +82,10 @@ function [params, all_names] = parameters(runopts)
     params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path);
     params(end) = set_shared_fields(params(end), quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
-    params(end).group = {'Baseline', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'};
+    params(end).group = {'Baseline', 'Q1a', 'Q1b', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'};
     params(end).other = {'Baseline'};
+    params(end).tex_header = 'Baseline';
+    params(end).tex_header_value = nan;
 
     %----------------------------------------------------------------------
     % PART 2, DIFFERENT ASSUMPTIONS
@@ -98,34 +100,40 @@ function [params, all_names] = parameters(runopts)
             IncomeProcess = quarterly_b_path;
             income_params = quarterly_b_params;
         end
+
+        % Liquid wealth calibration, mean assets = 2.25
+        name = sprintf('E[a] = %g', 2.25);
+        params(end+1) = setup.Params(4, name, quarterly_b_path);
+        params(end) = set_shared_fields(params(end), quarterly_b_params);
+        params(end).group = {'Q1a'};
+        params(end).other = {'Calibration to liquid wealth, E[a] = 2.25'};
+        params(end).tex_header = 'E[a]';
+        params(end).tex_header_value = 2.25;
+        n = numel(params);
+        calibrations(n).target_names = {'mean_a'};
+        calibrations(n).target_values = [2.25];
         
         % Total wealth calibration, mean assets = 9.4
         name = sprintf('E[a] = %g', 9.4);
         params(end+1) = setup.Params(4, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
-        params(end).group = {'Q1'};
+        params(end).group = {'Q1a'};
         params(end).other = {'Calibration to total wealth, E[a] = 9.4'};
+        params(end).tex_header = 'E[a]';
+        params(end).tex_header_value = 9.4;
         n = numel(params);
         calibrations(n).target_names = {'mean_a'};
         calibrations(n).target_values = [9.4];
-        
-        % Liquid wealth calibration, mean assets = 2.25
-        name = sprintf('E[a] = %g', 2.25);
-        params(end+1) = setup.Params(4, name, quarterly_b_path);
-        params(end) = set_shared_fields(params(end), quarterly_b_params);
-        params(end).group = {'Q1'};
-        params(end).other = {'Calibration to liquid wealth, E[a] = 2.25'};
-        n = numel(params);
-        calibrations(n).target_names = {'mean_a'};
-        calibrations(n).target_values = [2.25];
         
         % Liquid wealth calibration, median assets = 0.05, 0.5, 1.0
         for mw = [0.05, 0.5, 1.0]
             name = sprintf('median(a) = %g', mw);
             params(end+1) = setup.Params(4, name, quarterly_b_path);
             params(end) = set_shared_fields(params(end), quarterly_b_params);
-            params(end).group = {'Q1'};
+            params(end).group = {'Q1a'};
             params(end).other = {sprintf('Calibration to liquid wealth, median(a) = %g', mw)};
+            params(end).tex_header = 'Median(a)';
+            params(end).tex_header_value = mw;
             n = numel(params);
             calibrations(n).target_names = {'mean_a'};
             calibrations(n).target_values = [mw];
@@ -135,24 +143,30 @@ function [params, all_names] = parameters(runopts)
         name = 'No Death';
         params(end+1) = setup.Params(4, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
-        params(end).group = {'Q1'};
+        params(end).group = {'Q1b'};
         params(end).dieprob = 0;
         params(end).beta0 = 0.975363510593659;
+        params(end).tex_header = 'No Death';
+        params(end).tex_header_value = nan;
 
         % no bequests
         name = 'No Bequests';
         params(end+1) = setup.Params(4, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
-        params(end).group = {'Q1'};
+        params(end).group = {'Q1b'};
         params(end).Bequests = 0;
+        params(end).tex_header = 'No Bequests';
+        params(end).tex_header_value = nan;
 
         % perfect annuities
         name = 'Annuities';
         params(end+1) = setup.Params(ifreq, name, quarterly_b_path);
         params(end) = set_shared_fields(params(end), quarterly_b_params);
-        params(end).group = {'Q1'};
+        params(end).group = {'Q1b'};
         params(end).annuities = true;
         params(end).betaH0 = - 5e-3;
+        params(end).tex_header = 'No Annuities';
+        params(end).tex_header_value = nan;
 
         % different interest rates
         for ii = [0, 5]

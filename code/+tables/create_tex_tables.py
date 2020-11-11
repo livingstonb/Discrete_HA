@@ -121,6 +121,17 @@ def save_tex_table2_panels(dirpath):
 	fobj.write(tex)
 	fobj.close()
 
+def save_tex_experiment_table(dirpath, tableno):
+	table_header = header_panel(os.path.join(dirpath, f'table{tableno}_header.xlsx'))
+	tex = table_header
+	tex += '\n\\end{tabular}'
+
+	texfilepath = os.path.join(dirpath, f'table{tableno}.tex')
+	fobj = open(texfilepath, 'w')
+	fobj.write(tex)
+	fobj.close()
+
 if __name__ == '__main__':
 	save_tex_table1_panels(sys.argv[1])
 	save_tex_table2_panels(sys.argv[1])
+	save_tex_experiment_table(sys.argv[1], 3)
