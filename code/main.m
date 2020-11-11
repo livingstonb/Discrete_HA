@@ -486,5 +486,8 @@ function results = main(p, varargin)
     p.set('calibrator', [], false);
     Sparams = aux.to_structure(p);
     converged = iterating;
-    save(p.savematpath, 'Sparams', 'results', 'converged')
+
+    if ~iterating
+        save(p.savematpath, 'Sparams', 'results', 'converged')
+    end
 end

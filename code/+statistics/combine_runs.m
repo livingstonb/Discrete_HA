@@ -126,3 +126,7 @@ tables.FinalTables.save_table2(params, results, outdir);
 tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 3);
 tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 4);
 tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 5);
+tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 6);
+tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 7);
+tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 8);
+tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 9);

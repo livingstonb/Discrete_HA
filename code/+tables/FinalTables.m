@@ -7,6 +7,10 @@ classdef FinalTables
             {'Q1a'}
             {'Q1b'}
             {'Q2'}
+            {'Q3'}
+            {'Q4'}
+            {'Q7'}
+            {'Q8'}
         };
     end
 
@@ -221,7 +225,31 @@ classdef FinalTables
 
             for ii = 1:numel(indices)
                 ip = indices(ii);
-                if tableno == 5
+                if (tableno == 8) || (tableno == 9)
+                    if ~isempty(params_in(ip).tex_header_values)
+                        tex_vals = params_in(ip).tex_header_values{1};
+                        variable_values = {
+                            sfill(string(tex_vals.description), 'Description')
+                        };
+                    else
+                        variable_values = {
+                            sfill(nan, 'Description')
+                        };
+                    end
+                elseif (tableno == 6) || (tableno == 7)
+                    if ~isempty(params_in(ip).tex_header_values)
+                        tex_vals = params_in(ip).tex_header_values{1};
+                        variable_values = {
+                            sfill(string(tex_vals.riskaver), 'Risk aversion')
+                            sfill(tex_vals.ies, 'IES')
+                        };
+                    else
+                        variable_values = {
+                            sfill(nan, 'Risk aversion', 2)
+                            sfill(nan, 'IES', 3)
+                        };
+                    end
+                elseif tableno == 5
                     if ~isempty(params_in(ip).tex_header_values)
                         tex_vals = params_in(ip).tex_header_values{1};
                         variable_values = {

@@ -290,6 +290,8 @@ function [params, all_names] = parameters(runopts)
             end
             params(end).group = {'Q3'};
             params(end).label = 'CRRA';
+            params(end).tex_header = 'CRRA';
+            params(end).tex_header_values = {struct('riskaver', ira, 'ies', 1 / ira)};
         end
         
         % CRRA with IES heterogeneity
@@ -303,6 +305,8 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q3'};
         params(end).label = 'CRRA';
         params(end).other = {'RA = exp(1), ..., exp(-1), IES = exp(-1), ..., exp(1)'};
+        params(end).tex_header = 'CRRA';
+        params(end).tex_header_values = {struct('riskaver', 'exp(1), ..., exp(-1)', 'ies', 'exp(-1), ..., exp(1)')};
         
         name = 'CRRA w/IES betw exp(-2), exp(2)';
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
@@ -315,6 +319,8 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q3'};
         params(end).label = 'CRRA';
         params(end).other = {'RA = exp(2), ..., exp(-2), IES = exp(-2), ..., exp(2)'};
+        params(end).tex_header = 'CRRA';
+        params(end).tex_header_values = {struct('riskaver', 'exp(2), ..., exp(-2)', 'ies', 'exp(-21), ..., exp(2)')};
 
         % epstein-zin, quarterly
         ras = [0.5 8  1    1 8];
@@ -331,6 +337,8 @@ function [params, all_names] = parameters(runopts)
             params(end).group = {'Q4'};
             params(end).label = 'EZ';
             params(end).other = {sprintf('RA = %g, IES = %g', ra_i, ies_i)};
+            params(end).tex_header = 'EZ';
+            params(end).tex_header_values = {struct('riskaver', ra_i, 'ies', ies_i)};
 
             if i <= 3
                 params(end).betaH0 = - 3e-3;
@@ -351,6 +359,8 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q4'};
         params(end).label = 'EZ';
         params(end).other = {'RA = 1, IES = exp(-1), ..., exp(1)'};
+        params(end).tex_header = 'EZ';
+        params(end).tex_header_values = {struct('riskaver', 1, 'ies', 'exp(-1), ..., exp(1)')};
         
         name = 'EZ w/ IES betw exp(-2), exp(2)';
         params(end+1) = setup.Params(ifreq, name, IncomeProcess);
@@ -363,6 +373,8 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q4'};
         params(end).label = 'EZ';
         params(end).other = {'RA = 1, IES = exp(-2), ..., exp(2)'};
+        params(end).tex_header = 'EZ';
+        params(end).tex_header_values = {struct('riskaver', 1, 'ies', 'exp(-2), ..., exp(2)')};
 
         % EZ with risk aversion heterogeneity
         name = 'EZ w/ RA betw exp(-2), exp(2)';
@@ -377,6 +389,8 @@ function [params, all_names] = parameters(runopts)
         params(end).group = {'Q4'};
         params(end).label = 'EZ';
         params(end).other = {'RA = exp(-2), ..., exp(2), IES = 1'};
+        params(end).tex_header = 'EZ';
+        params(end).tex_header_values = {struct('riskaver', 'exp(-2), ..., exp(2)', 'ies', 1)};
     end
 
     % temptation
@@ -421,6 +435,8 @@ function [params, all_names] = parameters(runopts)
     params(end).group = {'Q7'};
     params(end).label = 'Annual (i)';
     params(end).other = {'No trans shocks'};
+    params(end).tex_header = 'Annual (i)';
+    params(end).tex_header_values = {struct('description', 'no trans shocks')};
 
 %     % ii
 %     params(end+1) = setup.Params(1,'A a(ii) MeasError','');
@@ -443,6 +459,8 @@ function [params, all_names] = parameters(runopts)
     params(end).group = {'Q7'};
     params(end).label = 'Annual (iv)';
     params(end).other = {'Carrol process'};
+    params(end).tex_header = 'Annual (iv)';
+    params(end).tex_header_values = {struct('description', 'Carrol process')};
     
 %     % v
 %     params(end+1) = setup.Params(1,'A a(v) HighPersNotReEst','');
@@ -469,6 +487,8 @@ function [params, all_names] = parameters(runopts)
     params(end).group = {'Q7'};
     params(end).label = 'Annual (viii)';
     params(end).other = {'High persistence'};
+    params(end).tex_header = 'Annual (viii)';
+    params(end).tex_header_values = {struct('description', 'High persistence')};
 %     
 %     % ix
 %     params(end+1) = Params(1,'A a(ix) HighPersNoTransReEst','');
@@ -490,6 +510,8 @@ function [params, all_names] = parameters(runopts)
     params(end).group = {'Q7'};
     params(end).label = 'Annual (x)';
     params(end).other = {'FE heterogeneity'};
+    params(end).tex_header = 'Annual (x)';
+    params(end).tex_header_values = {struct('description', 'FE heterogeneity')};
     
     %----------------------------------------------------------------------
     % PART 3b, QUARTERLY MODEL
@@ -501,9 +523,11 @@ function [params, all_names] = parameters(runopts)
     params(end+1) = setup.Params(4, name , '');
     params(end) = set_shared_fields(params(end), quarterly_a_params);
     params(end).beta0 = 0.984363510593659;
-    params(end).group = {'Q7'};
+    params(end).group = {'Q8'};
     params(end).label = 'Quart (i)';
     params(end).other = {'quart_a'};
+    params(end).tex_header = 'Quart (i)';
+    params(end).tex_header_values = {struct('description', 'quart_a')};
     
     % ii
     name = 'KMP';
@@ -512,18 +536,22 @@ function [params, all_names] = parameters(runopts)
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
-    params(end).group = {'Q7'};
+    params(end).group = {'Q8'};
     params(end).label = 'Quart (ii)';
     params(end).other = {'KMP'};
+    params(end).tex_header = 'Quart (ii)';
+    params(end).tex_header_values = {struct('description', 'KMP')};
 
     % iii quarterly_c
     name = 'quarterly_c';
     params(end+1) = setup.Params(4, name, quarterly_c_path);
     params(end) = set_shared_fields(params(end), quarterly_c_params);
     params(end).beta0 = 0.984363510593659;
-    params(end).group = {'Q7'};
+    params(end).group = {'Q8'};
     params(end).label = 'Quart (iii)';
     params(end).other = {'quart_c'};
+    params(end).tex_header = 'Quart (iii)';
+    params(end).tex_header_values = {struct('description', 'quart_c')};
 
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences

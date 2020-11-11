@@ -35,10 +35,13 @@ def apply_float_formatting(df):
 
 def float2string(data, colname):
 	precision = int(data['decimals'])
-	if np.isnan(data[colname]):
-		return ''
-	else:
-		return f'{data[colname]:.{int(data["decimals"])}f}'
+	try:
+		if np.isnan(data[colname]):
+			return ''
+		else:
+			return f'{data[colname]:.{int(data["decimals"])}f}'
+	except:
+		return data[colname]
 
 def header_panel(filepath):
 	df = pd.read_excel(filepath, index_col=0, header=0)
@@ -152,3 +155,7 @@ if __name__ == '__main__':
 	save_tex_experiment_table(sys.argv[1], 3)
 	save_tex_experiment_table(sys.argv[1], 4)
 	save_tex_experiment_table(sys.argv[1], 5)
+	save_tex_experiment_table(sys.argv[1], 6)
+	save_tex_experiment_table(sys.argv[1], 7)
+	save_tex_experiment_table(sys.argv[1], 8)
+	save_tex_experiment_table(sys.argv[1], 9)
