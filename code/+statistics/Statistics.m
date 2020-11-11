@@ -84,12 +84,12 @@ classdef Statistics < handle
 	methods (Access=protected)
 		function compute_intro_stats(obj)
 			obj.beta_A = sfill(obj.p.beta0 ^ obj.freq,...
-				'Beta (annualized)');
+				'Beta (annualized)', 3);
 		    obj.beta_Q = sfill(obj.p.beta0 ^ (obj.freq/4),...
-		    	'Beta (quarterly)');
+		    	'Beta (quarterly)', 3);
 		    
 		    tmp = obj.expectation(obj.grdDST.a.matrix);
-		    obj.mean_a = sfill(tmp, 'Mean wealth');
+		    obj.mean_a = sfill(tmp, 'Mean wealth', 3, 'Mean wealth');
 
 		    xdist = obj.model.xdist(:);
 
@@ -97,7 +97,7 @@ classdef Statistics < handle
 		    obj.mean_s = sfill(mean_s, 'Mean s');
 
 		    tmp = dot(obj.model.sav_x(:)==0, xdist);
-		    obj.sav0 = sfill(tmp, 's = 0');
+		    obj.sav0 = sfill(tmp, 's = 0', 3, '$s = 0$');
 
 		    mean_x = dot(obj.model.xvals(:), xdist);
 		    obj.mean_x = sfill(mean_x, 'Mean x');
@@ -156,9 +156,9 @@ classdef Statistics < handle
 
 				tmp_b = sprintf('Wealth, %gth pctile', pct_at);
 				obj.wpercentiles{ip} = sfill(...
-					w_pct(pct_at/100), tmp_b);
+					w_pct(pct_at/100), tmp_b, 3);
 			end
-			obj.median_a = sfill(w_pct(0.5), 'Median wealth');
+			obj.median_a = sfill(w_pct(0.5), 'Median wealth', 3);
 		end
 
 		function compute_inequality(obj)

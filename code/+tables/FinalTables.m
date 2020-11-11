@@ -9,6 +9,8 @@ classdef FinalTables
             header = tables.FinalTables.table1header(params_in, results);
             panelA = tables.FinalTables.table1panelA(params_in, results);
             panelB = tables.FinalTables.table1panelB(params_in, results);
+            panelC = tables.FinalTables.table1panelC(params_in, results);
+            panelD = tables.FinalTables.table1panelD(params_in, results);
 
             headerpath = fullfile(dirpath, 'table1_header.xlsx');
             writetable(header, headerpath, 'WriteRowNames', true);
@@ -18,6 +20,12 @@ classdef FinalTables
             
             panelBpath = fullfile(dirpath, 'table1_panelB.xlsx');
             writetable(panelB, panelBpath, 'WriteRowNames', true);
+
+            panelCpath = fullfile(dirpath, 'table1_panelC.xlsx');
+            writetable(panelC, panelCpath, 'WriteRowNames', true);
+
+            panelDpath = fullfile(dirpath, 'table1_panelD.xlsx');
+            writetable(panelD, panelDpath, 'WriteRowNames', true);
         end
 
         function table_out = table1header(params_in, results)
@@ -69,6 +77,36 @@ classdef FinalTables
                                     results(ip).stats.w_top10share
                                     results(ip).stats.w_top1share
                                     results(ip).stats.wgini
+                                  };
+            end
+            table_out = make_table(statistics, params);
+        end
+
+        function table_out = table1panelC(params_in, results)
+            params = filter_param_names(params_in, tables.FinalTables.table1includes);
+            statistics = cell(numel(params), 1);
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                statistics{ii} = {  results(ip).stats.mpcs(4).annual
+                                    results(ip).stats.mpcs(6).annual
+                                    results(ip).stats.mpcs(4).quarterly
+                                    results(ip).stats.mpcs(6).quarterly
+                                  };
+            end
+            table_out = make_table(statistics, params);
+        end
+
+        function table_out = table1panelD(params_in, results)
+            params = filter_param_names(params_in, tables.FinalTables.table1includes);
+            statistics = cell(numel(params), 1);
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                statistics{ii} = {  results(ip).stats.mpcs(1).annual
+                                    results(ip).stats.mpcs(2).annual
+                                    results(ip).stats.mpcs(3).annual
+                                    results(ip).stats.mpcs(1).quarterly
+                                    results(ip).stats.mpcs(2).quarterly
+                                    results(ip).stats.mpcs(3).quarterly
                                   };
             end
             table_out = make_table(statistics, params);

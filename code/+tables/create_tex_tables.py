@@ -42,7 +42,7 @@ def float2string(data, colname):
 def header_panel(filepath):
 	df = pd.read_excel(filepath, index_col=0, header=0)
 	df = apply_float_formatting(df)
-	tex = df.to_latex(float_format="%.1f", na_rep='')
+	tex = df.to_latex(float_format="%.1f", escape=False, na_rep='')
 
 	n = nlines(tex)
 	lines_to_drop = [3, n-2, n-1]
@@ -76,10 +76,6 @@ def other_panel(dirpath, table, panel, panelname):
 	headername = f'Panel {panel}: {panelname}'
 	newline = f'\\multicolumn{{{cols+1}}}{{c}}{{\\textbf{{{headername}}}}}\\\\'
 	tex = replace_line(tex, 2, newline)
-	# tex = drop_line(tex, 3)
-	# tex = drop_line(tex, -1)
-	# tex = drop_line(tex, -1)
-	# tex = drop_line(tex, -1)
 
 	return tex
 
@@ -87,8 +83,16 @@ def save_tex_table_panels(dirpath):
 	table1_header = header_panel(os.path.join(dirpath, 'table1_header.xlsx'))
 	table1_panelA = other_panel(dirpath, 1, 'A', 'Income Statistics')
 	table1_panelB = other_panel(dirpath, 1, 'B', 'Wealth Statistics')
+	table1_panelC = other_panel(dirpath, 1, 'C', 'MPC Size Effects')
+	table1_panelD = other_panel(dirpath, 1, 'D', 'MPC Sign Effects')
 
-	tex = '\n'.join([table1_header, table1_panelA, table1_panelB])
+	tex = '\n'.join([
+		table1_header,
+		table1_panelA,
+		table1_panelB,
+		table1_panelC,
+		table1_panelD,
+		])
 	tex += '\n\\end{tabular}'
 	
 	texfilepath = os.path.join(dirpath, 'table1.tex')
