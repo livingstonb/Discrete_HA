@@ -63,36 +63,36 @@ classdef ComparisonDecomp < handle
 		function initialize(obj)
 			import statistics.Statistics.sfill
 
-			nfill = @(x) sfill(NaN, x);
+			nfill = @(varargin) sfill(NaN, varargin{:});
 			decomp_name = strcat('Quarterly MPC decomposition of',...
 				' ', 'E[MPC] - E[MPC_baseline]');
 			obj.results.description = sfill(decomp_name, 'Description');
-			obj.results.Em1_less_Em0 = nfill('E[MPC] - E[MPC_baseline]');
-			obj.results.term1 = nfill('Effect of MPC fcn');
-			obj.results.term1a = nfill('Effect of MPC fcn, level');
-			obj.results.term1b = nfill('Effect of MPC fcn, shape');
-			obj.results.term2 = nfill('Effect of distr');
-			obj.results.term3 = nfill('Interaction of MPCs and distr');
+			obj.results.Em1_less_Em0 = nfill('E[MPC] - E[MPC_baseline]', 3, '$E[m_1]-E[m_0]$');
+			obj.results.term1 = nfill('Effect of MPC fcn', 3);
+			obj.results.term1a = nfill('Effect of MPC fcn, level', 3);
+			obj.results.term1b = nfill('Effect of MPC fcn, shape', 3);
+			obj.results.term2 = nfill('Effect of distr', 3);
+			obj.results.term3 = nfill('Interaction of MPCs and distr', 3, 'Interaction');
 
-			obj.results.term1_pct = nfill('Effect of MPC fcn (%)');
+			obj.results.term1_pct = nfill('Effect of MPC fcn (%)', 1, 'Effect of MPC fcn');
 			obj.results.term1a_pct = nfill('Effect of MPC fcn (%), level');
 			obj.results.term1b_pct = nfill('Effect of MPC fcn (%), shape');
-			obj.results.term2_pct = nfill('Effect of distr (%)');
-			obj.results.term3_pct = nfill('Interaction of MPCs and distr (%)');
+			obj.results.term2_pct = nfill('Effect of distr (%)', 1, 'Effect of distr');
+			obj.results.term3_pct = nfill('Interaction of MPCs and distr (%)', 1, 'Interaction');
 
 			obj.results.complete = false;
 
 			for ia = 1:obj.nthresholds
 				thresh = obj.thresholds(ia);
 				obj.results.term2a(ia) = nfill(...
-					sprintf('Effect of distr, HtM (a <= %g)', thresh));
+					sprintf('Effect of distr, HtM (a <= %g)', thresh), 3, '\quad Distr effect, HtM');
 				obj.results.term2b(ia) = nfill(...
-					sprintf('Effect of distr, NHtM (a > %g)', thresh));
+					sprintf('Effect of distr, NHtM (a > %g)', thresh), 3, '\quad Distr effect, NHtM');
 
 				obj.results.term2a_pct(ia) = nfill(...
-					sprintf('Effect of distr (%%), HtM (a <= %g)', thresh));
+					sprintf('Effect of distr (%%), HtM (a <= %g)', thresh), 1, '\quad Distr effect, HtM');
 				obj.results.term2b_pct(ia) = nfill(...
-					sprintf('Effect of distr (%%), NHtM (a > %g)', thresh));
+					sprintf('Effect of distr (%%), NHtM (a > %g)', thresh), 1, '\quad Distr effect, NHtM');
 			end
 		end
 

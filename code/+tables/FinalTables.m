@@ -51,10 +51,19 @@ classdef FinalTables
             writetable(panelD, panelDpath, 'WriteRowNames', true);
         end
 
-        function save_experiment_table(params_in, results, dirpath, tableno)
+        function save_experiment_table(params_in, results, comparison_decomps, dirpath, tableno)
             header = tables.FinalTables.experiment_table_header(params_in, results, tableno);
+            panelA = tables.FinalTables.experiment_table_panelA(params_in, comparison_decomps, tableno);
+            panelA2 = tables.FinalTables.experiment_table_panelA2(params_in, comparison_decomps, tableno);
+
             headerpath = fullfile(dirpath, sprintf('table%d_header.xlsx', tableno));
             writetable(header, headerpath, 'WriteRowNames', true);
+
+            panelApath = fullfile(dirpath, sprintf('table%d_panelA.xlsx', tableno));
+            writetable(panelA, panelApath, 'WriteRowNames', true);
+
+            panelA2path = fullfile(dirpath, sprintf('table%d_panelA2.xlsx', tableno));
+            writetable(panelA2, panelA2path, 'WriteRowNames', true);
         end
 
         function table_out = table1header(params_in, results)
@@ -210,6 +219,41 @@ classdef FinalTables
                                     results(ip).stats.mpcs(5).quarterly
                                     results(ip).stats.mpcs(5).annual
                                     results(ip).stats.beta_A
+                                  };
+            end
+            table_out = make_table(statistics, params, true);
+        end
+
+        function table_out = experiment_table_panelA(params_in, comparison_decomps, tableno)
+            if (tableno == 3)
+                params = filter_param_group(params_in, tables.FinalTables.table3includes);
+            end
+
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                statistics{ii} = {  comparison_decomps(ip).Em1_less_Em0
+                                    comparison_decomps(ip).term1
+                                    comparison_decomps(ip).term2
+                                    comparison_decomps(ip).term2a(2)
+                                    comparison_decomps(ip).term2b(2)
+                                    comparison_decomps(ip).term3
+                                  };
+            end
+            table_out = make_table(statistics, params, true);
+        end
+
+        function table_out = experiment_table_panelA2(params_in, comparison_decomps, tableno)
+            if (tableno == 3)
+                params = filter_param_group(params_in, tables.FinalTables.table3includes);
+            end
+
+            for ii = 1:numel(params)
+                ip = params(ii).index;
+                statistics{ii} = {  comparison_decomps(ip).term1_pct
+                                    comparison_decomps(ip).term2_pct
+                                    comparison_decomps(ip).term2a_pct(2)
+                                    comparison_decomps(ip).term2b_pct(2)
+                                    comparison_decomps(ip).term3_pct
                                   };
             end
             table_out = make_table(statistics, params, true);

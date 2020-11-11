@@ -123,4 +123,4 @@ end
 % tables.FinalTables.table1panelA(params, results)
 tables.FinalTables.save_table1(params, results, outdir);
 tables.FinalTables.save_table2(params, results, outdir);
-tables.FinalTables.save_experiment_table(params, results, outdir, 3);
+tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 3);

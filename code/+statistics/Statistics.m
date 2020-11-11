@@ -198,7 +198,7 @@ classdef Statistics < handle
 
 				tmp = cinterp(htm);
 				obj.constrained{ip} = sfill(tmp,...
-					sprintf('a <= %g', htm), 3, sprintf('$a <= %g$', htm));
+					sprintf('a <= %g', htm), 3, sprintf('$a \\leq %g$', htm));
 
 				obj.constrained_pct{ip} = sfill(tmp,...
 					sprintf('a <= %g%% mean ann inc', 100 * htm));
@@ -211,7 +211,7 @@ classdef Statistics < handle
 
 				tmp = cinterp(htm);
 				obj.constrained_dollars{ip} = sfill(tmp,...
-					sprintf('a <= %s', label), 3, sprintf('$a <= %s$', "\" + label));
+					sprintf('a <= %s', label), 3, sprintf('$a \\leq %s$', "\" + label));
 			end
 
 			% Wealth / (quarterly earnings) < epsilon
@@ -227,9 +227,9 @@ classdef Statistics < handle
 		    ay_interp = constrained_interp(vals, cdf_AY);
 
 			obj.a_lt_ysixth = sfill(...
-				ay_interp(1/6), 'a_i <= y_i / 6', 3, '$a <= 1 / 6$ own quarterly inc');
+				ay_interp(1/6), 'a_i <= y_i / 6', 3, '$a \leq 1 / 6$ own quarterly inc');
 			obj.a_lt_ytwelfth = sfill(...
-				ay_interp(1/12), 'a_i <= y_i / 12', 3, '$a <= 1 / 12$ own quarterly inc');
+				ay_interp(1/12), 'a_i <= y_i / 12', 3, '$a \leq 1 / 12$ own quarterly inc');
 		end
 
 		function out = expectation(obj, vals)

@@ -68,11 +68,11 @@ classdef Decomp < handle
 			obj.results_RA.Em1_less_mRA = nfill(...
 				'E[MPC] - RA MPC');
 			obj.results_RA.term1 = nfill(...
-				'Effect of MPC function');
+				'Effect of MPC function', 3);
 			obj.results_RA.term2 = nfill(...
-				'Effect of distribution');
+				'Effect of distribution', 3);
 			obj.results_RA.term3 = nfill(...
-				'Interaction');
+				'Interaction', 3);
 		end
 
 		function make_initial_computations(obj, mpcs)

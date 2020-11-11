@@ -123,7 +123,14 @@ def save_tex_table2_panels(dirpath):
 
 def save_tex_experiment_table(dirpath, tableno):
 	table_header = header_panel(os.path.join(dirpath, f'table{tableno}_header.xlsx'))
-	tex = table_header
+	table_panelA = other_panel(dirpath, tableno, 'A', 'Quarterly MPC Decomp w.r.t. Baseline\\footnotemark[1]')
+	table_panelA2 = other_panel(dirpath, tableno, 'A2',
+		'Quarterly MPC Decomp as \\% of $E[m_1]-E[m_0]$\\footnotemark[1]')
+	tex = '\n'.join([
+		table_header,
+		table_panelA,
+		table_panelA2,
+		])
 	tex += '\n\\end{tabular}'
 
 	texfilepath = os.path.join(dirpath, f'table{tableno}.tex')
