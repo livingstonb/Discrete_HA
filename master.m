@@ -117,11 +117,15 @@ if params.calibrate
     options = optimoptions(@lsqnonlin, 'MaxIterations', params.calibrate_maxiter,...
             'FunctionTolerance', params.calibrate_tol);
     solver_args = params.calibrator.get_args();
-    calibrated_params= lsqnonlin(params.calibrator.solver_handle,...
+    calibrated_params = lsqnonlin(params.calibrator.solver_handle,...
         solver_args{:}, options);
 
-    if dnorm > 1e-4
+    if params.calibrator.dnorm > 1e-4
         error('Could not match targets')
+
+        if running_on_server
+            exit
+        end
     end
 end
 
