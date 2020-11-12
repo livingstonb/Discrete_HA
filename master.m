@@ -95,8 +95,10 @@ if exist(runopts.savematpath, 'file') == 2
     delete runopts.savematpath;
 end
 
-if ~exist('+EconTools', 'dir')
+if ~exist('../EconTools', 'dir')
     error("EconTools not found")
+else
+    addpath('../EconTools')
 end
 
 addpath('code');
@@ -115,10 +117,10 @@ if params.calibrate
     options = optimoptions(@lsqnonlin, 'MaxIterations', params.calibrate_maxiter,...
             'FunctionTolerance', params.calibrate_tol);
     solver_args = params.calibrator.get_args();
-    [calibrated_params, resnorm] = lsqnonlin(params.calibrator.solver_handle,...
+    calibrated_params= lsqnonlin(params.calibrator.solver_handle,...
         solver_args{:}, options);
 
-    if resnorm > 1e-5
+    if dnorm > 1e-4
         error('Could not match targets')
     end
 end

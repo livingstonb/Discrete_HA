@@ -122,7 +122,7 @@ end
 % tables.FinalTables.table1header(params, results)
 % tables.FinalTables.table1panelA(params, results)
 
-ctimepath = fullfile('input', 'continous_time_baseline.mat');
+ctimepath = fullfile('input', 'continuous_time_baseline.mat');
 ctimeresults = tables.read_continuous_time_results(ctimepath);
 
 tables.FinalTables.save_table1(params, results, outdir, ctimeresults);

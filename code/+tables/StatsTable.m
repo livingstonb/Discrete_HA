@@ -4,6 +4,7 @@ classdef StatsTable < tables.BaseTable
 			obj.output = table();
 			for ip = 1:obj.n_cols
 				p_ip = params(ip);
+				ip0 = params(ip).index;
 				stats_ip = stats{ip};
 
 				obj.current_column = table();
@@ -22,7 +23,7 @@ classdef StatsTable < tables.BaseTable
     			obj.decomp_norisk_table(p_ip, stats_ip);
                 obj.other_stats_table(stats_ip);
 
-                obj.add_column(ip)
+                obj.add_column(ip0);
 			end
 
 			output_table = obj.output;

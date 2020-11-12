@@ -46,7 +46,10 @@ def float2string(data, colname):
 def header_panel(filepath):
 	df = pd.read_excel(filepath, index_col=0, header=0)
 	df = apply_float_formatting(df)
-	tex = df.to_latex(float_format="%.1f", escape=False, na_rep='')
+	colfmt = 'l'
+	for ic in range(len(df.columns)):
+		colfmt += 'c'
+	tex = df.to_latex(float_format="%.1f", escape=False, na_rep='', column_format=colfmt)
 
 	n = nlines(tex)
 	lines_to_drop = [3, n-2, n-1]
@@ -61,7 +64,10 @@ def other_panel(dirpath, table, panel, panelname):
 
 	df = pd.read_excel(filepath, index_col=0, header=0)
 	df = apply_float_formatting(df)
-	tex = df.to_latex(float_format="%.1f", escape=False, na_rep='')
+	colfmt = 'l'
+	for ic in range(len(df.columns)):
+		colfmt += 'c'
+	tex = df.to_latex(float_format="%.1f", escape=False, na_rep='', column_format=colfmt)
 
 	cols = len(df.columns)
 	newline = ''
