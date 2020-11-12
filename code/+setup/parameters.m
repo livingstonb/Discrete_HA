@@ -527,7 +527,7 @@ function [params, all_names] = parameters(runopts)
     params(end).label = 'Quart (i)';
     params(end).other = {'quart_a'};
     params(end).tex_header = 'Quart (i)';
-    params(end).tex_header_values = {struct('description', 'quart_a')};
+    params(end).tex_header_values = {struct('description', 'quart$_a$')};
     
     % ii
     name = 'KMP';
@@ -551,7 +551,7 @@ function [params, all_names] = parameters(runopts)
     params(end).label = 'Quart (iii)';
     params(end).other = {'quart_c'};
     params(end).tex_header = 'Quart (iii)';
-    params(end).tex_header_values = {struct('description', 'quart_c')};
+    params(end).tex_header_values = {struct('description', 'quart$_c$')};
 
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences

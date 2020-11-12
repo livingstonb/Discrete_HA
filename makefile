@@ -6,7 +6,7 @@ combine :
 
 spath := "$$MW:/home/livingstonb/GitHub/Discrete_HA/output/tables/*"
 cdate := $(shell date +"%m-%d-%Y-%T")
-download : tables
+download :
 	-mkdir -p output/server-$(cdate)
 	-scp $(spath) output/server-$(cdate)
 
