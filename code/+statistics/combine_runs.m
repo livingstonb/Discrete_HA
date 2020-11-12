@@ -103,34 +103,11 @@ if ~isempty(table_out)
     writetable(table_out, xlxpath, 'WriteRowNames', true);
 end
 
-% quarterly_results = table_gen.create(params, results);
-% annual_results = table_gen.create(params, results);
-
-% if ~isempty(quarterly_results)
-%     xlxpath = fullfile(xlxdir, 'quarterly_results.xlsx');
-%     writetable(quarterly_results, xlxpath, 'WriteRowNames', true);
-% end
-
-% if ~isempty(annual_results)
-%     xlxpath = fullfile(xlxdir, 'annual_results.xlsx');
-%     writetable(annual_results, xlxpath, 'WriteRowNames', true);
-% end
-
-% save_tables = true;
-% tables_out = tables.create_final_tables(params, results,...
-%     decomps_baseline, save_tables);
-% tables.FinalTables.table1header(params, results)
-% tables.FinalTables.table1panelA(params, results)
-
 ctimepath = fullfile('input', 'continuous_time_baseline.mat');
 ctimeresults = tables.read_continuous_time_results(ctimepath);
 
-tables.FinalTables.save_table1(params, results, outdir, ctimeresults);
-tables.FinalTables.save_table2(params, results, outdir, ctimeresults);
-tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 3);
-tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 4);
-tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 5);
-tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 6);
-tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 7);
-tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 8);
-tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, 9);
+tables.FinalTables.save_baselines_tables(params, results, outdir, ctimeresults);
+
+for ip = 3:9
+	tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, ip);
+end

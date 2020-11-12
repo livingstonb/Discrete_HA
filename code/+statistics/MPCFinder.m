@@ -74,6 +74,14 @@ classdef MPCFinder < handle
 		    		sprintf('Annual MPC (%%), out of %s', shock_label), 1,...
 		    		sprintf('Annual MPC (\\%%), out of %s', shock_label_tex));
 
+		    	if (p.freq == 1)
+		    		freqst = 'Annual';
+		    	else
+		    		freqst = 'Quarterly';
+		    	end
+		    	obj.mpcs(ishock).oneperiod = sfill(NaN,...
+		    		'MPC, quarterly or annual (\%)', 1, 'MPC, quarterly or annual (\%)');
+
 		    	obj.mpcs(ishock).shock = sfill(shock_label,...
 					'Shock description');
 				obj.mpcs(ishock).shock_normalized = sfill(shock_size,...
@@ -331,9 +339,11 @@ classdef MPCFinder < handle
 				if obj.p.freq == 4
 					obj.mpcs(ishock).quarterly.value = 100 * obj.mpcs(ishock).avg_s_t(1,1);
 					obj.mpcs(ishock).annual.value = 100 * obj.mpcs(ishock).avg_1_1to4;
+					obj.mpcs(ishock).oneperiod.value = obj.mpcs(ishock).quarterly.value;
 				else
 					obj.mpcs(ishock).quarterly.value = NaN;
 					obj.mpcs(ishock).annual.value = 100 * obj.mpcs(ishock).avg_s_t(1,1);
+					obj.mpcs(ishock).oneperiod.value = obj.mpcs(ishock).annual.value;
 				end
 
 				obj.mpcs(ishock).median_mpc.value = 100 * obj.mpcs(ishock).median(1,1);

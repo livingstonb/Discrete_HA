@@ -87,81 +87,44 @@ def other_panel(dirpath, table, panel, panelname):
 
 	return tex
 
-def save_tex_table1_panels(dirpath):
-	table1_header = header_panel(os.path.join(dirpath, 'table1_header.xlsx'))
-	table1_panelA = other_panel(dirpath, 1, 'A', 'Income Statistics')
-	table1_panelB = other_panel(dirpath, 1, 'B', 'Wealth Statistics')
-	table1_panelC = other_panel(dirpath, 1, 'C', 'MPC Size Effects')
-	table1_panelD = other_panel(dirpath, 1, 'D', 'MPC Sign Effects')
+def save_tex_table(dirpath, tableno):
+	panels = [header_panel(os.path.join(dirpath, f'table{tableno}_header.xlsx'))]
 
-	tex = '\n'.join([
-		table1_header,
-		table1_panelA,
-		table1_panelB,
-		table1_panelC,
-		table1_panelD,
-		])
-	tex += '\n\\bottomrule';
-	tex += '\n\\end{tabular}'
+	if tableno == 1:
+		panel_args = [
+			['A', 'Income Statistics'],
+			['B', 'Wealth Statistics'],
+			['C', 'MPC Size Effects'],
+			['D', 'MPC Sign Effects'],
+		]
+	elif tableno == 2:
+		panel_args = [
+			['A', 'Decomposition of Mean MPC, around 0'],
+			['B', 'Decomposition of Mean MPC, around 0.01'],
+			['C', 'Decomposition of Mean MPC, around 0.05'],
+			['D', 'Decomposition of Mean MPC - MPC$_{RA}$'],
+		]
+	else:
+		panel_args = [
+			['A', 'Quarterly MPC Decomp w.r.t. Baseline'],
+			['A2', 'Quarterly MPC Decomp as \\% of $E[m_1]-E[m_0]$'],
+			['B', 'Wealth Statistics'],
+			['C', 'MPC Size Effects'],
+			['D', 'MPC Sign Effects'],
+		]
+
+	for ip in range(len(panel_args)):
+		panels.append(other_panel(dirpath, tableno, *panel_args[ip]))
+
+	tex = '\n'.join(panels)
+	tex += '\n\\bottomrule\n\\end{tabular}'
 	
-	texfilepath = os.path.join(dirpath, 'table1.tex')
-	fobj = open(texfilepath, 'w')
-	fobj.write(tex)
-	fobj.close()
-
-def save_tex_table2_panels(dirpath):
-	table2_header = header_panel(os.path.join(dirpath, 'table2_header.xlsx'))
-	table2_panelA = other_panel(dirpath, 2, 'A', 'Decomposition of Mean MPC, around 0')
-	table2_panelB = other_panel(dirpath, 2, 'B', 'Decomposition of Mean MPC, around 0.01')
-	table2_panelC = other_panel(dirpath, 2, 'C', 'Decomposition of Mean MPC, around 0.05')
-	table2_panelD = other_panel(dirpath, 2, 'D', 'Decomposition of Mean MPC - MPC$_{RA}$')
-
-	tex = '\n'.join([
-		table2_header,
-		table2_panelA,
-		table2_panelB,
-		table2_panelC,
-		table2_panelD,
-		])
-	tex += '\n\\bottomrule';
-	tex += '\n\\end{tabular}'
-
-	texfilepath = os.path.join(dirpath, 'table2.tex')
-	fobj = open(texfilepath, 'w')
-	fobj.write(tex)
-	fobj.close()
-
-def save_tex_experiment_table(dirpath, tableno):
-	table_header = header_panel(os.path.join(dirpath, f'table{tableno}_header.xlsx'))
-	table_panelA = other_panel(dirpath, tableno, 'A', 'Quarterly MPC Decomp w.r.t. Baseline')
-	table_panelA2 = other_panel(dirpath, tableno, 'A2',
-		'Quarterly MPC Decomp as \\% of $E[m_1]-E[m_0]$')
-	table_panelB = other_panel(dirpath, tableno, 'B', 'Wealth Statistics')
-	table_panelC = other_panel(dirpath, tableno, 'C', 'MPC Size Effects')
-	table_panelD = other_panel(dirpath, tableno, 'D', 'MPC Sign Effects')
-	tex = '\n'.join([
-		table_header,
-		table_panelA,
-		table_panelA2,
-		table_panelB,
-		table_panelC,
-		table_panelD,
-		])
-	tex += '\n\\bottomrule';
-	tex += '\n\\end{tabular}'
-
 	texfilepath = os.path.join(dirpath, f'table{tableno}.tex')
-	fobj = open(texfilepath, 'w')
-	fobj.write(tex)
-	fobj.close()
+	with open(texfilepath, 'w') as fobj:
+		fobj.write(tex)
 
 if __name__ == '__main__':
-	save_tex_table1_panels(sys.argv[1])
-	save_tex_table2_panels(sys.argv[1])
-	save_tex_experiment_table(sys.argv[1], 3)
-	save_tex_experiment_table(sys.argv[1], 4)
-	save_tex_experiment_table(sys.argv[1], 5)
-	save_tex_experiment_table(sys.argv[1], 6)
-	save_tex_experiment_table(sys.argv[1], 7)
-	save_tex_experiment_table(sys.argv[1], 8)
-	save_tex_experiment_table(sys.argv[1], 9)
+	dirpath = sys.argv[1]
+
+	for it in range(1, 10):
+		save_tex_table(dirpath, it)

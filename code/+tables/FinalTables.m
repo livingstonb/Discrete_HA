@@ -2,8 +2,8 @@ classdef FinalTables
     
     properties (Constant)
         table_includes = {
-            {'Quarterly', 'Annual'}
-            {'Quarterly', 'Annual'}
+            {'Baseline'}
+            {'Baseline'}
             {'Q1a'}
             {'Q1b'}
             {'Q2'}
@@ -15,256 +15,166 @@ classdef FinalTables
     end
 
     methods (Static)
-        function save_table1(params_in, results, dirpath, varargin)
-            header = tables.FinalTables.table1header(params_in, results, varargin{:});
-            panelA = tables.FinalTables.table1panelA(params_in, results, varargin{:});
-            panelB = tables.FinalTables.table1panelB(params_in, results, varargin{:});
-            panelC = tables.FinalTables.table1panelC(params_in, results, varargin{:});
-            panelD = tables.FinalTables.table1panelD(params_in, results, varargin{:});
+        function save_baselines_tables(params_in, results, dirpath, varargin)
+            for tableno = [1, 2]
+	            for panelname = {'header', 'A', 'B', 'C', 'D'}
+	            	if (tableno == 1)
+	            		panelobj = tables.FinalTables.table1panel(params_in, results, panelname{:}, varargin{:});
+	            	elseif (tableno == 2)
+	            		panelobj = tables.FinalTables.table1panel(params_in, results, panelname{:}, varargin{:});
+	            	end
 
-            headerpath = fullfile(dirpath, 'table1_header.xlsx');
-            writetable(header, headerpath, 'WriteRowNames', true);
-            
-            panelApath = fullfile(dirpath, 'table1_panelA.xlsx');
-            writetable(panelA, panelApath, 'WriteRowNames', true);
-            
-            panelBpath = fullfile(dirpath, 'table1_panelB.xlsx');
-            writetable(panelB, panelBpath, 'WriteRowNames', true);
+	            	if strcmp(panelname{:}, 'header')
+	            		panelfname = sprintf('table%d_header.xlsx', tableno);
+	            	else
+	            		panelfname = sprintf('table%d_panel%s.xlsx', tableno, panelname{:});
+	            	end
 
-            panelCpath = fullfile(dirpath, 'table1_panelC.xlsx');
-            writetable(panelC, panelCpath, 'WriteRowNames', true);
-
-            panelDpath = fullfile(dirpath, 'table1_panelD.xlsx');
-            writetable(panelD, panelDpath, 'WriteRowNames', true);
-        end
-
-        function save_table2(params_in, results, dirpath, varargin)
-            header = tables.FinalTables.table2header(params_in, results, varargin{:});
-            panelsABC = tables.FinalTables.table2panelABC(params_in, results, varargin{:});
-            panelD = tables.FinalTables.table2panelD(params_in, results, varargin{:});
-
-            headerpath = fullfile(dirpath, 'table2_header.xlsx');
-            writetable(header, headerpath, 'WriteRowNames', true);
-
-            panelApath = fullfile(dirpath, 'table2_panelA.xlsx');
-            writetable(panelsABC{1}, panelApath, 'WriteRowNames', true);
-            
-            panelBpath = fullfile(dirpath, 'table2_panelB.xlsx');
-            writetable(panelsABC{2}, panelBpath, 'WriteRowNames', true);
-
-            panelCpath = fullfile(dirpath, 'table2_panelC.xlsx');
-            writetable(panelsABC{3}, panelCpath, 'WriteRowNames', true);
-
-            panelDpath = fullfile(dirpath, 'table2_panelD.xlsx');
-            writetable(panelD, panelDpath, 'WriteRowNames', true);
+	            	panelfpath = fullfile(dirpath, panelfname);
+	            	writetable(panelobj, panelfpath, 'WriteRowNames', true);
+	            end
+	        end
         end
 
         function save_experiment_table(params_in, results, comparison_decomps, dirpath, tableno)
             header = tables.FinalTables.experiment_table_header(params_in, results, tableno);
-            panels = {tables.FinalTables.experiment_table_panelA(params_in, comparison_decomps, tableno)};
-            panels{2} = tables.FinalTables.experiment_table_panelA2(params_in, comparison_decomps, tableno);
-            panels{3} = tables.FinalTables.experiment_table_panelB(params_in, results, tableno);
-            panels{4} = tables.FinalTables.experiment_table_panelC(params_in, results, tableno);
-            panels{5} = tables.FinalTables.experiment_table_panelD(params_in, results, tableno);
-
-            panel_labels = {'A', 'A2', 'B', 'C', 'D'};
-
             headerpath = fullfile(dirpath, sprintf('table%d_header.xlsx', tableno));
             writetable(header, headerpath, 'WriteRowNames', true);
 
-            for ii = 1:numel(panel_labels)
-                label = panel_labels{ii};
-                panel_path = fullfile(dirpath, sprintf('table%d_panel%s.xlsx', tableno, label));
-                writetable(panels{ii}, panel_path, 'WriteRowNames', true);
+            for panelname = {'A', 'A2', 'B', 'C', 'D'}
+            	if ismember(panelname{:}, {'A', 'A2'})
+            		panelobj = tables.FinalTables.experiment_table_panel(...
+            			params_in, comparison_decomps, panelname{:}, tableno);
+            	else
+            		panelobj = tables.FinalTables.experiment_table_panel(...
+            			params_in, results, panelname{:}, tableno);
+            	end
+            	panelfname = sprintf('table%d_panel%s.xlsx', tableno, panelname{:});.
+            	panelfpath = fullfile(dirpath, panelfname);
+            	writetable(panelobj, panelfpath, 'WriteRowNames', true);
             end
         end
 
-        function table_out = table1header(params_in, results, ctimeresults)
-            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
-            statistics = cell(numel(params), 1);
+        function table_out = table1panel(params_in, results, panel, ctimeresults)
+        	indices = filter_param_group(params_in, tables.FinalTables.table_includes{1});
 
-            get_stats = @(x) {      x.stats.mpcs(5).quarterly
-                                    x.stats.mpcs(5).annual
-                                    x.stats.beta_A
-                                  };
+            switch panel
+	            case 'header'
+	            	get_stats = @(x) {
+	            		x.stats.mpcs(5).quarterly
+	                    x.stats.mpcs(5).annual
+	                    x.stats.beta_A
+	                  };
+	            case 'A'
+		            get_stats = @(x) {...
+		            	x.stats.mean_gross_y_annual
+                        x.stats.std_log_gross_y_annual
+                        x.stats.std_log_net_y_annual
+	                };
+	            case 'B'
+	            	get_stats = @(x) {...
+	            		x.stats.mean_a
+                        x.stats.sav0
+                        x.stats.constrained{1}
+                        x.stats.constrained_dollars{1}
+                        x.stats.constrained_dollars{2}
+                        x.stats.constrained_dollars{3}
+                        x.stats.constrained_dollars{4}
+                        x.stats.a_lt_ysixth
+                        x.stats.a_lt_ytwelfth
+                        x.stats.wpercentiles{1}
+                        x.stats.wpercentiles{2}
+                        x.stats.wpercentiles{3}
+                        x.stats.wpercentiles{5}
+                        x.stats.wpercentiles{7}
+                        x.stats.wpercentiles{8}
+                        x.stats.w_top10share
+                        x.stats.w_top1share
+                        x.stats.wgini
+                    };
+                case 'C'
+                	get_stats = @(x) {...
+                		x.stats.mpcs(4).annual
+                        x.stats.mpcs(6).annual
+                        x.stats.mpcs(4).quarterly
+                        x.stats.mpcs(6).quarterly
+                    };
+                case 'D'
+                	get_stats = @(x) {...
+                		x.stats.mpcs(1).annual
+                        x.stats.mpcs(2).annual
+                        x.stats.mpcs(3).annual
+                        x.stats.mpcs(1).quarterly
+                        x.stats.mpcs(2).quarterly
+                        x.stats.mpcs(3).quarterly
+                    };
+                otherwise
+                	error("Invalid panel entry")
+            end
 
-            for ii = 1:numel(params)
-                ip = params(ii).index;
+            n = numel(indices);
+            statistics = cell(n, 1);
+            for ii = 1:n
+                ip = indices(ii);
                 statistics{ii} = get_stats(results(ip));
+                params(ii) = params_in(ip);
             end
 
-            if (nargin == 3)
-                statistics{end+1} = get_stats(ctimeresults);
+            if (nargin >= 3)
+                statistics{n+1} = get_stats(ctimeresults);
+                table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
+            else
+            	table_out = make_table(statistics, params);
             end
-            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
         end
 
-        function table_out = table1panelA(params_in, results, ctimeresults)
-            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
-            statistics = cell(numel(params), 1);
+        function table_out = table2panel(params_in, results, panel, ctimeresults)
+            indices = filter_param_group(params_in, tables.FinalTables.table_includes{2});
 
-            get_stats = @(x) {      x.stats.mean_gross_y_annual
-                                    x.stats.std_log_gross_y_annual
-                                    x.stats.std_log_net_y_annual
-                                  };
-            for ii = 1:numel(params)
-                ip = params(ii).index;
+            statistics = cell(numel(params), 1);
+            decomp_norisk_get_stats_fn = @(x, k)  {
+            	x.stats.decomp_norisk.term2(k)
+                x.stats.decomp_norisk.term3(k)
+                x.stats.decomp_norisk.term4(k)
+            };
+
+            switch panel
+	            case 'header'
+	            	get_stats = @(x) {
+	            		x.stats.mpcs(5).oneperiod
+	            		x.stats.decomp_norisk.term1_pct
+	            	};
+	            case 'A'
+	                get_stats = @(x) decomp_norisk_get_stats_fn(x, 1);
+	            case 'B'
+	            	get_stats = @(x) decomp_norisk_get_stats_fn(x, 2);
+	           	case 'C'
+	           		get_stats = @(x) decomp_norisk_get_stats_fn(x, 3);
+	            case 'D'
+	            	get_stats = @(x) {
+	            		x.stats.decomp_RA.Em1_less_mRA
+	                    x.stats.decomp_RA.term1
+	                    x.stats.decomp_RA.term2
+	                    x.stats.decomp_RA.term3
+	                };
+	           	otherwise
+	           		error("Invalid panel selection")
+           	end
+
+            n = numel(indices);
+            statistics = cell(n, 1);
+            for ii = 1:n
+                ip = indices(ii);
                 statistics{ii} = get_stats(results(ip));
+                params(ii) = params_in(ip);
             end
 
-            if (nargin == 3)
-                statistics{end+1} = get_stats(ctimeresults);
+            if (nargin >= 3)
+                statistics{n+1} = get_stats(ctimeresults);
+                table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
+            else
+            	table_out = make_table(statistics, params);
             end
-            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
-        end
-        
-        function table_out = table1panelB(params_in, results, ctimeresults)
-            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
-            statistics = cell(numel(params), 1);
-
-            get_stats = @(x) {  x.stats.mean_a
-                                x.stats.sav0
-                                x.stats.constrained{1}
-                                x.stats.constrained_dollars{1}
-                                x.stats.constrained_dollars{2}
-                                x.stats.constrained_dollars{3}
-                                x.stats.constrained_dollars{4}
-                                x.stats.a_lt_ysixth
-                                x.stats.a_lt_ytwelfth
-                                x.stats.wpercentiles{1}
-                                x.stats.wpercentiles{2}
-                                x.stats.wpercentiles{3}
-                                x.stats.wpercentiles{5}
-                                x.stats.wpercentiles{7}
-                                x.stats.wpercentiles{8}
-                                x.stats.w_top10share
-                                x.stats.w_top1share
-                                x.stats.wgini
-                              };
-            for ii = 1:numel(params)
-                ip = params(ii).index;
-                statistics{ii} = get_stats(results(ip));
-            end
-
-            if (nargin == 3)
-                statistics{end+1} = get_stats(ctimeresults);
-            end
-            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
-        end
-
-        function table_out = table1panelC(params_in, results, ctimeresults)
-            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
-            statistics = cell(numel(params), 1);
-            get_stats = @(x) {  x.stats.mpcs(4).annual
-                                x.stats.mpcs(6).annual
-                                x.stats.mpcs(4).quarterly
-                                x.stats.mpcs(6).quarterly
-                              };
-            for ii = 1:numel(params)
-                ip = params(ii).index;
-                statistics{ii} = get_stats(results(ip));
-            end
-
-            if (nargin == 3)
-                statistics{end+1} = get_stats(ctimeresults);
-            end
-            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
-        end
-
-        function table_out = table1panelD(params_in, results, ctimeresults)
-            params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
-            statistics = cell(numel(params), 1);
-            get_stats = @(x) {  x.stats.mpcs(1).annual
-                                x.stats.mpcs(2).annual
-                                x.stats.mpcs(3).annual
-                                x.stats.mpcs(1).quarterly
-                                x.stats.mpcs(2).quarterly
-                                x.stats.mpcs(3).quarterly
-                              };
-
-            for ii = 1:numel(params)
-                ip = params(ii).index;
-                statistics{ii} = get_stats(results(ip));
-            end
-
-            if (nargin == 3)
-                statistics{end+1} = get_stats(ctimeresults);
-            end
-            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
-        end
-
-        function table_out = table2header(params_in, results, ctimeresults)
-            params = filter_param_names(params_in, tables.FinalTables.table_includes{2});
-            import statistics.Statistics.sfill
-
-            statistics = cell(numel(params), 1);
-
-            for ii = 1:numel(params)
-                ip = params(ii).index;
-                if (params(ii).freq == 1)
-                    mean_mpc = sfill(results(ip).stats.mpcs(5).annual.value,...
-                        'MPC, quarterly or annual (\%)', 1, 'MPC, quarterly or annual (\%)');
-                else
-                    mean_mpc = sfill(results(ip).stats.mpcs(5).quarterly.value,...
-                        'MPC, quarterly or annual (\%)', 1, 'MPC, quarterly or annual (\%)');
-                end
-                statistics{ii} = {  mean_mpc
-                                    results(ip).stats.decomp_norisk.term1_pct
-                                  };
-            end
-
-            if (nargin == 3)
-                mean_mpc = sfill(ctimeresults.stats.mpcs(5).quarterly.value,...
-                        'MPC, quarterly or annual (\%)', 1, 'MPC, quarterly or annual (\%)');
-                statistics{end+1} = {   mean_mpc
-                                        ctimeresults.stats.decomp_norisk.term1_pct
-                                    };
-            end
-            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
-        end
-
-        function table_out = table2panelABC(params_in, results, ctimeresults)
-            params = filter_param_names(params_in, tables.FinalTables.table_includes{2});
-            table_out = cell(1, 3);
-
-            for kk = 1:3
-                statistics = cell(numel(params), 1);
-
-                get_stats = @(x) {  x.stats.decomp_norisk.term2(kk)
-                                    x.stats.decomp_norisk.term3(kk)
-                                    x.stats.decomp_norisk.term4(kk)
-                                  };
-
-                for ii = 1:numel(params)
-                    ip = params(ii).index;
-                    statistics{ii} = get_stats(results(ip));
-                end
-
-                if (nargin == 3)
-                    statistics{end+1} = get_stats(ctimeresults);
-                end
-                table_out{kk} = make_table(statistics, params, 'ctime_header', 'Continuous Time');
-            end
-        end
-
-        function table_out = table2panelD(params_in, results, ctimeresults)
-            params = filter_param_names(params_in, tables.FinalTables.table_includes{2});
-            statistics = cell(numel(params), 1);
-            
-            get_stats = @(x) {  x.stats.decomp_RA.Em1_less_mRA
-                                x.stats.decomp_RA.term1
-                                x.stats.decomp_RA.term2
-                                x.stats.decomp_RA.term3
-                              };
-            for ii = 1:numel(params)
-                ip = params(ii).index;
-                statistics{ii} = get_stats(results(ip));
-            end
-
-            if (nargin == 3)
-                statistics{end+1} = get_stats(ctimeresults);
-            end
-            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
         end
 
         function table_out = experiment_table_header(params_in, results, tableno)
@@ -332,105 +242,65 @@ classdef FinalTables
             table_out = make_table(statistics, params, 'experiment', true);
         end
 
-        function table_out = experiment_table_panelA(params_in, comparison_decomps, tableno)
+        function table_out = experiment_table_panel(params_in, variables, panel, tableno)
             indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
 
-            for ii = 1:numel(indices)
+            switch panel
+	            case 'A'
+	            	get_stats = @(x) {
+	            		x.Em1_less_Em0
+                        x.term1
+                        x.term2
+                        x.term2a(2)
+                        x.term2b(2)
+                        x.term3
+	            	};
+	           	case 'A2'
+	           		get_stats = @(x) {
+	           			x.term1_pct
+                        x.term2_pct
+                        x.term2a_pct(2)
+                        x.term2b_pct(2)
+                        x.term3_pct
+	           		};
+	           	case 'B'
+	           		get_stats = @(x) {
+	           			x.stats.mean_a
+	                    x.stats.sav0
+	                    x.stats.constrained{1}
+	                    x.stats.constrained_dollars{1}
+	                    x.stats.constrained_dollars{2}
+	                    x.stats.constrained_dollars{3}
+	                    x.stats.constrained_dollars{4}
+	                    x.stats.a_lt_ysixth
+	                    x.stats.a_lt_ytwelfth
+	                    x.stats.w_top10share
+	                    x.stats.w_top1share
+	                    x.stats.wgini
+	           		};
+	           	case 'C'
+	           		get_stats = @(x) {
+	           			x.stats.mpcs(4).quarterly
+                        x.stats.mpcs(6).quarterly
+                    };
+                case 'D'
+	           		get_stats = @(x) {
+	           			x.stats.mpcs(1).quarterly
+                        x.stats.mpcs(2).quarterly
+                        x.stats.mpcs(3).quarterly
+                    };
+            end
+
+            n = numel(indices);
+            statistics = cell(n, 1);
+            for ii = 1:n
                 ip = indices(ii);
-                statistics{ii} = {  comparison_decomps(ip).Em1_less_Em0
-                                    comparison_decomps(ip).term1
-                                    comparison_decomps(ip).term2
-                                    comparison_decomps(ip).term2a(2)
-                                    comparison_decomps(ip).term2b(2)
-                                    comparison_decomps(ip).term3
-                                  };
+                statistics{ii} = get_stats(variables(ip));
                 params(ii) = params_in(ip);
             end
             table_out = make_table(statistics, params, 'experiment', true);
         end
-
-        function table_out = experiment_table_panelA2(params_in, comparison_decomps, tableno)
-            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
-
-            for ii = 1:numel(indices)
-                ip = indices(ii);
-                statistics{ii} = {  comparison_decomps(ip).term1_pct
-                                    comparison_decomps(ip).term2_pct
-                                    comparison_decomps(ip).term2a_pct(2)
-                                    comparison_decomps(ip).term2b_pct(2)
-                                    comparison_decomps(ip).term3_pct
-                                  };
-
-                params(ii) = params_in(ip);
-            end
-            table_out = make_table(statistics, params, 'experiment', true);
-        end
-
-        function table_out = experiment_table_panelB(params_in, results, tableno)
-            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
-
-            for ii = 1:numel(indices)
-                ip = indices(ii);
-                statistics{ii} = {  results(ip).stats.mean_a
-                                    results(ip).stats.sav0
-                                    results(ip).stats.constrained{1}
-                                    results(ip).stats.constrained_dollars{1}
-                                    results(ip).stats.constrained_dollars{2}
-                                    results(ip).stats.constrained_dollars{3}
-                                    results(ip).stats.constrained_dollars{4}
-                                    results(ip).stats.a_lt_ysixth
-                                    results(ip).stats.a_lt_ytwelfth
-                                    results(ip).stats.w_top10share
-                                    results(ip).stats.w_top1share
-                                    results(ip).stats.wgini
-                                  };
-                params(ii) = params_in(ip);
-            end
-            table_out = make_table(statistics, params, 'experiment', true);
-        end
-
-        function table_out = experiment_table_panelC(params_in, results, tableno)
-            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
-
-            for ii = 1:numel(indices)
-                ip = indices(ii);
-                statistics{ii} = {  results(ip).stats.mpcs(4).quarterly
-                                    results(ip).stats.mpcs(6).quarterly
-                                  };
-                params(ii) = params_in(ip);
-            end
-            table_out = make_table(statistics, params, 'experiment', true);
-        end
-
-        function table_out = experiment_table_panelD(params_in, results, tableno)
-            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
-
-            for ii = 1:numel(indices)
-                ip = indices(ii);
-                statistics{ii} = {  results(ip).stats.mpcs(1).quarterly
-                                    results(ip).stats.mpcs(2).quarterly
-                                    results(ip).stats.mpcs(3).quarterly
-                                  };
-                params(ii) = params_in(ip);
-            end
-            table_out = make_table(statistics, params, 'experiment', true);
-        end
-    end
-    
-end
-
-function params = filter_param_names(params_in, includes)
-    jj = 1;
-    for ii = 1:numel(params_in)
-        if ismember(params_in(ii).name, includes)
-            if jj == 1
-                params = params_in(ii);
-            else
-                params(jj) = params_in(ii);
-            end
-            jj = jj + 1;
-        end
-    end
+    end 
 end
 
 function indices = filter_param_group(params_in, includes)
