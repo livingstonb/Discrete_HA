@@ -21,7 +21,7 @@ classdef FinalTables
 	            	if (tableno == 1)
 	            		panelobj = tables.FinalTables.table1panel(params_in, results, panelname{:}, varargin{:});
 	            	elseif (tableno == 2)
-	            		panelobj = tables.FinalTables.table1panel(params_in, results, panelname{:}, varargin{:});
+	            		panelobj = tables.FinalTables.table2panel(params_in, results, panelname{:}, varargin{:});
 	            	end
 
 	            	if strcmp(panelname{:}, 'header')
@@ -55,9 +55,7 @@ classdef FinalTables
             end
         end
 
-        function table_out = table1panel(params_in, results, panel, ctimeresults)
-        	indices = filter_param_group(params_in, tables.FinalTables.table_includes{1});
-
+        function table_out = table1panel(params_in, results, panel, varargin)
             switch panel
 	            case 'header'
 	            	get_stats = @(x) {
@@ -112,26 +110,11 @@ classdef FinalTables
                 	error("Invalid panel entry")
             end
 
-            n = numel(indices);
-            statistics = cell(n, 1);
-            for ii = 1:n
-                ip = indices(ii);
-                statistics{ii} = get_stats(results(ip));
-                params(ii) = params_in(ip);
-            end
-
-            if (nargin >= 3)
-                statistics{n+1} = get_stats(ctimeresults);
-                table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
-            else
-            	table_out = make_table(statistics, params);
-            end
+            [stats_array, names_array] = stack_results(1, get_stats, params_in, results, varargin{:});
+            table_out = make_table(stats_array, names_array);
         end
 
-        function table_out = table2panel(params_in, results, panel, ctimeresults)
-            indices = filter_param_group(params_in, tables.FinalTables.table_includes{2});
-
-            statistics = cell(numel(params), 1);
+        function table_out = table2panel(params_in, results, panel, varargin)
             decomp_norisk_get_stats_fn = @(x, k)  {
             	x.stats.decomp_norisk.term2(k)
                 x.stats.decomp_norisk.term3(k)
@@ -161,20 +144,8 @@ classdef FinalTables
 	           		error("Invalid panel selection")
            	end
 
-            n = numel(indices);
-            statistics = cell(n, 1);
-            for ii = 1:n
-                ip = indices(ii);
-                statistics{ii} = get_stats(results(ip));
-                params(ii) = params_in(ip);
-            end
-
-            if (nargin >= 3)
-                statistics{n+1} = get_stats(ctimeresults);
-                table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
-            else
-            	table_out = make_table(statistics, params);
-            end
+            [stats_array, names_array] = stack_results(2, get_stats, params_in, results, varargin{:});
+            table_out = make_table(stats_array, names_array);
         end
 
         function table_out = experiment_table_header(params_in, results, tableno)
@@ -231,20 +202,24 @@ classdef FinalTables
                         variable_values = {sfill(nan, 'Value', 2)};
                     end
                 end
-                statistics{ii} = {  results(ip).stats.mpcs(5).quarterly
-                                    results(ip).stats.mpcs(5).annual
-                                    results(ip).stats.beta_A
-                                  };
+                if tableno == 8
+                    statistics{ii} = {  results(ip).stats.mpcs(5).annual
+                                        results(ip).stats.beta_A
+                                      };
+                else
+                    statistics{ii} = {  results(ip).stats.mpcs(5).quarterly
+                                        results(ip).stats.mpcs(5).annual
+                                        results(ip).stats.beta_A
+                                      };
+                end
                 statistics{ii} = [variable_values(:); statistics{ii}];
-                params(ii) = params_in(ip);
+                names{ii} = params_in(ip).tex_header;
             end
 
-            table_out = make_table(statistics, params, 'experiment', true);
+            table_out = make_table(statistics, names, 'experiment', true);
         end
 
         function table_out = experiment_table_panel(params_in, variables, panel, tableno)
-            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
-
             switch panel
 	            case 'A'
 	            	get_stats = @(x) {
@@ -279,26 +254,35 @@ classdef FinalTables
 	                    x.stats.wgini
 	           		};
 	           	case 'C'
-	           		get_stats = @(x) {
-	           			x.stats.mpcs(4).quarterly
-                        x.stats.mpcs(6).quarterly
-                    };
+                    if tableno == 8
+                        get_stats = @(x) {
+                            x.stats.mpcs(4).annual
+                            x.stats.mpcs(6).annual
+                        };
+                    else
+    	           		get_stats = @(x) {
+    	           			x.stats.mpcs(4).quarterly
+                            x.stats.mpcs(6).quarterly
+                        };
+                    end
                 case 'D'
-	           		get_stats = @(x) {
-	           			x.stats.mpcs(1).quarterly
-                        x.stats.mpcs(2).quarterly
-                        x.stats.mpcs(3).quarterly
-                    };
+                    if tableno == 8
+                        get_stats = @(x) {
+                            x.stats.mpcs(1).annual
+                            x.stats.mpcs(2).annual
+                            x.stats.mpcs(3).annual
+                        };
+                    else
+    	           		get_stats = @(x) {
+    	           			x.stats.mpcs(1).quarterly
+                            x.stats.mpcs(2).quarterly
+                            x.stats.mpcs(3).quarterly
+                        };
+                    end
             end
 
-            n = numel(indices);
-            statistics = cell(n, 1);
-            for ii = 1:n
-                ip = indices(ii);
-                statistics{ii} = get_stats(variables(ip));
-                params(ii) = params_in(ip);
-            end
-            table_out = make_table(statistics, params, 'experiment', true);
+            [stats_array, names_array] = stack_results(tableno, get_stats, params_in, variables, 'experiment', true);
+            table_out = make_table(stats_array, names_array, 'experiment', true);
         end
     end 
 end
@@ -322,39 +306,56 @@ function indices = filter_param_group(params_in, includes)
     end
 end
 
-function table_out = make_table(statistics, params, varargin)
+function [stats_array, names_array] = stack_results(tableno, fn_handle, params_in, main_results, varargin)
     parser = inputParser;
     addOptional(parser, 'experiment', false);
-    addOptional(parser, 'ctime_header', []);
+    addOptional(parser, 'ctimeresults', []);
     parse(parser, varargin{:});
     experiment = parser.Results.experiment;
-    ctime_header = parser.Results.ctime_header;
+    ctimeresults = parser.Results.ctimeresults;
 
-    n = numel(params);
-    
+    indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
+    n = numel(indices);
+    stats_array = cell(n, 1);
+    names_array = cell(n, 1);
+    for ii = 1:n
+        ip = indices(ii);
+        stats_array{ii} = fn_handle(main_results(ip));
+
+        if experiment & ~isempty(params_in(ip).tex_header)
+            names_array{ii} = params_in(ip).tex_header;
+        else
+            names_array{ii} = params_in(ip).name;
+        end
+    end
+
+    if ~isempty(ctimeresults)
+        stats_array{n+1} = fn_handle(ctimeresults);
+        names_array{n+1} = 'Continuous Time';
+    end
+end
+
+function table_out = make_table(statistics, names, varargin)
+    parser = inputParser;
+    addOptional(parser, 'experiment', false);
+    parse(parser, varargin{:});
+    experiment = parser.Results.experiment;
+
+    n = numel(names);
     for ii = 1:n
         vars{ii} = get_values(statistics{ii});
 
         if experiment
-            varnames{ii} = char(params(ii).tex_header + string(sprintf('__v%d__', ii)));
+            varnames{ii} = char(names{ii} + string(sprintf('__v%d__', ii)));
         else
-            varnames{ii} = params(ii).name;
+            varnames{ii} = names{ii};
         end
     end
-    m = n + 1;
 
-    if ~isempty(ctime_header)
-        vars{m} = get_values(statistics{m});
-        varnames{m} = ctime_header;
-        m = m + 1;
-    end
-
-    vars{m} = get_precision(statistics{1});
-    varnames{m} = 'decimals';
-
-    rows = get_names(statistics{1});
-    
-    table_out = table(vars{:}, 'RowNames', rows(:), 'VariableNames', varnames(:));
+    vars{n+1} = get_precision(statistics{1});
+    varnames{n+1} = 'decimals';
+    rownames = get_names(statistics{1});
+    table_out = table(vars{:}, 'RowNames', rownames(:), 'VariableNames', varnames(:));
 end
 
 function values = get_values(entries)

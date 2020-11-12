@@ -106,7 +106,7 @@ end
 ctimepath = fullfile('input', 'continuous_time_baseline.mat');
 ctimeresults = tables.read_continuous_time_results(ctimepath);
 
-tables.FinalTables.save_baselines_tables(params, results, outdir, ctimeresults);
+tables.FinalTables.save_baselines_tables(params, results, outdir, 'ctimeresults', ctimeresults);
 
 for ip = 3:9
 	tables.FinalTables.save_experiment_table(params, results, decomps_baseline, outdir, ip);
