@@ -15,12 +15,12 @@ classdef FinalTables
     end
 
     methods (Static)
-        function save_table1(params_in, results, dirpath)
-            header = tables.FinalTables.table1header(params_in, results);
-            panelA = tables.FinalTables.table1panelA(params_in, results);
-            panelB = tables.FinalTables.table1panelB(params_in, results);
-            panelC = tables.FinalTables.table1panelC(params_in, results);
-            panelD = tables.FinalTables.table1panelD(params_in, results);
+        function save_table1(params_in, results, dirpath, varargin)
+            header = tables.FinalTables.table1header(params_in, results, varargin{:});
+            panelA = tables.FinalTables.table1panelA(params_in, results, varargin{:});
+            panelB = tables.FinalTables.table1panelB(params_in, results, varargin{:});
+            panelC = tables.FinalTables.table1panelC(params_in, results, varargin{:});
+            panelD = tables.FinalTables.table1panelD(params_in, results, varargin{:});
 
             headerpath = fullfile(dirpath, 'table1_header.xlsx');
             writetable(header, headerpath, 'WriteRowNames', true);
@@ -38,10 +38,10 @@ classdef FinalTables
             writetable(panelD, panelDpath, 'WriteRowNames', true);
         end
 
-        function save_table2(params_in, results, dirpath)
-            header = tables.FinalTables.table2header(params_in, results);
-            panelsABC = tables.FinalTables.table2panelABC(params_in, results);
-            panelD = tables.FinalTables.table2panelD(params_in, results);
+        function save_table2(params_in, results, dirpath, varargin)
+            header = tables.FinalTables.table2header(params_in, results, varargin{:});
+            panelsABC = tables.FinalTables.table2panelABC(params_in, results, varargin{:});
+            panelD = tables.FinalTables.table2panelD(params_in, results, varargin{:});
 
             headerpath = fullfile(dirpath, 'table2_header.xlsx');
             writetable(header, headerpath, 'WriteRowNames', true);
@@ -79,91 +79,121 @@ classdef FinalTables
             end
         end
 
-        function table_out = table1header(params_in, results)
+        function table_out = table1header(params_in, results, ctimeresults)
             params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
+
+            get_stats = @(x) {      x.stats.mpcs(5).quarterly
+                                    x.stats.mpcs(5).annual
+                                    x.stats.beta_A
+                                  };
+
             for ii = 1:numel(params)
                 ip = params(ii).index;
-                statistics{ii} = {  results(ip).stats.mpcs(5).quarterly
-                                    results(ip).stats.mpcs(5).annual
-                                    results(ip).stats.beta_A
-                                  };
+                statistics{ii} = get_stats(results(ip));
             end
-            table_out = make_table(statistics, params);
+
+            if (nargin == 3)
+                statistics{end+1} = get_stats(ctimeresults);
+            end
+            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
         end
 
-        function table_out = table1panelA(params_in, results)
+        function table_out = table1panelA(params_in, results, ctimeresults)
             params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
+
+            get_stats = @(x) {      x.stats.mean_gross_y_annual
+                                    x.stats.std_log_gross_y_annual
+                                    x.stats.std_log_net_y_annual
+                                  };
             for ii = 1:numel(params)
                 ip = params(ii).index;
-                statistics{ii} = {  results(ip).stats.mean_gross_y_annual
-                                    results(ip).stats.std_log_gross_y_annual
-                                    results(ip).stats.std_log_net_y_annual
-                                  };
+                statistics{ii} = get_stats(results(ip));
             end
-            table_out = make_table(statistics, params);
+
+            if (nargin == 3)
+                statistics{end+1} = get_stats(ctimeresults);
+            end
+            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
         end
         
-        function table_out = table1panelB(params_in, results)
+        function table_out = table1panelB(params_in, results, ctimeresults)
             params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
+
+            get_stats = @(x) {  x.stats.mean_a
+                                x.stats.sav0
+                                x.stats.constrained{1}
+                                x.stats.constrained_dollars{1}
+                                x.stats.constrained_dollars{2}
+                                x.stats.constrained_dollars{3}
+                                x.stats.constrained_dollars{4}
+                                x.stats.a_lt_ysixth
+                                x.stats.a_lt_ytwelfth
+                                x.stats.wpercentiles{1}
+                                x.stats.wpercentiles{2}
+                                x.stats.wpercentiles{3}
+                                x.stats.wpercentiles{5}
+                                x.stats.wpercentiles{7}
+                                x.stats.wpercentiles{8}
+                                x.stats.w_top10share
+                                x.stats.w_top1share
+                                x.stats.wgini
+                              };
             for ii = 1:numel(params)
                 ip = params(ii).index;
-                statistics{ii} = {  results(ip).stats.mean_a
-                                    results(ip).stats.sav0
-                                    results(ip).stats.constrained{1}
-                                    results(ip).stats.constrained_dollars{1}
-                                    results(ip).stats.constrained_dollars{2}
-                                    results(ip).stats.constrained_dollars{3}
-                                    results(ip).stats.constrained_dollars{4}
-                                    results(ip).stats.a_lt_ysixth
-                                    results(ip).stats.a_lt_ytwelfth
-                                    results(ip).stats.wpercentiles{1}
-                                    results(ip).stats.wpercentiles{2}
-                                    results(ip).stats.wpercentiles{3}
-                                    results(ip).stats.wpercentiles{5}
-                                    results(ip).stats.wpercentiles{7}
-                                    results(ip).stats.wpercentiles{8}
-                                    results(ip).stats.w_top10share
-                                    results(ip).stats.w_top1share
-                                    results(ip).stats.wgini
-                                  };
+                statistics{ii} = get_stats(results(ip));
             end
-            table_out = make_table(statistics, params);
+
+            if (nargin == 3)
+                statistics{end+1} = get_stats(ctimeresults);
+            end
+            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
         end
 
-        function table_out = table1panelC(params_in, results)
+        function table_out = table1panelC(params_in, results, ctimeresults)
             params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
+            get_stats = @(x) {  x.stats.mpcs(4).annual
+                                x.stats.mpcs(6).annual
+                                x.stats.mpcs(4).quarterly
+                                x.stats.mpcs(6).quarterly
+                              };
             for ii = 1:numel(params)
                 ip = params(ii).index;
-                statistics{ii} = {  results(ip).stats.mpcs(4).annual
-                                    results(ip).stats.mpcs(6).annual
-                                    results(ip).stats.mpcs(4).quarterly
-                                    results(ip).stats.mpcs(6).quarterly
-                                  };
+                statistics{ii} = get_stats(results(ip));
             end
-            table_out = make_table(statistics, params);
+
+            if (nargin == 3)
+                statistics{end+1} = get_stats(ctimeresults);
+            end
+            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
         end
 
-        function table_out = table1panelD(params_in, results)
+        function table_out = table1panelD(params_in, results, ctimeresults)
             params = filter_param_names(params_in, tables.FinalTables.table_includes{1});
             statistics = cell(numel(params), 1);
+            get_stats = @(x) {  x.stats.mpcs(1).annual
+                                x.stats.mpcs(2).annual
+                                x.stats.mpcs(3).annual
+                                x.stats.mpcs(1).quarterly
+                                x.stats.mpcs(2).quarterly
+                                x.stats.mpcs(3).quarterly
+                              };
+
             for ii = 1:numel(params)
                 ip = params(ii).index;
-                statistics{ii} = {  results(ip).stats.mpcs(1).annual
-                                    results(ip).stats.mpcs(2).annual
-                                    results(ip).stats.mpcs(3).annual
-                                    results(ip).stats.mpcs(1).quarterly
-                                    results(ip).stats.mpcs(2).quarterly
-                                    results(ip).stats.mpcs(3).quarterly
-                                  };
+                statistics{ii} = get_stats(results(ip));
             end
-            table_out = make_table(statistics, params);
+
+            if (nargin == 3)
+                statistics{end+1} = get_stats(ctimeresults);
+            end
+            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
         end
 
-        function table_out = table2header(params_in, results)
+        function table_out = table2header(params_in, results, ctimeresults)
             params = filter_param_names(params_in, tables.FinalTables.table_includes{2});
             import statistics.Statistics.sfill
 
@@ -182,40 +212,59 @@ classdef FinalTables
                                     results(ip).stats.decomp_norisk.term1_pct
                                   };
             end
-            table_out = make_table(statistics, params);
+
+            if (nargin == 3)
+                mean_mpc = sfill(ctimeresults.stats.mpcs(5).quarterly.value,...
+                        'MPC, quarterly or annual (\%)', 1, 'MPC, quarterly or annual (\%)');
+                statistics{end+1} = {   mean_mpc
+                                        ctimeresults.stats.decomp_norisk.term1_pct
+                                    };
+            end
+            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
         end
 
-        function table_out = table2panelABC(params_in, results)
+        function table_out = table2panelABC(params_in, results, ctimeresults)
             params = filter_param_names(params_in, tables.FinalTables.table_includes{2});
             table_out = cell(1, 3);
 
             for kk = 1:3
                 statistics = cell(numel(params), 1);
 
+                get_stats = @(x) {  x.stats.decomp_norisk.term2(kk)
+                                    x.stats.decomp_norisk.term3(kk)
+                                    x.stats.decomp_norisk.term4(kk)
+                                  };
+
                 for ii = 1:numel(params)
                     ip = params(ii).index;
-                    statistics{ii} = {  results(ip).stats.decomp_norisk.term2(kk)
-                                        results(ip).stats.decomp_norisk.term3(kk)
-                                        results(ip).stats.decomp_norisk.term4(kk)
-                                      };
+                    statistics{ii} = get_stats(results(ip));
                 end
-                table_out{kk} = make_table(statistics, params);
+
+                if (nargin == 3)
+                    statistics{end+1} = get_stats(ctimeresults);
+                end
+                table_out{kk} = make_table(statistics, params, 'ctime_header', 'Continuous Time');
             end
         end
 
-        function table_out = table2panelD(params_in, results)
+        function table_out = table2panelD(params_in, results, ctimeresults)
             params = filter_param_names(params_in, tables.FinalTables.table_includes{2});
             statistics = cell(numel(params), 1);
             
+            get_stats = @(x) {  x.stats.decomp_RA.Em1_less_mRA
+                                x.stats.decomp_RA.term1
+                                x.stats.decomp_RA.term2
+                                x.stats.decomp_RA.term3
+                              };
             for ii = 1:numel(params)
                 ip = params(ii).index;
-                statistics{ii} = {  results(ip).stats.decomp_RA.Em1_less_mRA
-                                    results(ip).stats.decomp_RA.term1
-                                    results(ip).stats.decomp_RA.term2
-                                    results(ip).stats.decomp_RA.term3
-                                  };
+                statistics{ii} = get_stats(results(ip));
             end
-            table_out = make_table(statistics, params);
+
+            if (nargin == 3)
+                statistics{end+1} = get_stats(ctimeresults);
+            end
+            table_out = make_table(statistics, params, 'ctime_header', 'Continuous Time');
         end
 
         function table_out = experiment_table_header(params_in, results, tableno)
@@ -280,7 +329,7 @@ classdef FinalTables
                 params(ii) = params_in(ip);
             end
 
-            table_out = make_table(statistics, params, true);
+            table_out = make_table(statistics, params, 'experiment', true);
         end
 
         function table_out = experiment_table_panelA(params_in, comparison_decomps, tableno)
@@ -297,7 +346,7 @@ classdef FinalTables
                                   };
                 params(ii) = params_in(ip);
             end
-            table_out = make_table(statistics, params, true);
+            table_out = make_table(statistics, params, 'experiment', true);
         end
 
         function table_out = experiment_table_panelA2(params_in, comparison_decomps, tableno)
@@ -314,7 +363,7 @@ classdef FinalTables
 
                 params(ii) = params_in(ip);
             end
-            table_out = make_table(statistics, params, true);
+            table_out = make_table(statistics, params, 'experiment', true);
         end
 
         function table_out = experiment_table_panelB(params_in, results, tableno)
@@ -337,7 +386,7 @@ classdef FinalTables
                                   };
                 params(ii) = params_in(ip);
             end
-            table_out = make_table(statistics, params, true);
+            table_out = make_table(statistics, params, 'experiment', true);
         end
 
         function table_out = experiment_table_panelC(params_in, results, tableno)
@@ -350,7 +399,7 @@ classdef FinalTables
                                   };
                 params(ii) = params_in(ip);
             end
-            table_out = make_table(statistics, params, true);
+            table_out = make_table(statistics, params, 'experiment', true);
         end
 
         function table_out = experiment_table_panelD(params_in, results, tableno)
@@ -364,7 +413,7 @@ classdef FinalTables
                                   };
                 params(ii) = params_in(ip);
             end
-            table_out = make_table(statistics, params, true);
+            table_out = make_table(statistics, params, 'experiment', true);
         end
     end
     
@@ -403,12 +452,15 @@ function indices = filter_param_group(params_in, includes)
     end
 end
 
-function table_out = make_table(statistics, params, experiment)
-    if nargin < 3
-        experiment = false;
-    end
+function table_out = make_table(statistics, params, varargin)
+    parser = inputParser;
+    addOptional(parser, 'experiment', false);
+    addOptional(parser, 'ctime_header', []);
+    parse(parser, varargin{:});
+    experiment = parser.Results.experiment;
+    ctime_header = parser.Results.ctime_header;
 
-    n = numel(statistics);
+    n = numel(params);
     
     for ii = 1:n
         vars{ii} = get_values(statistics{ii});
@@ -419,8 +471,16 @@ function table_out = make_table(statistics, params, experiment)
             varnames{ii} = params(ii).name;
         end
     end
-    vars{n+1} = get_precision(statistics{1});
-    varnames{n+1} = 'decimals';
+    m = n + 1;
+
+    if ~isempty(ctime_header)
+        vars{m} = get_values(statistics{m});
+        varnames{m} = ctime_header;
+        m = m + 1;
+    end
+
+    vars{m} = get_precision(statistics{1});
+    varnames{m} = 'decimals';
 
     rows = get_names(statistics{1});
     
