@@ -49,7 +49,7 @@ classdef FinalTables
             		panelobj = tables.FinalTables.experiment_table_panel(...
             			params_in, results, panelname{:}, tableno);
             	end
-            	panelfname = sprintf('table%d_panel%s.xlsx', tableno, panelname{:});.
+            	panelfname = sprintf('table%d_panel%s.xlsx', tableno, panelname{:});
             	panelfpath = fullfile(dirpath, panelfname);
             	writetable(panelobj, panelfpath, 'WriteRowNames', true);
             end
