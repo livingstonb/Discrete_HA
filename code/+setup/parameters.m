@@ -11,10 +11,6 @@ function [params, all_names] = parameters(runopts)
     shared_params.annual_inc_dollars = scf.quarterly_earnings * 4;
     shared_params.shocks = dollars ./ shared_params.annual_inc_dollars;
 
-%     shared_params.xgrid_par = 0.1;
-%     shared_params.xgrid_term1wt = 0.02;
-%     shared_params.xgrid_term1curv = 0.9;
-    
     shared_params.xgrid_par = 0.1;
     shared_params.xgrid_term1wt = 0.01;
     shared_params.xgrid_term1curv = 0.5;
@@ -29,7 +25,6 @@ function [params, all_names] = parameters(runopts)
             shared_params.shocks_labels{ishock} = sprintf('$%g', abs(val));
         end
     end
-    % shared_params = struct();
 
     % location of baseline income process for quarterly case
     quarterly_b_path = 'input/income_quarterly_b_contyT.mat';

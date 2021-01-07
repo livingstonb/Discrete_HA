@@ -1,4 +1,5 @@
 classdef VFI < handle
+	% Unused code
 
 	properties
 		p;

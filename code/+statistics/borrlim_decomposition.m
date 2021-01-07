@@ -1,5 +1,6 @@
-function decomp = alternate_decomposition(p_baseline, results_baseline,...
+function decomp = borrlim_decomposition(p_baseline, results_baseline,...
 	p_no_bc, results_no_bc, return_nans)
+    % Performs decompositions comparing models with and without borrowing constraints
 
 	% Construct agrid from baseline parameters
 	agrid = results_baseline.direct.agrid;
