@@ -46,7 +46,7 @@ clear;
 close all;
 
 %% ------------------------------------------------------------------------
-% SET OPTIONS
+% OPTIONS
 % -------------------------------------------------------------------------
 % options
 runopts.calibrate = true;
@@ -60,11 +60,11 @@ runopts.DeterministicMPCs = true; % must be on if decompositions are needed
 runopts.SaveOutput = true;
 
 % name of parameters script
-runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
+runopts.mode = 'parameters'; % 'parameters'
 
 % select only a subset of experiments (ignored when run on server)
 runopts.names_to_run = {};
-runopts.number = [23];
+runopts.number = [1];
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW

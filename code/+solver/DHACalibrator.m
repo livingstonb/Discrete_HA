@@ -1,4 +1,4 @@
-classdef DHACalibrator < EconToolsML.Calibrator
+classdef DHACalibrator < solver.Calibrator
 	% Brian Livingston, 2020
 	% livingstonb@uchicago.edu
 
@@ -6,7 +6,7 @@ classdef DHACalibrator < EconToolsML.Calibrator
 		function obj = DHACalibrator(params, variables,...
 			target_names, target_values)
 
-			obj = obj@EconToolsML.Calibrator(params, variables, target_names, target_values);
+			obj = obj@solver.Calibrator(params, variables, target_names, target_values);
 			
 			obj.main_handle = @(curr_params) main(curr_params, 'iterating', true);
 		end

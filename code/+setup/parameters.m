@@ -27,8 +27,8 @@ function [params, all_names] = parameters(runopts)
     end
 
     % location of baseline income process for quarterly case
-    quarterly_b_path = 'input/income_quarterly_b_contyT.mat';
-    quarterly_c_path = 'input/income_quarterly_c_contyT.mat';
+    quarterly_b_path = 'input/income_quarterly_b.mat';
+    quarterly_c_path = 'input/income_quarterly_c.mat';
 
     quarterly_b_params = shared_params;
     quarterly_b_params.sd_logyT = sqrt(0.6376);
