@@ -63,8 +63,8 @@ runopts.SaveOutput = true;
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {};
-runopts.number = [23];
+runopts.names_to_run = {'no trans shocks'};
+runopts.number = [];
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -120,13 +120,13 @@ if params.calibrate
     calibrated_params = lsqnonlin(params.calibrator.solver_handle,...
         solver_args{:}, options);
 
-    if params.calibrator.dnorm > 1e-4
-        error('Could not match targets')
-
-        if running_on_server
-            exit
-        end
+%     if params.calibrator.dnorm > 1e-4
+%         error('Could not match targets')
+% 
+    if running_on_server
+        exit
     end
+%     end
 end
 
 results = main(params, 'iterating', false);

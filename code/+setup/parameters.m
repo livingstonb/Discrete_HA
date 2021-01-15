@@ -547,6 +547,18 @@ function [params, all_names] = parameters(runopts)
     params(end).other = {'quart_c'};
     params(end).tex_header = 'Quart (iii)';
     params(end).tex_header_values = {struct('description', 'quart$_c$')};
+    
+    % no transitory shocks
+    name = 'no trans shocks';
+    params(end+1) = setup.Params(4, name, quarterly_b_path);
+    params(end) = set_shared_fields(params(end), quarterly_b_params);
+    params(end).beta0 = 0.984363510593659;
+    params(end).nyT = 1;
+    params(end).group = {'Q8'};
+    params(end).label = 'Quart No Trans';
+    params(end).other = {'no_trans_shocks'};
+    params(end).tex_header = 'Quart No Trans';
+    params(end).tex_header_values = {struct('description', 'quart no trans')};
 
     %----------------------------------------------------------------------
     % PART 4, Exotic Preferences
