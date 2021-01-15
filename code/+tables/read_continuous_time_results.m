@@ -8,7 +8,8 @@ function results = read_continuous_time_results(filepath)
     for ishock = 1:6
         quarterly = struct('value', stats_orig.mpcs(ishock).quarterly.value);
         annual = struct('value', stats_orig.mpcs(ishock).annual.value);
-        stats.mpcs(ishock) = struct('quarterly', quarterly, 'annual', annual);
+        oneperiod = struct('value', stats_orig.mpcs(ishock).oneperiod.value);
+        stats.mpcs(ishock) = struct('quarterly', quarterly, 'annual', annual, 'oneperiod', oneperiod);
     end
     
     stats.beta_A = struct('value', stats_orig.beta_A.value);
