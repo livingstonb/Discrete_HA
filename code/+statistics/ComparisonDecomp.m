@@ -158,7 +158,7 @@ classdef ComparisonDecomp < handle
 
 			pmf0 = obj.stats0.adist;
 			obj.pmf0_a = obj.stats0.agrid_dist;
-			mpcs0_a = aux.collapse_mpcs(mpcs0, pmf0, obj.pmf0_a);
+			mpcs0_a = aux.condl_mpcs(mpcs0, pmf0, obj.pmf0_a);
 
 			if ~isequal(obj.stats0.agrid, obj.stats1.agrid)
 				% Need to reconstruct mpc's and pmf for model 1 onto
@@ -167,7 +167,7 @@ classdef ComparisonDecomp < handle
 				agrid1_orig = obj.stats1.agrid;
 				pmf1_orig = obj.stats1.adist;
 				pmf1_a_orig = obj.stats1.agrid_dist;
-				mpcs1_a_orig = aux.collapse_mpcs(...
+				mpcs1_a_orig = aux.condl_mpcs(...
 					mpcs1, pmf1_orig, pmf1_a_orig);
 
 				% First get cdf interpolant
@@ -189,7 +189,7 @@ classdef ComparisonDecomp < handle
             else
             	pmf1 = obj.stats1.adist;
 				obj.pmf1_a = obj.stats1.agrid_dist;
-				mpcs1_a = aux.collapse_mpcs(mpcs1, pmf1, obj.pmf1_a);
+				mpcs1_a = aux.condl_mpcs(mpcs1, pmf1, obj.pmf1_a);
 			end
 
 			if obj.RA_mpcs_available

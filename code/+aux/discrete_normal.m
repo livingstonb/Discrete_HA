@@ -8,7 +8,6 @@ function [f,x,p] = discrete_normal(n,mu,sigma,width)
 	% x gives the location of the points
 	% p is probabilities
 
-
 	x = linspace(mu-width*sigma,mu+width*sigma,n)';
 
 	if n==2

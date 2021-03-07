@@ -79,7 +79,7 @@ classdef Decomp < handle
 			obj.pmf = obj.stats.adist;
             obj.pmf_a = obj.stats.agrid_dist;
 
-            obj.mpcs_a = aux.collapse_mpcs(mpcs, obj.pmf, obj.pmf_a);
+            obj.mpcs_a = aux.condl_mpcs(mpcs, obj.pmf, obj.pmf_a);
 
             obj.Empc = dot(obj.mpcs_a, obj.pmf_a);
             obj.Empc_norisk = dot(obj.mpcs_norisk, obj.pmf_a);
