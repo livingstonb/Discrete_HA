@@ -77,10 +77,6 @@ if params.calibrate
 
 %     if calibrator.dnorm > 1e-4
 %         error('Could not match targets')
-% 
-    if running_on_server
-        exit
-    end
 end
 
 results = main(params, 'iterating', false);
