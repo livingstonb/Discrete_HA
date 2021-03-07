@@ -7,31 +7,33 @@ The *aux_lib* directory contains code provided by Mario Miranda and Paul Fackler
 via the CompEcon toolbox. In several other cases, this repository
 contains code written by others, with citations where possible.
 
-## Replicating the experiments in Fuster, Kaplan, and Zafar (2020)
+## Using the master script
 
-The script *master_replication.m* is provided to solve for the calibrations
-presented in the paper and compute statistics.
+The code is ultimately executed from the script *master.m*.
+From this script, first set options by assigning values to the *runopts* structure in the OPTIONS section.
+The *mode* field must be set to the filename of the parameters script in the *code/+setup* directory excluding the file extension.
 
-### The calibration
+### The parameters
 
-The desired calibration must be selected prior to running the code.
-This is done in the *CHOOSE CALIBRATION* section in *master_replication.m*.
-The parameters specific to each calibration can be viewed in the subsequent
-sections of that script.
-Note than any parameters not explicitly set in *master_replication.m*
-will take their default values, which are declared in
-*code/+setup/Params.m*.
+Within the default parameters script, a parameterization is assigned to each structure within a structure array. The easiest way to select a specific parameterization to run is to set the *number* field of runopts equal to the index of the desired parameterization within the structure array.
+To run your desired parameterization, either modify *code/+setup/parameters.m* or create a new parameters file (see *code/+setup/parameters_template.m* for a stripped-down example of a parameters file).
+All parameter defaults are set in the class file *code/+setup/Params.m* and any values set in the selected parameters file will override the default value of the given variable.
+If the user needs to wrap the model in a non-linear solver to match user-specified moments, this can be done in the parameters file. See the next section for details.
 
-### Calibrating parameters to match the data
+### Calibration
 
-As discussed in the paper, we've selected parameters in part to match
-statistics observed in the data (e.g. mean wealth equal to 3.2 times mean annual income).
-The *master_replication.m* script partially omits our calibration routines, which
-involved solving the model iteratively with a root-finding algorithm.
-To recreate those routines, see *master.m* for a taste of how
-this was done.
+The class defined in *code/+solver/DHACalibrator.m* is used to assist with matching moments. This class is implemented by creating a DHACalibrator instance in the parameters file, which is then assigned to an attribute of the Params object returned by the parameters file. This object allows the user to easily set the parameters that
+need to be calibrated as well as the moments to match. See the class file for details.
+Note: if convergence fails, betaH0 and/or betaL may need to be adjusted.
+betaL is the lower bound picked for beta during iteration and
+betaH0 is the adjustment factor to the upper bound. The code will
+guess a theoretical upper bound, and then will add betaH0 to
+to that value.
 
 ### Output
 
-The output table can be obtained as the *results_table* variable
-upon completion of the *master_replication.m* script.
+The output table can is automatically produced upon completion of the code.
+Results are stored in the 'results' structure. Its 'direct' property
+contains results found from computing the stationary distribution
+using non-simulation numerical methods. The 'sim' property contains results
+found from simulation, if the option is turned on.

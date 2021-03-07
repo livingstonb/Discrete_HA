@@ -1,12 +1,30 @@
-classdef DHACalibrator < EconToolsML.Calibrator
+classdef DHACalibrator < solver.Calibrator
 	% Brian Livingston, 2020
 	% livingstonb@uchicago.edu
 
 	methods
 		function obj = DHACalibrator(params, variables,...
 			target_names, target_values)
+			% ARGUMENTS:
+			%
+			% params
+			%	A Params object containing model parameters
+			%
+			% variables
+			%	A cell array containing string vectors identifying the parameters
+			%	to be calibrated, e.g. {'beta0'}.
+			%
+			% target_names
+			%	A cell array containing the field names of the statistics to target.
+			%	Each element should correspond to a field name of the results.direct
+			%	structure. E.g {'median_a'}.
+			%
+			% target_values
+			%	A numerical vector containing the target values for the targeted statistics.
+			%	E.g. if the intent is to match median assets to 1.4, then target_names
+			%	should include 'median_a' and target_values should include 1.4.
 
-			obj = obj@EconToolsML.Calibrator(params, variables, target_names, target_values);
+			obj = obj@solver.Calibrator(params, variables, target_names, target_values);
 			
 			obj.main_handle = @(curr_params) main(curr_params, 'iterating', true);
 		end

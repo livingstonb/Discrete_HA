@@ -1,46 +1,6 @@
-%% ONE-ASSET HOUSEHOLD MODEL
-% This is the main script for this code repository
-% HA model
-
-% Prior to running this script:
-
-% (1) Set options in the section below.
-
-% (2) In code/Model_Setup, modify the parameters script 'parameters.m' and make sure that 
-% runopts.mode is equal to 'parameters'. Alternatively, create a new
-% parameters script using parameters.m as a guide. Note that the current
-% 'parameters.m' script assumes that the main income process is in
-% input/income_quarterly_b.mat. Also note that if frequency is set to 4
-% (quarterly), then annual parameter values should be used and they will
-% be automatically adjusted in Params.adjust_if_quarterly()
-
-% Note that all parameter defaults
-% are set in the class file code/+setup/Params.m, and parameters.m overrides
-% these defaults. Any parameters not in parameters.m are set to their
-% defaults. See the properties of code/Model_Setup/Params.m for a list of all
-% parameters.
-
-% (3) Set runopts.names_to_run equal to a cell array containing the name
-% of the parameterization to run, or use an empty cell array to loop
-% over all parameterizations.
-
-% (4) If convergence fails, betaH0 and/or betaL may need to be adjusted.
-% betaL is the lower bound picked for beta during iteration and
-% betaH0 is the adjustment factor to the upper bound. The code will
-% guess a theoretical upper bound, and then will add betaH0 to
-% to that value.
-
-% RUNNING ON THE SERVER: To run in batch on the server, use 
-% code/batch/server.sbatch as a template. That script sends an array to SLURM 
-% that runs all of the requested parameters in parameters.m. Make sure
-% that the range of numbers in the slurm array match the number of 
-% parameters in the parameters script. Output files
-% are stored in the Output directory
-
-% OUTPUT: Results are stored in the 'results' structure. Its 'direct' property
-% contains results found from computing the stationary distribution
-% using non-simulation numerical methods. The 'sim' property contains results
-% found from simulation, if the option is turned on.
+%% ONE ASSET DISCRETE TIME HA MODEL
+% This is the main script for this code repository.
+% See the readme for details.
 
 clear;
 close all;
@@ -63,8 +23,8 @@ runopts.SaveOutput = true;
 runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {'no trans shocks'};
-runopts.number = [];
+runopts.names_to_run = {};
+runopts.number = [1];
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
@@ -95,12 +55,6 @@ if exist(runopts.savematpath, 'file') == 2
     delete runopts.savematpath;
 end
 
-if ~exist('../EconTools', 'dir')
-    error("EconTools not found")
-else
-    addpath('../EconTools')
-end
-
 addpath('code');
 addpath(fullfile('code', 'aux_lib'));
 
@@ -114,19 +68,19 @@ fprintf('\nParameterization "%s" was chosen.\n', params.name)
 
 if params.calibrate
     disp('Beginning model calibration...')
+    calibrator = params.calibrator;
     options = optimoptions(@lsqnonlin, 'MaxIterations', params.calibrate_maxiter,...
             'FunctionTolerance', params.calibrate_tol);
     solver_args = params.calibrator.get_args();
     calibrated_params = lsqnonlin(params.calibrator.solver_handle,...
         solver_args{:}, options);
 
-%     if params.calibrator.dnorm > 1e-4
+%     if calibrator.dnorm > 1e-4
 %         error('Could not match targets')
 % 
     if running_on_server
         exit
     end
-%     end
 end
 
 results = main(params, 'iterating', false);
