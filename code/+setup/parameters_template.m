@@ -2,7 +2,6 @@ function [params, all_names] = parameters(runopts)
     % Brian Livingston, 2020
     % livingstonb@uchicago.edu
 
-    import aux.set_shared_fields
     import solver.DHACalibrator
     
     scf = setup.scf2019struct();

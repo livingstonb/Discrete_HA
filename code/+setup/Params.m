@@ -18,7 +18,7 @@ classdef Params < handle
         name;
         index;
         group;
-        label;
+        descr;
         tex_header;
         tex_header_values = {};
         
@@ -143,13 +143,10 @@ classdef Params < handle
         calibrate_maxiter = 60;
         calibrate_tol = 1e-6;
         calibrator;
-
-        % other, unspecified option
-        other;
     end
 
     methods
-        function obj = Params(frequency, name, IncomeProcess)
+        function obj = Params(frequency, name, IncomeProcess, addl_params)
         	% create params object
             obj.name = name;
             obj.freq = frequency;
@@ -167,6 +164,13 @@ classdef Params < handle
                 obj.rho_logyP = 0.9881;
             else
                 error('Frequency must be 1 or 4')
+            end
+
+            if nargin >= 4
+                pfields = fields(addl_params)';
+                for pfield = pfields
+                    obj.(pfield{1}) = addl_params.(pfield{1});
+                end
             end
         end
 
@@ -314,8 +318,8 @@ classdef Params < handle
                 obj.dollar_thresholds(ii) = obj.dollar_thresholds(ii) / obj.annual_inc_dollars;
             end
 
-            if isempty(obj.label)
-                obj.label = obj.name;
+            if isempty(obj.descr)
+                obj.descr = obj.name;
             end
         end
     end

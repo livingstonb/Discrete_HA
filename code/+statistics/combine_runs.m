@@ -89,19 +89,19 @@ if options.decomp_with_loose_borr_limit
     end
 end
 
-table_gen = tables.StatsTable(params, stats);
-table_gen.decomp_baseline = decomps_baseline;
+% table_gen = tables.StatsTable(params, stats);
+% table_gen.decomp_baseline = decomps_baseline;
 
-if options.decomp_with_loose_borr_limit
-    table_gen.decomp_incrisk_alt = decomp_alt;
-end
+% if options.decomp_with_loose_borr_limit
+%     table_gen.decomp_incrisk_alt = decomp_alt;
+% end
 
-table_out = table_gen.create(params, stats);
+% table_out = table_gen.create(params, stats);
 
-if ~isempty(table_out)
-    xlxpath = fullfile(outdir, 'discrete_time_results.xlsx');
-    writetable(table_out, xlxpath, 'WriteRowNames', true);
-end
+% if ~isempty(table_out)
+%     xlxpath = fullfile(outdir, 'discrete_time_results.xlsx');
+%     writetable(table_out, xlxpath, 'WriteRowNames', true);
+% end
 
 ctimepath = fullfile('input', 'continuous_time_baseline.mat');
 ctimeresults = tables.read_continuous_time_results(ctimepath);

@@ -53,7 +53,7 @@ classdef BaseTable < handle
 			labels = {};
 			for ii = 1:numel(stats_in)
 				vals{ii} = stats_in{ii}.value;
-				labels{ii} = stats_in{ii}.label;
+				labels{ii} = stats_in{ii}.descr;
 			end
 
 			table_to_append = table(vals(:),...
