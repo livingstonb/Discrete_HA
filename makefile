@@ -2,6 +2,7 @@ batch :
 	sbatch "code/batch/server.sbatch"
 
 combine :
+	mkdir -p output/tables
 	sbatch "code/batch/combine_runs.sbatch"
 
 spath := "$$MW:/home/livingstonb/GitHub/Discrete_HA/output/tables/*"
@@ -16,7 +17,7 @@ tables :
 	cd output/tables && pdflatex tables
 	cd output/tables && pdflatex tables
 
-clean_tables :
-	rm output/tables/*
+clean :
+	rm -rf output/*
 
-.PHONY : batch combine download tables clean_tables
+.PHONY : batch combine download tables clean 
