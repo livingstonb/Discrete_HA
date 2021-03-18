@@ -11,13 +11,9 @@ if ~strcmp(currdir, 'Discrete_HA')
     throw(bad_dir);
 end
 
+% Check if code is running locally or on the server
 taskid = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 running_on_server = ~isempty(taskid);
-
-options.final_tables = false;
-options.decomp_with_loose_borr_limit = false;
-options.index_loose_borr_limit_Q = 'baseline_Q_with_borrowing';
-options.index_loose_borr_limit_A = 'baseline_A_with_borrowing';
 
 outdir = fullfile('output', 'tables');
 if ~exist(outdir, 'dir')
@@ -26,7 +22,7 @@ end
 
 addpath('code');
 
-%% Read .mat files into a cell array
+% Read .mat files into a cell array
 ind = 0;
 for irun = 1:999
     fname = sprintf('variables%d.mat', irun);
@@ -69,39 +65,6 @@ for ip = 1:ind
     cdecomp.perform_decompositions(mpcs0, mpcs1);
     decomps_baseline(ip) = cdecomp.results;
 end
-
-if options.decomp_with_loose_borr_limit
-    for ip = 1:ind
-        if params(ip).freq == 1
-            index_loose_borr_limit = find(...
-                cellfun(@(z) strcmp(z,options.index_loose_borr_limit_A), {params.name}));
-        else
-            index_loose_borr_limit = find(...
-                cellfun(@(z) strcmp(z,options.index_loose_borr_limit_Q), {params.name}));
-        end
-        p_no_bc = params(index_loose_borr_limit);
-        results_no_bc = results(index_loose_borr_limit);
-
-        return_nans = (ip == index_loose_borr_limit);
-        decomp_alt(ip) = statistics.borrlim_decomposition(...
-            params(ip), results(ip),...
-            p_no_bc, results_no_bc, return_nans);
-    end
-end
-
-% table_gen = tables.StatsTable(params, stats);
-% table_gen.decomp_baseline = decomps_baseline;
-
-% if options.decomp_with_loose_borr_limit
-%     table_gen.decomp_incrisk_alt = decomp_alt;
-% end
-
-% table_out = table_gen.create(params, stats);
-
-% if ~isempty(table_out)
-%     xlxpath = fullfile(outdir, 'discrete_time_results.xlsx');
-%     writetable(table_out, xlxpath, 'WriteRowNames', true);
-% end
 
 ctimepath = fullfile('input', 'continuous_time_baseline.mat');
 ctimeresults = tables.read_continuous_time_results(ctimepath);

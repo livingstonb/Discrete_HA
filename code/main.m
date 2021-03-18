@@ -88,15 +88,8 @@ function results = main(p, varargin)
     results.direct.adist = basemodel.adist;
     results.direct.agrid = grdDST.a.vec;
     
-    % pmf(a) and cdf(a)
+    % pmf(a)
     results.direct.agrid_dist = basemodel.agrid_dist;
-    cdf_a = cumsum(results.direct.agrid_dist);
-
-    % Create values for fraction constrained (HtM) at every pt in asset space,
-    % defining constrained as a <= epsilon * mean annual gross labor income
-    wpinterp = griddedInterpolant(...
-        grdDST.a.vec, cdf_a, 'pchip', 'nearest');
-    results.direct.find_wealth_pctile = @(a) 100 * wpinterp(a);
     
     %% --------------------------------------------------------------------
     % MPCs FOR MODEL WITHOUT INCOME RISK
@@ -211,8 +204,13 @@ function results = main(p, varargin)
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
+    cdf_a = cumsum(results.direct.agrid_dist);
+    wpinterp = griddedInterpolant(...
+        grdDST.a.vec, cdf_a, 'pchip', 'nearest');
+    find_wealth_pctile = @(a) 100 * wpinterp(a);
+
     mpc_simulator = statistics.MPCSimulator(...
-        p, results.direct.find_wealth_pctile, heterogeneity);
+        p, find_wealth_pctile, heterogeneity);
     mpc_simulator.simulate(...
         p, income, grdDST, heterogeneity, basemodel);
 
