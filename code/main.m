@@ -196,8 +196,8 @@ function results = main(p, varargin)
     results.stats.add_mpcs(mpc_finder);
 
     results.direct.mpcs = mpc_finder.mpcs;
-    results.direct.loan = mpc_finder.loan;
-    results.direct.loss_in_2_years = mpc_finder.loss_in_2_years;
+    results.mpcs_loan = mpc_finder.loan;
+    results.mpcs_loss_in_2_years = mpc_finder.loss_in_2_years;
     clear mpc_finder
     
     %% --------------------------------------------------------------------
@@ -212,8 +212,7 @@ function results = main(p, varargin)
         p, find_wealth_pctile, heterogeneity);
     mpc_simulator.simulate(...
         p, income, grdDST, heterogeneity, basemodel);
-
-    results.direct = mpc_simulator.append_results(results.direct);
+    results.mpcs_sim = mpc_simulator.mpcs;
 
     % find annual mean and standard deviations of income
     if p.freq == 4
