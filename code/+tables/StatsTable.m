@@ -18,10 +18,10 @@ classdef StatsTable < tables.BaseTable
 
 				obj.percentiles_tables(stats_ip);
 
-    %             obj.label2_params_table(stats_ip);
+    %             obj.other_params_table(stats_ip);
     			obj.decomp_ra(stats_ip);
     			obj.decomp_norisk_table(p_ip, stats_ip);
-                obj.label2_stats_table(stats_ip);
+                obj.other_stats_table(stats_ip);
 
                 obj.add_column(ip0);
 			end
@@ -30,11 +30,11 @@ classdef StatsTable < tables.BaseTable
 		end
 
 		function intro_stats_table(obj, p, stats)
-			out = table(p.descr,...
+			out = table({p.descr},...
 				'VariableNames', {'results'},...
 				'RowNames', {'Model'});
 
-			descr = struct('value', p.descr, 'label1', 'Description');
+			descr = struct('value', p.descr, 'label', 'Description');
 
 			new_entries1 = {
 				stats.params.freq
@@ -164,7 +164,7 @@ classdef StatsTable < tables.BaseTable
 			else
 				tmp = stats.mpcs(5).quarterly;
 			end
-			tmp.label1 = 'MPC (%)';
+			tmp.label = 'MPC (%)';
 			new_entries = {
 				tmp
 				stats.decomp_norisk.term1_pct

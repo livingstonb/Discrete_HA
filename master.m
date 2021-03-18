@@ -9,7 +9,7 @@ close all;
 % SET OPTIONS
 % -------------------------------------------------------------------------
 % options
-runopts.calibrate = true;
+runopts.calibrate = false;
 runopts.fast = false; % very small asset and income grids for testing
 runopts.Simulate = false; % also solve distribution via simulation
 runopts.MakePlots = false;
@@ -24,7 +24,7 @@ runopts.mode = 'parameters'; % 'parameters', 'grid_tests1', etc...
 
 % select only a subset of experiments (ignored when run on server)
 runopts.names_to_run = {};
-runopts.number = [20];
+runopts.number = [1];
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE BELOW
