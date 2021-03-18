@@ -90,5 +90,5 @@ end
 % CREATE TABLE OF RESULTS
 % -------------------------------------------------------------------------
 
-% table_gen = tables.StatsTable(params, {results.stats});
-% table_out = table_gen.create(params, {results.stats})
+table_gen = tables.StatsTable(params, {results.stats});
+table_out = table_gen.create(params, {results.stats})

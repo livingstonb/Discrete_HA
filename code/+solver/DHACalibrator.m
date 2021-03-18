@@ -41,7 +41,7 @@ classdef DHACalibrator < solver.Calibrator
 		end
 
 		function value = get_results_value(obj, results, variable_name)
-			value = results.direct.(variable_name);
+			value = results.stats.(variable_name).value;
 		end
 	end
 end

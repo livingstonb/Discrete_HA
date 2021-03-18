@@ -162,10 +162,6 @@ classdef Statistics < handle
 		end
 
 		function compute_inequality(obj)
-			% import HACTLib.aux.interp_integral_alt
-			% import HACTLib.aux.unique_sort
-			% import HACTLib.aux.direct_gini
-
 			% Top liquid wealth shares
 			cum_share = cumsum(obj.grdDST.a.vec .* obj.pmf_a);
 			cum_share = cum_share / obj.mean_a.value;

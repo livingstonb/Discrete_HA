@@ -62,10 +62,6 @@ function results = main(p, varargin)
         p, basemodel, income, grdDST, heterogeneity, 'quiet', iterating);
     results.direct.adist = basemodel.adist;
 
-    % Report beta and annualized beta
-    results.direct.beta_annualized = p.beta0 ^ p.freq;
-    results.direct.beta = p.beta0;
-    
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
         return
@@ -77,24 +73,8 @@ function results = main(p, varargin)
     results.stats = statistics.Statistics(p, income, grdDST, basemodel);
     results.stats.compute_statistics();
 
-    results.direct.mean_s = basemodel.xdist(:)' * basemodel.sav_x(:);
-    results.direct.mean_a = basemodel.mean_a;
-    results.direct.mean_x = basemodel.xdist(:)' * basemodel.xvals(:);
-    results.direct.mean_c = basemodel.xdist(:)' * basemodel.con_x(:);
-    
-    % One-period income statistics
-    results.direct.mean_grossy1 = basemodel.xdist(:)' * basemodel.y_x(:);
-    results.direct.mean_loggrossy1 = basemodel.xdist(:)' * log(basemodel.y_x(:));
-    results.direct.mean_nety1 = basemodel.xdist(:)' * basemodel.nety_x(:);
-    results.direct.mean_lognety1 = basemodel.xdist(:)' * log(basemodel.nety_x(:));
-    results.direct.var_loggrossy1 = basemodel.xdist(:)' * (log(basemodel.y_x(:)) - results.direct.mean_loggrossy1).^2;
-    results.direct.var_lognety1 = basemodel.xdist(:)' * (log(basemodel.nety_x(:)) - results.direct.mean_lognety1).^2;
-    
-    results.direct.mean_x_check = results.direct.mean_a + results.direct.mean_nety1;
-
     % RA mpc
-    if (p.nb == 1) && (~p.EpsteinZin) && isequal(p.temptation, 0) ...
-        && (p.bequest_weight == 0)
+    if (p.nb == 1) && (~p.EpsteinZin) && isequal(p.temptation, 0) && (p.bequest_weight == 0)
         tmp = (1-p.dieprob) * p.beta0 * p.R;
         results.direct.mpc_RA = p.R * tmp ^ (-1 / p.risk_aver) - 1;
     else
@@ -116,66 +96,8 @@ function results = main(p, varargin)
     % defining constrained as a <= epsilon * mean annual gross labor income
     wpinterp = griddedInterpolant(...
         grdDST.a.vec, cdf_a, 'pchip', 'nearest');
-
     results.direct.find_wealth_pctile = @(a) 100 * wpinterp(a);
-    for i = 1:numel(p.epsilon)        
-        % create interpolant to find fraction of constrained households
-        if p.epsilon(i) == 0
-            if p.Bequests
-                results.direct.s0 = wpinterp(p.epsilon(i));
-            else
-            	c = wpinterp(p.epsilon(i));
-                results.direct.s0 = (c - p.dieprob) / (1 - p.dieprob);
-            end
-        end
-        results.direct.constrained(i) = wpinterp(p.epsilon(i));
-    end
-
-    to_num = @(val) p.convert_from_dollars(val);
-    results.direct.wealth_lt_dollar_value = ...
-        @(val) wpinterp(to_num(val));
-    results.direct.wealth_lt_1000 = ...
-        results.direct.wealth_lt_dollar_value(1000);
     
-    % Wealth percentiles
-    cdf_a = cumsum(results.direct.agrid_dist);
-    [cdf_a, iunique] = unique(cdf_a);
-    wpinterp_inverse = griddedInterpolant(...
-        cdf_a, grdDST.a.vec(iunique), 'pchip', 'nearest');
-    results.direct.wpercentiles = wpinterp_inverse(p.percentiles/100);
-    results.direct.median_a = wpinterp_inverse(0.5);
-    
-    % Top shares
-    % Amount of total assets that reside in each pt on sorted asset space
-    totassets = results.direct.agrid_dist .* grdDST.a.vec;
-    % Fraction of total assets in each pt on asset space
-    cumassets = cumsum(totassets) / results.direct.mean_a;
-
-    cdf_a = cumsum(results.direct.agrid_dist);
-    [cdf_a, iunique] = unique(cdf_a);
-    
-    % Create interpolant from wealth percentile to cumulative wealth share
-    cumwealthshare_interp = griddedInterpolant(...
-        cdf_a, cumassets(iunique), 'pchip', 'nearest');
-    results.direct.top10share = 1 - cumwealthshare_interp(0.9);
-    results.direct.top1share = 1 - cumwealthshare_interp(0.99);
-
-    % Fraction constrained by own quarterly net income
-    a_over_inc = grdDST.a.vec ./ (income.netymat_broadcast * (p.freq / 4));
-    a_over_inc = repmat(a_over_inc, [1, 1, 1, p.nb, 1]);
-    pmf_AY = results.direct.adist(:) * shiftdim(income.yTdist, -1);
-    sorted_mat = sortrows([a_over_inc(:), pmf_AY(:)]);
-
-    cdf_AY = cumsum(sorted_mat(:,2));
-    vals = sorted_mat(:,1);
-
-    [vals, iunique] = unique(vals, 'last');
-    cdf_AY = cdf_AY(iunique);
-
-    interpAY = griddedInterpolant(vals, cdf_AY, 'pchip', 'nearest');
-    results.direct.a_lt_sixth = interpAY(1/6);
-    results.direct.a_lt_twelfth = interpAY(1/12);
-
     %% --------------------------------------------------------------------
     % MPCs FOR MODEL WITHOUT INCOME RISK
     % ---------------------------------------------------------------------
@@ -210,27 +132,6 @@ function results = main(p, varargin)
     if p.Simulate
         results.sim = solver.simulate(...
             p, income, basemodel, grdDST, heterogeneity);
-    end
-
-    %% --------------------------------------------------------------------
-    % MPCs over cash-on-hand
-    % ---------------------------------------------------------------------
-    con_base = basemodel.con;
-    for ishock = 1:numel(p.shocks)
-        shock_size = p.shocks(ishock);
-
-        con_shock = zeros(p.nx, p.nyP, p.nyF, p.nb);
-        for ib = 1:p.nb
-        for iyF = 1:p.nyF
-        for iyP = 1:p.nyP
-            cash_shock = grdEGP.x.matrix(:,iyP,iyF,ib) + shock_size;
-            con_shock(:,iyP,iyF,ib) = basemodel.coninterp{iyP,iyF,ib}(cash_shock);
-        end
-        end
-        end
-
-        mpcs = (con_shock - con_base) / shock_size;
-        results.direct.mpcs_cash{ishock} = mpcs;
     end
 
     %% --------------------------------------------------------------------
@@ -319,19 +220,9 @@ function results = main(p, varargin)
 
     % find annual mean and standard deviations of income
     if p.freq == 4
-        % direct computations
-        results.direct.mean_grossy_A = results.direct.mean_grossy1 * 4;
         % from simulations
-        results.direct.stdev_loggrossy_A = mpc_simulator.stdev_loggrossy_A;
-        results.direct.stdev_lognety_A = mpc_simulator.stdev_lognety_A;  
-
         results.stats.std_log_gross_y_annual.value = mpc_simulator.stdev_loggrossy_A;
         results.stats.std_log_net_y_annual.value = mpc_simulator.stdev_lognety_A;
-    else
-        % direct computations
-        results.direct.mean_grossy_A = results.direct.mean_grossy1;
-        results.direct.stdev_loggrossy_A = sqrt(results.direct.var_loggrossy1);
-        results.direct.stdev_lognety_A = sqrt(results.direct.var_lognety1);
     end
     
     clear mpc_simulator
@@ -339,6 +230,7 @@ function results = main(p, varargin)
     %% --------------------------------------------------------------------
     % DECOMPOSITION 1 (DECOMP OF E[mpc])
     % ---------------------------------------------------------------------
+    results.direct.mean_a = results.stats.mean_a.value;
     decomp = statistics.Decomp(p, results.direct);
 
     doDecomposition = (p.nb==1) && (~p.EpsteinZin) && (p.MPCs)...
@@ -358,21 +250,6 @@ function results = main(p, varargin)
 
     results.stats.add_decomps(decomp);
     clear decomp
-    
-    %% --------------------------------------------------------------------
-    % GINI
-    % ---------------------------------------------------------------------
-    % Wealth
-    results.direct.wealthgini = aux.direct_gini(grdDST.a.vec,...
-        basemodel.agrid_dist);
-    
-    % Gross income
-    results.direct.grossincgini = aux.direct_gini(income.ysort,...
-        income.ysortdist);
-    
-    % Net income
-    results.direct.netincgini = aux.direct_gini(income.netymat,...
-        income.ymatdist);  
 
     results.Finished = true;
     

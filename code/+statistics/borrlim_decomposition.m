@@ -25,7 +25,7 @@ function decomp = borrlim_decomposition(p_baseline, results_baseline,...
     % RA model WITHOUT borrowing constraint
     % ---------------------------------------------------------------------
     RA = struct();
-    tmp = (1-p_baseline.dieprob) * results_baseline.direct.beta * p_baseline.R;
+    tmp = (1-p_baseline.dieprob) * p_baseline.0 * p_baseline.R;
     RA.mpc = p_baseline.R * tmp ^ (-1/p_baseline.risk_aver) - 1;
 
     %% --------------------------------------------------------------------
