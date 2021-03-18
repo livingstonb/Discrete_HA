@@ -9,7 +9,6 @@ function results = main(p, varargin)
     % and to find the implied stationary distribution over the state space.
 
     results = struct('policy',[],'direct',[],'norisk',[],'sim',[],'decomp_meanmpc',[]);
-    results.Finished = false;
 
     parser = inputParser;
     addOptional(parser, 'iterating', false);
@@ -230,26 +229,18 @@ function results = main(p, varargin)
     % ---------------------------------------------------------------------
     results.direct.mean_a = results.stats.mean_a.value;
     decomp = statistics.Decomp(p, results.direct);
-
     doDecomposition = (p.nb==1) && (~p.EpsteinZin) && (p.MPCs)...
         && (p.bequest_weight==0) && isequal(p.temptation,0) && (numel(p.r)==1)...
         && (p.DeterministicMPCs);
 
     if doDecomposition
-        mpcs_baseline = results.direct.mpcs(5).mpcs_1_t{1};
-        mpcs_baseline = reshape(mpcs_baseline, p.nx_DST, []);
-        mpcs_norisk = results.norisk.mpcs1_a_direct{5};
-        mpcs_norisk = reshape(mpcs_norisk, p.nx_DST, []);
+        mpcs_baseline = reshape(results.direct.mpcs(5).mpcs_1_t{1}, p.nx_DST, []);
+        mpcs_norisk = reshape(results.norisk.mpcs1_a_direct{5}, p.nx_DST, []);
         decomp.perform_decompositions(mpcs_baseline, mpcs_norisk);
     end
 
-    results.decomp_RA = decomp.results_RA;
-    results.decomp_norisk = decomp.results_norisk;
-
     results.stats.add_decomps(decomp);
     clear decomp
-
-    results.Finished = true;
     
     %% --------------------------------------------------------------------
     % FIGURES
