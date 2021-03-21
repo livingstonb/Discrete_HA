@@ -105,6 +105,46 @@ function table_out = SingleTable(p, stats)
 	rownames = get_names(decomp_ra_stats);
 	new_rows = table(values, 'RowNames', rownames(:), 'VariableNames', {name});
 	table_out = [table_out; new_rows];
+
+	%% Decomp wrt no-risk model
+	% Header
+	paneltitle = struct('value', NaN, 'label',...
+		'____Decomps of E[MPC] wrt RA and no inc risk, $500 shock');
+
+	if p.freq == 1
+		tmp = struct('value', stats.mpcs(5).annual.value, 'label', 'MPC (%)');
+	else
+		tmp = struct('value', stats.mpcs(5).quarterly.value, 'label', 'MPC (%)');
+	end
+	decomp_norisk_stats = {
+		paneltitle
+		tmp
+		stats.decomp_norisk.term1_pct
+    };
+
+    values = get_values(decomp_norisk_stats);
+	rownames = get_names(decomp_norisk_stats);
+	new_rows = table(values, 'RowNames', rownames(:), 'VariableNames', {name});
+	table_out = [table_out; new_rows];
+
+	% HtM thresholds
+	for ithresh = 1:numel(p.abars)
+		threshold = p.abars(ithresh);
+		panel_name = sprintf('____For HtM threshold #%d', ithresh);
+		paneltitle = struct('value', NaN, 'label', panel_name);
+
+		new_entries = {
+			paneltitle
+			stats.decomp_norisk.term2(ithresh)
+			stats.decomp_norisk.term3(ithresh)
+			stats.decomp_norisk.term4(ithresh)
+		};
+
+		values = get_values(new_entries);
+		rownames = get_names(new_entries);
+		new_rows = table(values, 'RowNames', rownames(:), 'VariableNames', {name});
+		table_out = [table_out; new_rows];
+	end
 end
 
 function values = get_values(entries)
