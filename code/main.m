@@ -89,7 +89,7 @@ function results = main(p, varargin)
             p, grdEGP, heterogeneity);
 
         if norisk.complete
-            % Compute MPCs for deterministic model
+            % If deterministic model converged, compute MPCs
             results.norisk.mpcs1_a_direct = ...
                 statistics.direct_MPCs_by_computation_norisk(...
                     p, norisk, income, heterogeneity, grdDST);
@@ -105,7 +105,6 @@ function results = main(p, varargin)
             results.norisk.mpcs1_a_direct{im} = NaN;
         end
     end
-
 
     %% --------------------------------------------------------------------
     % SIMULATIONS
@@ -138,13 +137,7 @@ function results = main(p, varargin)
 
         % get consumption functions conditional on future shock
         for tlshock = 2:maxT
-            if tlshock == 2
-                % shock is next period
-                nextmpcshock = p.shocks(ishock);
-            else
-                % no shock next period
-                nextmpcshock = 0;
-            end
+            nextmpcshock = (tlshock == 2) * p.shocks(ishock);
             mpcmodels{ishock,tlshock} = solver.solve_EGP(...
                 p, grdEGP, heterogeneity, income, nextmpcshock,...
                 tlshock-1, mpcmodels{ishock,tlshock-1}, 'quiet', iterating);
