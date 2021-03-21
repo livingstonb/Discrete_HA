@@ -193,7 +193,7 @@ function [params, all_names] = parameters(runopts)
 %             params(end).bequest_weight = 0.02;
 %             params(end).bequest_luxury = 0.01;
 %             params(end).bequest_curv   = bcurv;target_value
-%         endR
+%         end
    
     % fixed beta heterogeneity
     for ibw = [0.001, 0.005, 0.01]
