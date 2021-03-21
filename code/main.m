@@ -70,7 +70,7 @@ function results = main(p, varargin)
     end
     
     %% --------------------------------------------------------------------
-    % IMPORTANT MOMENTS
+    % STATISTICS
     % ---------------------------------------------------------------------
     results.stats = statistics.Statistics(p, income, grdDST, basemodel);
     results.stats.compute_statistics();
@@ -82,27 +82,24 @@ function results = main(p, varargin)
     %% --------------------------------------------------------------------
     % MPCs FOR MODEL WITHOUT INCOME RISK
     % ---------------------------------------------------------------------
-    norisk = struct('complete', false);
+    % Fill deterministic model MPCs with NaNs
+    results.norisk.mpcs1_a_direct = cell(1,6);
+    for im = 1:6
+        results.norisk.mpcs1_a_direct{im} = NaN;
+    end
+
     if p.DeterministicMPCs
-        % Solve deterministic model
+        % Try to solve deterministic model
         norisk = solver.solve_EGP_deterministic(...
             p, grdEGP, heterogeneity);
 
         if norisk.complete
-            % If deterministic model converged, compute MPCs
+            % If converged, compute MPCs
             results.norisk.mpcs1_a_direct = ...
                 statistics.direct_MPCs_by_computation_norisk(...
                     p, norisk, income, heterogeneity, grdDST);
         else
             p.set('DeterministicMPCs', false, true);
-        end
-    end
-
-    if ~norisk.complete
-        % Fill deterministic MPCs with NaNs
-        results.norisk.mpcs1_a_direct = cell(1,6);
-        for im = 1:6
-            results.norisk.mpcs1_a_direct{im} = NaN;
         end
     end
 
@@ -152,7 +149,6 @@ function results = main(p, varargin)
     end
 
     results.stats.add_mpcs(mpc_finder);
-
     results.mpcs = mpc_finder.mpcs;
     results.mpcs_loan = mpc_finder.loan;
     results.mpcs_loss_in_2_years = mpc_finder.loss_in_2_years;
@@ -161,17 +157,9 @@ function results = main(p, varargin)
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
-    cdf_a = cumsum(results.distr.pmf_a);
-    wpinterp = griddedInterpolant(...
-        grdDST.a.vec, cdf_a, 'pchip', 'nearest');
-    find_wealth_pctile = @(a) 100 * wpinterp(a);
-
-    mpc_simulator = statistics.MPCSimulator(...
-        p, find_wealth_pctile, heterogeneity);
-    mpc_simulator.simulate(...
-        p, income, grdDST, heterogeneity, basemodel);
+    mpc_simulator = statistics.MPCSimulator(p, results.distr, heterogeneity);
+    mpc_simulator.simulate(p, income, grdDST, heterogeneity, basemodel);
     results.mpcs_sim = mpc_simulator.mpcs;
-
     clear mpc_simulator
 
     %% --------------------------------------------------------------------
@@ -194,107 +182,107 @@ function results = main(p, varargin)
     %% --------------------------------------------------------------------
     % FIGURES
     % ---------------------------------------------------------------------
-    if p.MakePlots
-        % plot(grdDST.a.vec, cumsum(results.direct.agrid_dist))
-        % xlim([0 0.2])
+    % if p.MakePlots
+    %     % plot(grdDST.a.vec, cumsum(results.direct.agrid_dist))
+    %     % xlim([0 0.2])
         
-        % Wealth at low yP
-        nbins = 100;
-        amin = grdDST.a.vec(1);
-        amax = {1};
-        amax_visible = 0.5;
+    %     % Wealth at low yP
+    %     nbins = 100;
+    %     amin = grdDST.a.vec(1);
+    %     amax = {1};
+    %     amax_visible = 0.5;
 
-        iyP = 1:11;
-        nyP = numel(iyP);
+    %     iyP = 1:11;
+    %     nyP = numel(iyP);
 
-        pmf_a = results.direct.adist(:,iyP,:,:);
-        pmf_a = pmf_a(:) / sum(pmf_a(:));
-        pmf_a = reshape(pmf_a, [], nyP);
-        pmf_a = sum(pmf_a, 2);
+    %     pmf_a = results.direct.adist(:,iyP,:,:);
+    %     pmf_a = pmf_a(:) / sum(pmf_a(:));
+    %     pmf_a = reshape(pmf_a, [], nyP);
+    %     pmf_a = sum(pmf_a, 2);
 
-        wealth_plotter = statistics.WealthPlotter(p, grdDST.a.vec, pmf_a);
-        [ax, wealth_hist] = wealth_plotter.create_histogram(nbins, amax{:});
-        title("Wealth distribution, truncated above")
-        ax.XLim = [amin, amax_visible];
-        ax.YLim = [0, max(wealth_hist.Values(1:end-1))];
+    %     wealth_plotter = statistics.WealthPlotter(p, grdDST.a.vec, pmf_a);
+    %     [ax, wealth_hist] = wealth_plotter.create_histogram(nbins, amax{:});
+    %     title("Wealth distribution, truncated above")
+    %     ax.XLim = [amin, amax_visible];
+    %     ax.YLim = [0, max(wealth_hist.Values(1:end-1))];
 
-        figpath = fullfile('output', 'wealth_distribution.jpg');
-        saveas(gcf, figpath)
+    %     figpath = fullfile('output', 'wealth_distribution.jpg');
+    %     saveas(gcf, figpath)
         
-        %% MPCs Function
-        fontsize = 12;
-        mpcs = results.direct.mpcs(5).mpcs_1_t{1};
-        mpc_plotter = statistics.MPCPlotter(p, grdDST.a.matrix, mpcs);
-        mpc_plotter.fontsize = fontsize;
-        mpc_plotter.show_grid = 'on';
+    %     %% MPCs Function
+    %     fontsize = 12;
+    %     mpcs = results.direct.mpcs(5).mpcs_1_t{1};
+    %     mpc_plotter = statistics.MPCPlotter(p, grdDST.a.matrix, mpcs);
+    %     mpc_plotter.fontsize = fontsize;
+    %     mpc_plotter.show_grid = 'on';
 
-        yP_indices = [3, 8];
-        zoomed_window = true;
-        shock_size = 0.01;
-        [ax_main, ax_window] = mpc_plotter.create_mpcs_plot_yPs(...
-                    yP_indices, zoomed_window, shock_size);
-        ylim_main = ax_main.YLim;
+    %     yP_indices = [3, 8];
+    %     zoomed_window = true;
+    %     shock_size = 0.01;
+    %     [ax_main, ax_window] = mpc_plotter.create_mpcs_plot_yPs(...
+    %                 yP_indices, zoomed_window, shock_size);
+    %     ylim_main = ax_main.YLim;
 
-        imedian = find(p.percentiles == 50);
-        median_wealth = results.direct.wpercentiles(imedian);
-        ax_main = mpc_plotter.add_median_wealth(ax_main, median_wealth);
+    %     imedian = find(p.percentiles == 50);
+    %     median_wealth = results.direct.wpercentiles(imedian);
+    %     ax_main = mpc_plotter.add_median_wealth(ax_main, median_wealth);
 
-        ax_main.XLim = [0, 5];
-        ax_main.YLim = ylim_main;
+    %     ax_main.XLim = [0, 5];
+    %     ax_main.YLim = ylim_main;
 
-        window_max_x = 0.3;
-        ax_window.YLim = ax_main.YLim;
-        ax_window.XLim = [0, window_max_x];
-        xticks(ax_window, [0:0.1:window_max_x])
-        yticks(ax_window, [0:0.1:0.3])
-        set(ax_window, 'FontSize', fontsize-2)
-        ax_window.YTick = ax_main.YTick(1:2:end);
+    %     window_max_x = 0.3;
+    %     ax_window.YLim = ax_main.YLim;
+    %     ax_window.XLim = [0, window_max_x];
+    %     xticks(ax_window, [0:0.1:window_max_x])
+    %     yticks(ax_window, [0:0.1:0.3])
+    %     set(ax_window, 'FontSize', fontsize-2)
+    %     ax_window.YTick = ax_main.YTick(1:2:end);
 
-        figpath = fullfile('output', 'mpc_function_yPs.jpg');
-        saveas(gcf, figpath)
+    %     figpath = fullfile('output', 'mpc_function_yPs.jpg');
+    %     saveas(gcf, figpath)
 
-        %% MPCs Function For Diff Shock Sizes
-        fontsize = 12;
-        mpcs = {    results.direct.mpcs(2).mpcs_1_t{1}
-                    results.direct.mpcs(3).mpcs_1_t{1}
-                    results.direct.mpcs(5).mpcs_1_t{1}
-                    results.direct.mpcs(6).mpcs_1_t{1}
-               };
+    %     %% MPCs Function For Diff Shock Sizes
+    %     fontsize = 12;
+    %     mpcs = {    results.direct.mpcs(2).mpcs_1_t{1}
+    %                 results.direct.mpcs(3).mpcs_1_t{1}
+    %                 results.direct.mpcs(5).mpcs_1_t{1}
+    %                 results.direct.mpcs(6).mpcs_1_t{1}
+    %            };
            
-        for ii = 1:numel(mpcs)
-            mpcs{ii} = reshape(mpcs{ii}, [p.nx_DST p.nyP p.nyF p.nb]);
-        end
+    %     for ii = 1:numel(mpcs)
+    %         mpcs{ii} = reshape(mpcs{ii}, [p.nx_DST p.nyP p.nyF p.nb]);
+    %     end
 
-        mpc_plotter = statistics.MPCPlotter(p, grdDST.a.matrix, mpcs);
-        mpc_plotter.fontsize = fontsize;
-        mpc_plotter.show_grid = 'on';
+    %     mpc_plotter = statistics.MPCPlotter(p, grdDST.a.matrix, mpcs);
+    %     mpc_plotter.fontsize = fontsize;
+    %     mpc_plotter.show_grid = 'on';
 
-        iyP = median(1:p.nyP);
-        ishocks = [2 3 5 6];
-        zoomed_window = true;
-        shock_size = 0.01;
-        [ax_main, ax_window] = mpc_plotter.create_mpc_plot_shocks(...
-                    iyP, zoomed_window, ishocks);
-        ylim_main = ax_main.YLim;
+    %     iyP = median(1:p.nyP);
+    %     ishocks = [2 3 5 6];
+    %     zoomed_window = true;
+    %     shock_size = 0.01;
+    %     [ax_main, ax_window] = mpc_plotter.create_mpc_plot_shocks(...
+    %                 iyP, zoomed_window, ishocks);
+    %     ylim_main = ax_main.YLim;
 
-        imedian = find(p.percentiles == 50);
-        median_wealth = results.direct.wpercentiles(imedian);
-        ax_main = mpc_plotter.add_median_wealth(ax_main, median_wealth);
+    %     imedian = find(p.percentiles == 50);
+    %     median_wealth = results.direct.wpercentiles(imedian);
+    %     ax_main = mpc_plotter.add_median_wealth(ax_main, median_wealth);
 
-        ax_main.XLim = [0, 5];
-        ax_main.YLim = ylim_main;
+    %     ax_main.XLim = [0, 5];
+    %     ax_main.YLim = ylim_main;
 
-        window_max_x = 0.3;
-        ax_window.YLim = ax_main.YLim;
-        ax_window.XLim = [0, window_max_x];
-        xticks(ax_window, [0:0.1:window_max_x])
-        yticks(ax_window, [0:0.1:0.3])
-        set(ax_window, 'FontSize', fontsize-2)
-        ax_window.YTick = ax_main.YTick(1:2:end);
+    %     window_max_x = 0.3;
+    %     ax_window.YLim = ax_main.YLim;
+    %     ax_window.XLim = [0, window_max_x];
+    %     xticks(ax_window, [0:0.1:window_max_x])
+    %     yticks(ax_window, [0:0.1:0.3])
+    %     set(ax_window, 'FontSize', fontsize-2)
+    %     ax_window.YTick = ax_main.YTick(1:2:end);
 
-        figpath = fullfile('output', 'mpc_function_shocks.jpg');
-        saveas(gcf, figpath)
-    end
+    %     figpath = fullfile('output', 'mpc_function_shocks.jpg');
+    %     saveas(gcf, figpath)
+    % end
     
     % convert Params object to structure for saving
     results.stats = aux.to_structure(results.stats);

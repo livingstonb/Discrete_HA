@@ -46,7 +46,7 @@ classdef MPCSimulator < handle
 	end
 
 	methods
-		function obj = MPCSimulator(p, wealth_pctile_interpolant, heterogeneity)
+		function obj = MPCSimulator(p, distr, heterogeneity)
 			obj.Nsim = p.Nsim;
 			obj.Npartition = p.Nsim / obj.partitionsize;
 
@@ -64,7 +64,9 @@ classdef MPCSimulator < handle
 		    dierand = rand(obj.Nsim, obj.Tmax, 'single');
 		    obj.diesim = dierand < p.dieprob;
 
-		    obj.wealth_pctile_interpolant = wealth_pctile_interpolant;
+		    wpinterp = griddedInterpolant(...
+		        distr.agrid, cumsum(distr.pmf_a), 'pchip', 'nearest');
+		    obj.wealth_pctile_interpolant = @(a) 100 * wpinterp(a);
 		end
 
 		function simulate(obj, p, income, grids, heterogeneity, basemodel)
