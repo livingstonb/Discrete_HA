@@ -3,24 +3,34 @@ classdef Prefs_R_Heterogeneity < handle
 	% transition matrices for heterogeneity in
 	% beta, returns, or another variable (z).
 	%
+	% The z-dimension is set up to accomodate only one source
+	% of additional heterogeneity.
+	%
 	% Brian Livingston, 2020
 	% livingstonb@uchicago.edu
 
 	properties (SetAccess = private)
+		% Grid of betas, centered around zero
 		betagrid0;
+
+		% Actual grid of betas = betagrid0 + beta, unless beta_grid_forced
+		% is specified in parameters
 		betagrid;
 		betagrid_broadcast;
 
+		% Length of z-dimension of heterogeneity
 		nz;
 
+		% Returns matrices
 		R_broadcast;
 		r_broadcast;
 
+		% Matrices for risk aversion, inverse IES, and temptation parameter
 		risk_aver_broadcast;
 		invies_broadcast;
-
 		temptation_broadcast;
 
+		% Distribution and transition matrices for z-hetergeneity
 		zdist;
 		ztrans;
 		zcumdist;
@@ -68,6 +78,7 @@ classdef Prefs_R_Heterogeneity < handle
 			    end
 			    obj.betagrid = params.beta0 + obj.betagrid0;
 			else
+				% Impose a specific beta grid
 				obj.betagrid = params.beta_grid_forced;
 			end
 			obj.betagrid_broadcast = reshape(...

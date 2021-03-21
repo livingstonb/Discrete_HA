@@ -3,13 +3,22 @@ classdef Income < handle
     % livingstonb@uchicago.edu
 
     properties (SetAccess = private)
+        % Read the persistent income process from mat file, boolean
         Load_yP;
-        Load_yT = false;
+
+        % Read the transitory income process from mat file, boolean
+        Load_yT;
+
+        % Structure containing data read from mat file
         ImportedVariables;
         
+        % Parameters object
         p;
-        het;
+
+        % Transition matrix of z-dimension (e.g. discount factor het)
+        ztrans;
         
+        % Persistent income component
         logyPgrid;
         yPdist;
         yPtrans;
@@ -17,24 +26,37 @@ classdef Income < handle
         yPcumdist;
         yPcumtrans;
         
+        % Transitory income component
         logyTgrid;
         yTdist;
         yTgrid;
         yTcumdist;
         
+        % Fixed income component
         logyFgrid;
         yFgrid;
         yFdist;
         yFcumdist;
 
+        % Transition matrix over (yF, yP) states
         ytrans;
+
+        % One-period mean of gross labor income
         meany1;
 
+        % Matrix of all possible gross income values
+        ymat;
+
+        % Distribution over all possible income values
         ymatdist;
+
+        % Threshold above which labor is subject to tax
         labtaxthresh;
 
+        % One-period value of lump sum transfer
         lumptransfer;
-        ymat;
+        
+        % Net income values
         netymat;
         netymat_broadcast;
         netymatEGP;
@@ -42,11 +64,10 @@ classdef Income < handle
         meannety1;
         minnety;
         
+        % Share of households for which net labor income exceeds gross labor income
         fraction_net_transfer;
-
-        ysort;
-        ysortdist;
         
+        % Transition matrix across income and z-dimension states, conditional on life/death
         ytrans_live;
         ytrans_death;
     end
@@ -54,18 +75,25 @@ classdef Income < handle
     methods
         function obj = Income(p, heterogeneity)
             obj.p = p;
-            obj.het = heterogeneity;
+            obj.ztrans = heterogeneity.ztrans;
+
+            % Read persistent process if an income path is specified
             obj.Load_yP = ~isempty(p.IncomeProcess);
-            
+            obj.Load_yT = false;
             if obj.Load_yP
                 obj.ImportedVariables = load(p.IncomeProcess);
+                if ~isempty(obj.ImportedVariables.logyTgrid)
+                    obj.Load_yT = true;
+                end
             end
             
+            % Computations
             obj.get_persistent_income();
             obj.get_transitory_income();
             obj.get_fixed_effect();
             obj.get_other_income_variables();
             
+            % Error checks
             if size(obj.yTgrid,2)>1 || size(obj.yFgrid,2)>1 || size(obj.yPgrid,2)>1
                 error('All income grids must be column vectors')
             end
@@ -82,10 +110,6 @@ classdef Income < handle
                 obj.p.nyP = length(obj.logyPgrid);
                 obj.logyPgrid = reshape(obj.logyPgrid,[],1);
                 obj.yPdist = reshape(obj.yPdist,[],1);
-                
-                if ~isempty(obj.ImportedVariables.logyTgrid)
-                    obj.Load_yT = true;
-                end
             elseif obj.p.nyP > 1
                 [obj.logyPgrid, obj.yPtrans, obj.yPdist] ...
                     = aux.rouwenhorst(obj.p.nyP, -0.5*obj.p.sd_logyP^2, obj.p.sd_logyP, obj.p.rho_logyP);
@@ -152,7 +176,8 @@ classdef Income < handle
                 obj.yFdist = 1;
             end
             obj.yFgrid = exp(obj.logyFgrid);
-            % normalize fixed effect such that mean = 1 if annual, 1/4 if quarterly
+
+            % normalize fixed effect such that mean gross y = 1 if annual, 1/4 if quarterly
             obj.yFgrid = obj.yFgrid/(obj.yFdist'*obj.yFgrid*obj.p.freq);
             obj.logyFgrid = log(obj.yFgrid);
             obj.yFcumdist = cumsum(obj.yFdist,1);
@@ -160,7 +185,7 @@ classdef Income < handle
         
         function get_other_income_variables(obj)
             % transition probabilities for yP-yF combined grid
-            obj.ytrans = kron(eye(obj.p.nyF),obj.yPtrans);
+            obj.ytrans = kron(eye(obj.p.nyF), obj.yPtrans);
 
             % construct matrix of y combinations
             obj.ymat = repmat(obj.yPgrid,obj.p.nyF,1) ...
@@ -173,17 +198,17 @@ classdef Income < handle
             % find mean y
             % isolate unique (yT,yF,yP) combinations
             temp = sortrows([obj.ymat(:) obj.ymatdist(:)],1);
-            obj.ysort = temp(:,1);
-            obj.ysortdist = temp(:,2);
-            ycumdist_sort = cumsum(obj.ysortdist);
+            ysort = temp(:,1);
+            ysortdist = temp(:,2);
+            ycumdist_sort = cumsum(ysortdist);
 
             % 1-period statistics
             obj.meany1 = obj.ymat(:)' * obj.ymatdist(:);
             totgrossy1 = obj.meany1;
 
             % find tax threshold on labor income
-            if numel(obj.ysort)>1
-                obj.labtaxthresh = lininterp1(ycumdist_sort,obj.ysort,obj.p.labtaxthreshpc);
+            if numel(ysort)>1
+                obj.labtaxthresh = lininterp1(ycumdist_sort,ysort,obj.p.labtaxthreshpc);
             else
                 obj.labtaxthresh = 0;
             end    
@@ -216,8 +241,8 @@ classdef Income < handle
                 yPtrans_death = obj.yPtrans;
             end
 
-            obj.ytrans_live = kron(obj.het.ztrans,kron(eye(obj.p.nyF),obj.yPtrans));
-            obj.ytrans_death = kron(obj.het.ztrans,kron(eye(obj.p.nyF),yPtrans_death));
+            obj.ytrans_live = kron(obj.ztrans,kron(eye(obj.p.nyF),obj.yPtrans));
+            obj.ytrans_death = kron(obj.ztrans,kron(eye(obj.p.nyF),yPtrans_death));
         end
     end
 end

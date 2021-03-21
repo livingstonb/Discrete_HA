@@ -22,9 +22,9 @@ runopts.SaveOutput = true;
 % name of parameters script
 runopts.mode = 'parameters'; % 'parameters'
 
-% select only a subset of experiments (ignored when run on server)
-runopts.names_to_run = {};
-runopts.number = [25];
+% select experiment (ignored when run on server)
+runopts.name_to_run = 'Annual';
+runopts.number = [];
 
 %% ------------------------------------------------------------------------
 % HOUSEKEEPING, DO NOT CHANGE
@@ -47,6 +47,8 @@ end
 % Path for .mat output file
 matname = sprintf('variables%d.mat', runopts.number);
 runopts.savematpath = fullfile('output', matname);
+xlxname = sprintf('table%d.xlsx', runopts.number);
+runopts.savexlxpath = fullfile('output', xlxname);
 
 % Directories
 warning('off', 'MATLAB:MKDIR:DirectoryExists')
@@ -87,4 +89,5 @@ fprintf('Finished parameterization %s\n', params.name)
 %% ------------------------------------------------------------------------
 % CREATE TABLE OF RESULTS
 % -------------------------------------------------------------------------
-table_out = tables.SingleTable(params, results.stats)
+table_out = tables.OutputTable(params, results.stats)
+writetable(table_out, runopts.savexlxpath, 'WriteRowNames', true);

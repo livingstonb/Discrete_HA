@@ -45,7 +45,7 @@ function [params, all_names] = parameters(runopts)
     elseif numel(runopts.number) > 1
         error('runopts.number must have 1 or zero elements')
     else
-        params = setup.Params.select_by_names(params, runopts.names_to_run);
+        params = setup.Params.select_by_names(params, runopts.name_to_run);
     end
 
     params.set_run_parameters(runopts);

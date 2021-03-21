@@ -1,5 +1,5 @@
 
-function table_out = SingleTable(p, stats)
+function table_out = OutputTable(p, stats)
 	if ~isempty(p.tex_header)
         name = p.tex_header;
     else

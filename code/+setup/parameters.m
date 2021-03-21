@@ -4,6 +4,7 @@ function [params, all_names] = parameters(runopts)
 
     import solver.DHACalibrator
     
+    %% SET COMMON PARAMETERS
     % Statistics from the 2019 SCF
     scf = setup.scf2019struct();
 
@@ -27,6 +28,7 @@ function [params, all_names] = parameters(runopts)
         end
     end
 
+    % Income processes
     quarterly_b_params = shared_params;
     quarterly_b_params.IncomeProcess = 'input/income_quarterly_b_contyT.mat';
     quarterly_b_params.sd_logyT = sqrt(0.6376);
@@ -49,9 +51,8 @@ function [params, all_names] = parameters(runopts)
     annual_params.rho_logyP = 0.9525;
     annual_params.lambdaT = 1;
     
-    idx_mean_wealth_calibrations = [];
-
-    % Main calibration
+    %% SET CALIBRATIONS
+    % Ignored if not calibrating
     calibrations = struct();
     calibrations.variables = {'beta0'};
     calibrations.target_names = {'median_a'};
@@ -60,6 +61,8 @@ function [params, all_names] = parameters(runopts)
     for ii = 2:999
         calibrations(ii) = calibrations(1);
     end
+
+    %% PARAMETERIZATIONS
 
     %----------------------------------------------------------------------
     % BASELINES
@@ -82,7 +85,6 @@ function [params, all_names] = parameters(runopts)
     % PART 2, DIFFERENT ASSUMPTIONS
     %----------------------------------------------------------------------
     ifreq = 4;
-    lfreq = 'Q';
 
     % Liquid wealth calibration, mean assets = 2.25
     name = sprintf('E[a] = %g', 2.25);
@@ -490,7 +492,7 @@ function [params, all_names] = parameters(runopts)
     elseif numel(runopts.number) > 1
         error('runopts.number must have 1 or zero elements')
     else
-        params = setup.Params.select_by_names(params, runopts.names_to_run);
+        params = setup.Params.select_by_name(params, runopts.name_to_run);
     end
 
     params.set_run_parameters(runopts);

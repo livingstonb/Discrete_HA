@@ -3,18 +3,26 @@ classdef Grid < handle
 	% livingstonb@uchicago.edu
 
 	properties (SetAccess = private)
-		x; % cash-on-hand grids
-		x_extended;
-		s; % savings grids
-		a; % asset grid
+		% Grids for cash-on-hand, savings, and assets
+		x;
+		s;
+		a;
+
+		% Either 'EGP' or 'DST'
 		gtype;
+
+		% Cash-on-hand grid sizes
 		nx;
 		nx_neg;
+
+		% Income grid sizes
 		nyP;
 		nyF;
 
+		% Position of zero in the x-grid
 		i0;
 
+		% Returns matrix
 		R_broadcast;
 	end
 
@@ -70,6 +78,7 @@ classdef Grid < handle
 
 			nx_pos = obj.nx - obj.nx_neg;
             
+            % Note to self: Why am I using the alt grid here??
             savgrid_pos = create_curved_grid_alt(soft_constraint,...
             	params.xmax, params.xgrid_term1wt,...
             	params.xgrid_term1curv, params.xgrid_par, nx_pos);

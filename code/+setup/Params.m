@@ -14,7 +14,7 @@ classdef Params < handle
     % livingstonb@uchicago.edu
 
     properties
-        % identifiers
+        % Identifiers
         name;
         index;
         group;
@@ -22,51 +22,58 @@ classdef Params < handle
         tex_header;
         tex_header_values = {};
         
-        % data frequency
+        % Data frequency, 1 (annual) or 4 (quarterly)
         freq;
 
-        % source for income process (file, or empty string for gen in code)
+        % Path for income process (or empty string to generate in code)
         IncomeProcess = '';
         
-        % mean annual income dollar interpretation
+        % Mean annual income, dollars
         annual_inc_dollars = 72000;
+
+        % Useful functions to convert between numeraire (mean ann inc) and dollars
         convert_to_dollars;
         convert_from_dollars;
         convert_to_dollars_str;
 
-        % computation
+        % Computation
         max_iter = 1e5; % EGP
         tol_iter = 1.0e-6; % EGP
-        Nsim = 1e5; % For optional simulation
+        Nsim = 1e5; % for optional simulation
+        Tsim = 400; % for optional simulation
+        Nmpcsim = 2e5; % for optional MPC simulation
 
-        % mpc options
+        % MPC shock sizes
         shocks = [-1e-5 -0.01 -0.1 1e-5 0.01 0.1];
-        shocks_labels; % labels
-        Nmpcsim = 2e5; % Number of draws to compute MPCs
+        shocks_labels;
         
-        % wealth statistics options
+        % Thresholds (in dollars) theta to compute share households with a < theta
         dollar_thresholds = [1000, 2000, 5000, 10000, 25000]; 
         dollar_threshold_labels;
+
+        % Thresholds (in numeraire) theta to compute share households with a < theta
         epsilon = [0, 0.005, 0.01, 0.02, 0.05, 0.1 0.15]; % fraction of mean ann labor income
+
+        % Percentiles to compute
         percentiles = [10, 25, 50, 75, 90, 95, 99, 99.9]; % in percent
         
-        % decomposition
+        % Wealth thresholds (in numeraire) used for decompositions
         abars = [0, 0.01, 0.05];
 
-        % cash on hand / savings grid
+        % Cash on hand / savings grid parameters
         nx = 250;
         nx_neg = 0;
         nx_DST = 250;
         nx_neg_DST = 0;
         xmax = 100;
-        xgrid_par = 0.2; %1 for linear, 0 for L-shaped
+        xgrid_par = 0.2; % 1 for linear, 0 for L-shaped
         xgrid_par_neg = 0.4;
         xgrid_term1wt = 0.01;
         xgrid_term1curv = 0.8;
         borrow_lim = 0;
         nbl_adjustment = 0.99;
         
-        % OPTIONS
+        % Options
         MakePlots = 0;
         Simulate = 0;
         MPCs = 0;
@@ -76,81 +83,83 @@ classdef Params < handle
         savematpath = '';
         SaveOutput = false;
 
-        % returns
-        r = 0.02; % default annual, adjusted if frequency = 4;
+        % Annualized return (later adjusted to quarterly if freq = 4)
+        r = 0.02;
         R;
+
+        % Turn on annuities
         annuities = false;
         
-        % demographics
-        dieprob = 1/50; % default annual, adjusted if frequency = 4;
+        % Annualized death probability (later adjusted to quarterly if freq = 4)
+        dieprob = 1 / 50;
         
-        % preferences
+        % Preferences
         EpsteinZin = 0;
         invies = 2.5; % only relevant for Epstein-Zin
         risk_aver = 1;
     	beta0 = 0.98;
     	temptation = 0;
-    	betaL = 0.80;
-        betaH0 = -1e-3; % adjustment factor if not using theoretical upper bound
-        betaH; % theoretical upper bound if not adjusting
+
+        % Bounds on beta (used when calibrating)
+    	betaL = 0.80; % lower bound
+        betaH; % theoretical upper bound
+        betaH0 = -1e-3; % adjustment to betaH
         
-        % warm glow bequests: bequest weight = 0 is accidental
+        % Warm glow bequests: bequest weight = 0 is accidental bequests
         bequest_weight = 0;
         bequest_curv = 1;
         bequest_luxury = 0.01;
         Bequests = true; % 1 for wealth left as bequest, 0 for disappears
         
-        % income risk: AR(1) + IID in logs
+        % Income
     	nyT	= 11;
-        yTContinuous = 0; % only works for simulation
+        yTContinuous = 0; % applies to simulation only and may not work if set to one
         sd_logyT;
-        lambdaT = 1;
-        nyP = 11; % persistent component
+        lambdaT = 1; % arrival rate of transitory shock
+        nyP = 11;
         sd_logyP;
         rho_logyP;
         nyF = 1;
         sd_logyF = 0;
         ResetIncomeUponDeath = true;
         
-        % government
-        labtaxlow = 0; %proportional tax
-        labtaxhigh = 0; %additional tax on incomes above threshold
-        labtaxthreshpc = 0.99; %percentile of earnings distribution where high tax rate kicks in
-        savtax = 0; %0.0001;  %tax rate on savings
-        savtaxthresh = 0; %multiple of mean gross labor income
-        compute_savtax;
-        lumptransfer = 0;
+        % Taxation
+        labtaxlow = 0; % proportional tax
+        labtaxhigh = 0; % additional tax on incomes above threshold
+        labtaxthreshpc = 0.99; % percentile of earnings distribution where high tax rate kicks in
+        savtax = 0; % tax rate on savings
+        savtaxthresh = 0; % in terms of numeraire
+        compute_savtax; % useful function to compute tax on saving
+        lumptransfer = 0; % 
 
-        % discount factor shocks
+        % Discount factor heterogeneity
         nbeta = 1;
-        beta_dist = 1; % either 1 for equal prob in all, or vector summing to 1
-        betawidth = 0;
+        beta_dist = 1;
+        betawidth = 0; % distance between beta's
         beta_grid_forced = []; % overrides all other beta values if used
 
-        % used for different het cases
+        % Length of z-dimension heterogeneity (is later set equal to nz--should recode as nz!)
         nb = 1;
 
-        % probability of switch in z-dimension
+        % Probability of switch in z-dimension
         prob_zswitch = 0;
         zdist_forced;
-        
-        % computation
-    	Tsim = 400; % Simulation
 
-        % calibration
-        calibrate;
+        % Calibration
+        calibrate; % boolean
         calibrate_maxiter = 60;
         calibrate_tol = 1e-6;
-        calibrator;
+        calibrator; % DHACalibrator object
     end
 
     methods
         function obj = Params(frequency, name, addl_params)
-        	% create params object
+        	% Creates params object
             obj.name = name;
             obj.freq = frequency;
             obj.R = 1 + obj.r;
             
+            % Default income processes
             if frequency == 1
                 obj.sd_logyT = sqrt(0.0494);
                 obj.sd_logyP = sqrt(0.0422);
@@ -164,6 +173,7 @@ classdef Params < handle
                 error('Frequency must be 1 or 4')
             end
 
+            % Override default values with addl_params structure
             if nargin >= 3
                 pfields = fields(addl_params)';
                 for pfield = pfields
@@ -173,9 +183,7 @@ classdef Params < handle
         end
 
         function obj = set_run_parameters(obj, runopts)
-        	% use fields in runopts to set values in Params object
-
-            % fast option
+        	% Fast option for debugging
             if runopts.fast
                 obj.nx_DST = 10;
                 obj.nx = 11;
@@ -189,24 +197,17 @@ classdef Params < handle
 
             obj.savematpath = runopts.savematpath;
             
-            % iterate option
+            % Options
             obj.calibrate = runopts.calibrate;
-
-            % simulate option
             obj.Simulate = runopts.Simulate;
-
-            % compute mpcs
             obj.MPCs = runopts.MPCs;
-
-            % compute mpcs for is > 1?
             obj.MPCs_news = runopts.MPCs_news;
-
             obj.MPCs_loan_and_loss = runopts.MPCs_loan_and_loss;
             obj.DeterministicMPCs = runopts.DeterministicMPCs;
         end
         
         function obj = set_index(obj)
-        	% reset index to count from 1 to numel(params)
+        	% Reset index values to count from 1 to numel(params)
             ind = num2cell(1:numel(obj));
             [obj.index] = deal(ind{:});
         end
@@ -242,12 +243,8 @@ classdef Params < handle
             end
         end
 
-        function [matches, indices] = return_indices(obj, names)
-            matches = ismember(names, {obj.name});
-            indices = find(ismember({obj.name}, names));
-        end
-
         function make_adjustments(obj)
+            % Makes necessary adjustments after Params object has been constructed
             obj.make_frequency_adjustments();
             obj.make_other_adjustments();
 
@@ -257,10 +254,7 @@ classdef Params < handle
         end
 
         function make_frequency_adjustments(obj)
-            % adjusts relevant parameters such as r to a quarterly frequency,
-            % i.e. r = r / 4
-            % must be called after setting all parameterizations
-
+            % Adjusts relevant parameters such as r to a quarterly frequency,
             obj.R = (1 + obj.r) .^ (1 / obj.freq);
             obj.r = obj.R - 1;
 
@@ -270,7 +264,7 @@ classdef Params < handle
             obj.dieprob = 1 - (1 - obj.dieprob) ^ (1 / obj.freq);
             obj.prob_zswitch = 1 - (1 - obj.prob_zswitch) ^ (1 / obj.freq);
 
-            obj.betaL = obj.betaL^(1 / obj.freq);
+            obj.betaL = obj.betaL ^ (1 / obj.freq);
 
             obj.betaH = 1 ./ (max(obj.R) * (1-obj.dieprob));
             obj.betaH = obj.betaH + obj.betaH0;
@@ -297,6 +291,7 @@ classdef Params < handle
                 obj.DeterministicMPCs = false;
             end
 
+            % Create printable labels for shock sizes
             if isempty(obj.shocks_labels)
                 obj.shocks_labels = {};
                 for ishock = 1:6
@@ -304,6 +299,7 @@ classdef Params < handle
                 end
             end
 
+            % Create printable labels for dollar wealth thresholds
             if isempty(obj.dollar_threshold_labels)
                 obj.dollar_threshold_labels = {};
                 for ii = 1:numel(obj.dollar_thresholds)
@@ -321,21 +317,23 @@ classdef Params < handle
             end
         end
     end
-    
+
     methods (Static)
-        function objs = select_by_names(objs, names_to_run)
-            % discards all experiments with names not included in the
-            % cell array 'names_to_run'
-            if ~isempty(names_to_run)
+        function objs = select_by_name(objs, name_to_run)
+            % Selects parameterization by name
+
+            name_found = false;
+            if ~isempty(name_to_run)
                 % Indices of selected names within params
-                params_to_run = ismember({objs.name},names_to_run);
-                if sum(ismember(names_to_run,{objs.name})) < numel(names_to_run)
-                    error('Some of the entries in names_to_run are invalid')
-                else
-                    objs = objs(params_to_run);
+                matches = ismember({objs.name}, {name_to_run});
+                if sum(matches) == 1
+                    objs = objs(matches);
+                    name_found = true;
                 end
-            else
-                return
+            end
+
+            if ~name_found
+                error('Parameterization name not found or not unique')
             end
         end
     end

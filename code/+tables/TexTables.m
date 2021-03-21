@@ -1,4 +1,4 @@
-classdef FinalTables
+classdef TexTables
     
     properties (Constant)
         table_includes = {
@@ -19,9 +19,9 @@ classdef FinalTables
             for tableno = [1, 2]
 	            for panelname = {'header', 'A', 'B', 'C', 'D'}
 	            	if (tableno == 1)
-	            		panelobj = tables.FinalTables.table1panel(params_in, results, panelname{:}, varargin{:});
+	            		panelobj = tables.TexTables.table1panel(params_in, results, panelname{:}, varargin{:});
 	            	elseif (tableno == 2)
-	            		panelobj = tables.FinalTables.table2panel(params_in, results, panelname{:}, varargin{:});
+	            		panelobj = tables.TexTables.table2panel(params_in, results, panelname{:}, varargin{:});
 	            	end
 
 	            	if strcmp(panelname{:}, 'header')
@@ -37,16 +37,16 @@ classdef FinalTables
         end
 
         function save_experiment_table(params_in, results, comparison_decomps, dirpath, tableno)
-            header = tables.FinalTables.experiment_table_header(params_in, results, tableno);
+            header = tables.TexTables.experiment_table_header(params_in, results, tableno);
             headerpath = fullfile(dirpath, sprintf('table%d_header.xlsx', tableno));
             writetable(header, headerpath, 'WriteRowNames', true);
 
             for panelname = {'A', 'A2', 'B', 'C', 'D'}
             	if ismember(panelname{:}, {'A', 'A2'})
-            		panelobj = tables.FinalTables.experiment_table_panel(...
+            		panelobj = tables.TexTables.experiment_table_panel(...
             			params_in, comparison_decomps, panelname{:}, tableno);
             	else
-            		panelobj = tables.FinalTables.experiment_table_panel(...
+            		panelobj = tables.TexTables.experiment_table_panel(...
             			params_in, results, panelname{:}, tableno);
             	end
             	panelfname = sprintf('table%d_panel%s.xlsx', tableno, panelname{:});
@@ -149,7 +149,7 @@ classdef FinalTables
         end
 
         function table_out = experiment_table_header(params_in, results, tableno)
-            indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
+            indices = filter_param_group(params_in, tables.TexTables.table_includes{tableno});
 
             import statistics.Statistics.sfill
 
@@ -314,7 +314,7 @@ function [stats_array, names_array] = stack_results(tableno, fn_handle, params_i
     experiment = parser.Results.experiment;
     ctimeresults = parser.Results.ctimeresults;
 
-    indices = filter_param_group(params_in, tables.FinalTables.table_includes{tableno});
+    indices = filter_param_group(params_in, tables.TexTables.table_includes{tableno});
     n = numel(indices);
     stats_array = cell(n, 1);
     names_array = cell(n, 1);
