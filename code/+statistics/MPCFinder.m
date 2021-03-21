@@ -10,7 +10,7 @@ classdef MPCFinder < handle
 	% and the stationary distribution of the model
 
 	% 'models' is a cell array indexed by (1) the shock index,
-	% (2) the shock period, and (3) the current period. This
+	% and (2) the shock period less the current period, plus one. This
 	% array contains the policy functions based on expectation
 	% of a future shock.
 
@@ -203,7 +203,8 @@ classdef MPCFinder < handle
 				x_mpc = obj.xgrid_yT + transfer_it;
 
 	            % consumption choice given the shock
-	            con = obj.get_policy(x_mpc, obj.models{ishock,shockperiod,it});
+	            imodel = shockperiod - it + 1;
+	            con = obj.get_policy(x_mpc, obj.models{ishock,imodel});
 
 	            % expectation over yT
 	            con = reshape(con, [], obj.p.nyT) * obj.income.yTdist;
@@ -370,6 +371,7 @@ classdef MPCFinder < handle
 		    end
 
 			% get saving policy function
+			imodel = is - ii + 1;
 			sav = zeros(p.nx_DST,p.nyP,p.nyF,p.nb,p.nyT);
 			reshape_vec = [p.nx_DST 1 1 1 p.nyT];
 			for ib = 1:p.nb
@@ -382,7 +384,7 @@ classdef MPCFinder < handle
 		            x_iyP_iyF_iyT(below_xgrid) = min(obj.xgrid_yT(1,iyP,iyF,1,:));
                 end
 		        
-                sav_iyP_iyF_iyT = obj.models{ishock,is,ii}.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT);
+                sav_iyP_iyF_iyT = obj.models{ishock,imodel}.savinterp{iyP,iyF,ib}(x_iyP_iyF_iyT);
 		        sav(:,iyP,iyF,ib,:) = reshape(sav_iyP_iyF_iyT, reshape_vec);
 			end
 			end

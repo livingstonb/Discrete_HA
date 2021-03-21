@@ -116,62 +116,38 @@ function results = main(p, varargin)
     end
 
     %% --------------------------------------------------------------------
-    % DIRECTLY COMPUTED MPCs, IMPC(s,t)
+    % DIRECTLY COMPUTED MPCs, IMPC(s,t) where s = shock period
     % ---------------------------------------------------------------------
-    if (p.MPCs_news == 1) || (p.MPCs_loan_and_loss == 1)
+    maxT = 1;
+    if ((p.MPCs_news == 1) || (p.MPCs_loan_and_loss == 1)) && ~p.EpsteinZin
         disp('Solving for policy functions of anticipated future shocks')
         if p.freq == 4
             maxT = 10;
         else
             maxT = 5;
         end
-    else
-        maxT = 1;
     end
-    mpcmodels = cell(6, maxT, maxT);
     
-    shocks = p.shocks;
-    
-    % policy functions are the same as baseline when shock is received in
-    % the current period
-    
+    % mpcmodels{ishock,tlshock} stores the policy functions associated with the case
+    % where the shock occurs in period (tlshock - 1)
+    mpcmodels = cell(6, maxT);
     for ishock = 1:6
-        for is = 1:maxT
-            mpcmodels{ishock,is,is} = basemodel;
-        end
+        % policy functions are the same as baseline when shock is received in
+        % the current period
+        mpcmodels{ishock,1} = basemodel;
 
-        if ~p.EpsteinZin
-            % mpcmodels{ishock,s,t} stores the policy functions associated with the case
-            % where the household is currently in period t, but recieved news about
-            % the period-s shock in period 1. Shock was of size shocks(ishock)
-            model_lagged = cell(maxT-1, 1);
-
-            % get consumption functions conditional on future shock
-            % 'lag' is number of periods before shock
-            if maxT > 1
-                for lag = 1:maxT-1
-                    if lag == 1
-                        % shock is next period
-                        nextmpcshock = shocks(ishock);
-                        nextmodel = basemodel;
-                    else
-                        % no shock next period
-                        nextmpcshock = 0;
-                        nextmodel = model_lagged{lag-1};
-                    end
-
-                    model_lagged{lag} = solver.solve_EGP(...
-                        p, grdEGP, heterogeneity, income, nextmpcshock,...
-                        lag, nextmodel, iterating);
-                end
-
-                % populate mpcmodels with remaining (s,t) combinations for t < s
-                for is = 2:maxT
-                for it = is-1:-1:1
-                    mpcmodels{ishock,is,it} = model_lagged{is-it};
-                end
-                end
+        % get consumption functions conditional on future shock
+        for tlshock = 2:maxT
+            if tlshock == 2
+                % shock is next period
+                nextmpcshock = p.shocks(ishock);
+            else
+                % no shock next period
+                nextmpcshock = 0;
             end
+            mpcmodels{ishock,tlshock} = solver.solve_EGP(...
+                p, grdEGP, heterogeneity, income, nextmpcshock,...
+                tlshock-1, mpcmodels{ishock,tlshock-1}, 'quiet', iterating);
         end
     end
     

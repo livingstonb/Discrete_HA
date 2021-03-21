@@ -1,5 +1,5 @@
 function model = solve_EGP(p, grids, heterogeneity,...
-    income, futureshock, periods_until_shock, prevmodel, varargin)
+    income, futureshock, periods_until_shock, nextmodel, varargin)
     % This function performs the method of endogenous grid points to find
     % saving and consumption policy functions. It also calls 
     % find_stationary() to compute the stationary distribution over states 
@@ -8,7 +8,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
     %
     % To compute the MPCs out of news, it is necessary for the policy function
     % to reflect the expectation of a future shock. For these cases,
-    % the policy functions in 'prevmodel' are used. The variable 'nextmpcshock'
+    % the policy functions in 'nextmodel' are used. The variable 'nextmpcshock'
     % is nonzero when a shock is expected next period.
     %
     % Brian Livingston, 2020
@@ -92,7 +92,7 @@ function model = solve_EGP(p, grids, heterogeneity,...
         % interpolate to get c(x') using c(x)
 
         % c(x')
-        c_xp = get_c_xprime(p, grids, xprime_s, prevmodel, conlast, nextmpcshock, xmat);
+        c_xp = get_c_xprime(p, grids, xprime_s, nextmodel, conlast, nextmpcshock, xmat);
 
         % MUC in current period, from Euler equation
         muc_s = get_marginal_util_cons(...
@@ -177,7 +177,7 @@ function out = extend_interp(old_interpolant, qvals, gridmin,...
     out = max(out, lb);
 end
 
-function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast,...
+function c_xprime = get_c_xprime(p, grids, xp_s, nextmodel, conlast,...
     nextmpcshock, xmat)
 	% find c as a function of x'
 	c_xprime = zeros(size(xp_s));
@@ -188,7 +188,7 @@ function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast,...
     for iyP = 1:p.nyP
     	xp_s_ib_iyF_iyP = xp_s(:,iyP,iyF,ib,:);
 
-        if isempty(prevmodel)
+        if isempty(nextmodel)
             % usual method of EGP
             coninterp = griddedInterpolant(...
                 xmat(:,iyP,iyF,ib), conlast(:,iyP,iyF,ib), 'linear');
@@ -198,7 +198,7 @@ function c_xprime = get_c_xprime(p, grids, xp_s, prevmodel, conlast,...
             % need to compute IMPC(s,t) for s > 1, where IMPC(s,t) is MPC in period t out of period
             % s shock that was learned about in period 1 < s
             c_xprime(:,iyP,iyF,ib,:) = reshape(...
-                prevmodel.coninterp_ext{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)), dims_nx_nyT);
+                nextmodel.coninterp_ext{iyP,iyF,ib}(xp_s_ib_iyF_iyP(:)), dims_nx_nyT);
         end
     end
     end
