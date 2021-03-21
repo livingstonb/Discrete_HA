@@ -125,7 +125,7 @@ function results = main(p, varargin)
     end
     
     % mpcmodels{ishock,tlshock} stores the policy functions associated with the case
-    % where the shock occurs in period (tlshock - 1)
+    % where the shock occurs in (tlshock - 1) periods after the current period
     mpcmodels = cell(6, maxT);
     for ishock = 1:6
         % policy functions are the same as baseline when shock is received in

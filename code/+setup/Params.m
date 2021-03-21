@@ -145,11 +145,10 @@ classdef Params < handle
     end
 
     methods
-        function obj = Params(frequency, name, IncomeProcess, addl_params)
+        function obj = Params(frequency, name, addl_params)
         	% create params object
             obj.name = name;
             obj.freq = frequency;
-            obj.IncomeProcess = IncomeProcess;
             obj.R = 1 + obj.r;
             
             if frequency == 1
@@ -165,7 +164,7 @@ classdef Params < handle
                 error('Frequency must be 1 or 4')
             end
 
-            if nargin >= 4
+            if nargin >= 3
                 pfields = fields(addl_params)';
                 for pfield = pfields
                     obj.(pfield{1}) = addl_params.(pfield{1});

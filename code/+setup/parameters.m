@@ -27,15 +27,13 @@ function [params, all_names] = parameters(runopts)
         end
     end
 
-    % location of baseline income process for quarterly case
-    quarterly_b_path = 'input/income_quarterly_b_contyT.mat';
-    quarterly_c_path = 'input/income_quarterly_c_contyT.mat';
-
     quarterly_b_params = shared_params;
+    quarterly_b_params.IncomeProcess = 'input/income_quarterly_b_contyT.mat';
     quarterly_b_params.sd_logyT = sqrt(0.6376);
     quarterly_b_params.lambdaT = 0.25;
 
     quarterly_c_params = shared_params;
+    quarterly_c_params.IncomeProcess = 'input/income_quarterly_c_contyT.mat';
     quarterly_c_params.sd_logyT = sqrt(1.6243);
     quarterly_c_params.lambdaT = 0.0727;
 
@@ -68,13 +66,13 @@ function [params, all_names] = parameters(runopts)
     %----------------------------------------------------------------------
     
     % Annual
-    params(1) = setup.Params(1, 'Annual', '', annual_params);
+    params(1) = setup.Params(1, 'Annual', annual_params);
     params(1).beta0 = 0.984108034755346;
     params(1).group = {'Baseline', 'A1'};
     params(1).descr = 'Baseline';
      
     % Quarterly
-    params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(4, 'Quarterly', quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
     params(end).group = {'Baseline', 'Q1a', 'Q1b', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'};
     params(end).descr = 'Baseline';
@@ -85,12 +83,10 @@ function [params, all_names] = parameters(runopts)
     %----------------------------------------------------------------------
     ifreq = 4;
     lfreq = 'Q';
-    IncomeProcess = quarterly_b_path;
-    income_params = quarterly_b_params;
 
     % Liquid wealth calibration, mean assets = 2.25
     name = sprintf('E[a] = %g', 2.25);
-    params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(4, name, quarterly_b_params);
     params(end).group = {'Q1a'};
     params(end).descr = 'Calibration to liquid wealth, E[a] = 2.25';
     params(end).tex_header = 'E[a]';
@@ -101,7 +97,7 @@ function [params, all_names] = parameters(runopts)
     
     % Total wealth calibration, mean assets = 9.4
     name = sprintf('E[a] = %g', 9.4);
-    params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(4, name, quarterly_b_params);
     params(end).group = {'Q1a'};
     params(end).descr = {'Calibration to total wealth, E[a] = 9.4'};
     params(end).tex_header = 'E[a]';
@@ -113,7 +109,7 @@ function [params, all_names] = parameters(runopts)
     % Liquid wealth calibration, median assets = 0.05, 0.5, 1.0
     for mw = [0.05, 0.5, 1.0]
         name = sprintf('median(a) = %g', mw);
-        params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+        params(end+1) = setup.Params(4, name, quarterly_b_params);
         params(end).group = {'Q1a'};
         params(end).descr = {sprintf('Calibration to liquid wealth, median(a) = %g', mw)};
         params(end).tex_header = 'Median(a)';
@@ -125,7 +121,7 @@ function [params, all_names] = parameters(runopts)
 
     % no death
     name = 'No Death';
-    params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(4, name, quarterly_b_params);
     params(end).group = {'Q1b'};
     params(end).dieprob = 0;
     params(end).beta0 = 0.975363510593659;
@@ -133,14 +129,14 @@ function [params, all_names] = parameters(runopts)
 
     % no bequests
     name = 'No Bequests';
-    params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(4, name, quarterly_b_params);
     params(end).group = {'Q1b'};
     params(end).Bequests = 0;
     params(end).tex_header = 'No Bequests';
 
     % perfect annuities
     name = 'Annuities';
-    params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
     params(end).group = {'Q1b'};
     params(end).annuities = true;
     params(end).betaH0 = - 5e-3;
@@ -149,7 +145,7 @@ function [params, all_names] = parameters(runopts)
     % different interest rates
     for ii = [0, 5]
         name = sprintf('r = %g%% p.a.', ii);
-        params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+        params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
         params(end).r = ii/100;
         params(end).group = {'Q6'};
         params(end).descr = name;
@@ -162,7 +158,7 @@ function [params, all_names] = parameters(runopts)
     
     % interest rate heterogeneity
     name = 'Permanent r het, r in {0,2,4} p.a.';
-    params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
     params(end).r = [0, 2, 4] / 100;
     params(end).betaH0 = -1e-4;
     params(end).beta0 = 0.973149481985717;
@@ -170,7 +166,7 @@ function [params, all_names] = parameters(runopts)
     params(end).descr = 'r in {0, 2, 4}';
     
     name = 'Permanent r het, r in {-2,2,6} p.a.';
-    params(end+1) = setup.Params(ifreq,name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(ifreq,name, quarterly_b_params);
     params(end).r = [-2, 2, 6] / 100;
     params(end).betaH0 = 1e-5;
     params(end).beta0 = 0.960885729527277;
@@ -198,7 +194,7 @@ function [params, all_names] = parameters(runopts)
     % fixed beta heterogeneity
     for ibw = [0.001, 0.005, 0.01]
         name = sprintf('Beta5, pSwitch0, pSpacing%g', ibw);
-        params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+        params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
         params(end).nbeta = 5;
         params(end).betawidth = ibw;
         params(end).prob_zswitch = 0;
@@ -219,7 +215,7 @@ function [params, all_names] = parameters(runopts)
     for ibw = [0.01]
         for bs = [1/50, 1/10]
             name = sprintf('Beta5, pSwitch%g, pSpacing%g', bs, ibw);
-            params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+            params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
             params(end).nbeta = 5;
             params(end).betawidth = ibw;
             params(end).prob_zswitch = bs;
@@ -239,7 +235,7 @@ function [params, all_names] = parameters(runopts)
     % Different risk aversion coeffs
     for ira = [0.5, 2, 6]
         name = sprintf('CRRA = %g', ira);
-        params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+        params(end+1) = setup.Params(4, name, quarterly_b_params);
         params(end).risk_aver = ira;
         if (ifreq==4 && ira==4) || ira==6
             params(end).betaL = 0.5;
@@ -256,7 +252,7 @@ function [params, all_names] = parameters(runopts)
     
     % CRRA with IES heterogeneity
     name = 'CRRA w/IES betw exp(-1), exp(1)';
-    params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
     params(end).risk_aver = 1./ exp([-1 -0.5 0 0.5 1]);
     if params(end).freq == 4
         params(end).betaH0 =  - 2e-3;
@@ -267,7 +263,7 @@ function [params, all_names] = parameters(runopts)
     params(end).tex_header_values = {struct('riskaver', 'exp(1), ..., exp(-1)', 'ies', 'exp(-1), ..., exp(1)')};
     
     name = 'CRRA w/IES betw exp(-2), exp(2)';
-    params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
     params(end).risk_aver = 1 ./ exp([-2 -1 0 1 2]);
     if params(end).freq == 4
         params(end).betaH0 = -1e-3;
@@ -285,7 +281,7 @@ function [params, all_names] = parameters(runopts)
         ra_i = ras(i);
         ies_i = ies(i);
         name = sprintf('EZ, ra%g, ies%g', ra_i, ies_i);
-        params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+        params(end+1) = setup.Params(4, name, quarterly_b_params);
         params(end).risk_aver = ra_i;
         params(end).invies = 1 / ies_i;
         params(end).EpsteinZin = true;
@@ -303,7 +299,7 @@ function [params, all_names] = parameters(runopts)
 
     % EZ with IES heterogeneity
     name = 'EZ w/ IES betw exp(-1), exp(1)';
-    params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
     params(end).invies = 1 ./ exp([-1 -0.5 0 0.5 1]);
     params(end).EpsteinZin = true;
     if (ifreq == 4)
@@ -315,7 +311,7 @@ function [params, all_names] = parameters(runopts)
     params(end).tex_header_values = {struct('riskaver', 1, 'ies', 'exp(-1), ..., exp(1)')};
     
     name = 'EZ w/ IES betw exp(-2), exp(2)';
-    params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
     params(end).invies = 1 ./ exp([-2 -1 0 1 2]);
     params(end).EpsteinZin = true;
     if (ifreq == 4)
@@ -328,7 +324,7 @@ function [params, all_names] = parameters(runopts)
 
     % EZ with risk aversion heterogeneity
     name = 'EZ w/ RA betw exp(-2), exp(2)';
-    params(end+1) = setup.Params(ifreq, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(ifreq, name, quarterly_b_params);
     params(end).invies = 1;
     params(end).risk_aver = exp([-2 -1 0 1 2]);
     params(end).EpsteinZin = 1;
@@ -343,7 +339,7 @@ function [params, all_names] = parameters(runopts)
     % temptation
     for tempt = [0.01 0.05 0.07]
         name = sprintf('Temptation = %g', tempt);
-        params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+        params(end+1) = setup.Params(4, name, quarterly_b_params);
         params(end).temptation = tempt;
         if tempt == 0.07
             params(end).beta0 = 1;
@@ -355,7 +351,7 @@ function [params, all_names] = parameters(runopts)
     end
 
     name = 'Temptation, uniform in {0, 0.05, 0.1}';
-    params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(4, name, quarterly_b_params);
     params(end).temptation = [0 0.05 0.1];
     params(end).beta0 = 0.999083 ^ 4;
     params(end).betaH0 = -4e-5;
@@ -368,7 +364,7 @@ function [params, all_names] = parameters(runopts)
     
     % i
     name = 'Annual, no yT';
-    params(end+1) = setup.Params(1, name, '', annual_params);
+    params(end+1) = setup.Params(1, name, annual_params);
     params(end).beta0 = 0.99;
     params(end).nyT = 1;
     params(end).sd_logyT = 0;
@@ -380,7 +376,7 @@ function [params, all_names] = parameters(runopts)
 
     % iv
     name = 'Annual, Carrol';
-    params(end+1) = setup.Params(1, name, '', annual_params);
+    params(end+1) = setup.Params(1, name, annual_params);
     params(end).rho_logyP = 0.999;
     params(end).sd_logyP = sqrt(0.015);
     params(end).sd_logyT = sqrt(0.01);
@@ -405,7 +401,7 @@ function [params, all_names] = parameters(runopts)
     
     % viii
     name = 'Annual, high persistence';
-    params(end+1) = setup.Params(1, name, '', shared_params);
+    params(end+1) = setup.Params(1, name, shared_params);
     params(end).rho_logyP = 0.995;
     params(end).sd_logyP = sqrt(0.0043);
     params(end).sd_logyT = sqrt(0.0688);
@@ -424,7 +420,7 @@ function [params, all_names] = parameters(runopts)
     
     % x
     name = 'Annual, high nyF = 5';
-    params(end+1) = setup.Params(1, name, '', shared_params);
+    params(end+1) = setup.Params(1, name, shared_params);
     params(end).rho_logyP = 0.9158;
     params(end).sd_logyP = sqrt(0.0445);
     params(end).sd_logyT = sqrt(0.0479);
@@ -442,7 +438,7 @@ function [params, all_names] = parameters(runopts)
     
     % i quarterly_a
     name = 'quarterly_a';
-    params(end+1) = setup.Params(4, name , '', quarterly_a_params);
+    params(end+1) = setup.Params(4, name, quarterly_a_params);
     params(end).beta0 = 0.984363510593659;
     params(end).group = {'Q8'};
     params(end).descr = 'quart_a';
@@ -451,7 +447,7 @@ function [params, all_names] = parameters(runopts)
     
     % ii
     name = 'KMP';
-    params(end+1) = setup.Params(4, name, '', shared_params);
+    params(end+1) = setup.Params(4, name, shared_params);
     params(end).rho_logyP = 0.9879;
     params(end).sd_logyP = sqrt(0.0109);
     params(end).sd_logyT = sqrt(0.0494);
@@ -462,7 +458,7 @@ function [params, all_names] = parameters(runopts)
 
     % iii quarterly_c
     name = 'quarterly_c';
-    params(end+1) = setup.Params(4, name, quarterly_c_path, quarterly_c_params);
+    params(end+1) = setup.Params(4, name, quarterly_c_params);
     params(end).beta0 = 0.984363510593659;
     params(end).group = {'Q8'};
     params(end).descr = 'quart_c';
@@ -471,7 +467,7 @@ function [params, all_names] = parameters(runopts)
     
     % no transitory shocks
     name = 'no trans shocks';
-    params(end+1) = setup.Params(4, name, quarterly_b_path, quarterly_b_params);
+    params(end+1) = setup.Params(4, name, quarterly_b_params);
     params(end).beta0 = 0.984363510593659;
     params(end).nyT = 1;
     params(end).group = {'Q8'};
