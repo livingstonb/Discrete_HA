@@ -81,7 +81,7 @@ classdef MPCSimulator < handle
 		end
 
 		function draw_from_stationary_dist(obj, p, grids, basemodel)
-			cumdist = cumsum(basemodel.adist(:));
+			cumdist = cumsum(basemodel.pmf(:));
 
 			% Indexes
 		    yPind_trans = repmat(kron((1:p.nyP)', ones(p.nx_DST, 1)), p.nyF*p.nb, 1);

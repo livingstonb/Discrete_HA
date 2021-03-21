@@ -54,13 +54,13 @@ function modelupdate = find_stationary_adist(...
 %     [q,~] = eigs(modelupdate.statetrans',[],1,1);
 %     q = q / sum(q(:));
 
-    modelupdate.adist = reshape(full(q'), [nx, p.nyP, p.nyF, p.nb]);
+    modelupdate.pmf = reshape(full(q'), [nx, p.nyP, p.nyF, p.nb]);
 
     tmp = reshape(full(q'), nx, []);
-    modelupdate.agrid_dist = sum(tmp, 2);
+    modelupdate.pmf_a = sum(tmp, 2);
     
     % get distribution over (x,yP,yF,beta)
-    xdist = kron(income.yTdist, reshape(modelupdate.adist, nx, []));
+    xdist = kron(income.yTdist, reshape(modelupdate.pmf, nx, []));
     modelupdate.xdist = reshape(xdist, [nx*p.nyT p.nyP p.nyF p.nb]);
     
     % Extend xvals to (nx*p.nyT,p.nyP,p.nyF,p.nyT)
@@ -96,7 +96,7 @@ function modelupdate = find_stationary_adist(...
     	- savtax;
     
     % Mean assets
-	modelupdate.mean_a = dot(modelupdate.agrid_dist, grids.a.vec);
+	modelupdate.mean_a = dot(modelupdate.pmf_a, grids.a.vec);
 
     if ~quiet
         fprintf(' A/Y = %2.5f\n', modelupdate.mean_a);

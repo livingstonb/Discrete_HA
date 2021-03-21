@@ -60,9 +60,9 @@ function results = main(p, varargin)
     end
     basemodel = solver.find_stationary_adist(...
         p, basemodel, income, grdDST, heterogeneity, 'quiet', iterating);
-    results.distr.pmf = basemodel.adist;
+    results.distr.pmf = basemodel.pmf;
     results.distr.agrid = grdDST.a.vec;
-    results.distr.pmf_a = basemodel.agrid_dist;
+    results.distr.pmf_a = basemodel.pmf_a;
 
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization

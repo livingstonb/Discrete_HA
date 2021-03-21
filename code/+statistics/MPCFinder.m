@@ -220,43 +220,13 @@ classdef MPCFinder < handle
 	            end
 
 	            loc_pos = mpcs(:) > 0;
-                dist_vec = obj.basemodel.adist(:);
+                dist_vec = obj.basemodel.pmf(:);
 
                 mpc_pos = sum(dist_vec(loc_pos));
                 mpc_neg = sum(dist_vec(mpcs(:)<0));
                 mpc0 = sum(dist_vec(mpcs(:)==0));
 
-                % reshape_vec = [obj.p.nx_DST, obj.p.nyP*obj.p.nyF, obj.p.nb];
-                % mpc_p = mpcs(:) .* obj.basemodel.adist(:);
-                % mpc_p = reshape(mpc_p, reshape_vec);
-                % p_xb = reshape(obj.basemodel.adist, reshape_vec);
-                % p_xb = sum(p_xb, 2);
-
-                % p_small = p_xb < 1e-8;
-
-                % mpc_xb = sum(mpc_p, 2) ./ p_xb;
-                % mpc_xb = mpc_xb(~p_small);
-                % mpcs_sorted = sortrows([mpc_xb, p_xb(~p_small)]);
-                % mpc_xb = mpcs_sorted(:,1);
-                % cdf_xb = cumsum(mpcs_sorted(:,2));
-
-                % [mpc_xb, uniq] = unique(mpc_xb, 'last');
-                % cdf_xb = cdf_xb(uniq);
-
-                % interp_mpc = griddedInterpolant(cdf_xb, mpc_xb, 'linear');
-                % mpc_median = interp_mpc(0.5);
-
-                % pmf = obj.basemodel.adist;
-                % tmp = reshape(pmf, obj.p.nx_DST, []);
-                % pmf_x = sum(tmp, 2);
-
-                % mpcs_states = reshape(mpcs, obj.p.nx_DST, []);
-                % mpc_x = aux.(mpcs_states, pmf, pmf_x);
-
-                % mpcs_sorted = sortrows([mpc_x])
-                % mpc_interp = griddedInterpolant()
-
-                pmf = obj.basemodel.adist;
+                pmf = obj.basemodel.pmf;
                 mpc_ss = reshape(mpcs, size(pmf));
                 mpcs_sorted = sortrows([mpc_ss(:), pmf(:)]);
 
@@ -272,7 +242,7 @@ classdef MPCFinder < handle
                 end
 
 	            if immediate_shock > 0
-	            	obj.loan.avg = obj.basemodel.adist(:)' * mpcs(:);
+	            	obj.loan.avg = obj.basemodel.pmf(:)' * mpcs(:);
 	            	obj.loan.mpc_condl = mpc_condl;
 	            	obj.loan.mpc_pos = mpc_pos;
 	            	obj.loan.mpc0 = mpc0;
@@ -280,14 +250,14 @@ classdef MPCFinder < handle
 	            	obj.loan.median = mpc_median;
                     return;
 	            elseif shockperiod <= 5
-	            	obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.adist(:)' * mpcs(:);
+	            	obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.pmf(:)' * mpcs(:);
                     obj.mpcs(ishock).avg_s_t_condl(shockperiod,it) = mpc_condl;
                     obj.mpcs(ishock).mpc_pos(shockperiod,it) = mpc_pos;
                     obj.mpcs(ishock).mpc_neg(shockperiod,it) = mpc_neg;
                     obj.mpcs(ishock).mpc0(shockperiod,it) = mpc0;
                     obj.mpcs(ishock).median(shockperiod,it) = mpc_median;
 	            elseif shockperiod == 9
-	            	obj.loss_in_2_years.avg = obj.basemodel.adist(:)' * mpcs(:);
+	            	obj.loss_in_2_years.avg = obj.basemodel.pmf(:)' * mpcs(:);
 	            	obj.loss_in_2_years.mpc_condl = mpc_condl;
 	            	obj.loss_in_2_years.mpc_pos = mpc_pos;
 	            	obj.loss_in_2_years.mpc0 = mpc0;
@@ -323,7 +293,7 @@ classdef MPCFinder < handle
 	            mpcs = (trans_1_t * LHScon - RHScon) / shock;
 
 	            % state transitions are as usual post-shock
-	            obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.adist(:)' * mpcs(:);
+	            obj.mpcs(ishock).avg_s_t(shockperiod,it) = obj.basemodel.pmf(:)' * mpcs(:);
 	            RHScon = obj.basemodel.statetrans * RHScon;
 	            LHScon = obj.basemodel.statetrans * LHScon;
 	            

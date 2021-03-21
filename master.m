@@ -74,9 +74,6 @@ if params.calibrate
     solver_args = params.calibrator.get_args();
     calibrated_params = lsqnonlin(params.calibrator.solver_handle,...
         solver_args{:}, options);
-
-%     if calibrator.dnorm > 1e-4
-%         error('Could not match targets')
 end
 
 results = main(params, 'iterating', false);

@@ -60,7 +60,7 @@ classdef Statistics < handle
 			obj.nx = p.nx_DST;
 			obj.freq = p.freq;
 
-			obj.pmf = model.adist;
+			obj.pmf = model.pmf;
 		end
 
 		function compute_statistics(obj)

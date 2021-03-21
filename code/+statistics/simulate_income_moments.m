@@ -1,5 +1,5 @@
 function ymoments = simulate_income_moments(params, income)
-    Nsim = 3e5;
+    Nsim = 2e5;
     Tburn = 150;
 
     rng(200);
