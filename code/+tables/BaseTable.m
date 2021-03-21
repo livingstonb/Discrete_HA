@@ -3,8 +3,6 @@ classdef BaseTable < handle
 		mpcs_present = false;
 		mpcs_news_present = false;
 		mpcs_loan_loss_present = false;
-		decomp_norisk_present = false;
-		decomp_RA_present = false;
 		
 		n_cols;
 		current_column;
@@ -27,16 +25,6 @@ classdef BaseTable < handle
 			obj.mpcs_present = any([params.MPCs]);
 			obj.mpcs_news_present = any([params.MPCs_news]);
 			obj.mpcs_loan_loss_present = any([params.MPCs_loan_and_loss]);
-
-% 			for ip = 1:numel(params)
-% 				if stats{ip}.decomp_norisk(1).completed
-% 					obj.decomp_norisk_present = true;
-% 				end
-% 
-% 				if stats{ip}.decomp_RA.completed
-% 					obj.decomp_RA_present = true;
-% 				end
-% 			end
 		end
 
 		function update_current_column(obj, table_in, stats_in)
