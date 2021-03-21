@@ -65,7 +65,6 @@ classdef Params < handle
         xgrid_term1curv = 0.8;
         borrow_lim = 0;
         nbl_adjustment = 0.99;
-        alternate_gcurv = false;
         
         % OPTIONS
         MakePlots = 0;

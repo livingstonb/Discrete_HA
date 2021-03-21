@@ -28,6 +28,7 @@ classdef Statistics < handle
 		wgini;
 
 		mpcs;
+		mpc_RA;
 		decomp_RA;
 		decomp_norisk;
 
@@ -107,26 +108,21 @@ classdef Statistics < handle
 		    obj.mean_gross_y_annual = sfill(mean_y,...
 		    	'Mean gross annual income', 3);
 
-		    if obj.freq == 1
-		    	demeaned2 = (obj.model.y_x(:) - mean_y) .^ 2;
-			    stdev_y = dot(demeaned2, xdist);
-			    obj.std_log_gross_y_annual = sfill(stdev_y,...
-			    	'Stdev log gross annual income', 3);
-
-			    demeaned2 = (obj.model.nety_x(:) - mean_y) .^ 2;
-			    stdev_y = dot(demeaned2, xdist);
-			    obj.std_log_net_y_annual = sfill(stdev_y,...
-			    	'Stdev log net annual income', 3);
-			else
-				obj.std_log_gross_y_annual = sfill(NaN,...
-			    	'Stdev log gross annual income', 3);
-				obj.std_log_net_y_annual = sfill(NaN,...
-			    	'Stdev log net annual income', 3);
-			end
+		    obj.std_log_gross_y_annual = sfill(NaN,...
+			    'Stdev log gross annual income', 3);
+			obj.std_log_net_y_annual = sfill(NaN,...
+			    'Stdev log net annual income', 3);
 
 			dollars = sprintf('$%g', obj.p.annual_inc_dollars);
 			obj.annual_inc_dollars = sfill(dollars,...
 			    'Dollar value of mean gross ann inc (numeraire)');
+
+			% RA mpc
+			obj.mpc_RA = sfill(NaN, 'MPC (RA)', 3);
+		    if (obj.p.nb == 1) && (~obj.p.EpsteinZin) && isequal(obj.p.temptation, 0) && (obj.p.bequest_weight == 0)
+		        tmp = (1-obj.p.dieprob) * obj.p.beta0 * obj.p.R;
+		        obj.mpc_RA.value = obj.p.R * tmp ^ (-1 / obj.p.risk_aver) - 1;
+		    end
 		end
 
 		function add_params(obj)

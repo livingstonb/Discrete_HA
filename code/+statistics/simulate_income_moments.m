@@ -1,154 +1,43 @@
-clear
+function ymoments = simulate_income_moments(params, income)
+    Nsim = 3e5;
+    Tburn = 150;
 
-% This script is designed to be run in isolation to estimate various moments of the
-% provided income processes. It may be outdated...
+    rng(200);
 
-path = '/Users/Brian/Documents/GitHub/Discrete_HA';
+    %% Simulate
+    yFrand = rand(Nsim, 1);
+    [~,yFindsim] = max(bsxfun(@lt,yFrand,income.yFcumdist'),[],2);
+    yFsim = income.yFgrid(yFindsim);
 
-%% ------------------------------------------------------------------------
-% SET PARAMETERS
-% -------------------------------------------------------------------------
-Nsim = 1e6;
-
-% Baseline quarterly
-params(1) = setup.Params(4,'baseline','');
-params(1).nyT          = 11;
-params(1).yTContinuous = 0;
-params(1).sd_logyT     = sqrt(0.2087);
-params(1).lambdaT      = 1;
-params(1).nyP          = 11;
-params(1).sd_logyP     = sqrt(0.0108);
-params(1).rho_logyP    = 0.9881;
-params(1).nyF          = 1;
-params(1).sd_logyF     = 0;
-params(1).labtaxlow       = 0; %proportional tax
-params(1).labtaxhigh      = 0; %additional tax on incomes above threshold
-params(1).labtaxthreshpc  = 0.99; %percentile of earnings distribution where high tax rate kicks in
-params(1).savtax          = 0; %0.0001;  %tax rate on savings
-params(1).savtaxthresh    = 0; %multiple of mean gross labor income
-het{1} = setup.Prefs_R_Heterogeneity(params(1));
-income{1} = setup.Income(params(1),het{1});
-
-% quarterly_a
-params(2) = params(1);
-params(2).IncomeProcess = 'input/income_quarterly_a.mat';
-het{2} = setup.Prefs_R_Heterogeneity(params(2));
-income{2} = setup.Income(params(2),het{2});
-
-% quarterly_b
-params(3) = params(1);
-params(3).IncomeProcess = 'input/income_quarterly_b.mat';
-het{3} = setup.Prefs_R_Heterogeneity(params(3));
-income{3} = setup.Income(params(3),het{3});
-
-% quarterly_b
-params(4) = params(1);
-params(4).IncomeProcess = 'input/income_quarterly_c.mat';
-het{4} = setup.Prefs_R_Heterogeneity(params(4));
-income{4} = setup.Income(params(4),het{4});
-
-% KMP
-params(5) = setup.Params(4,'KMP','');
-params(5).rho_logyP = 0.9879;
-params(5).sd_logyP = sqrt(0.0109);
-params(5).sd_logyT = sqrt(0.0494);
-het{5} = setup.Prefs_R_Heterogeneity(params(5));
-income{5} = setup.Income(params(5),het{5});
-
-% KMP - Mitman
-params(6) = setup.Params(4,'KMP','input/income_mitman.mat');
-het{6} = setup.Prefs_R_Heterogeneity(params(6));
-income{6} = setup.Income(params(6),het{6});
-
-
-%% ------------------------------------------------------------------------
-% SIMULATE
-% -------------------------------------------------------------------------
-n_p = numel(params);
-
-yTsim = cell(1,n_p);
-yPsim = cell(1,n_p);
-
-for i = 1:n_p
-    yTrand = rand(Nsim,n_p);
-    yPrand = rand(Nsim,n_p);
-    yTindsim = zeros(Nsim,n_p,'int8');
-    yPindsim = zeros(Nsim,n_p,'int8');
-    
-    for it = 1:n_p
-        [~,yTindsim(:,it)] = max(bsxfun(@lt,yTrand(:,it),income{i}.yTcumdist'),[],2);
+    yPrand = rand(Nsim, Tburn);
+    for it = 1:Tburn
         if it == 1
-            [~,yPindsim(:,it)] = max(bsxfun(@lt,yPrand(:,it),income{i}.yPcumdist'),[],2);
+            [~,yPindsim] = max(bsxfun(@lt,yPrand(:,it),income.yPcumdist'),[],2);
         else
-            [~,yPindsim(:,it)] = max(bsxfun(@lt,yPrand(:,it),income{i}.yPcumtrans(yPindsim(:,it-1),:)),[],2);
+            [~,yPindsim] = max(bsxfun(@lt,yPrand(:,it),income.yPcumtrans(yPindsim,:)),[],2);
         end
     end
-    
-    yTsim{i} = income{i}.yTgrid(yTindsim);
-    yPsim{i} = income{i}.yPgrid(yPindsim);
-end
 
-%% ------------------------------------------------------------------------
-% COMPUTE MOMENTS
-% -------------------------------------------------------------------------
+    yTrand = rand(Nsim, 4);
+    yPrand = rand(Nsim, 4);
+    for it = 1:params.freq
+        [~, yTindsim] = max(bsxfun(@lt, yTrand(:,it), income.yTcumdist'), [], 2);
+        yTsim(:,it) = income.yTgrid(yTindsim);
 
-Qmoments(1).name = 'q_base';
-Qmoments(2).name = 'q_a';
-Qmoments(3).name = 'q_b';
-Qmoments(4).name = 'q_c';
-Qmoments(5).name = 'KMP';
-Amoments = Qmoments;
+        [~, yPindsim] = max(bsxfun(@lt, yPrand(:,it), income.yPcumtrans(yPindsim,:)), [], 2);
+        yPsim(:,it) = income.yPgrid(yPindsim);
+    end
 
-% quarterly moments
-for i = 1:n_p
-    yTsimQ = yTsim{i}(:,1);
-    Qmoments(i).yT_mu1 = mean(yTsimQ);
-    Qmoments(i).yT_mu2 = mean( (yTsimQ - mean(yTsimQ)).^2 );
-    Qmoments(i).yT_mu3 = mean( (yTsimQ - mean(yTsimQ)).^3 );
-    Qmoments(i).yT_mu4 = mean( (yTsimQ - mean(yTsimQ)).^4 );
-    
-    logyTsimQ = log(yTsimQ);
-    Qmoments(i).logyT_mu1 = mean(logyTsimQ);
-    Qmoments(i).logyT_mu2 = mean( (logyTsimQ - mean(logyTsimQ)).^2 );
-    Qmoments(i).logyT_mu3 = mean( (logyTsimQ - mean(logyTsimQ)).^3 );
-    Qmoments(i).logyT_mu4 = mean( (logyTsimQ - mean(logyTsimQ)).^4 );
-    
-    yPsimQ = yPsim{i}(:,1);
-    Qmoments(i).yP_mu1 = mean(yPsimQ);
-    Qmoments(i).yP_mu2 = mean( (yPsimQ - mean(yPsimQ)).^2 );
-    Qmoments(i).yP_mu3 = mean( (yPsimQ - mean(yPsimQ)).^3 );
-    Qmoments(i).yP_mu4 = mean( (yPsimQ - mean(yPsimQ)).^4 );
-    
-    logyPsimQ = log(yPsimQ);
-    Qmoments(i).logyP_mu1 = mean(logyPsimQ);
-    Qmoments(i).logyP_mu2 = mean( (logyPsimQ - mean(logyPsimQ)).^2 );
-    Qmoments(i).logyP_mu3 = mean( (logyPsimQ - mean(logyPsimQ)).^3 );
-    Qmoments(i).logyP_mu4 = mean( (logyPsimQ - mean(logyPsimQ)).^4 );
-end
+    period_y = yFsim .* yTsim .* yPsim;
+    period_nety = params.lumptransfer + (1-params.labtaxlow) * period_y ...
+        - params.labtaxhigh * max(period_y-income.labtaxthresh, 0);
 
-% annual moments
-for i = 1:n_p
-    yTsimA = sum(yTsim{i},2);
-    Amoments(i).yT_mu1 = mean(yTsimA);
-    Amoments(i).yT_mu2 = mean( (yTsimA - mean(yTsimA)).^2 );
-    Amoments(i).yT_mu3 = mean( (yTsimA - mean(yTsimA)).^3 );
-    Amoments(i).yT_mu4 = mean( (yTsimA - mean(yTsimA)).^4 );
+    % Annual income
+    gross_y = sum(period_y, 2);
+    net_y = sum(period_nety, 2);
     
-    logyTsimA = log(yTsimA);
-    Amoments(i).logyT_mu1 = mean(logyTsimA);
-    Amoments(i).logyT_mu2 = mean( (logyTsimA - mean(logyTsimA)).^2 );
-    Amoments(i).logyT_mu3 = mean( (logyTsimA - mean(logyTsimA)).^3 );
-    Amoments(i).logyT_mu4 = mean( (logyTsimA - mean(logyTsimA)).^4 );
-    
-    yPsimA = sum(yPsim{i},2);
-    Amoments(i).yP_mu1 = mean(yPsimA);
-    Amoments(i).yP_mu2 = mean( (yPsimA - mean(yPsimA)).^2 );
-    Amoments(i).yP_mu3 = mean( (yPsimA - mean(yPsimA)).^3 );
-    Amoments(i).yP_mu4 = mean( (yPsimA - mean(yPsimA)).^4 );
-    
-    logyPsimA = log(yPsimA);
-    Amoments(i).logyP_mu1 = mean(logyPsimA);
-    Amoments(i).logyP_mu2 = mean( (logyPsimA - mean(logyPsimA)).^2 );
-    Amoments(i).logyP_mu3 = mean( (logyPsimA - mean(logyPsimA)).^3 );
-    Amoments(i).logyP_mu4 = mean( (logyPsimA - mean(logyPsimA)).^4 );
+    %% Moments
+    ymoments = struct();
+    ymoments.std_log_y = std(log(gross_y));
+    ymoments.std_log_nety = std(log(net_y));
 end

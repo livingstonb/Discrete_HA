@@ -8,7 +8,8 @@ function results = main(p, varargin)
     % compute policy functions via the method of endogenous grip points, 
     % and to find the implied stationary distribution over the state space.
 
-    results = struct('policy',[],'direct',[],'norisk',[],'sim',[],'decomp_meanmpc',[]);
+    results = struct('policy',[],'distr',[],'norisk',[],'sim',[],'decomp_meanmpc',[]);
+    distr = struct();
 
     parser = inputParser;
     addOptional(parser, 'iterating', false);
@@ -59,7 +60,9 @@ function results = main(p, varargin)
     end
     basemodel = solver.find_stationary_adist(...
         p, basemodel, income, grdDST, heterogeneity, 'quiet', iterating);
-    results.direct.adist = basemodel.adist;
+    results.distr.pmf = basemodel.adist;
+    results.distr.agrid = grdDST.a.vec;
+    results.distr.pmf_a = basemodel.agrid_dist;
 
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
@@ -72,23 +75,9 @@ function results = main(p, varargin)
     results.stats = statistics.Statistics(p, income, grdDST, basemodel);
     results.stats.compute_statistics();
 
-    % RA mpc
-    if (p.nb == 1) && (~p.EpsteinZin) && isequal(p.temptation, 0) && (p.bequest_weight == 0)
-        tmp = (1-p.dieprob) * p.beta0 * p.R;
-        results.direct.mpc_RA = p.R * tmp ^ (-1 / p.risk_aver) - 1;
-    else
-        results.direct.mpc_RA = NaN;
-    end
-
-    %% --------------------------------------------------------------------
-    % WEALTH DISTRIBUTION
-    % ---------------------------------------------------------------------
-    % pmf(a, yP, yF, ib)
-    results.direct.adist = basemodel.adist;
-    results.direct.agrid = grdDST.a.vec;
-    
-    % pmf(a)
-    results.direct.agrid_dist = basemodel.agrid_dist;
+    ymoments = statistics.simulate_income_moments(p, income);
+    results.stats.std_log_gross_y_annual.value = ymoments.std_log_y;
+    results.stats.std_log_net_y_annual.value = ymoments.std_log_nety;
     
     %% --------------------------------------------------------------------
     % MPCs FOR MODEL WITHOUT INCOME RISK
@@ -195,7 +184,7 @@ function results = main(p, varargin)
 
     results.stats.add_mpcs(mpc_finder);
 
-    results.direct.mpcs = mpc_finder.mpcs;
+    results.mpcs = mpc_finder.mpcs;
     results.mpcs_loan = mpc_finder.loan;
     results.mpcs_loss_in_2_years = mpc_finder.loss_in_2_years;
     clear mpc_finder
@@ -203,7 +192,7 @@ function results = main(p, varargin)
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
-    cdf_a = cumsum(results.direct.agrid_dist);
+    cdf_a = cumsum(results.distr.pmf_a);
     wpinterp = griddedInterpolant(...
         grdDST.a.vec, cdf_a, 'pchip', 'nearest');
     find_wealth_pctile = @(a) 100 * wpinterp(a);
@@ -214,26 +203,18 @@ function results = main(p, varargin)
         p, income, grdDST, heterogeneity, basemodel);
     results.mpcs_sim = mpc_simulator.mpcs;
 
-    % find annual mean and standard deviations of income
-    if p.freq == 4
-        % from simulations
-        results.stats.std_log_gross_y_annual.value = mpc_simulator.stdev_loggrossy_A;
-        results.stats.std_log_net_y_annual.value = mpc_simulator.stdev_lognety_A;
-    end
-    
     clear mpc_simulator
 
     %% --------------------------------------------------------------------
     % DECOMPOSITION 1 (DECOMP OF E[mpc])
     % ---------------------------------------------------------------------
-    results.direct.mean_a = results.stats.mean_a.value;
-    decomp = statistics.Decomp(p, results.direct);
+    decomp = statistics.Decomp(p, results.distr, results.stats);
     doDecomposition = (p.nb==1) && (~p.EpsteinZin) && (p.MPCs)...
         && (p.bequest_weight==0) && isequal(p.temptation,0) && (numel(p.r)==1)...
         && (p.DeterministicMPCs);
 
     if doDecomposition
-        mpcs_baseline = reshape(results.direct.mpcs(5).mpcs_1_t{1}, p.nx_DST, []);
+        mpcs_baseline = reshape(results.mpcs(5).mpcs_1_t{1}, p.nx_DST, []);
         mpcs_norisk = reshape(results.norisk.mpcs1_a_direct{5}, p.nx_DST, []);
         decomp.perform_decompositions(mpcs_baseline, mpcs_norisk);
     end

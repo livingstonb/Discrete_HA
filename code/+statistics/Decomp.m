@@ -19,18 +19,22 @@ classdef Decomp < handle
 		mpc_ra;
 		mpcs_a;
 		mpcs_norisk;
+		mean_a;
 
 		results_RA;
 		results_norisk;
 	end
 
 	methods
-		function obj = Decomp(p, stats)
+		function obj = Decomp(p, adist, stats)
 			obj.p = p;
-			obj.agrid = stats.agrid;
+			obj.agrid = adist.agrid;
 			obj.na = numel(obj.agrid);
-			obj.stats = stats;
-			obj.mpc_ra = stats.mpc_RA;
+			obj.mean_a = stats.mean_a.value;
+			obj.mpc_ra = stats.mpc_RA.value;
+
+			obj.pmf = adist.pmf;
+            obj.pmf_a = adist.pmf_a;
 
 			obj.nthresholds = numel(obj.p.abars);
 
@@ -76,9 +80,6 @@ classdef Decomp < handle
 		end
 
 		function make_initial_computations(obj, mpcs)
-			obj.pmf = obj.stats.adist;
-            obj.pmf_a = obj.stats.agrid_dist;
-
             obj.mpcs_a = aux.condl_mpcs(mpcs, obj.pmf, obj.pmf_a);
 
             obj.Empc = dot(obj.mpcs_a, obj.pmf_a);
@@ -102,7 +103,7 @@ classdef Decomp < handle
 			dsupport = obj.pmf_a > 1e-7;
 			mpc_a_interp = griddedInterpolant(...
 				obj.agrid(dsupport), obj.mpcs_a(dsupport), 'linear');
-			mpc_atmean = mpc_a_interp(obj.stats.mean_a);
+			mpc_atmean = mpc_a_interp(obj.mean_a);
 
 			% Term 1: Effect of MPC function
 			obj.results_RA.term1.value = mpc_atmean - obj.mpc_ra;
