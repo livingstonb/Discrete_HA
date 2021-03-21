@@ -8,7 +8,7 @@ function results = main(p, varargin)
     % compute policy functions via the method of endogenous grip points, 
     % and to find the implied stationary distribution over the state space.
 
-    results = struct('policy',[],'distr',[],'norisk',[],'sim',[],'decomp_meanmpc',[]);
+    results = struct('norisk',[],'sim',[],'decomp_meanmpc',[]);
     distr = struct();
 
     parser = inputParser;
@@ -60,9 +60,6 @@ function results = main(p, varargin)
     end
     basemodel = solver.find_stationary_adist(...
         p, basemodel, income, grdDST, heterogeneity, 'quiet', iterating);
-    results.distr.pmf = basemodel.pmf;
-    results.distr.agrid = grdDST.a.vec;
-    results.distr.pmf_a = basemodel.pmf_a;
 
     if basemodel.EGP_cdiff > p.tol_iter
         % EGP did not converge for beta, escape this parameterization
@@ -140,7 +137,7 @@ function results = main(p, varargin)
                 tlshock-1, mpcmodels{ishock,tlshock-1}, 'quiet', iterating);
         end
     end
-    
+
     mpc_finder = statistics.MPCFinder(p, income, grdDST, heterogeneity,...
         basemodel, mpcmodels);
     if p.MPCs
@@ -157,7 +154,7 @@ function results = main(p, varargin)
     %% --------------------------------------------------------------------
     % MPCs via DRAWING FROM STATIONARY DISTRIBUTION AND SIMULATING
     % ---------------------------------------------------------------------
-    mpc_simulator = statistics.MPCSimulator(p, results.distr, heterogeneity);
+    mpc_simulator = statistics.MPCSimulator(p, results.stats, heterogeneity);
     mpc_simulator.simulate(p, income, grdDST, heterogeneity, basemodel);
     results.mpcs_sim = mpc_simulator.mpcs;
     clear mpc_simulator
@@ -165,7 +162,7 @@ function results = main(p, varargin)
     %% --------------------------------------------------------------------
     % DECOMPOSITION 1 (DECOMP OF E[mpc])
     % ---------------------------------------------------------------------
-    decomp = statistics.Decomp(p, results.distr, results.stats);
+    decomp = statistics.Decomp(p, results.stats, results.stats);
     doDecomposition = (p.nb==1) && (~p.EpsteinZin) && (p.MPCs)...
         && (p.bequest_weight==0) && isequal(p.temptation,0) && (numel(p.r)==1)...
         && (p.DeterministicMPCs);

@@ -4,6 +4,7 @@ classdef Statistics < handle
 		pmf;
 		pmf_a;
 		cdf_a;
+		agrid;
 
 		beta_A;
 		beta_Q;
@@ -61,6 +62,7 @@ classdef Statistics < handle
 			obj.freq = p.freq;
 
 			obj.pmf = model.pmf;
+			obj.agrid = grdDST.a.vec;
 		end
 
 		function compute_statistics(obj)
